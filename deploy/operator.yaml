@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vitess-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vitess-operator
+  template:
+    metadata:
+      labels:
+        app: vitess-operator
+    spec:
+      priorityClassName: vitess-operator-control-plane
+      serviceAccountName: vitess-operator
+      containers:
+      - name: vitess-operator
+        image: us.gcr.io/planetscale-vitess/operator
+        command:
+        - vitess-operator
+        args:
+        - --logtostderr
+        - -v=4
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: WATCH_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: PS_OPERATOR_POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: PS_OPERATOR_POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: OPERATOR_NAME
+          value: "vitess-operator"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            memory: 128Mi

@@ -1,0 +1,30 @@
+{
+    "hideMemberFields": [
+        "TypeMeta"
+    ],
+    "hideTypePatterns": [
+        "ParseError$",
+        "List$"
+    ],
+    "externalPackages": [
+        {
+            "typeMatchPrefix": "^k8s\\.io/apimachinery/pkg/apis/meta/v1\\.Duration$",
+            "docsURLTemplate": "https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#Duration"
+        },
+        {
+            "typeMatchPrefix": "^k8s\\.io/apimachinery/pkg/util/intstr\\.IntOrString$",
+            "docsURLTemplate": "https://godoc.org/k8s.io/apimachinery/util/intstr#IntOrString"
+        },
+        {
+            "typeMatchPrefix": "^k8s\\.io/(api|apimachinery/pkg/apis)/",
+            "docsURLTemplate": "https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#{{lower .TypeIdentifier}}-{{arrIndex .PackageSegments -1}}-{{arrIndex .PackageSegments -2}}"
+        }
+    ],
+    "typeDisplayNamePrefixOverrides": {
+        "k8s.io/api/": "Kubernetes ",
+        "k8s.io/apimachinery/pkg/apis/": "Kubernetes ",
+        "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.": "",
+        "[]planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.": ""
+    },
+    "markdownDisabled": false
+}
