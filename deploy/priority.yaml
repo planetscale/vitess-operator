@@ -1,0 +1,15 @@
+apiVersion: scheduling.k8s.io/v1beta1
+kind: PriorityClass
+metadata:
+  name: vitess-operator-control-plane
+value: 5000
+globalDefault: false
+description: "The vitess-operator control plane."
+---
+apiVersion: scheduling.k8s.io/v1beta1
+kind: PriorityClass
+metadata:
+  name: vitess
+value: 1000
+globalDefault: false
+description: "Vitess components (vttablet, vtgate, vtctld, etcd)"

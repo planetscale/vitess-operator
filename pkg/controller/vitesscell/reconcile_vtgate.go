@@ -1,0 +1,158 @@
+/*
+Copyright 2019 PlanetScale.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+package vitesscell
+
+import (
+	"context"
+
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	apitypes "k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+
+	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
+	"planetscale.dev/vitess-operator/pkg/operator/conditions"
+	"planetscale.dev/vitess-operator/pkg/operator/reconciler"
+	"planetscale.dev/vitess-operator/pkg/operator/results"
+	"planetscale.dev/vitess-operator/pkg/operator/secrets"
+	"planetscale.dev/vitess-operator/pkg/operator/vtgate"
+)
+
+type secretCellsMapper struct {
+	client client.Client
+}
+
+// Map maps a Secret to a list of requests for VitessCells
+// that reference the secret.
+func (m *secretCellsMapper) Map(obj handler.MapObject) []reconcile.Request {
+	secret := obj.Object.(*corev1.Secret)
+	secretName := secret.Name
+
+	cellList := &planetscalev2.VitessCellList{}
+	ctx := context.TODO()
+	err := m.client.List(ctx, &client.ListOptions{
+		Namespace: secret.Namespace,
+	}, cellList)
+	if err != nil {
+		log.WithError(err).Error("failed to list VitessCells; unable to map Secrets to matching VitessCells")
+		return nil
+	}
+
+	// Request reconciliation for all the VitessCells to which this VitessKeyspace is deployed.
+	var requests []reconcile.Request
+	for i := range cellList.Items {
+		cell := &cellList.Items[i]
+		if cell.Spec.Gateway.SecretNames().Has(secretName) {
+			requests = append(requests, reconcile.Request{
+				NamespacedName: apitypes.NamespacedName{
+					Namespace: cell.Namespace,
+					Name:      cell.Name,
+				},
+			})
+		}
+	}
+	return requests
+}
+
+func (r *ReconcileVitessCell) reconcileVtgate(ctx context.Context, vtc *planetscalev2.VitessCell) (reconcile.Result, error) {
+	clusterName := vtc.Labels[planetscalev2.ClusterLabel]
+
+	key := client.ObjectKey{Namespace: vtc.Namespace, Name: vtgate.ServiceName(clusterName, vtc.Spec.Name)}
+	labels := map[string]string{
+		planetscalev2.ClusterLabel:   clusterName,
+		planetscalev2.CellLabel:      vtc.Spec.Name,
+		planetscalev2.ComponentLabel: planetscalev2.VtgateComponentName,
+	}
+	resultBuilder := results.Builder{}
+
+	// Reconcile vtgate Service.
+	err := r.reconciler.ReconcileObject(ctx, vtc, key, labels, true, reconciler.Strategy{
+		Kind: &corev1.Service{},
+
+		New: func(key client.ObjectKey) runtime.Object {
+			return vtgate.NewService(key, labels)
+		},
+		UpdateInPlace: func(key client.ObjectKey, obj runtime.Object) {
+			newObj := obj.(*corev1.Service)
+			vtgate.UpdateService(newObj, labels)
+		},
+		Status: func(key client.ObjectKey, obj runtime.Object) {
+			curObj := obj.(*corev1.Service)
+			vtc.Status.Gateway.ServiceName = curObj.Name
+		},
+	})
+	if err != nil {
+		// Record error but continue.
+		resultBuilder.Error(err)
+	}
+
+	secretNames := vtc.Spec.Gateway.SecretNames()
+	gatewaySecrets, err := secrets.GetByNames(ctx, r.client, vtc.Namespace, secretNames)
+	if err != nil {
+		// Record error and return, to avoid generating a Deployment based on incomplete information.
+		return resultBuilder.Error(err)
+	}
+
+	annotations := map[string]string{
+		"planetscale.com/secret-hash": secrets.ContentHash(gatewaySecrets...),
+	}
+
+	// Reconcile vtgate Deployment.
+	spec := &vtgate.Spec{
+		Cell:              &vtc.Spec,
+		Labels:            labels,
+		PodAnnotations:    annotations,
+		Replicas:          *vtc.Spec.Gateway.Replicas,
+		Resources:         vtc.Spec.Gateway.Resources,
+		Authentication:    &vtc.Spec.Gateway.Authentication,
+		SecureTransport:   vtc.Spec.Gateway.SecureTransport,
+		Affinity:          vtc.Spec.Gateway.Affinity,
+		ExtraFlags:        vtc.Spec.Gateway.ExtraFlags,
+		ExtraEnv:          vtc.Spec.Gateway.ExtraEnv,
+		ExtraVolumes:      vtc.Spec.Gateway.ExtraVolumes,
+		ExtraVolumeMounts: vtc.Spec.Gateway.ExtraVolumeMounts,
+	}
+	key = client.ObjectKey{Namespace: vtc.Namespace, Name: vtgate.DeploymentName(clusterName, vtc.Spec.Name)}
+
+	err = r.reconciler.ReconcileObject(ctx, vtc, key, labels, true, reconciler.Strategy{
+		Kind: &appsv1.Deployment{},
+
+		New: func(key client.ObjectKey) runtime.Object {
+			return vtgate.NewDeployment(key, spec)
+		},
+		UpdateInPlace: func(key client.ObjectKey, obj runtime.Object) {
+			newObj := obj.(*appsv1.Deployment)
+			vtgate.UpdateDeployment(newObj, spec)
+		},
+		Status: func(key client.ObjectKey, obj runtime.Object) {
+			curObj := obj.(*appsv1.Deployment)
+
+			status := &vtc.Status.Gateway
+			if available := conditions.Deployment(curObj.Status.Conditions, appsv1.DeploymentAvailable); available != nil {
+				status.Available = available.Status
+			}
+		},
+	})
+	if err != nil {
+		resultBuilder.Error(err)
+	}
+
+	return resultBuilder.Result()
+}
