@@ -78,6 +78,7 @@ type Spec struct {
 	ExtraVolumes      []corev1.Volume
 	ExtraVolumeMounts []corev1.VolumeMount
 	Affinity          *corev1.Affinity
+	Annotations       map[string]string
 }
 
 // NewPod creates a new etcd Pod.
@@ -186,7 +187,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 			SuccessThreshold:    1,
 			TimeoutSeconds:      5,
 		},
-		Env: env,
+		Env:          env,
 		VolumeMounts: volumeMounts,
 	}
 
