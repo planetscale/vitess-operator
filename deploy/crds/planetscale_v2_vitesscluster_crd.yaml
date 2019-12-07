@@ -168,6 +168,16 @@ spec:
                           in turn, we can''t guarantee optimal scheduling of your
                           pods if you choose to set this field.'
                         type: object
+                      annotations:
+                        additionalProperties:
+                          type: string
+                        description: Annotations are key/value metadata pairs that
+                          can be attached to any Pod to select objects that satisfy
+                          certain conditions. This can be used for monitoring or access
+                          management tools that use tags for discovery. These will
+                          be attached to the underlying pods that the vtgate deployment
+                          creates.
+                        type: object
                       authentication:
                         description: Authentication configures how Vitess Gateway
                           authenticates MySQL client connections.
@@ -275,6 +285,14 @@ spec:
                               rules will override all default affinities that we set;
                               in turn, we can''t guarantee optimal scheduling of your
                               pods if you choose to set this field.'
+                            type: object
+                          annotations:
+                            additionalProperties:
+                              type: string
+                            description: Annotations are key/value metadata pairs
+                              that can be attached to any Pod to select objects that
+                              satisfy certain conditions. This can be used for monitoring
+                              or access management tools that use tags for discovery.
                             type: object
                           dataVolumeClaimTemplate:
                             description: 'DataVolumeClaimTemplate configures the PersistentVolumeClaims
@@ -389,6 +407,14 @@ spec:
                         rules will override all default affinities that we set; in
                         turn, we can''t guarantee optimal scheduling of your pods
                         if you choose to set this field.'
+                      type: object
+                    annotations:
+                      additionalProperties:
+                        type: string
+                      description: Annotations are key/value metadata pairs that can
+                        be attached to any Pod to select objects that satisfy certain
+                        conditions. This can be used for monitoring or access management
+                        tools that use tags for discovery.
                       type: object
                     dataVolumeClaimTemplate:
                       description: 'DataVolumeClaimTemplate configures the PersistentVolumeClaims
@@ -663,6 +689,16 @@ spec:
                                             affinities that we set; in turn, we can''t
                                             guarantee optimal scheduling of your pods
                                             if you choose to set this field.'
+                                          type: object
+                                        annotations:
+                                          additionalProperties:
+                                            type: string
+                                          description: Annotations are key/value metadata
+                                            pairs that can be attached to any Pod
+                                            to select objects that satisfy certain
+                                            conditions. This can be used for monitoring
+                                            or access management tools that use tags
+                                            for discovery.
                                           type: object
                                         backupLocationName:
                                           description: 'BackupLocationName is the
@@ -947,6 +983,15 @@ spec:
                                           scheduling of your pods if you choose to
                                           set this field.'
                                         type: object
+                                      annotations:
+                                        additionalProperties:
+                                          type: string
+                                        description: Annotations are key/value metadata
+                                          pairs that can be attached to any Pod to
+                                          select objects that satisfy certain conditions.
+                                          This can be used for monitoring or access
+                                          management tools that use tags for discovery.
+                                        type: object
                                       backupLocationName:
                                         description: 'BackupLocationName is the name
                                           of the backup location to use for this tablet
@@ -1186,6 +1231,15 @@ spec:
                     will override all default affinities that we set; in turn, we
                     can''t guarantee optimal scheduling of your pods if you choose
                     to set this field.'
+                  type: object
+                annotations:
+                  additionalProperties:
+                    type: string
+                  description: Annotations are key/value metadata pairs that can be
+                    attached to any Pod to select objects that satisfy certain conditions.
+                    This can be used for monitoring or access management tools that
+                    use tags for discovery. These will be attached to the underlying
+                    pods that the vtctld deployment creates.
                   type: object
                 cells:
                   description: 'Cells is a list of cell names (as defined in the Cells

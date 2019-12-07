@@ -5,7 +5,7 @@ go 1.12
 require (
 	contrib.go.opencensus.io/exporter/ocagent v0.4.12 // indirect
 	github.com/Azure/go-autorest v11.7.1+incompatible // indirect
-	github.com/ahmetb/gen-crd-api-reference-docs v0.1.5-0.20190629210212-52e137b8d003 // indirect
+	github.com/ahmetb/gen-crd-api-reference-docs v0.1.5-0.20190629210212-52e137b8d003
 	github.com/aws/aws-sdk-go v1.20.4 // indirect
 	github.com/coreos/etcd v3.3.12+incompatible // indirect
 	github.com/docker/distribution v2.7.1+incompatible // indirect

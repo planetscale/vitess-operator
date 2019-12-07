@@ -162,6 +162,20 @@ func schema_pkg_apis_planetscale_v2_EtcdLockserverSpec(ref common.ReferenceCallb
 							Ref:         ref("k8s.io/api/core/v1.Affinity"),
 						},
 					},
+					"annotations": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Annotations are key/value metadata pairs that can be attached to any Pod to select objects that satisfy certain conditions. This can be used for monitoring or access management tools that use tags for discovery.",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
 					"zone": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Zone is the name of the Availability Zone that this lockserver should run in. This value should match the value of the \"failure-domain.beta.kubernetes.io/zone\" label on the Kubernetes Nodes in that AZ. If the Kubernetes Nodes don't have such a label, leave this empty.",

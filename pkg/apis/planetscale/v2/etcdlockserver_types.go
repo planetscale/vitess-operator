@@ -111,6 +111,11 @@ type EtcdLockserverTemplate struct {
 	// that we set; in turn, we can't guarantee optimal scheduling of your pods if you
 	// choose to set this field.
 	Affinity *corev1.Affinity `json:"affinity,omitempty"`
+
+	// Annotations are key/value metadata pairs that can be attached to any Pod to select
+	// objects that satisfy certain conditions. This can be used for monitoring or access
+	// management tools that use tags for discovery.
+	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
 // EtcdLockserverStatus defines the observed state of an EtcdLockserver.
