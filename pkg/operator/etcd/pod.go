@@ -17,7 +17,10 @@ limitations under the License.
 package etcd
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
+	"sort"
 	"strings"
 
 	"planetscale.dev/vitess-operator/pkg/operator/vitess"
@@ -108,6 +111,14 @@ func UpdatePodInPlace(obj *corev1.Pod, spec *Spec) {
 func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	// Update labels, but ignore existing ones we don't set.
 	update.Labels(&obj.Labels, spec.Labels)
+
+	// Update annotations and recreate pod if annotations are updated or removed.
+	annotations := spec.Annotations
+	annotationsHash := map[string]string{
+		"annotationsDeltaHash": contentHash(annotations),
+	}
+	update.Annotations(annotations, annotationsHash)
+	update.Annotations(&obj.Annotations, annotations)
 
 	// Compute default environment variables first.
 	env := []corev1.EnvVar{
@@ -315,4 +326,25 @@ func (spec *Spec) Args() []string {
 	}
 
 	return flags.FormatArgs()
+}
+
+func contentHash(m map[string][]byte) string {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+
+	sort.Strings(keys)
+
+	h := md5.New()
+	for _, k := range keys {
+		v := m[k]
+		kHash := md5.Sum([]byte(k))
+		h.Write(kHash[:])
+		vHash := md5.Sum(v)
+		h.Write(vHash[:])
+	}
+
+	sum := h.Sum(nil)
+	return hex.EncodeToString(sum)
 }
