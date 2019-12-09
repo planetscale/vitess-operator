@@ -117,7 +117,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	annotationsHash := map[string]string{
 		"annotationsDeltaHash": contentHash(annotations),
 	}
-	update.Annotations(annotations, annotationsHash)
+	update.Annotations(&annotations, annotationsHash)
 	update.Annotations(&obj.Annotations, annotations)
 
 	// Compute default environment variables first.

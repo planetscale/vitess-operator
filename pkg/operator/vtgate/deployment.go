@@ -125,7 +125,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 	update.Labels(&obj.Spec.Template.Labels, spec.Labels)
 	// Tell Deployment to set annotations on Pods it creates.
 	annotations := spec.Annotations
-	update.Annotations(annotations, spec.PodAnnotations)
+	update.Annotations(&annotations, spec.PodAnnotations)
 	update.Annotations(&obj.Spec.Template.Annotations, annotations)
 
 	// Deployment options.
