@@ -326,7 +326,7 @@ func AliasFromPod(pod *corev1.Pod) topodatapb.TabletAlias {
 	}
 }
 
-func contentHash(m map[string][]byte) string {
+func contentHash(m map[string]string) string {
 	keys := make([]string, 0, len(m))
 	for k := range m {
 		keys = append(keys, k)
@@ -339,7 +339,7 @@ func contentHash(m map[string][]byte) string {
 		v := m[k]
 		kHash := md5.Sum([]byte(k))
 		h.Write(kHash[:])
-		vHash := md5.Sum(v)
+		vHash := md5.Sum([]byte(v))
 		h.Write(vHash[:])
 	}
 
