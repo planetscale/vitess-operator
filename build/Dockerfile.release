@@ -1,0 +1,37 @@
+# This is a Dockerfile for building release images.
+#
+# The base Dockerfile is used by operator-sdk, so we can't use that name.
+# That Dockerfile merely copies a binary that has been built outside Docker,
+# which is useful for development work because it means the build shares the Go
+# module cache from your local machine.
+#
+# In contrast, this file builds the binary inside Docker so it's more
+# self-contained and doesn't require operator-sdk or external steps.
+# The downside is that there's no good way to share the local Go module cache
+# without messing up file permissions, since the Docker container doesn't run as
+# your actual user.
+
+FROM golang:1.12 AS build
+
+ENV GO111MODULE=on
+WORKDIR /go/src/planetscale.dev/vitess-operator
+COPY . /go/src/planetscale.dev/vitess-operator
+RUN go install /go/src/planetscale.dev/vitess-operator/cmd/manager
+
+# The rest is meant to mimic the output from operator-sdk's Dockerfile.
+# We just copy the binary we built inside Docker instead of from outside.
+FROM registry.access.redhat.com/ubi7/ubi-minimal:latest
+
+ENV OPERATOR=/usr/local/bin/vitess-operator \
+    USER_UID=1001 \
+    USER_NAME=vitess-operator
+
+# install operator binary
+COPY --from=build /go/bin/manager ${OPERATOR}
+
+COPY build/bin /usr/local/bin
+RUN  /usr/local/bin/user_setup
+
+ENTRYPOINT ["/usr/local/bin/entrypoint"]
+
+USER ${USER_UID}

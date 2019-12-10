@@ -1,9 +1,9 @@
-.PHONY: build generate push-only push
+.PHONY: build release-build generate push-only push
 
-IMAGE_REGISTRY:=us.gcr.io
+IMAGE_REGISTRY:=docker.io
 IMAGE_TAG:=latest
 
-IMAGE:=planetscale-vitess/operator
+IMAGE:=planetscale/vitess-operator
 
 IMAGE_NAME:=$(IMAGE_REGISTRY)/$(IMAGE)
 
@@ -12,8 +12,15 @@ OPERATOR_SDK_VERSION:=v0.10.0
 # Enable Go modules
 export GO111MODULE=on
 
+# Regular operator-sdk build is good for development because it does the actual
+# build outside Docker, so it uses your cached modules.
 build:
 	operator-sdk-$(OPERATOR_SDK_VERSION) build $(IMAGE_NAME):$(IMAGE_TAG) --image-build-args '--no-cache'
+
+# Release build is slow but self-contained (doesn't depend on anything in your
+# local machine). We use this for automated builds that we publish.
+release-build:
+	docker build -f build/Dockerfile.release -t $(IMAGE_NAME):$(IMAGE_TAG) .
 
 generate:
 	operator-sdk-$(OPERATOR_SDK_VERSION) generate k8s
