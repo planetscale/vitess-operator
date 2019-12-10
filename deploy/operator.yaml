@@ -16,7 +16,7 @@ spec:
       serviceAccountName: vitess-operator
       containers:
       - name: vitess-operator
-        image: us.gcr.io/planetscale-vitess/operator
+        image: planetscale/vitess-operator
         command:
         - vitess-operator
         args:
