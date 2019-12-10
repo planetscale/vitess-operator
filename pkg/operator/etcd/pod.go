@@ -115,7 +115,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	// Update annotations and recreate pod if annotations are updated or removed.
 	annotations := spec.Annotations
 	annotationsHash := map[string]string{
-		"annotationsDeltaHash": contentHash(annotations),
+		"annotationsDeltaHash": annotationHash(annotations),
 	}
 	update.Annotations(&annotations, annotationsHash)
 	update.Annotations(&obj.Annotations, annotations)
@@ -328,7 +328,7 @@ func (spec *Spec) Args() []string {
 	return flags.FormatArgs()
 }
 
-func contentHash(m map[string]string) string {
+func annotationHash(m map[string]string) string {
 	keys := make([]string, 0, len(m))
 	for k := range m {
 		keys = append(keys, k)
@@ -338,11 +338,7 @@ func contentHash(m map[string]string) string {
 
 	h := md5.New()
 	for _, k := range keys {
-		v := m[k]
-		kHash := md5.Sum([]byte(k))
-		h.Write(kHash[:])
-		vHash := md5.Sum([]byte(v))
-		h.Write(vHash[:])
+		fmt.Fprintln(h, k)
 	}
 
 	sum := h.Sum(nil)
