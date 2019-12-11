@@ -1,4 +1,4 @@
-.PHONY: build release-build generate push-only push
+.PHONY: build release-build unit-test integration-test generate push-only push
 
 IMAGE_REGISTRY:=docker.io
 IMAGE_TAG:=latest
@@ -21,6 +21,16 @@ build:
 # local machine). We use this for automated builds that we publish.
 release-build:
 	docker build -f build/Dockerfile.release -t $(IMAGE_NAME):$(IMAGE_TAG) .
+
+unit-test:
+	pkgs="$$(go list ./... | grep -v '/test/integration/')" && \
+		go test -i $${pkgs} && \
+		go test $${pkgs}
+
+integration-test:
+	tools/get-kube-binaries.sh
+	go test -i ./test/integration/...
+	PATH="$(PWD)/tools/_bin:$(PATH)" go test -v -timeout 5m ./test/integration/... -args --logtostderr -v=6
 
 generate:
 	operator-sdk-$(OPERATOR_SDK_VERSION) generate k8s
