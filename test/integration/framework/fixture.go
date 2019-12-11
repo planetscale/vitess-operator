@@ -19,14 +19,17 @@ limitations under the License.
 package framework
 
 import (
+	"context"
 	"fmt"
 	"testing"
 	"time"
 
-	v1 "k8s.io/api/core/v1"
-	apiextensionsclient "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
+
+	"planetscale.dev/vitess-operator/pkg/operator/controllermanager"
 )
 
 const (
@@ -38,58 +41,70 @@ const (
 type Fixture struct {
 	t *testing.T
 
-	teardownFuncs []func() error
+	teardownFuncs []func(ctx context.Context) error
 
-	kubernetes    kubernetes.Interface
-	apiextensions apiextensionsclient.ApiextensionsV1beta1Interface
+	client client.Client
 }
 
 func NewFixture(t *testing.T) *Fixture {
 	config := ApiserverConfig()
-	apiextensions, err := apiextensionsclient.NewForConfig(config)
+
+	scheme, err := controllermanager.NewScheme()
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("can't create Scheme: %v", err)
 	}
-	clientset, err := kubernetes.NewForConfig(config)
+
+	mapper, err := apiutil.NewDiscoveryRESTMapper(config)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("can't create Mapper: %v", err)
+	}
+
+	kubeClient, err := client.New(config, client.Options{
+		Scheme: scheme,
+		Mapper: mapper,
+	})
+	if err != nil {
+		t.Fatalf("can't create Client: %v", err)
 	}
 
 	return &Fixture{
-		t:             t,
-		kubernetes:    clientset,
-		apiextensions: apiextensions,
+		t:      t,
+		client: kubeClient,
 	}
 }
 
-// Clientset returns the Kubernetes clientset.
-func (f *Fixture) Clientset() kubernetes.Interface {
-	return f.kubernetes
+// Client returns the Kubernetes client.
+func (f *Fixture) Client() client.Client {
+	return f.client
 }
 
 // CreateNamespace creates a namespace that will be deleted after this test
 // finishes.
-func (f *Fixture) CreateNamespace(namespace string) *v1.Namespace {
-	ns := &v1.Namespace{
+func (f *Fixture) CreateNamespace(ctx context.Context, namespace string) *corev1.Namespace {
+	ns := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: namespace,
 		},
 	}
-	ns, err := f.kubernetes.CoreV1().Namespaces().Create(ns)
-	if err != nil {
+	if err := f.client.Create(ctx, ns); err != nil {
 		f.t.Fatal(err)
 	}
-	f.deferTeardown(func() error {
-		return f.kubernetes.CoreV1().Namespaces().Delete(ns.Name, nil)
+	f.deferTeardown(func(ctx context.Context) error {
+		// Make a fresh object with just the name, so the delete is unconditional.
+		return f.client.Delete(ctx, &corev1.Namespace{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: namespace,
+			},
+		}, client.PropagationPolicy(metav1.DeletePropagationForeground))
 	})
 	return ns
 }
 
 // TearDown cleans up resources created through this instance of the test fixture.
-func (f *Fixture) TearDown() {
+func (f *Fixture) TearDown(ctx context.Context) {
 	for i := len(f.teardownFuncs) - 1; i >= 0; i-- {
 		teardown := f.teardownFuncs[i]
-		if err := teardown(); err != nil {
+		if err := teardown(ctx); err != nil {
 			f.t.Logf("Error during teardown: %v", err)
 			// Mark the test as failed, but continue trying to tear down.
 			f.t.Fail()
@@ -125,6 +140,6 @@ func (f *Fixture) Wait(condition func() (bool, error)) error {
 	}
 }
 
-func (f *Fixture) deferTeardown(teardown func() error) {
+func (f *Fixture) deferTeardown(teardown func(ctx context.Context) error) {
 	f.teardownFuncs = append(f.teardownFuncs, teardown)
 }
