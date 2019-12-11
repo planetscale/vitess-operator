@@ -79,12 +79,12 @@ func testMain(tests func() int) error {
 	klog.Info("Waiting for kube-apiserver to be ready...")
 	start := time.Now()
 	for {
-		kubectlErr := execKubectl("version")
+		out, kubectlErr := execKubectl("version")
 		if kubectlErr == nil {
 			break
 		}
 		if time.Since(start) > 60*time.Second {
-			return fmt.Errorf("timed out waiting for kube-apiserver to be ready: %v", kubectlErr)
+			return fmt.Errorf("timed out waiting for kube-apiserver to be ready: %v\n%s", kubectlErr, out)
 		}
 		time.Sleep(time.Second)
 	}
@@ -100,9 +100,22 @@ func testMain(tests func() int) error {
 	for _, file := range files {
 		filePath := path.Join(deployDir, file)
 		klog.Infof("Installing %v...", filePath)
-		if err := execKubectl("apply", "-f", filePath); err != nil {
-			return fmt.Errorf("cannot install %v: %v", filePath, err)
+		if out, err := execKubectl("apply", "-f", filePath); err != nil {
+			return fmt.Errorf("cannot install %v: %v\n%s", filePath, err, out)
 		}
+	}
+
+	klog.Info("Waiting for CRDs to be ready...")
+	start = time.Now()
+	for {
+		out, kubectlErr := execKubectl("get", "vt,vtc,vtk,vts,vtbs,vtb,etcdls")
+		if kubectlErr == nil {
+			break
+		}
+		if time.Since(start) > 30*time.Second {
+			return fmt.Errorf("timed out waiting for CRDs to be ready: %v\n%s", kubectlErr, out)
+		}
+		time.Sleep(time.Second)
 	}
 
 	// Start vitess-operator in this test process.
@@ -127,12 +140,12 @@ func testMain(tests func() int) error {
 	return nil
 }
 
-func execKubectl(args ...string) error {
+func execKubectl(args ...string) ([]byte, error) {
 	execPath, err := exec.LookPath("kubectl")
 	if err != nil {
-		return fmt.Errorf("cannot exec kubectl: %v", err)
+		return nil, fmt.Errorf("cannot exec kubectl: %v", err)
 	}
 	cmdline := append([]string{"--server", ApiserverURL()}, args...)
 	cmd := exec.Command(execPath, cmdline...)
-	return cmd.Run()
+	return cmd.CombinedOutput()
 }
