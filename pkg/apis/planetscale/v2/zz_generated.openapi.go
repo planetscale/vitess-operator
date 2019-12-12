@@ -164,7 +164,7 @@ func schema_pkg_apis_planetscale_v2_EtcdLockserverSpec(ref common.ReferenceCallb
 					},
 					"annotations": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Annotations are key/value metadata pairs that can be attached to any Pod to select objects that satisfy certain conditions. This can be used for monitoring or access management tools that use tags for discovery.",
+							Description: "Annotations can optionally be used to attach custom annotations to Pods created for this component.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
 								Schema: &spec.Schema{

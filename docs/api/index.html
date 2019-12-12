@@ -707,9 +707,8 @@ map[string]string
 </em>
 </td>
 <td>
-<p>Annotations are key/value metadata pairs that can be attached to any Pod to select
-objects that satisfy certain conditions. This can be used for monitoring or access
-management tools that use tags for discovery.</p>
+<p>Annotations can optionally be used to attach custom annotations to Pods
+created for this component.</p>
 </td>
 </tr>
 </tbody>
@@ -1874,9 +1873,8 @@ map[string]string
 </em>
 </td>
 <td>
-<p>Annotations are key/value metadata pairs that can be attached to any Pod to select
-objects that satisfy certain conditions. This can be used for monitoring or access
-management tools that use tags for discovery. These will be attached to the underlying
+<p>Annotations can optionally be used to attach custom annotations to Pods
+created for this component. These will be attached to the underlying
 pods that the vtgate deployment creates.</p>
 </td>
 </tr>
@@ -2755,9 +2753,8 @@ map[string]string
 </em>
 </td>
 <td>
-<p>Annotations are key/value metadata pairs that can be attached to any Pod to select
-objects that satisfy certain conditions. This can be used for monitoring or access
-management tools that use tags for discovery. These will be attached to the underlying
+<p>Annotations can optionally be used to attach custom annotations to Pods
+created for this component. These will be attached to the underlying
 pods that the vtctld deployment creates.</p>
 </td>
 </tr>
@@ -4587,6 +4584,18 @@ optimal scheduling of your pods if you choose to set this field.</p>
 </tr>
 <tr>
 <td>
+<code>annotations</code></br>
+<em>
+map[string]string
+</em>
+</td>
+<td>
+<p>Annotations can optionally be used to attach custom annotations to Pods
+created for this component.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>extraEnv</code></br>
 <em>
 <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#envvar-v1-core">
@@ -4632,19 +4641,6 @@ These volumes are available to be mounted by both vttablet and mysqld.</p>
 volumeMounts defined by the operator, or specify additional mounts.
 Typically, these are used to mount volumes defined through extraVolumes.
 These values are applied to both the vttablet and mysqld containers.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>annotations</code></br>
-<em>
-map[string]string
-</em>
-</td>
-<td>
-<p>Annotations are key/value metadata pairs that can be attached to any Pod to select
-objects that satisfy certain conditions. This can be used for monitoring or access
-management tools that use tags for discovery.</p>
 </td>
 </tr>
 </tbody>
