@@ -104,7 +104,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 	update.Labels(&obj.Spec.Template.Labels, spec.Labels)
 
 	// Tell Deployment to set annotations on Pods that it creates.
-	update.Annotations(&obj.Spec.Template.Annotations, spec.Annotations)
+	obj.Spec.Template.Annotations = spec.Annotations
 
 	// Deployment options.
 	obj.Spec.RevisionHistoryLimit = pointer.Int32Ptr(0)

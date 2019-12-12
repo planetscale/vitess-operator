@@ -17,12 +17,10 @@ limitations under the License.
 package etcd
 
 import (
-	"crypto/md5"
-	"encoding/hex"
 	"fmt"
-	"sort"
 	"strings"
 
+	"planetscale.dev/vitess-operator/pkg/operator/stringmaps"
 	"planetscale.dev/vitess-operator/pkg/operator/vitess"
 
 	corev1 "k8s.io/api/core/v1"
@@ -112,13 +110,13 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	// Update labels, but ignore existing ones we don't set.
 	update.Labels(&obj.Labels, spec.Labels)
 
-	// Update annotations and recreate pod if annotations are updated or removed.
-	annotations := spec.Annotations
-	annotationsHash := map[string]string{
-		"annotationsDeltaHash": annotationHash(annotations),
-	}
-	update.Annotations(&annotations, annotationsHash)
-	update.Annotations(&obj.Annotations, annotations)
+	// Update desired annotations.
+	update.Annotations(&obj.Annotations, spec.Annotations)
+	// Record a hash of desired annotation keys to force the Pod
+	// to be recreated if a key disappears from the desired list.
+	update.Annotations(&obj.Annotations, map[string]string{
+		"planetscale.com/annotations-keys-hash": stringmaps.HashKeys(spec.Annotations),
+	})
 
 	// Compute default environment variables first.
 	env := []corev1.EnvVar{
@@ -326,21 +324,4 @@ func (spec *Spec) Args() []string {
 	}
 
 	return flags.FormatArgs()
-}
-
-func annotationHash(m map[string]string) string {
-	keys := make([]string, 0, len(m))
-	for k := range m {
-		keys = append(keys, k)
-	}
-
-	sort.Strings(keys)
-
-	h := md5.New()
-	for _, k := range keys {
-		fmt.Fprintln(h, k)
-	}
-
-	sum := h.Sum(nil)
-	return hex.EncodeToString(sum)
 }

@@ -247,9 +247,8 @@ type VitessDashboardSpec struct {
 	// choose to set this field.
 	Affinity *corev1.Affinity `json:"affinity,omitempty"`
 
-	// Annotations are key/value metadata pairs that can be attached to any Pod to select
-	// objects that satisfy certain conditions. This can be used for monitoring or access
-	// management tools that use tags for discovery. These will be attached to the underlying
+	// Annotations can optionally be used to attach custom annotations to Pods
+	// created for this component. These will be attached to the underlying
 	// pods that the vtctld deployment creates.
 	Annotations map[string]string `json:"annotations,omitempty"`
 }

@@ -177,6 +177,10 @@ type VitessShardTabletPool struct {
 	// optimal scheduling of your pods if you choose to set this field.
 	Affinity *corev1.Affinity `json:"affinity,omitempty"`
 
+	// Annotations can optionally be used to attach custom annotations to Pods
+	// created for this component.
+	Annotations map[string]string `json:"annotations,omitempty"`
+
 	// ExtraEnv can optionally be used to override default environment variables
 	// set by the operator, or pass additional environment variables.
 	// These values are applied to both the vttablet and mysqld containers.
@@ -195,11 +199,6 @@ type VitessShardTabletPool struct {
 	// Typically, these are used to mount volumes defined through extraVolumes.
 	// These values are applied to both the vttablet and mysqld containers.
 	ExtraVolumeMounts []corev1.VolumeMount `json:"extraVolumeMounts,omitempty"`
-
-	// Annotations are key/value metadata pairs that can be attached to any Pod to select
-	// objects that satisfy certain conditions. This can be used for monitoring or access
-	// management tools that use tags for discovery.
-	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
 // VttabletSpec configures the vttablet server within a tablet.

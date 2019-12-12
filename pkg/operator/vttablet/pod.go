@@ -37,6 +37,7 @@ import (
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 	"planetscale.dev/vitess-operator/pkg/operator/k8s"
 	"planetscale.dev/vitess-operator/pkg/operator/names"
+	"planetscale.dev/vitess-operator/pkg/operator/stringmaps"
 	"planetscale.dev/vitess-operator/pkg/operator/update"
 )
 
@@ -63,7 +64,6 @@ func NewPod(key client.ObjectKey, spec *Spec) *corev1.Pod {
 func UpdatePodInPlace(obj *corev1.Pod, spec *Spec) {
 	// Update labels and annotations, but ignore existing ones we don't set.
 	update.Labels(&obj.Labels, spec.Labels)
-	update.Annotations(&obj.Annotations, spec.Annotations)
 }
 
 // UpdatePod updates all parts of a vttablet Pod to match the desired state,
@@ -74,13 +74,13 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	// Update labels, but ignore existing ones we don't set.
 	update.Labels(&obj.Labels, spec.Labels)
 
-	// Update annotations and recreate pod if annotations are updated or removed.
-	annotations := spec.Annotations
-	annotationsHash := map[string]string{
-		"annotationsDeltaHash": annotationHash(annotations),
-	}
-	update.Annotations(&annotations, annotationsHash)
-	update.Annotations(&obj.Annotations, annotations)
+	// Update desired annotations.
+	update.Annotations(&obj.Annotations, spec.Annotations)
+	// Record a hash of desired annotation keys to force the Pod
+	// to be recreated if a key disappears from the desired list.
+	update.Annotations(&obj.Annotations, map[string]string{
+		"planetscale.com/annotations-keys-hash": stringmaps.HashKeys(spec.Annotations),
+	})
 
 	// Collect some common values that will be shared across containers.
 	volumeMounts := tabletVolumeMounts.Get(spec)

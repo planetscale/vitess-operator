@@ -123,12 +123,8 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 	update.Labels(&obj.Labels, spec.Labels)
 	// Tell Deployment to set the same labels on the Pods it creates.
 	update.Labels(&obj.Spec.Template.Labels, spec.Labels)
-	// Clobber existing annotations so that we don't mutate the input map.
-	obj.Spec.Template.Annotations = map[string]string{}
 	// Tell Deployment to set annotations on Pods it creates.
-	annotations := spec.Annotations
-	update.Annotations(&annotations, spec.PodAnnotations)
-	update.Annotations(&obj.Spec.Template.Annotations, annotations)
+	obj.Spec.Template.Annotations = spec.Annotations
 
 	// Deployment options.
 	obj.Spec.Replicas = pointer.Int32Ptr(spec.Replicas)
