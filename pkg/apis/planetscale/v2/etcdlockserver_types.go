@@ -111,6 +111,10 @@ type EtcdLockserverTemplate struct {
 	// that we set; in turn, we can't guarantee optimal scheduling of your pods if you
 	// choose to set this field.
 	Affinity *corev1.Affinity `json:"affinity,omitempty"`
+
+	// Annotations can optionally be used to attach custom annotations to Pods
+	// created for this component.
+	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
 // EtcdLockserverStatus defines the observed state of an EtcdLockserver.

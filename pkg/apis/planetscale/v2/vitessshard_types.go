@@ -177,6 +177,10 @@ type VitessShardTabletPool struct {
 	// optimal scheduling of your pods if you choose to set this field.
 	Affinity *corev1.Affinity `json:"affinity,omitempty"`
 
+	// Annotations can optionally be used to attach custom annotations to Pods
+	// created for this component.
+	Annotations map[string]string `json:"annotations,omitempty"`
+
 	// ExtraEnv can optionally be used to override default environment variables
 	// set by the operator, or pass additional environment variables.
 	// These values are applied to both the vttablet and mysqld containers.

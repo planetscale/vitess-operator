@@ -699,6 +699,18 @@ that we set; in turn, we can&rsquo;t guarantee optimal scheduling of your pods i
 choose to set this field.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>annotations</code></br>
+<em>
+map[string]string
+</em>
+</td>
+<td>
+<p>Annotations can optionally be used to attach custom annotations to Pods
+created for this component.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="planetscale.com/v2.ExternalDatastore">ExternalDatastore
@@ -1853,6 +1865,19 @@ that we set; in turn, we can&rsquo;t guarantee optimal scheduling of your pods i
 choose to set this field.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>annotations</code></br>
+<em>
+map[string]string
+</em>
+</td>
+<td>
+<p>Annotations can optionally be used to attach custom annotations to Pods
+created for this component. These will be attached to the underlying
+pods that the vtgate deployment creates.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="planetscale.com/v2.VitessCellGatewayStatus">VitessCellGatewayStatus
@@ -2718,6 +2743,19 @@ Kubernetes core/v1.Affinity
 your vtctld pods. WARNING: These affinity rules will override all default affinities
 that we set; in turn, we can&rsquo;t guarantee optimal scheduling of your pods if you
 choose to set this field.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>annotations</code></br>
+<em>
+map[string]string
+</em>
+</td>
+<td>
+<p>Annotations can optionally be used to attach custom annotations to Pods
+created for this component. These will be attached to the underlying
+pods that the vtctld deployment creates.</p>
 </td>
 </tr>
 </tbody>
@@ -4542,6 +4580,18 @@ your vttablet pods. Affinity rules will affect all underlying
 tablets in the specified tablet pool the same way. WARNING: These affinity rules
 will override all default affinities that we set; in turn, we can&rsquo;t guarantee
 optimal scheduling of your pods if you choose to set this field.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>annotations</code></br>
+<em>
+map[string]string
+</em>
+</td>
+<td>
+<p>Annotations can optionally be used to attach custom annotations to Pods
+created for this component.</p>
 </td>
 </tr>
 <tr>

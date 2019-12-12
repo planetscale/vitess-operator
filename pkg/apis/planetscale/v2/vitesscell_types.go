@@ -150,6 +150,11 @@ type VitessCellGatewaySpec struct {
 	// that we set; in turn, we can't guarantee optimal scheduling of your pods if you
 	// choose to set this field.
 	Affinity *corev1.Affinity `json:"affinity,omitempty"`
+
+	// Annotations can optionally be used to attach custom annotations to Pods
+	// created for this component. These will be attached to the underlying
+	// pods that the vtgate deployment creates.
+	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
 // VitessGatewayAuthentication configures authentication for vtgate in this cell.

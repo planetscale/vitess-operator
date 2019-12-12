@@ -47,6 +47,13 @@ spec:
                     can''t guarantee optimal scheduling of your pods if you choose
                     to set this field.'
                   type: object
+                annotations:
+                  additionalProperties:
+                    type: string
+                  description: Annotations can optionally be used to attach custom
+                    annotations to Pods created for this component. These will be
+                    attached to the underlying pods that the vtgate deployment creates.
+                  type: object
                 authentication:
                   description: Authentication configures how Vitess Gateway authenticates
                     MySQL client connections.
@@ -182,6 +189,12 @@ spec:
                         rules will override all default affinities that we set; in
                         turn, we can''t guarantee optimal scheduling of your pods
                         if you choose to set this field.'
+                      type: object
+                    annotations:
+                      additionalProperties:
+                        type: string
+                      description: Annotations can optionally be used to attach custom
+                        annotations to Pods created for this component.
                       type: object
                     dataVolumeClaimTemplate:
                       description: 'DataVolumeClaimTemplate configures the PersistentVolumeClaims

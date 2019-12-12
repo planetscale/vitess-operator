@@ -32,6 +32,7 @@ import (
 	"planetscale.dev/vitess-operator/pkg/operator/reconciler"
 	"planetscale.dev/vitess-operator/pkg/operator/results"
 	"planetscale.dev/vitess-operator/pkg/operator/secrets"
+	"planetscale.dev/vitess-operator/pkg/operator/update"
 	"planetscale.dev/vitess-operator/pkg/operator/vtgate"
 )
 
@@ -113,12 +114,12 @@ func (r *ReconcileVitessCell) reconcileVtgate(ctx context.Context, vtc *planetsc
 	annotations := map[string]string{
 		"planetscale.com/secret-hash": secrets.ContentHash(gatewaySecrets...),
 	}
+	update.Annotations(&annotations, vtc.Spec.Gateway.Annotations)
 
 	// Reconcile vtgate Deployment.
 	spec := &vtgate.Spec{
 		Cell:              &vtc.Spec,
 		Labels:            labels,
-		PodAnnotations:    annotations,
 		Replicas:          *vtc.Spec.Gateway.Replicas,
 		Resources:         vtc.Spec.Gateway.Resources,
 		Authentication:    &vtc.Spec.Gateway.Authentication,
@@ -128,6 +129,7 @@ func (r *ReconcileVitessCell) reconcileVtgate(ctx context.Context, vtc *planetsc
 		ExtraEnv:          vtc.Spec.Gateway.ExtraEnv,
 		ExtraVolumes:      vtc.Spec.Gateway.ExtraVolumes,
 		ExtraVolumeMounts: vtc.Spec.Gateway.ExtraVolumeMounts,
+		Annotations:       annotations,
 	}
 	key = client.ObjectKey{Namespace: vtc.Namespace, Name: vtgate.DeploymentName(clusterName, vtc.Spec.Name)}
 

@@ -37,6 +37,12 @@ spec:
                 default affinities that we set; in turn, we can''t guarantee optimal
                 scheduling of your pods if you choose to set this field.'
               type: object
+            annotations:
+              additionalProperties:
+                type: string
+              description: Annotations can optionally be used to attach custom annotations
+                to Pods created for this component.
+              type: object
             dataVolumeClaimTemplate:
               description: 'DataVolumeClaimTemplate configures the PersistentVolumeClaims
                 that will be created for each etcd instance to store its data files.

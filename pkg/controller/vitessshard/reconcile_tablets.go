@@ -39,6 +39,7 @@ import (
 	"planetscale.dev/vitess-operator/pkg/operator/results"
 	"planetscale.dev/vitess-operator/pkg/operator/rollout"
 	"planetscale.dev/vitess-operator/pkg/operator/toposerver"
+	"planetscale.dev/vitess-operator/pkg/operator/update"
 	"planetscale.dev/vitess-operator/pkg/operator/vttablet"
 )
 
@@ -260,6 +261,11 @@ func vttabletSpecs(vts *planetscalev2.VitessShard, parentLabels map[string]strin
 			labels[planetscalev2.TabletTypeLabel] = string(pool.Type)
 			labels[planetscalev2.TabletIndexLabel] = strconv.FormatUint(uint64(tabletIndex), 10)
 
+			annotations := map[string]string{
+				drain.SupportedAnnotation: "ensure that the tablet is not a master",
+			}
+			update.Annotations(&annotations, pool.Annotations)
+
 			tablets = append(tablets, &vttablet.Spec{
 				GlobalLockserver:         vts.Spec.GlobalLockserver,
 				Labels:                   labels,
@@ -277,15 +283,13 @@ func vttabletSpecs(vts *planetscalev2.VitessShard, parentLabels map[string]strin
 				KeyspaceName:             keyspaceName,
 				DatabaseInitScriptSecret: vts.Spec.DatabaseInitScriptSecret,
 				EnableSemiSync:           vts.Spec.Replication.EnforceSemiSync,
-				Annotations: map[string]string{
-					drain.SupportedAnnotation: "ensure that the tablet is not a master",
-				},
-				BackupLocation:    backupLocation,
-				BackupEngine:      vts.Spec.BackupEngine,
-				Affinity:          pool.Affinity,
-				ExtraEnv:          pool.ExtraEnv,
-				ExtraVolumes:      pool.ExtraVolumes,
-				ExtraVolumeMounts: pool.ExtraVolumeMounts,
+				Annotations:              annotations,
+				BackupLocation:           backupLocation,
+				BackupEngine:             vts.Spec.BackupEngine,
+				Affinity:                 pool.Affinity,
+				ExtraEnv:                 pool.ExtraEnv,
+				ExtraVolumes:             pool.ExtraVolumes,
+				ExtraVolumeMounts:        pool.ExtraVolumeMounts,
 			})
 		}
 	}

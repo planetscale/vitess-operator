@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"strings"
 
+	"planetscale.dev/vitess-operator/pkg/operator/stringmaps"
 	"planetscale.dev/vitess-operator/pkg/operator/vitess"
 
 	corev1 "k8s.io/api/core/v1"
@@ -78,6 +79,7 @@ type Spec struct {
 	ExtraVolumes      []corev1.Volume
 	ExtraVolumeMounts []corev1.VolumeMount
 	Affinity          *corev1.Affinity
+	Annotations       map[string]string
 }
 
 // NewPod creates a new etcd Pod.
@@ -107,6 +109,14 @@ func UpdatePodInPlace(obj *corev1.Pod, spec *Spec) {
 func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	// Update labels, but ignore existing ones we don't set.
 	update.Labels(&obj.Labels, spec.Labels)
+
+	// Update desired annotations.
+	update.Annotations(&obj.Annotations, spec.Annotations)
+	// Record a hash of desired annotation keys to force the Pod
+	// to be recreated if a key disappears from the desired list.
+	update.Annotations(&obj.Annotations, map[string]string{
+		"planetscale.com/annotations-keys-hash": stringmaps.HashKeys(spec.Annotations),
+	})
 
 	// Compute default environment variables first.
 	env := []corev1.EnvVar{
@@ -186,7 +196,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 			SuccessThreshold:    1,
 			TimeoutSeconds:      5,
 		},
-		Env: env,
+		Env:          env,
 		VolumeMounts: volumeMounts,
 	}
 

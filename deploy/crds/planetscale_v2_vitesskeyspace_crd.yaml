@@ -313,6 +313,13 @@ spec:
                                       we can''t guarantee optimal scheduling of your
                                       pods if you choose to set this field.'
                                     type: object
+                                  annotations:
+                                    additionalProperties:
+                                      type: string
+                                    description: Annotations can optionally be used
+                                      to attach custom annotations to Pods created
+                                      for this component.
+                                    type: object
                                   backupLocationName:
                                     description: 'BackupLocationName is the name of
                                       the backup location to use for this tablet pool.
@@ -574,6 +581,13 @@ spec:
                                     affinities that we set; in turn, we can''t guarantee
                                     optimal scheduling of your pods if you choose
                                     to set this field.'
+                                  type: object
+                                annotations:
+                                  additionalProperties:
+                                    type: string
+                                  description: Annotations can optionally be used
+                                    to attach custom annotations to Pods created for
+                                    this component.
                                   type: object
                                 backupLocationName:
                                   description: 'BackupLocationName is the name of

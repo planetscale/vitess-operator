@@ -63,6 +63,7 @@ type Spec struct {
 	ExtraEnv          []corev1.EnvVar
 	ExtraVolumes      []corev1.Volume
 	ExtraVolumeMounts []corev1.VolumeMount
+	Annotations       map[string]string
 }
 
 // NewDeployment creates a new Deployment object for vtctld.
@@ -101,6 +102,9 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 
 	// Tell Deployment to set the same labels on the Pods it creates.
 	update.Labels(&obj.Spec.Template.Labels, spec.Labels)
+
+	// Tell Deployment to set annotations on Pods that it creates.
+	obj.Spec.Template.Annotations = spec.Annotations
 
 	// Deployment options.
 	obj.Spec.RevisionHistoryLimit = pointer.Int32Ptr(0)
