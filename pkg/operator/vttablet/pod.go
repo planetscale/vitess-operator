@@ -17,10 +17,7 @@ limitations under the License.
 package vttablet
 
 import (
-	"crypto/md5"
-	"encoding/hex"
 	"fmt"
-	"sort"
 	"strconv"
 	"strings"
 
@@ -324,21 +321,4 @@ func AliasFromPod(pod *corev1.Pod) topodatapb.TabletAlias {
 		Cell: pod.Labels[planetscalev2.CellLabel],
 		Uid:  uint32(uid),
 	}
-}
-
-func annotationHash(m map[string]string) string {
-	keys := make([]string, 0, len(m))
-	for k := range m {
-		keys = append(keys, k)
-	}
-
-	sort.Strings(keys)
-
-	h := md5.New()
-	for _, k := range keys {
-		fmt.Fprintln(h, k)
-	}
-
-	sum := h.Sum(nil)
-	return hex.EncodeToString(sum)
 }

@@ -90,7 +90,6 @@ type Spec struct {
 	Authentication    *planetscalev2.VitessGatewayAuthentication
 	SecureTransport   *planetscalev2.VitessGatewaySecureTransport
 	Affinity          *corev1.Affinity
-	PodAnnotations    map[string]string
 	ExtraFlags        map[string]string
 	ExtraEnv          []corev1.EnvVar
 	ExtraVolumes      []corev1.Volume

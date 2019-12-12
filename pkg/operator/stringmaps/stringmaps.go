@@ -1,3 +1,4 @@
+// Package stringmaps contains helpers for working with string maps.
 package stringmaps
 
 import (
@@ -7,6 +8,11 @@ import (
 	"sort"
 )
 
+// HashKeys returns a hex-encoded hash of all the keys in the map.
+//
+// This can be used to compare two unordered sets of keys for equality.
+// The keys are assumed to not contain newlines.
+// The values in the map are ignored.
 func HashKeys(m map[string]string) string {
 	keys := make([]string, 0, len(m))
 	for k := range m {
