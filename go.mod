@@ -5,7 +5,7 @@ go 1.12
 require (
 	contrib.go.opencensus.io/exporter/ocagent v0.4.12 // indirect
 	github.com/Azure/go-autorest v11.7.1+incompatible // indirect
-	github.com/ahmetb/gen-crd-api-reference-docs v0.1.5-0.20190629210212-52e137b8d003 // indirect
+	github.com/ahmetb/gen-crd-api-reference-docs v0.1.5-0.20190629210212-52e137b8d003
 	github.com/aws/aws-sdk-go v1.20.4 // indirect
 	github.com/coreos/etcd v3.3.12+incompatible // indirect
 	github.com/docker/distribution v2.7.1+incompatible // indirect
@@ -27,6 +27,7 @@ require (
 	github.com/stretchr/testify v1.4.0
 	gopkg.in/yaml.v2 v2.2.2
 	k8s.io/api v0.0.0-20190612125737-db0771252981
+	k8s.io/apiextensions-apiserver v0.0.0-20190228180357-d002e88f6236
 	k8s.io/apimachinery v0.0.0-20190612125636-6a5db36e93ad
 	k8s.io/apiserver v0.0.0-20190228174905-79427f02047f // indirect
 	k8s.io/client-go v11.0.0+incompatible

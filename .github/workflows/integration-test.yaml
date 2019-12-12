@@ -1,4 +1,4 @@
-name: unit-test
+name: integration-test
 on:
   push:
     branches:
@@ -8,7 +8,7 @@ on:
     - master
 jobs:
   build:
-    name: Unit Test
+    name: Integration Test
     runs-on: ubuntu-latest
     steps:
 
@@ -28,8 +28,5 @@ jobs:
         path: ~/go/pkg/mod
         key: go-mod-cache
 
-    - name: Build
-      run: go install -v ./...
-
-    - name: Unit Test
-      run: make unit-test
+    - name: Integration Test
+      run: make integration-test
