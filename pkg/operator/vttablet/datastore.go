@@ -119,14 +119,11 @@ func datastoreFlags(spec *Spec) vitess.Flags {
 
 func localDatastoreFlags(spec *Spec) vitess.Flags {
 	return vitess.Flags{
-		"db-config-app-uname":        dbConfigAppUname,
-		"db-config-app-charset":      dbConfigCharset,
-		"db-config-dba-uname":        dbConfigDbaUname,
-		"db-config-dba-charset":      dbConfigCharset,
-		"db-config-repl-uname":       dbConfigReplUname,
-		"db-config-repl-charset":     dbConfigCharset,
-		"db-config-filtered-uname":   dbConfigFilteredUname,
-		"db-config-filtered-charset": dbConfigCharset,
+		"db_charset":               dbConfigCharset,
+		"db-config-app-uname":      dbConfigAppUname,
+		"db-config-dba-uname":      dbConfigDbaUname,
+		"db-config-repl-uname":     dbConfigReplUname,
+		"db-config-filtered-uname": dbConfigFilteredUname,
 
 		// Only in the case of local mysql do we want to use the vt_ prefix.
 		"init_db_name_override": spec.localDatabaseName(),
