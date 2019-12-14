@@ -60,22 +60,6 @@ kustomize build deploy | kubectl apply -f -
 You can inspect the output of `kustomize build deploy` first if you want to see
 what will be applied to the cluster.
 
-## CRDs
-
-The main CRD for vitess-operator is called VitessCluster.
-You can abbreviate this to `vt` when using kubectl:
-
-```sh
-kubectl get vt
-```
-
-The operator also manages sub-component CRDs that you won't create or edit
-directly, but you can read them to see more detailed status:
-
-* VitessKeyspace (short name `vtk`)
-* VitessShard (short name `vts`)
-* VitessCell (short name `vtc`)
-
 ## Create an example VitessCluster
 
 The file `deploy/example.yaml` contains an example cluster with one keyspace and
@@ -118,6 +102,22 @@ storage location, you can deploy it like this:
 ```sh
 kubectl apply -f deploy/example.yaml
 ```
+
+## CRDs
+
+The main CRD for vitess-operator is called VitessCluster.
+You can abbreviate this to `vt` when using kubectl:
+
+```sh
+kubectl get vt
+```
+
+The operator also manages sub-component CRDs that you won't create or edit
+directly, but you can read them to see more detailed status:
+
+* VitessKeyspace (short name `vtk`)
+* VitessShard (short name `vts`)
+* VitessCell (short name `vtc`)
 
 ## Check status
 
@@ -178,6 +178,9 @@ mysql --host=127.0.0.1 --port=30000 --user=<username> --password
 
 ## Connect to vtctl
 
+Vtctl is the standard Vitess CLI tool for cluster administration. It allows
+you to perform CRUD operations on Vitess objects, run migration workflows,
+and much more. The reference for this tool can be located [here](https://vitess.io/docs/reference/vtctl/).
 To run vtctl commands, you must first have `vtctlclient` installed.
 If you don't have it installed, you can install it by running:
 
