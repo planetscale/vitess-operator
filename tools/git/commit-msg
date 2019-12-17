@@ -1,0 +1,7 @@
+#!/bin/bash
+
+set -euo pipefail
+
+for hook in tools/git/commit-msg.*; do
+  ${hook} "${@}"
+done
