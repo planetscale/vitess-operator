@@ -147,6 +147,7 @@ func (r *ReconcileVitessCluster) vtctldSpecs(vt *planetscalev2.VitessCluster, pa
 		specs = append(specs, &vtctld.Spec{
 			GlobalLockserver:  glsParams,
 			Image:             vt.Spec.Images.Vtctld,
+			ImagePullPolicy:   vt.Spec.ImagePullPolicies.Vtctld,
 			Cell:              cell,
 			Labels:            labels,
 			Replicas:          *vt.Spec.VitessDashboard.Replicas,

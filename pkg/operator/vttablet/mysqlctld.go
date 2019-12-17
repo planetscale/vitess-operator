@@ -57,7 +57,8 @@ func init() {
 				SecurityContext: &corev1.SecurityContext{
 					RunAsUser: pointer.Int64Ptr(runAsUser),
 				},
-				Image: spec.Images.Vttablet,
+				Image:           spec.Images.Vttablet,
+				ImagePullPolicy: spec.ImagePullPolicies.Vttablet,
 				VolumeMounts: []corev1.VolumeMount{
 					{
 						Name:      vtRootVolumeName,

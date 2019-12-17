@@ -34,6 +34,7 @@ type Spec struct {
 	Zone                     string
 	Labels                   map[string]string
 	Images                   planetscalev2.VitessKeyspaceImages
+	ImagePullPolicies        planetscalev2.VitessImagePullPolicies
 	Index                    int32
 	KeyRange                 planetscalev2.VitessKeyRange
 	KeyspaceName             string

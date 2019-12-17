@@ -270,6 +270,7 @@ func vttabletSpecs(vts *planetscalev2.VitessShard, parentLabels map[string]strin
 				GlobalLockserver:         vts.Spec.GlobalLockserver,
 				Labels:                   labels,
 				Images:                   vts.Spec.Images,
+				ImagePullPolicies:        vts.Spec.ImagePullPolicies,
 				Index:                    tabletIndex,
 				KeyRange:                 vts.Spec.KeyRange,
 				Alias:                    tabletAlias,

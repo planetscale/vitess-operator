@@ -108,10 +108,11 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 
 	// Build the containers.
 	vttabletContainer := &corev1.Container{
-		Name:    vttabletContainerName,
-		Image:   spec.Images.Vttablet,
-		Command: []string{vttabletCommand},
-		Args:    vttabletAllFlags.FormatArgs(),
+		Name:            vttabletContainerName,
+		Image:           spec.Images.Vttablet,
+		ImagePullPolicy: spec.ImagePullPolicies.Vttablet,
+		Command:         []string{vttabletCommand},
+		Args:            vttabletAllFlags.FormatArgs(),
 		Ports: []corev1.ContainerPort{
 			{
 				Name:          planetscalev2.DefaultWebPortName,
@@ -161,10 +162,11 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 
 	if spec.Mysqld != nil {
 		mysqldContainer = &corev1.Container{
-			Name:    mysqldContainerName,
-			Image:   spec.Images.Mysqld.Image(),
-			Command: []string{mysqldCommand},
-			Args:    mysqlctldFlags.Get(spec).FormatArgs(),
+			Name:            mysqldContainerName,
+			Image:           spec.Images.Mysqld.Image(),
+			ImagePullPolicy: spec.ImagePullPolicies.Mysqld,
+			Command:         []string{mysqldCommand},
+			Args:            mysqlctldFlags.Get(spec).FormatArgs(),
 			Ports: []corev1.ContainerPort{
 				{
 					Name:          planetscalev2.DefaultMysqlPortName,
@@ -183,9 +185,10 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 
 		// TODO: Can/should we still run mysqld_exporter pointing at external mysql?
 		mysqldExporterContainer = &corev1.Container{
-			Name:    mysqldExporterContainerName,
-			Image:   spec.Images.MysqldExporter,
-			Command: []string{mysqldExporterCommand},
+			Name:            mysqldExporterContainerName,
+			Image:           spec.Images.MysqldExporter,
+			ImagePullPolicy: spec.ImagePullPolicies.MysqldExporter,
+			Command:         []string{mysqldExporterCommand},
 			Args: []string{
 				"--config.my-cnf=" + spec.myCnfFilePath(),
 				// The default for `collect.info_schema.tables.databases` is

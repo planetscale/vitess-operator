@@ -67,6 +67,9 @@ type VitessCellSpec struct {
 	// in which case this field is automatically managed by the VitessCluster
 	// controller that owns this VitessCell.
 	Images VitessCellImages `json:"images,omitempty"`
+
+	// ImagePullPolicies are inherited from the VitessCluster spec.
+	ImagePullPolicies VitessImagePullPolicies `json:"imagePullPolicies,omitempty"`
 }
 
 // VitessCellTemplate contains only the user-specified parts of a VitessCell object.

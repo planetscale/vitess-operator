@@ -86,6 +86,9 @@ spec:
               description: 'Image is the etcd server image (including version tag)
                 to deploy. Default: Let the operator choose.'
               type: string
+            imagePullPolicy:
+              description: ImagePullPolicy specifies if/when to pull a container image.
+              type: string
             resources:
               description: 'Resources specify the compute resources to allocate for
                 each etcd member. Default: Let the operator choose.'
