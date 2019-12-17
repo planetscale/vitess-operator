@@ -3,6 +3,26 @@
 This file is an introduction to the vitess-operator codebase for those looking
 to contribute.
 
+### Developer Certificate of Origin
+
+This project uses a [Developer Certificate of Origin](https://wiki.linuxfoundation.org/dco)
+instead of a Contributor License Agreement.
+
+Please certify each contribution meets the requirements in the
+`DCO` file in the root of this repository by committing with
+the `--signoff` flag (or the short form: `-s`):
+
+```sh
+git commit --signoff
+```
+
+If you contribute often, you may find it useful to install a git hook
+to prompt you to sign off if you forget to add the flag:
+
+```sh
+tools/git/install-hooks.sh
+```
+
 ### CRD API Documentation
 
 It may help to start by reading the user-facing docs for the public API,
