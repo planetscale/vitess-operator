@@ -385,9 +385,10 @@ map[string]string
 </em>
 </td>
 <td>
-<p>ExtraVitessFlags can optionally be used to override default flags set by the
-operator, or pass additional flags to all Vitess components. All entries must be
-key-value string pairs of the form &ldquo;flag&rdquo;: &ldquo;value&rdquo;. The flag name should
+<p>ExtraVitessFlags can optionally be used to pass flags to all Vitess components.
+WARNING: Any flags passed here must be flags that can be accepted by vtgate, vtctld and vttablet.
+An example use-case would be topo flags.</p>
+<p>All entries must be key-value string pairs of the form &ldquo;flag&rdquo;: &ldquo;value&rdquo;. The flag name should
 not have any prefix (just &ldquo;flag&rdquo;, not &ldquo;-flag&rdquo;). To set a boolean flag,
 set the string value to either &ldquo;true&rdquo; or &ldquo;false&rdquo;.</p>
 </td>
@@ -2538,9 +2539,10 @@ map[string]string
 </em>
 </td>
 <td>
-<p>ExtraVitessFlags can optionally be used to override default flags set by the
-operator, or pass additional flags to all Vitess components. All entries must be
-key-value string pairs of the form &ldquo;flag&rdquo;: &ldquo;value&rdquo;. The flag name should
+<p>ExtraVitessFlags can optionally be used to pass flags to all Vitess components.
+WARNING: Any flags passed here must be flags that can be accepted by vtgate, vtctld and vttablet.
+An example use-case would be topo flags.</p>
+<p>All entries must be key-value string pairs of the form &ldquo;flag&rdquo;: &ldquo;value&rdquo;. The flag name should
 not have any prefix (just &ldquo;flag&rdquo;, not &ldquo;-flag&rdquo;). To set a boolean flag,
 set the string value to either &ldquo;true&rdquo; or &ldquo;false&rdquo;.</p>
 </td>

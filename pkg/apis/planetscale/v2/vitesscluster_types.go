@@ -95,9 +95,11 @@ type VitessClusterSpec struct {
 	// +patchStrategy=merge
 	Keyspaces []VitessKeyspaceTemplate `json:"keyspaces,omitempty" patchStrategy:"merge" patchMergeKey:"name"`
 
-	// ExtraVitessFlags can optionally be used to override default flags set by the
-	// operator, or pass additional flags to all Vitess components. All entries must be
-	// key-value string pairs of the form "flag": "value". The flag name should
+	// ExtraVitessFlags can optionally be used to pass flags to all Vitess components.
+	// WARNING: Any flags passed here must be flags that can be accepted by vtgate, vtctld and vttablet.
+	// An example use-case would be topo flags.
+	//
+	// All entries must be key-value string pairs of the form "flag": "value". The flag name should
 	// not have any prefix (just "flag", not "-flag"). To set a boolean flag,
 	// set the string value to either "true" or "false".
 	ExtraVitessFlags map[string]string `json:"extraVitessFlags,omitempty"`
