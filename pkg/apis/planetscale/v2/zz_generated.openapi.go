@@ -535,7 +535,7 @@ func schema_pkg_apis_planetscale_v2_VitessCellSpec(ref common.ReferenceCallback)
 					},
 					"extraVitessFlags": {
 						SchemaProps: spec.SchemaProps{
-							Description: "ExtraVitessFlags can optionally be used to override default flags set by the operator, or pass additional flags to vttablet from VitessCellSpec. All entries must be key-value string pairs of the form \"flag\": \"value\". The flag name should not have any prefix (just \"flag\", not \"-flag\"). To set a boolean flag, set the string value to either \"true\" or \"false\".",
+							Description: "ExtraVitessFlags is inherited from the parent's VitessClusterSpec.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
 								Schema: &spec.Schema{
@@ -959,7 +959,7 @@ func schema_pkg_apis_planetscale_v2_VitessKeyspaceSpec(ref common.ReferenceCallb
 					},
 					"extraVitessFlags": {
 						SchemaProps: spec.SchemaProps{
-							Description: "ExtraVitessFlags can optionally be used to override default flags set by the operator, or pass additional flags to all child components. All entries must be key-value string pairs of the form \"flag\": \"value\". The flag name should not have any prefix (just \"flag\", not \"-flag\"). To set a boolean flag, set the string value to either \"true\" or \"false\".",
+							Description: "ExtraVitessFlags is inherited from the parent's VitessClusterSpec.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
 								Schema: &spec.Schema{
@@ -1180,7 +1180,7 @@ func schema_pkg_apis_planetscale_v2_VitessShardSpec(ref common.ReferenceCallback
 					},
 					"extraVitessFlags": {
 						SchemaProps: spec.SchemaProps{
-							Description: "ExtraVitessFlags can optionally be used to override default flags set by the operator, or pass additional flags to all child components. All entries must be key-value string pairs of the form \"flag\": \"value\". The flag name should not have any prefix (just \"flag\", not \"-flag\"). To set a boolean flag, set the string value to either \"true\" or \"false\".",
+							Description: "ExtraVitessFlags is inherited from the parent's VitessClusterSpec.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
 								Schema: &spec.Schema{
