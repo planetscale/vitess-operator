@@ -94,6 +94,13 @@ type VitessClusterSpec struct {
 	// +patchMergeKey=name
 	// +patchStrategy=merge
 	Keyspaces []VitessKeyspaceTemplate `json:"keyspaces,omitempty" patchStrategy:"merge" patchMergeKey:"name"`
+
+	// ExtraVitessFlags can optionally be used to override default flags set by the
+	// operator, or pass additional flags to all Vitess components. All entries must be
+	// key-value string pairs of the form "flag": "value". The flag name should
+	// not have any prefix (just "flag", not "-flag"). To set a boolean flag,
+	// set the string value to either "true" or "false".
+	ExtraVitessFlags map[string]string `json:"extraVitessFlags,omitempty"`
 }
 
 // VitessImages specifies container images to use for Vitess components.

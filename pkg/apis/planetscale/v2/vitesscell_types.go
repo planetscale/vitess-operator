@@ -67,6 +67,13 @@ type VitessCellSpec struct {
 	// in which case this field is automatically managed by the VitessCluster
 	// controller that owns this VitessCell.
 	Images VitessCellImages `json:"images,omitempty"`
+
+	// ExtraVitessFlags can optionally be used to override default flags set by the
+	// operator, or pass additional flags to vttablet from VitessCellSpec. All entries must be
+	// key-value string pairs of the form "flag": "value". The flag name should
+	// not have any prefix (just "flag", not "-flag"). To set a boolean flag,
+	// set the string value to either "true" or "false".
+	ExtraVitessFlags map[string]string `json:"extraVitessFlags,omitempty"`
 }
 
 // VitessCellTemplate contains only the user-specified parts of a VitessCell object.

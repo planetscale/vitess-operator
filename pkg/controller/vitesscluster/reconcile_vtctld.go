@@ -144,6 +144,12 @@ func (r *ReconcileVitessCluster) vtctldSpecs(vt *planetscalev2.VitessCluster, pa
 		}
 		labels[planetscalev2.CellLabel] = cell.Name
 
+		// Merge ExtraVitessFlags into ExtraFlags.
+		extraFlags := vt.Spec.VitessDashboard.ExtraFlags
+		for key, value := range vt.Spec.ExtraVitessFlags {
+			extraFlags[key] = value
+		}
+
 		specs = append(specs, &vtctld.Spec{
 			GlobalLockserver:  glsParams,
 			Image:             vt.Spec.Images.Vtctld,
@@ -152,7 +158,7 @@ func (r *ReconcileVitessCluster) vtctldSpecs(vt *planetscalev2.VitessCluster, pa
 			Replicas:          *vt.Spec.VitessDashboard.Replicas,
 			Resources:         vt.Spec.VitessDashboard.Resources,
 			Affinity:          vt.Spec.VitessDashboard.Affinity,
-			ExtraFlags:        vt.Spec.VitessDashboard.ExtraFlags,
+			ExtraFlags:        extraFlags,
 			ExtraEnv:          vt.Spec.VitessDashboard.ExtraEnv,
 			ExtraVolumes:      vt.Spec.VitessDashboard.ExtraVolumes,
 			ExtraVolumeMounts: vt.Spec.VitessDashboard.ExtraVolumeMounts,

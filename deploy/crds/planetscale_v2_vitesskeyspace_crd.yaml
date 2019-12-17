@@ -117,6 +117,15 @@ spec:
                     type: object
                 type: object
               type: array
+            extraVitessFlags:
+              additionalProperties:
+                type: string
+              description: 'ExtraVitessFlags can optionally be used to override default
+                flags set by the operator, or pass additional flags to all child components.
+                All entries must be key-value string pairs of the form "flag": "value".
+                The flag name should not have any prefix (just "flag", not "-flag").
+                To set a boolean flag, set the string value to either "true" or "false".'
+              type: object
             globalLockserver:
               description: GlobalLockserver are the params to connect to the global
                 lockserver.
@@ -403,6 +412,18 @@ spec:
                                     items:
                                       type: object
                                     type: array
+                                  extraVitessFlags:
+                                    additionalProperties:
+                                      type: string
+                                    description: 'ExtraFlags can optionally be used
+                                      to override default flags set by the operator,
+                                      or pass additional flags to child components.
+                                      All entries must be key-value string pairs of
+                                      the form "flag": "value". The flag name should
+                                      not have any prefix (just "flag", not "-flag").
+                                      To set a boolean flag, set the string value
+                                      to either "true" or "false".'
+                                    type: object
                                   extraVolumeMounts:
                                     description: ExtraVolumeMounts can optionally
                                       be used to override default Pod volumeMounts
@@ -669,6 +690,18 @@ spec:
                                   items:
                                     type: object
                                   type: array
+                                extraVitessFlags:
+                                  additionalProperties:
+                                    type: string
+                                  description: 'ExtraFlags can optionally be used
+                                    to override default flags set by the operator,
+                                    or pass additional flags to child components.
+                                    All entries must be key-value string pairs of
+                                    the form "flag": "value". The flag name should
+                                    not have any prefix (just "flag", not "-flag").
+                                    To set a boolean flag, set the string value to
+                                    either "true" or "false".'
+                                  type: object
                                 extraVolumeMounts:
                                   description: ExtraVolumeMounts can optionally be
                                     used to override default Pod volumeMounts defined

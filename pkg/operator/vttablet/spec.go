@@ -49,6 +49,7 @@ type Spec struct {
 	BackupLocation           *planetscalev2.VitessBackupLocation
 	BackupEngine             planetscalev2.VitessBackupEngine
 	Affinity                 *corev1.Affinity
+	ExtraFlags               map[string]string
 	ExtraEnv                 []corev1.EnvVar
 	ExtraVolumes             []corev1.Volume
 	ExtraVolumeMounts        []corev1.VolumeMount
