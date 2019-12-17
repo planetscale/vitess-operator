@@ -377,6 +377,21 @@ that it is undeployed from all cells by clearing the keyspace&rsquo;s list
 of target cells.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>extraVitessFlags</code></br>
+<em>
+map[string]string
+</em>
+</td>
+<td>
+<p>ExtraVitessFlags can optionally be used to override default flags set by the
+operator, or pass additional flags to all Vitess components. All entries must be
+key-value string pairs of the form &ldquo;flag&rdquo;: &ldquo;value&rdquo;. The flag name should
+not have any prefix (just &ldquo;flag&rdquo;, not &ldquo;-flag&rdquo;). To set a boolean flag,
+set the string value to either &ldquo;true&rdquo; or &ldquo;false&rdquo;.</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -1704,6 +1719,21 @@ in which case this field is automatically managed by the VitessCluster
 controller that owns this VitessCell.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>extraVitessFlags</code></br>
+<em>
+map[string]string
+</em>
+</td>
+<td>
+<p>ExtraVitessFlags can optionally be used to override default flags set by the
+operator, or pass additional flags to vttablet from VitessCellSpec. All entries must be
+key-value string pairs of the form &ldquo;flag&rdquo;: &ldquo;value&rdquo;. The flag name should
+not have any prefix (just &ldquo;flag&rdquo;, not &ldquo;-flag&rdquo;). To set a boolean flag,
+set the string value to either &ldquo;true&rdquo; or &ldquo;false&rdquo;.</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -2035,6 +2065,21 @@ VitessCellImages
 skew across the cluster is discouraged except during rolling updates,
 in which case this field is automatically managed by the VitessCluster
 controller that owns this VitessCell.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>extraVitessFlags</code></br>
+<em>
+map[string]string
+</em>
+</td>
+<td>
+<p>ExtraVitessFlags can optionally be used to override default flags set by the
+operator, or pass additional flags to vttablet from VitessCellSpec. All entries must be
+key-value string pairs of the form &ldquo;flag&rdquo;: &ldquo;value&rdquo;. The flag name should
+not have any prefix (just &ldquo;flag&rdquo;, not &ldquo;-flag&rdquo;). To set a boolean flag,
+set the string value to either &ldquo;true&rdquo; or &ldquo;false&rdquo;.</p>
 </td>
 </tr>
 </tbody>
@@ -2491,6 +2536,21 @@ that no keyspaces are set to deploy to this cell.</p>
 Before removing any keyspace from this list, you should first ensure
 that it is undeployed from all cells by clearing the keyspace&rsquo;s list
 of target cells.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>extraVitessFlags</code></br>
+<em>
+map[string]string
+</em>
+</td>
+<td>
+<p>ExtraVitessFlags can optionally be used to override default flags set by the
+operator, or pass additional flags to all Vitess components. All entries must be
+key-value string pairs of the form &ldquo;flag&rdquo;: &ldquo;value&rdquo;. The flag name should
+not have any prefix (just &ldquo;flag&rdquo;, not &ldquo;-flag&rdquo;). To set a boolean flag,
+set the string value to either &ldquo;true&rdquo; or &ldquo;false&rdquo;.</p>
 </td>
 </tr>
 </tbody>
@@ -3238,6 +3298,21 @@ VitessBackupEngine
 <p>BackupEngine specifies the Vitess backup engine to use, either &ldquo;builtin&rdquo; or &ldquo;xtrabackup&rdquo;.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>extraVitessFlags</code></br>
+<em>
+map[string]string
+</em>
+</td>
+<td>
+<p>ExtraVitessFlags can optionally be used to override default flags set by the
+operator, or pass additional flags to all child components. All entries must be
+key-value string pairs of the form &ldquo;flag&rdquo;: &ldquo;value&rdquo;. The flag name should
+not have any prefix (just &ldquo;flag&rdquo;, not &ldquo;-flag&rdquo;). To set a boolean flag,
+set the string value to either &ldquo;true&rdquo; or &ldquo;false&rdquo;.</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -3715,6 +3790,21 @@ VitessBackupEngine
 <p>BackupEngine specifies the Vitess backup engine to use, either &ldquo;builtin&rdquo; or &ldquo;xtrabackup&rdquo;.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>extraVitessFlags</code></br>
+<em>
+map[string]string
+</em>
+</td>
+<td>
+<p>ExtraVitessFlags can optionally be used to override default flags set by the
+operator, or pass additional flags to all child components. All entries must be
+key-value string pairs of the form &ldquo;flag&rdquo;: &ldquo;value&rdquo;. The flag name should
+not have any prefix (just &ldquo;flag&rdquo;, not &ldquo;-flag&rdquo;). To set a boolean flag,
+set the string value to either &ldquo;true&rdquo; or &ldquo;false&rdquo;.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="planetscale.com/v2.VitessKeyspaceStatus">VitessKeyspaceStatus
@@ -4150,6 +4240,21 @@ VitessBackupEngine
 <p>BackupEngine specifies the Vitess backup engine to use, either &ldquo;builtin&rdquo; or &ldquo;xtrabackup&rdquo;.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>extraVitessFlags</code></br>
+<em>
+map[string]string
+</em>
+</td>
+<td>
+<p>ExtraVitessFlags can optionally be used to override default flags set by the
+operator, or pass additional flags to all child components. All entries must be
+key-value string pairs of the form &ldquo;flag&rdquo;: &ldquo;value&rdquo;. The flag name should
+not have any prefix (just &ldquo;flag&rdquo;, not &ldquo;-flag&rdquo;). To set a boolean flag,
+set the string value to either &ldquo;true&rdquo; or &ldquo;false&rdquo;.</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -4291,6 +4396,21 @@ VitessBackupEngine
 </td>
 <td>
 <p>BackupEngine specifies the Vitess backup engine to use, either &ldquo;builtin&rdquo; or &ldquo;xtrabackup&rdquo;.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>extraVitessFlags</code></br>
+<em>
+map[string]string
+</em>
+</td>
+<td>
+<p>ExtraVitessFlags can optionally be used to override default flags set by the
+operator, or pass additional flags to all child components. All entries must be
+key-value string pairs of the form &ldquo;flag&rdquo;: &ldquo;value&rdquo;. The flag name should
+not have any prefix (just &ldquo;flag&rdquo;, not &ldquo;-flag&rdquo;). To set a boolean flag,
+set the string value to either &ldquo;true&rdquo; or &ldquo;false&rdquo;.</p>
 </td>
 </tr>
 </tbody>
@@ -4592,6 +4712,21 @@ map[string]string
 <td>
 <p>Annotations can optionally be used to attach custom annotations to Pods
 created for this component.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>extraVitessFlags</code></br>
+<em>
+map[string]string
+</em>
+</td>
+<td>
+<p>ExtraFlags can optionally be used to override default flags set by the
+operator, or pass additional flags to child components. All entries must be
+key-value string pairs of the form &ldquo;flag&rdquo;: &ldquo;value&rdquo;. The flag name should
+not have any prefix (just &ldquo;flag&rdquo;, not &ldquo;-flag&rdquo;). To set a boolean flag,
+set the string value to either &ldquo;true&rdquo; or &ldquo;false&rdquo;.</p>
 </td>
 </tr>
 <tr>
