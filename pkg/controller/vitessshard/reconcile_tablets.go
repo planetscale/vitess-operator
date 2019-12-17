@@ -261,12 +261,11 @@ func vttabletSpecs(vts *planetscalev2.VitessShard, parentLabels map[string]strin
 			labels[planetscalev2.TabletTypeLabel] = string(pool.Type)
 			labels[planetscalev2.TabletIndexLabel] = strconv.FormatUint(uint64(tabletIndex), 10)
 
-			// Merge ExtraVitessFlags into ExtraFlags.
-			extraFlags := pool.ExtraFlags
+			// Merge ExtraVitessFlags and ExtraFlags into a new map.
+			extraFlags := make(map[string]string)
+			update.StringMap(&extraFlags, vts.Spec.ExtraVitessFlags)
+			update.StringMap(&extraFlags, pool.ExtraFlags)
 
-			for key, value := range vts.Spec.ExtraVitessFlags {
-				extraFlags[key] = value
-			}
 			annotations := map[string]string{
 				drain.SupportedAnnotation: "ensure that the tablet is not a master",
 			}
