@@ -1797,13 +1797,6 @@ func (in *VitessShardTabletPool) DeepCopyInto(out *VitessShardTabletPool) {
 			(*out)[key] = val
 		}
 	}
-	if in.ExtraFlags != nil {
-		in, out := &in.ExtraFlags, &out.ExtraFlags
-		*out = make(map[string]string, len(*in))
-		for key, val := range *in {
-			(*out)[key] = val
-		}
-	}
 	if in.ExtraEnv != nil {
 		in, out := &in.ExtraEnv, &out.ExtraEnv
 		*out = make([]v1.EnvVar, len(*in))

@@ -184,13 +184,6 @@ type VitessShardTabletPool struct {
 	// created for this component.
 	Annotations map[string]string `json:"annotations,omitempty"`
 
-	// ExtraFlags can optionally be used to override default flags set by the
-	// operator, or pass additional flags to child components. All entries must be
-	// key-value string pairs of the form "flag": "value". The flag name should
-	// not have any prefix (just "flag", not "-flag"). To set a boolean flag,
-	// set the string value to either "true" or "false".
-	ExtraFlags map[string]string `json:"extraVitessFlags,omitempty"`
-
 	// ExtraEnv can optionally be used to override default environment variables
 	// set by the operator, or pass additional environment variables.
 	// These values are applied to both the vttablet and mysqld containers.
