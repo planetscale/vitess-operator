@@ -93,7 +93,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	}
 
 	// Apply user-supplied extra flags last so they take precedence.
-	for key, value := range spec.ExtraFlags {
+	for key, value := range spec.Vttablet.ExtraFlags {
 		// We told users in the CRD API field doc not to put any leading '-',
 		// but we are liberal in what we accept.
 		key = strings.TrimLeft(key, "-")
