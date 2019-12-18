@@ -59,6 +59,9 @@ type VitessKeyspaceSpec struct {
 	// controller that owns this VitessKeyspace.
 	Images VitessKeyspaceImages `json:"images,omitempty"`
 
+	// ImagePullPolicies are inherited from the VitessCluster spec.
+	ImagePullPolicies VitessImagePullPolicies `json:"imagePullPolicies,omitempty"`
+
 	// ZoneMap is a map from Vitess cell name to zone (failure domain) name
 	// for all cells defined in the VitessCluster.
 	ZoneMap map[string]string `json:"zoneMap"`

@@ -69,6 +69,9 @@ type EtcdLockserverTemplate struct {
 	// Default: Let the operator choose.
 	Image string `json:"image,omitempty"`
 
+	// ImagePullPolicy specifies if/when to pull a container image.
+	ImagePullPolicy corev1.PullPolicy `json:"imagePullPolicy,omitempty"`
+
 	// Resources specify the compute resources to allocate for each etcd member.
 	// Default: Let the operator choose.
 	Resources corev1.ResourceRequirements `json:"resources,omitempty"`

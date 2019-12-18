@@ -66,6 +66,9 @@ type VitessShardSpec struct {
 	// controller that owns this VitessShard.
 	Images VitessKeyspaceImages `json:"images"`
 
+	// ImagePullPolicies are inherited from the VitessCluster spec.
+	ImagePullPolicies VitessImagePullPolicies `json:"imagePullPolicies,omitempty"`
+
 	// KeyRange is the range of keyspace IDs served by this shard.
 	KeyRange VitessKeyRange `json:"keyRange"`
 

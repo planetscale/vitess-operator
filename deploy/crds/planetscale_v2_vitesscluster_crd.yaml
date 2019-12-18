@@ -339,6 +339,10 @@ spec:
                             description: 'Image is the etcd server image (including
                               version tag) to deploy. Default: Let the operator choose.'
                             type: string
+                          imagePullPolicy:
+                            description: ImagePullPolicy specifies if/when to pull
+                              a container image.
+                            type: string
                           resources:
                             description: 'Resources specify the compute resources
                               to allocate for each etcd member. Default: Let the operator
@@ -457,6 +461,10 @@ spec:
                       description: 'Image is the etcd server image (including version
                         tag) to deploy. Default: Let the operator choose.'
                       type: string
+                    imagePullPolicy:
+                      description: ImagePullPolicy specifies if/when to pull a container
+                        image.
+                      type: string
                     resources:
                       description: 'Resources specify the compute resources to allocate
                         for each etcd member. Default: Let the operator choose.'
@@ -485,6 +493,35 @@ spec:
                   - address
                   - rootPath
                   type: object
+              type: object
+            imagePullPolicies:
+              description: ImagePullPolicies specifies the container image pull policies
+                to use for images defined in the 'images' field.
+              properties:
+                mysqld:
+                  description: Mysqld is the container image pull policy to use for
+                    mysqld.
+                  type: string
+                mysqldExporter:
+                  description: MysqldExporter is the container image pull policy to
+                    use for mysqld-exporter.
+                  type: string
+                vtbackup:
+                  description: Vtbackup is the container image pull policy to use
+                    for Vitess Backup jobs.
+                  type: string
+                vtctld:
+                  description: Vtctld is the container image pull policy to use for
+                    Vitess Dashboard instances.
+                  type: string
+                vtgate:
+                  description: Vtgate is the container image pull policy to use for
+                    Vitess Gateway instances.
+                  type: string
+                vttablet:
+                  description: Vttablet is the container image pull policy to use
+                    for Vitess Tablet instances.
+                  type: string
               type: object
             images:
               description: 'Images specifies the container images (including version

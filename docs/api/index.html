@@ -298,6 +298,20 @@ Default: Let the operator choose.</p>
 </tr>
 <tr>
 <td>
+<code>imagePullPolicies</code></br>
+<em>
+<a href="#planetscale.com/v2.VitessImagePullPolicies">
+VitessImagePullPolicies
+</a>
+</em>
+</td>
+<td>
+<p>ImagePullPolicies specifies the container image pull policies to use for
+images defined in the &lsquo;images&rsquo; field.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>backup</code></br>
 <em>
 <a href="#planetscale.com/v2.ClusterBackupSpec">
@@ -587,6 +601,19 @@ string
 <td>
 <p>Image is the etcd server image (including version tag) to deploy.
 Default: Let the operator choose.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>imagePullPolicy</code></br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#pullpolicy-v1-core">
+Kubernetes core/v1.PullPolicy
+</a>
+</em>
+</td>
+<td>
+<p>ImagePullPolicy specifies if/when to pull a container image.</p>
 </td>
 </tr>
 <tr>
@@ -1704,6 +1731,19 @@ in which case this field is automatically managed by the VitessCluster
 controller that owns this VitessCell.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>imagePullPolicies</code></br>
+<em>
+<a href="#planetscale.com/v2.VitessImagePullPolicies">
+VitessImagePullPolicies
+</a>
+</em>
+</td>
+<td>
+<p>ImagePullPolicies are inherited from the VitessCluster spec.</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -2035,6 +2075,19 @@ VitessCellImages
 skew across the cluster is discouraged except during rolling updates,
 in which case this field is automatically managed by the VitessCluster
 controller that owns this VitessCell.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>imagePullPolicies</code></br>
+<em>
+<a href="#planetscale.com/v2.VitessImagePullPolicies">
+VitessImagePullPolicies
+</a>
+</em>
+</td>
+<td>
+<p>ImagePullPolicies are inherited from the VitessCluster spec.</p>
 </td>
 </tr>
 </tbody>
@@ -2410,6 +2463,20 @@ VitessImages
 <p>Images specifies the container images (including version tag) to use
 in the cluster.
 Default: Let the operator choose.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>imagePullPolicies</code></br>
+<em>
+<a href="#planetscale.com/v2.VitessImagePullPolicies">
+VitessImagePullPolicies
+</a>
+</em>
+</td>
+<td>
+<p>ImagePullPolicies specifies the container image pull policies to use for
+images defined in the &lsquo;images&rsquo; field.</p>
 </td>
 </tr>
 <tr>
@@ -2972,6 +3039,106 @@ Kubernetes core/v1.SecretKeySelector
 </tr>
 </tbody>
 </table>
+<h3 id="planetscale.com/v2.VitessImagePullPolicies">VitessImagePullPolicies
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#planetscale.com/v2.VitessCellSpec">VitessCellSpec</a>, 
+<a href="#planetscale.com/v2.VitessClusterSpec">VitessClusterSpec</a>, 
+<a href="#planetscale.com/v2.VitessKeyspaceSpec">VitessKeyspaceSpec</a>, 
+<a href="#planetscale.com/v2.VitessShardSpec">VitessShardSpec</a>)
+</p>
+<p>
+<p>VitessImagePullPolicies specifies container image pull policies to use for Vitess components.</p>
+</p>
+<table class="table table-striped">
+<thead class="thead-dark">
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>vtctld</code></br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#pullpolicy-v1-core">
+Kubernetes core/v1.PullPolicy
+</a>
+</em>
+</td>
+<td>
+<p>Vtctld is the container image pull policy to use for Vitess Dashboard instances.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>vtgate</code></br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#pullpolicy-v1-core">
+Kubernetes core/v1.PullPolicy
+</a>
+</em>
+</td>
+<td>
+<p>Vtgate is the container image pull policy to use for Vitess Gateway instances.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>vttablet</code></br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#pullpolicy-v1-core">
+Kubernetes core/v1.PullPolicy
+</a>
+</em>
+</td>
+<td>
+<p>Vttablet is the container image pull policy to use for Vitess Tablet instances.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>vtbackup</code></br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#pullpolicy-v1-core">
+Kubernetes core/v1.PullPolicy
+</a>
+</em>
+</td>
+<td>
+<p>Vtbackup is the container image pull policy to use for Vitess Backup jobs.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>mysqld</code></br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#pullpolicy-v1-core">
+Kubernetes core/v1.PullPolicy
+</a>
+</em>
+</td>
+<td>
+<p>Mysqld is the container image pull policy to use for mysqld.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>mysqldExporter</code></br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#pullpolicy-v1-core">
+Kubernetes core/v1.PullPolicy
+</a>
+</em>
+</td>
+<td>
+<p>MysqldExporter is the container image pull policy to use for mysqld-exporter.</p>
+</td>
+</tr>
+</tbody>
+</table>
 <h3 id="planetscale.com/v2.VitessImages">VitessImages
 </h3>
 <p>
@@ -3198,6 +3365,19 @@ VitessKeyspaceImages
 skew across the cluster is discouraged except during rolling updates,
 in which case this field is automatically managed by the VitessCluster
 controller that owns this VitessKeyspace.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>imagePullPolicies</code></br>
+<em>
+<a href="#planetscale.com/v2.VitessImagePullPolicies">
+VitessImagePullPolicies
+</a>
+</em>
+</td>
+<td>
+<p>ImagePullPolicies are inherited from the VitessCluster spec.</p>
 </td>
 </tr>
 <tr>
@@ -3679,6 +3859,19 @@ controller that owns this VitessKeyspace.</p>
 </tr>
 <tr>
 <td>
+<code>imagePullPolicies</code></br>
+<em>
+<a href="#planetscale.com/v2.VitessImagePullPolicies">
+VitessImagePullPolicies
+</a>
+</em>
+</td>
+<td>
+<p>ImagePullPolicies are inherited from the VitessCluster spec.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>zoneMap</code></br>
 <em>
 map[string]string
@@ -4100,6 +4293,19 @@ controller that owns this VitessShard.</p>
 </tr>
 <tr>
 <td>
+<code>imagePullPolicies</code></br>
+<em>
+<a href="#planetscale.com/v2.VitessImagePullPolicies">
+VitessImagePullPolicies
+</a>
+</em>
+</td>
+<td>
+<p>ImagePullPolicies are inherited from the VitessCluster spec.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>keyRange</code></br>
 <em>
 <a href="#planetscale.com/v2.VitessKeyRange">
@@ -4239,6 +4445,19 @@ VitessKeyspaceImages
 skew across the shard is discouraged except during rolling updates,
 in which case this field is automatically managed by the VitessKeyspace
 controller that owns this VitessShard.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>imagePullPolicies</code></br>
+<em>
+<a href="#planetscale.com/v2.VitessImagePullPolicies">
+VitessImagePullPolicies
+</a>
+</em>
+</td>
+<td>
+<p>ImagePullPolicies are inherited from the VitessCluster spec.</p>
 </td>
 </tr>
 <tr>

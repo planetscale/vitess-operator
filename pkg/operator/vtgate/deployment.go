@@ -158,9 +158,10 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 
 	// Start building the main Container to put in the Pod template.
 	vtgateContainer := &corev1.Container{
-		Name:    containerName,
-		Image:   spec.Cell.Images.Vtgate,
-		Command: []string{command},
+		Name:            containerName,
+		Image:           spec.Cell.Images.Vtgate,
+		ImagePullPolicy: spec.Cell.ImagePullPolicies.Vtgate,
+		Command:         []string{command},
 		Ports: []corev1.ContainerPort{
 			{
 				Name:          planetscalev2.DefaultWebPortName,
