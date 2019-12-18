@@ -772,6 +772,13 @@ func (in *VitessCellSpec) DeepCopyInto(out *VitessCellSpec) {
 		copy(*out, *in)
 	}
 	out.Images = in.Images
+	if in.ExtraVitessFlags != nil {
+		in, out := &in.ExtraVitessFlags, &out.ExtraVitessFlags
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
 	out.ImagePullPolicies = in.ImagePullPolicies
 	return
 }
@@ -955,6 +962,13 @@ func (in *VitessClusterSpec) DeepCopyInto(out *VitessClusterSpec) {
 		*out = make([]VitessKeyspaceTemplate, len(*in))
 		for i := range *in {
 			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
+	}
+	if in.ExtraVitessFlags != nil {
+		in, out := &in.ExtraVitessFlags, &out.ExtraVitessFlags
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
 		}
 	}
 	return
@@ -1486,6 +1500,13 @@ func (in *VitessKeyspaceSpec) DeepCopyInto(out *VitessKeyspaceSpec) {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
+	if in.ExtraVitessFlags != nil {
+		in, out := &in.ExtraVitessFlags, &out.ExtraVitessFlags
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
 	return
 }
 
@@ -1681,6 +1702,13 @@ func (in *VitessShardSpec) DeepCopyInto(out *VitessShardSpec) {
 		*out = make([]VitessBackupLocation, len(*in))
 		for i := range *in {
 			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
+	}
+	if in.ExtraVitessFlags != nil {
+		in, out := &in.ExtraVitessFlags, &out.ExtraVitessFlags
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
 		}
 	}
 	return

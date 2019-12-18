@@ -116,6 +116,11 @@ func (r *ReconcileVitessCell) reconcileVtgate(ctx context.Context, vtc *planetsc
 	}
 	update.Annotations(&annotations, vtc.Spec.Gateway.Annotations)
 
+	// Merge ExtraVitessFlags and ExtraFlags together into a new map.
+	extraFlags := make(map[string]string)
+	update.StringMap(&extraFlags, vtc.Spec.ExtraVitessFlags)
+	update.StringMap(&extraFlags, vtc.Spec.Gateway.ExtraFlags)
+
 	// Reconcile vtgate Deployment.
 	spec := &vtgate.Spec{
 		Cell:              &vtc.Spec,
@@ -125,7 +130,7 @@ func (r *ReconcileVitessCell) reconcileVtgate(ctx context.Context, vtc *planetsc
 		Authentication:    &vtc.Spec.Gateway.Authentication,
 		SecureTransport:   vtc.Spec.Gateway.SecureTransport,
 		Affinity:          vtc.Spec.Gateway.Affinity,
-		ExtraFlags:        vtc.Spec.Gateway.ExtraFlags,
+		ExtraFlags:        extraFlags,
 		ExtraEnv:          vtc.Spec.Gateway.ExtraEnv,
 		ExtraVolumes:      vtc.Spec.Gateway.ExtraVolumes,
 		ExtraVolumeMounts: vtc.Spec.Gateway.ExtraVolumeMounts,

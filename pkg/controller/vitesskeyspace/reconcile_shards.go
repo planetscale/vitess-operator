@@ -137,6 +137,7 @@ func newVitessShard(key client.ObjectKey, vtk *planetscalev2.VitessKeyspace, par
 			ZoneMap:             vtk.Spec.ZoneMap,
 			BackupLocations:     vtk.Spec.BackupLocations,
 			BackupEngine:        vtk.Spec.BackupEngine,
+			ExtraVitessFlags:    vtk.Spec.ExtraVitessFlags,
 		},
 	}
 }

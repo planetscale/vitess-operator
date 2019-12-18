@@ -123,6 +123,11 @@ spec:
                 after bootstrapping an empty database to set up initial tables and
                 other MySQL-level entities needed by Vitess.
               type: object
+            extraVitessFlags:
+              additionalProperties:
+                type: string
+              description: ExtraVitessFlags is inherited from the parent's VitessClusterSpec.
+              type: object
             globalLockserver:
               description: GlobalLockserver are the params to connect to the global
                 lockserver.

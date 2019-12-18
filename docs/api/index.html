@@ -391,6 +391,22 @@ that it is undeployed from all cells by clearing the keyspace&rsquo;s list
 of target cells.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>extraVitessFlags</code></br>
+<em>
+map[string]string
+</em>
+</td>
+<td>
+<p>ExtraVitessFlags can optionally be used to pass flags to all Vitess components.
+WARNING: Any flags passed here must be flags that can be accepted by vtgate, vtctld and vttablet.
+An example use-case would be topo flags.</p>
+<p>All entries must be key-value string pairs of the form &ldquo;flag&rdquo;: &ldquo;value&rdquo;. The flag name should
+not have any prefix (just &ldquo;flag&rdquo;, not &ldquo;-flag&rdquo;). To set a boolean flag,
+set the string value to either &ldquo;true&rdquo; or &ldquo;false&rdquo;.</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -1733,6 +1749,17 @@ controller that owns this VitessCell.</p>
 </tr>
 <tr>
 <td>
+<code>extraVitessFlags</code></br>
+<em>
+map[string]string
+</em>
+</td>
+<td>
+<p>ExtraVitessFlags is inherited from the parent&rsquo;s VitessClusterSpec.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>imagePullPolicies</code></br>
 <em>
 <a href="#planetscale.com/v2.VitessImagePullPolicies">
@@ -2075,6 +2102,17 @@ VitessCellImages
 skew across the cluster is discouraged except during rolling updates,
 in which case this field is automatically managed by the VitessCluster
 controller that owns this VitessCell.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>extraVitessFlags</code></br>
+<em>
+map[string]string
+</em>
+</td>
+<td>
+<p>ExtraVitessFlags is inherited from the parent&rsquo;s VitessClusterSpec.</p>
 </td>
 </tr>
 <tr>
@@ -2558,6 +2596,22 @@ that no keyspaces are set to deploy to this cell.</p>
 Before removing any keyspace from this list, you should first ensure
 that it is undeployed from all cells by clearing the keyspace&rsquo;s list
 of target cells.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>extraVitessFlags</code></br>
+<em>
+map[string]string
+</em>
+</td>
+<td>
+<p>ExtraVitessFlags can optionally be used to pass flags to all Vitess components.
+WARNING: Any flags passed here must be flags that can be accepted by vtgate, vtctld and vttablet.
+An example use-case would be topo flags.</p>
+<p>All entries must be key-value string pairs of the form &ldquo;flag&rdquo;: &ldquo;value&rdquo;. The flag name should
+not have any prefix (just &ldquo;flag&rdquo;, not &ldquo;-flag&rdquo;). To set a boolean flag,
+set the string value to either &ldquo;true&rdquo; or &ldquo;false&rdquo;.</p>
 </td>
 </tr>
 </tbody>
@@ -3418,6 +3472,17 @@ VitessBackupEngine
 <p>BackupEngine specifies the Vitess backup engine to use, either &ldquo;builtin&rdquo; or &ldquo;xtrabackup&rdquo;.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>extraVitessFlags</code></br>
+<em>
+map[string]string
+</em>
+</td>
+<td>
+<p>ExtraVitessFlags is inherited from the parent&rsquo;s VitessClusterSpec.</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -3908,6 +3973,17 @@ VitessBackupEngine
 <p>BackupEngine specifies the Vitess backup engine to use, either &ldquo;builtin&rdquo; or &ldquo;xtrabackup&rdquo;.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>extraVitessFlags</code></br>
+<em>
+map[string]string
+</em>
+</td>
+<td>
+<p>ExtraVitessFlags is inherited from the parent&rsquo;s VitessClusterSpec.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="planetscale.com/v2.VitessKeyspaceStatus">VitessKeyspaceStatus
@@ -4356,6 +4432,17 @@ VitessBackupEngine
 <p>BackupEngine specifies the Vitess backup engine to use, either &ldquo;builtin&rdquo; or &ldquo;xtrabackup&rdquo;.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>extraVitessFlags</code></br>
+<em>
+map[string]string
+</em>
+</td>
+<td>
+<p>ExtraVitessFlags is inherited from the parent&rsquo;s VitessClusterSpec.</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -4510,6 +4597,17 @@ VitessBackupEngine
 </td>
 <td>
 <p>BackupEngine specifies the Vitess backup engine to use, either &ldquo;builtin&rdquo; or &ldquo;xtrabackup&rdquo;.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>extraVitessFlags</code></br>
+<em>
+map[string]string
+</em>
+</td>
+<td>
+<p>ExtraVitessFlags is inherited from the parent&rsquo;s VitessClusterSpec.</p>
 </td>
 </tr>
 </tbody>

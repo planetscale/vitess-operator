@@ -80,6 +80,9 @@ type VitessShardSpec struct {
 
 	// BackupEngine specifies the Vitess backup engine to use, either "builtin" or "xtrabackup".
 	BackupEngine VitessBackupEngine `json:"backupEngine,omitempty"`
+
+	// ExtraVitessFlags is inherited from the parent's VitessClusterSpec.
+	ExtraVitessFlags map[string]string `json:"extraVitessFlags,omitempty"`
 }
 
 // VitessShardTemplate contains only the user-specified parts of a VitessShard object.

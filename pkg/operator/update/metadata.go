@@ -20,17 +20,19 @@ package update
 // It leaves any extra labels (found in 'dst' but not in 'src') untouched,
 // since those might be set by someone else.
 func Labels(dst *map[string]string, src map[string]string) {
-	stringMap(dst, src)
+	StringMap(dst, src)
 }
 
 // Annotations updates annotations in 'dst' based on values in 'src'.
 // It leaves any extra annotations (found in 'dst' but not in 'src') untouched,
 // since those might be set by someone else.
 func Annotations(dst *map[string]string, src map[string]string) {
-	stringMap(dst, src)
+	StringMap(dst, src)
 }
 
-func stringMap(dst *map[string]string, src map[string]string) {
+// StringMap mutates a destination map to include the key value pairs from a provided
+// source map. This behaves as an update in place.
+func StringMap(dst *map[string]string, src map[string]string) {
 	if *dst == nil {
 		*dst = make(map[string]string, len(src))
 	}

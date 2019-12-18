@@ -540,6 +540,20 @@ func schema_pkg_apis_planetscale_v2_VitessCellSpec(ref common.ReferenceCallback)
 							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessCellImages"),
 						},
 					},
+					"extraVitessFlags": {
+						SchemaProps: spec.SchemaProps{
+							Description: "ExtraVitessFlags is inherited from the parent's VitessClusterSpec.",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
 					"imagePullPolicies": {
 						SchemaProps: spec.SchemaProps{
 							Description: "ImagePullPolicies are inherited from the VitessCluster spec.",
@@ -720,6 +734,20 @@ func schema_pkg_apis_planetscale_v2_VitessClusterSpec(ref common.ReferenceCallba
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Ref: ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceTemplate"),
+									},
+								},
+							},
+						},
+					},
+					"extraVitessFlags": {
+						SchemaProps: spec.SchemaProps{
+							Description: "ExtraVitessFlags can optionally be used to pass flags to all Vitess components. WARNING: Any flags passed here must be flags that can be accepted by vtgate, vtctld and vttablet. An example use-case would be topo flags.\n\nAll entries must be key-value string pairs of the form \"flag\": \"value\". The flag name should not have any prefix (just \"flag\", not \"-flag\"). To set a boolean flag, set the string value to either \"true\" or \"false\".",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
 									},
 								},
 							},
@@ -954,6 +982,20 @@ func schema_pkg_apis_planetscale_v2_VitessKeyspaceSpec(ref common.ReferenceCallb
 							Format:      "",
 						},
 					},
+					"extraVitessFlags": {
+						SchemaProps: spec.SchemaProps{
+							Description: "ExtraVitessFlags is inherited from the parent's VitessClusterSpec.",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
 				},
 				Required: []string{"name", "partitionings", "globalLockserver", "zoneMap"},
 			},
@@ -1165,6 +1207,20 @@ func schema_pkg_apis_planetscale_v2_VitessShardSpec(ref common.ReferenceCallback
 							Description: "BackupEngine specifies the Vitess backup engine to use, either \"builtin\" or \"xtrabackup\".",
 							Type:        []string{"string"},
 							Format:      "",
+						},
+					},
+					"extraVitessFlags": {
+						SchemaProps: spec.SchemaProps{
+							Description: "ExtraVitessFlags is inherited from the parent's VitessClusterSpec.",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
 						},
 					},
 				},

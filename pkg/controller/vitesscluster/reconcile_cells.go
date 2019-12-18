@@ -128,6 +128,7 @@ func newVitessCell(key client.ObjectKey, vt *planetscalev2.VitessCluster, parent
 			GlobalLockserver:   *lockserver.GlobalConnectionParams(vt),
 			AllCells:           allCells,
 			Images:             images,
+			ExtraVitessFlags:   vt.Spec.ExtraVitessFlags,
 		},
 	}
 }

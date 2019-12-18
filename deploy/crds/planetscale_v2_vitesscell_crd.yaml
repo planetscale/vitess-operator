@@ -36,6 +36,11 @@ spec:
               items:
                 type: string
               type: array
+            extraVitessFlags:
+              additionalProperties:
+                type: string
+              description: ExtraVitessFlags is inherited from the parent's VitessClusterSpec.
+              type: object
             gateway:
               description: Gateway configures the Vitess Gateway deployment in this
                 cell.

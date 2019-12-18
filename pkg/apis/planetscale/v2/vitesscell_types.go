@@ -68,6 +68,9 @@ type VitessCellSpec struct {
 	// controller that owns this VitessCell.
 	Images VitessCellImages `json:"images,omitempty"`
 
+	// ExtraVitessFlags is inherited from the parent's VitessClusterSpec.
+	ExtraVitessFlags map[string]string `json:"extraVitessFlags,omitempty"`
+
 	// ImagePullPolicies are inherited from the VitessCluster spec.
 	ImagePullPolicies VitessImagePullPolicies `json:"imagePullPolicies,omitempty"`
 }

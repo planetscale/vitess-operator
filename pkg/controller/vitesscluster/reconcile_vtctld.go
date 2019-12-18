@@ -18,6 +18,7 @@ package vitesscluster
 
 import (
 	"context"
+	"planetscale.dev/vitess-operator/pkg/operator/update"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -144,6 +145,11 @@ func (r *ReconcileVitessCluster) vtctldSpecs(vt *planetscalev2.VitessCluster, pa
 		}
 		labels[planetscalev2.CellLabel] = cell.Name
 
+		// Merge ExtraVitessFlags and ExtraFlags into a new map.
+		extraFlags := make(map[string]string)
+		update.StringMap(&extraFlags, vt.Spec.ExtraVitessFlags)
+		update.StringMap(&extraFlags, vt.Spec.VitessDashboard.ExtraFlags)
+
 		specs = append(specs, &vtctld.Spec{
 			GlobalLockserver:  glsParams,
 			Image:             vt.Spec.Images.Vtctld,
@@ -153,7 +159,7 @@ func (r *ReconcileVitessCluster) vtctldSpecs(vt *planetscalev2.VitessCluster, pa
 			Replicas:          *vt.Spec.VitessDashboard.Replicas,
 			Resources:         vt.Spec.VitessDashboard.Resources,
 			Affinity:          vt.Spec.VitessDashboard.Affinity,
-			ExtraFlags:        vt.Spec.VitessDashboard.ExtraFlags,
+			ExtraFlags:        extraFlags,
 			ExtraEnv:          vt.Spec.VitessDashboard.ExtraEnv,
 			ExtraVolumes:      vt.Spec.VitessDashboard.ExtraVolumes,
 			ExtraVolumeMounts: vt.Spec.VitessDashboard.ExtraVolumeMounts,
