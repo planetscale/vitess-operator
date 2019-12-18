@@ -1,5 +1,5 @@
 /*
-Copyright 2019 PlanetScale.
+Copyright 2019 PlanetScale Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -58,6 +58,9 @@ type VitessKeyspaceSpec struct {
 	// in which case this field is automatically managed by the VitessCluster
 	// controller that owns this VitessKeyspace.
 	Images VitessKeyspaceImages `json:"images,omitempty"`
+
+	// ImagePullPolicies are inherited from the VitessCluster spec.
+	ImagePullPolicies VitessImagePullPolicies `json:"imagePullPolicies,omitempty"`
 
 	// ZoneMap is a map from Vitess cell name to zone (failure domain) name
 	// for all cells defined in the VitessCluster.

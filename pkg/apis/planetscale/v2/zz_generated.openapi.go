@@ -91,6 +91,13 @@ func schema_pkg_apis_planetscale_v2_EtcdLockserverSpec(ref common.ReferenceCallb
 							Format:      "",
 						},
 					},
+					"imagePullPolicy": {
+						SchemaProps: spec.SchemaProps{
+							Description: "ImagePullPolicy specifies if/when to pull a container image.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
 					"resources": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Resources specify the compute resources to allocate for each etcd member. Default: Let the operator choose.",
@@ -547,12 +554,18 @@ func schema_pkg_apis_planetscale_v2_VitessCellSpec(ref common.ReferenceCallback)
 							},
 						},
 					},
+					"imagePullPolicies": {
+						SchemaProps: spec.SchemaProps{
+							Description: "ImagePullPolicies are inherited from the VitessCluster spec.",
+							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImagePullPolicies"),
+						},
+					},
 				},
 				Required: []string{"name", "globalLockserver", "allCells"},
 			},
 		},
 		Dependencies: []string{
-			"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.LockserverSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessCellGatewaySpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessCellImages", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessLockserverParams"},
+			"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.LockserverSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessCellGatewaySpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessCellImages", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImagePullPolicies", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessLockserverParams"},
 	}
 }
 
@@ -664,6 +677,12 @@ func schema_pkg_apis_planetscale_v2_VitessClusterSpec(ref common.ReferenceCallba
 							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImages"),
 						},
 					},
+					"imagePullPolicies": {
+						SchemaProps: spec.SchemaProps{
+							Description: "ImagePullPolicies specifies the container image pull policies to use for images defined in the 'images' field.",
+							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImagePullPolicies"),
+						},
+					},
 					"backup": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Backup specifies how to take and store Vitess backups. This is optional but strongly recommended. In addition to disaster recovery, Vitess currently depends on backups to support provisioning of a new tablet in a shard with existing data, as an implementation detail.",
@@ -739,7 +758,7 @@ func schema_pkg_apis_planetscale_v2_VitessClusterSpec(ref common.ReferenceCallba
 			},
 		},
 		Dependencies: []string{
-			"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.ClusterBackupSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.LockserverSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessCellTemplate", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessDashboardSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImages", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceTemplate"},
+			"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.ClusterBackupSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.LockserverSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessCellTemplate", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessDashboardSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImagePullPolicies", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImages", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceTemplate"},
 	}
 }
 
@@ -923,6 +942,12 @@ func schema_pkg_apis_planetscale_v2_VitessKeyspaceSpec(ref common.ReferenceCallb
 							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceImages"),
 						},
 					},
+					"imagePullPolicies": {
+						SchemaProps: spec.SchemaProps{
+							Description: "ImagePullPolicies are inherited from the VitessCluster spec.",
+							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImagePullPolicies"),
+						},
+					},
 					"zoneMap": {
 						SchemaProps: spec.SchemaProps{
 							Description: "ZoneMap is a map from Vitess cell name to zone (failure domain) name for all cells defined in the VitessCluster.",
@@ -976,7 +1001,7 @@ func schema_pkg_apis_planetscale_v2_VitessKeyspaceSpec(ref common.ReferenceCallb
 			},
 		},
 		Dependencies: []string{
-			"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessBackupLocation", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceImages", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspacePartitioning", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessLockserverParams"},
+			"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessBackupLocation", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImagePullPolicies", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceImages", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspacePartitioning", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessLockserverParams"},
 	}
 }
 
@@ -1146,6 +1171,12 @@ func schema_pkg_apis_planetscale_v2_VitessShardSpec(ref common.ReferenceCallback
 							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceImages"),
 						},
 					},
+					"imagePullPolicies": {
+						SchemaProps: spec.SchemaProps{
+							Description: "ImagePullPolicies are inherited from the VitessCluster spec.",
+							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImagePullPolicies"),
+						},
+					},
 					"keyRange": {
 						SchemaProps: spec.SchemaProps{
 							Description: "KeyRange is the range of keyspace IDs served by this shard.",
@@ -1197,7 +1228,7 @@ func schema_pkg_apis_planetscale_v2_VitessShardSpec(ref common.ReferenceCallback
 			},
 		},
 		Dependencies: []string{
-			"k8s.io/api/core/v1.SecretKeySelector", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessBackupLocation", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyRange", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceImages", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessLockserverParams", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessReplicationSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessShardTabletPool"},
+			"k8s.io/api/core/v1.SecretKeySelector", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessBackupLocation", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImagePullPolicies", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyRange", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceImages", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessLockserverParams", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessReplicationSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessShardTabletPool"},
 	}
 }
 

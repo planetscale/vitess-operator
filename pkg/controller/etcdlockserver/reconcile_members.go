@@ -1,5 +1,5 @@
 /*
-Copyright 2019 PlanetScale.
+Copyright 2019 PlanetScale Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -133,6 +133,7 @@ func memberSpecs(ls *planetscalev2.EtcdLockserver, parentLabels map[string]strin
 		members = append(members, &etcd.Spec{
 			LockserverName:    ls.Name,
 			Image:             ls.Spec.Image,
+			ImagePullPolicy:   ls.Spec.ImagePullPolicy,
 			Resources:         ls.Spec.Resources,
 			Labels:            labels,
 			Zone:              ls.Spec.Zone,

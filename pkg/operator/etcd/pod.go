@@ -1,5 +1,5 @@
 /*
-Copyright 2019 PlanetScale.
+Copyright 2019 PlanetScale Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -68,6 +68,7 @@ func PodName(lockserverName string, index int) string {
 type Spec struct {
 	LockserverName    string
 	Image             string
+	ImagePullPolicy   corev1.PullPolicy
 	Resources         corev1.ResourceRequirements
 	Labels            map[string]string
 	Zone              string
@@ -155,10 +156,11 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	update.VolumeMounts(&volumeMounts, spec.ExtraVolumeMounts)
 
 	etcdContainer := &corev1.Container{
-		Name:    etcdContainerName,
-		Image:   spec.Image,
-		Command: []string{etcdCommand},
-		Args:    spec.Args(),
+		Name:            etcdContainerName,
+		Image:           spec.Image,
+		ImagePullPolicy: spec.ImagePullPolicy,
+		Command:         []string{etcdCommand},
+		Args:            spec.Args(),
 		Ports: []corev1.ContainerPort{
 			{
 				Name:          clientPortName,

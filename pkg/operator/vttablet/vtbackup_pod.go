@@ -1,5 +1,5 @@
 /*
-Copyright 2019 PlanetScale.
+Copyright 2019 PlanetScale Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -128,7 +128,8 @@ func NewBackupPod(key client.ObjectKey, backupSpec *BackupSpec) *corev1.Pod {
 					},
 					// We only use the vtbackup image to steal the vtbackup binary.
 					// When we actually run it, we run inside the mysqld image.
-					Image: tabletSpec.Images.Vtbackup,
+					Image:           tabletSpec.Images.Vtbackup,
+					ImagePullPolicy: tabletSpec.ImagePullPolicies.Vtbackup,
 					VolumeMounts: []corev1.VolumeMount{
 						{Name: vtRootVolumeName, MountPath: "/mnt/vt"},
 					},
@@ -143,10 +144,11 @@ func NewBackupPod(key client.ObjectKey, backupSpec *BackupSpec) *corev1.Pod {
 				{
 					Name: vtbackupContainerName,
 					// Use the mysqld container, as if we are running mysqlctld.
-					Image:     tabletSpec.Images.Mysqld.Image(),
-					Command:   []string{vtbackupCommand},
-					Args:      vtbackupFlags.Get(backupSpec).FormatArgs(),
-					Resources: tabletSpec.Mysqld.Resources,
+					Image:           tabletSpec.Images.Mysqld.Image(),
+					ImagePullPolicy: tabletSpec.ImagePullPolicies.Mysqld,
+					Command:         []string{vtbackupCommand},
+					Args:            vtbackupFlags.Get(backupSpec).FormatArgs(),
+					Resources:       tabletSpec.Mysqld.Resources,
 					SecurityContext: &corev1.SecurityContext{
 						RunAsUser: pointer.Int64Ptr(runAsUser),
 					},

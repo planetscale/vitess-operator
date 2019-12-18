@@ -1,5 +1,5 @@
 /*
-Copyright 2019 PlanetScale.
+Copyright 2019 PlanetScale Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -70,6 +70,9 @@ type VitessCellSpec struct {
 
 	// ExtraVitessFlags is inherited from the parent's VitessClusterSpec.
 	ExtraVitessFlags map[string]string `json:"extraVitessFlags,omitempty"`
+
+	// ImagePullPolicies are inherited from the VitessCluster spec.
+	ImagePullPolicies VitessImagePullPolicies `json:"imagePullPolicies,omitempty"`
 }
 
 // VitessCellTemplate contains only the user-specified parts of a VitessCell object.

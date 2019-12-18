@@ -1,5 +1,5 @@
 /*
-Copyright 2019 PlanetScale.
+Copyright 2019 PlanetScale Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -163,6 +163,7 @@ func newVitessKeyspace(key client.ObjectKey, vt *planetscalev2.VitessCluster, pa
 			VitessKeyspaceTemplate: *template,
 			GlobalLockserver:       *lockserver.GlobalConnectionParams(vt),
 			Images:                 images,
+			ImagePullPolicies:      vt.Spec.ImagePullPolicies,
 			ZoneMap:                vt.Spec.ZoneMap(),
 			BackupLocations:        backupLocations,
 			BackupEngine:           backupEngine,

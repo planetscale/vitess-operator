@@ -1,5 +1,5 @@
 /*
-Copyright 2019 PlanetScale.
+Copyright 2019 PlanetScale Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ type Spec struct {
 	Zone                     string
 	Labels                   map[string]string
 	Images                   planetscalev2.VitessKeyspaceImages
+	ImagePullPolicies        planetscalev2.VitessImagePullPolicies
 	Index                    int32
 	KeyRange                 planetscalev2.VitessKeyRange
 	KeyspaceName             string

@@ -1,5 +1,5 @@
 /*
-Copyright 2019 PlanetScale.
+Copyright 2019 PlanetScale Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -65,6 +65,9 @@ type VitessShardSpec struct {
 	// in which case this field is automatically managed by the VitessKeyspace
 	// controller that owns this VitessShard.
 	Images VitessKeyspaceImages `json:"images"`
+
+	// ImagePullPolicies are inherited from the VitessCluster spec.
+	ImagePullPolicies VitessImagePullPolicies `json:"imagePullPolicies,omitempty"`
 
 	// KeyRange is the range of keyspace IDs served by this shard.
 	KeyRange VitessKeyRange `json:"keyRange"`

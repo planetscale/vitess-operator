@@ -143,6 +143,35 @@ spec:
               - address
               - rootPath
               type: object
+            imagePullPolicies:
+              description: ImagePullPolicies are inherited from the VitessCluster
+                spec.
+              properties:
+                mysqld:
+                  description: Mysqld is the container image pull policy to use for
+                    mysqld.
+                  type: string
+                mysqldExporter:
+                  description: MysqldExporter is the container image pull policy to
+                    use for mysqld-exporter.
+                  type: string
+                vtbackup:
+                  description: Vtbackup is the container image pull policy to use
+                    for Vitess Backup jobs.
+                  type: string
+                vtctld:
+                  description: Vtctld is the container image pull policy to use for
+                    Vitess Dashboard instances.
+                  type: string
+                vtgate:
+                  description: Vtgate is the container image pull policy to use for
+                    Vitess Gateway instances.
+                  type: string
+                vttablet:
+                  description: Vttablet is the container image pull policy to use
+                    for Vitess Tablet instances.
+                  type: string
+              type: object
             images:
               description: Images are not customizable by users at the keyspace level
                 because version skew across the cluster is discouraged except during

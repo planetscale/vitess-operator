@@ -1,5 +1,5 @@
 /*
-Copyright 2019 PlanetScale.
+Copyright 2019 PlanetScale Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -68,6 +68,9 @@ type EtcdLockserverTemplate struct {
 	// Image is the etcd server image (including version tag) to deploy.
 	// Default: Let the operator choose.
 	Image string `json:"image,omitempty"`
+
+	// ImagePullPolicy specifies if/when to pull a container image.
+	ImagePullPolicy corev1.PullPolicy `json:"imagePullPolicy,omitempty"`
 
 	// Resources specify the compute resources to allocate for each etcd member.
 	// Default: Let the operator choose.

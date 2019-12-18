@@ -1,5 +1,5 @@
 /*
-Copyright 2019 PlanetScale.
+Copyright 2019 PlanetScale Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -55,6 +55,10 @@ type VitessClusterSpec struct {
 	// in the cluster.
 	// Default: Let the operator choose.
 	Images VitessImages `json:"images,omitempty"`
+
+	// ImagePullPolicies specifies the container image pull policies to use for
+	// images defined in the 'images' field.
+	ImagePullPolicies VitessImagePullPolicies `json:"imagePullPolicies,omitempty"`
 
 	// Backup specifies how to take and store Vitess backups.
 	// This is optional but strongly recommended. In addition to disaster
@@ -149,6 +153,23 @@ type MysqldImage struct {
 	// Mariadb103Compatible is a container image (including version tag) for mysqld
 	// that's compatible with the Vitess "MariaDB103" flavor setting.
 	Mariadb103Compatible string `json:"mariadb103Compatible,omitempty"`
+}
+
+// VitessImagePullPolicies specifies container image pull policies to use for Vitess components.
+type VitessImagePullPolicies struct {
+	// Vtctld is the container image pull policy to use for Vitess Dashboard instances.
+	Vtctld corev1.PullPolicy `json:"vtctld,omitempty"`
+	// Vtgate is the container image pull policy to use for Vitess Gateway instances.
+	Vtgate corev1.PullPolicy `json:"vtgate,omitempty"`
+	// Vttablet is the container image pull policy to use for Vitess Tablet instances.
+	Vttablet corev1.PullPolicy `json:"vttablet,omitempty"`
+	// Vtbackup is the container image pull policy to use for Vitess Backup jobs.
+	Vtbackup corev1.PullPolicy `json:"vtbackup,omitempty"`
+
+	// Mysqld is the container image pull policy to use for mysqld.
+	Mysqld corev1.PullPolicy `json:"mysqld,omitempty"`
+	// MysqldExporter is the container image pull policy to use for mysqld-exporter.
+	MysqldExporter corev1.PullPolicy `json:"mysqldExporter,omitempty"`
 }
 
 // ClusterBackupSpec configures backups for a cluster.

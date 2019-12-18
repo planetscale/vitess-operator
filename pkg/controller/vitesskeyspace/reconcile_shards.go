@@ -1,5 +1,5 @@
 /*
-Copyright 2019 PlanetScale.
+Copyright 2019 PlanetScale Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -131,6 +131,7 @@ func newVitessShard(key client.ObjectKey, vtk *planetscalev2.VitessKeyspace, par
 			VitessShardTemplate: *template,
 			GlobalLockserver:    vtk.Spec.GlobalLockserver,
 			Images:              vtk.Spec.Images,
+			ImagePullPolicies:   vtk.Spec.ImagePullPolicies,
 			Name:                shard.KeyRange.String(),
 			KeyRange:            shard.KeyRange,
 			ZoneMap:             vtk.Spec.ZoneMap,

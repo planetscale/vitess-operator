@@ -1,5 +1,5 @@
 /*
-Copyright 2019 PlanetScale.
+Copyright 2019 PlanetScale Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -279,6 +279,7 @@ func vttabletSpecs(vts *planetscalev2.VitessShard, parentLabels map[string]strin
 				GlobalLockserver:         vts.Spec.GlobalLockserver,
 				Labels:                   labels,
 				Images:                   vts.Spec.Images,
+				ImagePullPolicies:        vts.Spec.ImagePullPolicies,
 				Index:                    tabletIndex,
 				KeyRange:                 vts.Spec.KeyRange,
 				Alias:                    tabletAlias,

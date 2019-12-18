@@ -1,5 +1,5 @@
 /*
-Copyright 2019 PlanetScale.
+Copyright 2019 PlanetScale Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -55,6 +55,7 @@ type Spec struct {
 	GlobalLockserver  *planetscalev2.VitessLockserverParams
 	Cell              *planetscalev2.VitessCellTemplate
 	Image             string
+	ImagePullPolicy   corev1.PullPolicy
 	Labels            map[string]string
 	Replicas          int32
 	Resources         corev1.ResourceRequirements
@@ -126,10 +127,11 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 
 	update.Containers(&obj.Spec.Template.Spec.Containers, []corev1.Container{
 		{
-			Name:    containerName,
-			Image:   spec.Image,
-			Command: []string{command},
-			Args:    flags.FormatArgs(),
+			Name:            containerName,
+			Image:           spec.Image,
+			ImagePullPolicy: spec.ImagePullPolicy,
+			Command:         []string{command},
+			Args:            flags.FormatArgs(),
 			Ports: []corev1.ContainerPort{
 				{
 					Name:          planetscalev2.DefaultWebPortName,
