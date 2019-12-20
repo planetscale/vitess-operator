@@ -381,6 +381,13 @@ spec:
                     items:
                       type: object
                     type: array
+                  initContainers:
+                    description: InitContainers can optionally be used to supply extra
+                      init containers that will be run to completion one after another
+                      before any app containers are started.
+                    items:
+                      type: object
+                    type: array
                   mysqld:
                     description: Mysqld configures a local MySQL running inside each
                       tablet Pod. You must specify either Mysqld or ExternalDatastore,

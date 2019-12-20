@@ -713,6 +713,20 @@ should be mounted.</p>
 </tr>
 <tr>
 <td>
+<code>initContainers</code></br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#container-v1-core">
+[]Kubernetes core/v1.Container
+</a>
+</em>
+</td>
+<td>
+<p>InitContainers can optionally be used to supply extra init containers
+that will be run to completion one after another before any app containers are started.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>extraVolumeMounts</code></br>
 <em>
 <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#volumemount-v1-core">
@@ -1903,6 +1917,20 @@ should be mounted.</p>
 </tr>
 <tr>
 <td>
+<code>initContainers</code></br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#container-v1-core">
+[]Kubernetes core/v1.Container
+</a>
+</em>
+</td>
+<td>
+<p>InitContainers can optionally be used to supply extra init containers
+that will be run to completion one after another before any app containers are started.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>extraVolumeMounts</code></br>
 <em>
 <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#volumemount-v1-core">
@@ -2833,6 +2861,20 @@ defined by the operator, or provide additional volumes to the Pod.
 Note that when adding a new volume, you should usually also add a
 volumeMount to specify where in each container&rsquo;s filesystem the volume
 should be mounted.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>initContainers</code></br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#container-v1-core">
+[]Kubernetes core/v1.Container
+</a>
+</em>
+</td>
+<td>
+<p>InitContainers can optionally be used to supply extra init containers
+that will be run to completion one after another before any app containers are started.</p>
 </td>
 </tr>
 <tr>
@@ -4942,6 +4984,20 @@ Note that when adding a new volume, you should usually also add a
 volumeMount to specify where in each container&rsquo;s filesystem the volume
 should be mounted.
 These volumes are available to be mounted by both vttablet and mysqld.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>initContainers</code></br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#container-v1-core">
+[]Kubernetes core/v1.Container
+</a>
+</em>
+</td>
+<td>
+<p>InitContainers can optionally be used to supply extra init containers
+that will be run to completion one after another before any app containers are started.</p>
 </td>
 </tr>
 <tr>
