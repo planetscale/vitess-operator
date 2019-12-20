@@ -172,7 +172,7 @@ type VitessGatewayAuthentication struct {
 // VitessGatewayStaticAuthentication configures static file authentication for vtgate.
 type VitessGatewayStaticAuthentication struct {
 	// Secret configures vtgate to load the static auth file from a given key in a given Secret.
-	Secret *corev1.SecretKeySelector `json:"secret,omitempty"`
+	Secret *SecretSource `json:"secret,omitempty"`
 }
 
 // VitessGatewaySecureTransport configures secure transport connections for vtgate.
@@ -191,12 +191,12 @@ type VitessGatewayTLSSecureTransport struct {
 	// ClientCACertSecret configures vtgate to load the TLS certificate authority PEM file from a given key in a given Secret.
 	// If specified, checks client certificates are signed by this CA certificate.
 	// Optional.
-	ClientCACertSecret *corev1.SecretKeySelector `json:"clientCACertSecret,omitempty"`
+	ClientCACertSecret *SecretSource `json:"clientCACertSecret,omitempty"`
 
 	// CertSecret configures vtgate to load the TLS cert PEM file from a given key in a given Secret.
-	CertSecret *corev1.SecretKeySelector `json:"certSecret,omitempty"`
+	CertSecret *SecretSource `json:"certSecret,omitempty"`
 	// KeySecret configures vtgate to load the TLS key PEM file from a given key in a given Secret.
-	KeySecret *corev1.SecretKeySelector `json:"keySecret,omitempty"`
+	KeySecret *SecretSource `json:"keySecret,omitempty"`
 }
 
 // VitessCellGatewayStatus is a summary of the status of vtgate in this cell.

@@ -23,6 +23,7 @@ import (
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 	"planetscale.dev/vitess-operator/pkg/operator/lazy"
+	"planetscale.dev/vitess-operator/pkg/operator/secrets"
 	"planetscale.dev/vitess-operator/pkg/operator/vitess"
 )
 
@@ -81,13 +82,14 @@ func init() {
 	// Base mysqlctld flags.
 	mysqlctldFlags.Add(func(s lazy.Spec) vitess.Flags {
 		spec := s.(*Spec)
+		dbInitScript := secrets.Mount(&spec.DatabaseInitScriptSecret, dbInitScriptDirName)
 		return vitess.Flags{
-			"logtostderr":           true,
-			"tablet_uid":            spec.Alias.Uid,
-			"socket_file":           mysqlctlSocketPath,
-			"db-config-dba-uname":   dbConfigDbaUname,
-			"db_charset":            dbConfigCharset,
-			"init_db_sql_file":      dbInitScriptFilePath,
+			"logtostderr":         true,
+			"tablet_uid":          spec.Alias.Uid,
+			"socket_file":         mysqlctlSocketPath,
+			"db-config-dba-uname": dbConfigDbaUname,
+			"db_charset":          dbConfigCharset,
+			"init_db_sql_file":    dbInitScript.FilePath(),
 		}
 	})
 
@@ -95,6 +97,7 @@ func init() {
 	vtbackupFlags.Add(func(s lazy.Spec) vitess.Flags {
 		backupSpec := s.(*BackupSpec)
 		spec := backupSpec.TabletSpec
+		dbInitScript := secrets.Mount(&spec.DatabaseInitScriptSecret, dbInitScriptDirName)
 		return vitess.Flags{
 			// vtbackup-specific flags.
 			"timeout":             vtbackupTimeout,
@@ -115,10 +118,10 @@ func init() {
 			"init_shard":            spec.KeyRange.String(),
 			"init_db_name_override": spec.localDatabaseName(),
 
-			"db-config-dba-uname":   dbConfigDbaUname,
-			"db_charset":            dbConfigCharset,
+			"db-config-dba-uname": dbConfigDbaUname,
+			"db_charset":          dbConfigCharset,
 
-			"init_db_sql_file": dbInitScriptFilePath,
+			"init_db_sql_file": dbInitScript.FilePath(),
 		}
 	})
 }

@@ -90,7 +90,7 @@ type GCSBackupLocation struct {
 	// If set, this must point to a file in the format expected for the
 	// GOOGLE_APPLICATION_CREDENTIALS environment variable.
 	// Default: Use the default credentials of the Node.
-	AuthSecret *corev1.SecretKeySelector `json:"authSecret,omitempty"`
+	AuthSecret *SecretSource `json:"authSecret,omitempty"`
 }
 
 // S3BackupLocation specifies a backup location in Amazon S3.
@@ -113,7 +113,7 @@ type S3BackupLocation struct {
 	// If set, this must point to a file in the format expected for the
 	// `~/.aws/credentials` file.
 	// Default: Use the default credentials of the Node.
-	AuthSecret *corev1.SecretKeySelector `json:"authSecret,omitempty"`
+	AuthSecret *SecretSource `json:"authSecret,omitempty"`
 }
 
 // VitessBackupStorageStatus defines the observed state of VitessBackupStorage.

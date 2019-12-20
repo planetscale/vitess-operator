@@ -823,8 +823,8 @@ string
 <td>
 <code>credentialsSecret</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#secretkeyselector-v1-core">
-Kubernetes core/v1.SecretKeySelector
+<a href="#planetscale.com/v2.SecretSource">
+SecretSource
 </a>
 </em>
 </td>
@@ -843,8 +843,8 @@ Vitess always uses the first password in the password array.</p>
 <td>
 <code>serverCACertSecret</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#secretkeyselector-v1-core">
-Kubernetes core/v1.SecretKeySelector
+<a href="#planetscale.com/v2.SecretSource">
+SecretSource
 </a>
 </em>
 </td>
@@ -901,8 +901,8 @@ within a bucket, regardless of this setting.</p>
 <td>
 <code>authSecret</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#secretkeyselector-v1-core">
-Kubernetes core/v1.SecretKeySelector
+<a href="#planetscale.com/v2.SecretSource">
+SecretSource
 </a>
 </em>
 </td>
@@ -1209,8 +1209,8 @@ within a bucket, regardless of this setting.</p>
 <td>
 <code>authSecret</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#secretkeyselector-v1-core">
-Kubernetes core/v1.SecretKeySelector
+<a href="#planetscale.com/v2.SecretSource">
+SecretSource
 </a>
 </em>
 </td>
@@ -1219,6 +1219,76 @@ Kubernetes core/v1.SecretKeySelector
 If set, this must point to a file in the format expected for the
 <code>~/.aws/credentials</code> file.
 Default: Use the default credentials of the Node.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="planetscale.com/v2.SecretSource">SecretSource
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#planetscale.com/v2.ExternalDatastore">ExternalDatastore</a>, 
+<a href="#planetscale.com/v2.GCSBackupLocation">GCSBackupLocation</a>, 
+<a href="#planetscale.com/v2.S3BackupLocation">S3BackupLocation</a>, 
+<a href="#planetscale.com/v2.VitessGatewayStaticAuthentication">VitessGatewayStaticAuthentication</a>, 
+<a href="#planetscale.com/v2.VitessGatewayTLSSecureTransport">VitessGatewayTLSSecureTransport</a>, 
+<a href="#planetscale.com/v2.VitessShardTemplate">VitessShardTemplate</a>)
+</p>
+<p>
+<p>SecretSource specifies where to find the data for a particular secret value.</p>
+</p>
+<table class="table table-striped">
+<thead class="thead-dark">
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>name</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Name is the name of a Kubernetes Secret object to use as the data source.
+The Secret must be in the same namespace as the VitessCluster.</p>
+<p>The &lsquo;key&rsquo; field defines the item to pick from the Secret object&rsquo;s &lsquo;data&rsquo;
+map.</p>
+<p>If a Secret name is not specified, the data source must be defined
+with the &lsquo;volumeName&rsquo; field instead.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>volumeName</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>VolumeName directly specifies the name of a Volume in each Pod that
+should be mounted. You must ensure a Volume by that name exists in all
+relevant Pods, such as by using the appropriate ExtraVolumes fields.
+If specified, this takes precedence over the &lsquo;name&rsquo; field.</p>
+<p>The &lsquo;key&rsquo; field defines the name of the file to load within this Volume.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>key</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Key is the name of the item within the data source to use as the value.</p>
+<p>For a Kubernetes Secret object (specified with the &lsquo;name&rsquo; field),
+this is the key within the &lsquo;data&rsquo; map.</p>
+<p>When &lsquo;volumeName&rsquo; is used, this specifies the name of the file to load
+within that Volume.</p>
 </td>
 </tr>
 </tbody>
@@ -3022,8 +3092,8 @@ VitessGatewayTLSSecureTransport
 <td>
 <code>secret</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#secretkeyselector-v1-core">
-Kubernetes core/v1.SecretKeySelector
+<a href="#planetscale.com/v2.SecretSource">
+SecretSource
 </a>
 </em>
 </td>
@@ -3054,8 +3124,8 @@ Kubernetes core/v1.SecretKeySelector
 <td>
 <code>clientCACertSecret</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#secretkeyselector-v1-core">
-Kubernetes core/v1.SecretKeySelector
+<a href="#planetscale.com/v2.SecretSource">
+SecretSource
 </a>
 </em>
 </td>
@@ -3069,8 +3139,8 @@ Optional.</p>
 <td>
 <code>certSecret</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#secretkeyselector-v1-core">
-Kubernetes core/v1.SecretKeySelector
+<a href="#planetscale.com/v2.SecretSource">
+SecretSource
 </a>
 </em>
 </td>
@@ -3082,8 +3152,8 @@ Kubernetes core/v1.SecretKeySelector
 <td>
 <code>keySecret</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#secretkeyselector-v1-core">
-Kubernetes core/v1.SecretKeySelector
+<a href="#planetscale.com/v2.SecretSource">
+SecretSource
 </a>
 </em>
 </td>
@@ -5002,8 +5072,8 @@ in order to be able to serve.</p>
 <td>
 <code>databaseInitScriptSecret</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#secretkeyselector-v1-core">
-Kubernetes core/v1.SecretKeySelector
+<a href="#planetscale.com/v2.SecretSource">
+SecretSource
 </a>
 </em>
 </td>

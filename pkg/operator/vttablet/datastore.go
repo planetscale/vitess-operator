@@ -17,85 +17,42 @@ limitations under the License.
 package vttablet
 
 import (
-	"planetscale.dev/vitess-operator/pkg/operator/lazy"
-	"planetscale.dev/vitess-operator/pkg/operator/vitess"
 	corev1 "k8s.io/api/core/v1"
+	"planetscale.dev/vitess-operator/pkg/operator/lazy"
+	"planetscale.dev/vitess-operator/pkg/operator/secrets"
+	"planetscale.dev/vitess-operator/pkg/operator/vitess"
 )
 
 func init() {
-	// Add credentials volume for externally managed MySQL.
+	// Add secret Volumes for externally managed MySQL.
 	tabletVolumes.Add(func(s lazy.Spec) []corev1.Volume {
 		spec := s.(*Spec)
 		if spec.ExternalDatastore == nil {
 			return nil
 		}
-		return []corev1.Volume{
-			{
-				Name: externalDatastoreCredentialsVolumeName,
-				VolumeSource: corev1.VolumeSource{
-					Secret: &corev1.SecretVolumeSource{
-						SecretName: spec.ExternalDatastore.CredentialsSecret.Name,
-						Items: []corev1.KeyToPath{
-							{
-								Key:  spec.ExternalDatastore.CredentialsSecret.Key,
-								Path: externalDatastoreCredentialsFilename,
-							},
-						},
-					},
-				},
-			},
+		credentialsFile := secrets.Mount(&spec.ExternalDatastore.CredentialsSecret, externalDatastoreCredentialsDirName)
+		vols := credentialsFile.PodVolumes()
+		if spec.ExternalDatastore.ServerCACertSecret != nil {
+			caCertFile := secrets.Mount(spec.ExternalDatastore.ServerCACertSecret, externalDatastoreCACertDirName)
+			vols = append(vols, caCertFile.PodVolumes()...)
 		}
+		return vols
 	})
-	// Add ssl cert volume for externally managed MySQL.
-	tabletVolumes.Add(func(s lazy.Spec) []corev1.Volume {
-		spec := s.(*Spec)
-		if spec.ExternalDatastore == nil || spec.ExternalDatastore.ServerCACertSecret == nil {
-			return nil
-		}
-		return []corev1.Volume{
-			{
-				Name: externalDatastoreSSLCAVolumeName,
-				VolumeSource: corev1.VolumeSource{
-					Secret: &corev1.SecretVolumeSource{
-						SecretName: spec.ExternalDatastore.ServerCACertSecret.Name,
-						Items: []corev1.KeyToPath{
-							{
-								Key:  spec.ExternalDatastore.ServerCACertSecret.Key,
-								Path: externalDatastoreSSLCAFilename,
-							},
-						},
-					},
-				},
-			},
-		}
-	})
-
-	// Add mounts for external datastore credentials volume.
+	// Mount secret Volumes for externally managed MySQL.
 	tabletVolumeMounts.Add(func(s lazy.Spec) []corev1.VolumeMount {
 		spec := s.(*Spec)
 		if spec.ExternalDatastore == nil {
 			return nil
 		}
-		return []corev1.VolumeMount{
-			{
-				Name:      externalDatastoreCredentialsVolumeName,
-				MountPath: externalDatastoreCredentialsPath,
-			},
+		credentialsFile := secrets.Mount(&spec.ExternalDatastore.CredentialsSecret, externalDatastoreCredentialsDirName)
+		mounts := []corev1.VolumeMount{
+			credentialsFile.ContainerVolumeMount(),
 		}
-	})
-
-	// Add mounts for external datastore ssl ca volume.
-	tabletVolumeMounts.Add(func(s lazy.Spec) []corev1.VolumeMount {
-		spec := s.(*Spec)
-		if spec.ExternalDatastore == nil || spec.ExternalDatastore.ServerCACertSecret == nil {
-			return nil
+		if spec.ExternalDatastore.ServerCACertSecret != nil {
+			caCertFile := secrets.Mount(spec.ExternalDatastore.ServerCACertSecret, externalDatastoreCACertDirName)
+			mounts = append(mounts, caCertFile.ContainerVolumeMount())
 		}
-		return []corev1.VolumeMount{
-			{
-				Name:      externalDatastoreSSLCAVolumeName,
-				MountPath: externalDatastoreSSLCAPath,
-			},
-		}
+		return mounts
 	})
 
 	// sets datastore specific vttablet flags.
@@ -139,8 +96,9 @@ func localDatastoreFlags(spec *Spec) vitess.Flags {
 }
 
 func externalDatastoreSSLCAFlags(spec *Spec) vitess.Flags {
+	caCertFile := secrets.Mount(spec.ExternalDatastore.ServerCACertSecret, externalDatastoreCACertDirName)
 	return vitess.Flags{
-		"db_ssl_ca": externalDatastoreSSLCAFilePath,
+		"db_ssl_ca": caCertFile.FilePath(),
 
 		// TODO: See if this should be passed in rather than hard coded.
 		"db_flags": enableSSLBitflag,
@@ -148,6 +106,8 @@ func externalDatastoreSSLCAFlags(spec *Spec) vitess.Flags {
 }
 
 func externalDatastoreFlags(spec *Spec) vitess.Flags {
+	credentialsFile := secrets.Mount(&spec.ExternalDatastore.CredentialsSecret, externalDatastoreCredentialsDirName)
+
 	return vitess.Flags{
 		"disable_active_reparents": true,
 		"restore_from_backup":      false,
@@ -157,7 +117,7 @@ func externalDatastoreFlags(spec *Spec) vitess.Flags {
 		"db_dba_user":              spec.ExternalDatastore.User,
 		"db_filtered_user":         spec.ExternalDatastore.User,
 		"db_repl_user":             spec.ExternalDatastore.User,
-		"db-credentials-file":      externalDatastoreCredentialsFilePath,
+		"db-credentials-file":      credentialsFile.FilePath(),
 		"db_host":                  spec.ExternalDatastore.Host,
 		"db_port":                  spec.ExternalDatastore.Port,
 		"init_db_name_override":    spec.ExternalDatastore.Database,

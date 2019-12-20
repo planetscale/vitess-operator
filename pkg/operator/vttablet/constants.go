@@ -76,20 +76,12 @@ const (
 
 	vreplicationTabletType = "master"
 
-	shardConfigPath      = "/shard-config"
-	dbInitScriptFileName = "init_db.sql"
-	dbInitScriptFilePath = shardConfigPath + "/" + dbInitScriptFileName
+	dbInitScriptDirName = "db-init-script"
 
-	externalDatastoreCredentialsPath       = "/external-datastore/credentials"
-	externalDatastoreCredentialsFilename   = "credentials.json"
-	externalDatastoreCredentialsFilePath   = externalDatastoreCredentialsPath + "/" + externalDatastoreCredentialsFilename
-	externalDatastoreCredentialsVolumeName = "external-credentials"
+	externalDatastoreCredentialsDirName = "external-datastore-credentials"
+	externalDatastoreCACertDirName      = "external-datastore-ca-cert"
 
-	externalDatastoreSSLCAPath       = "/external-certs/ssl-certs"
-	externalDatastoreSSLCAFilename   = "ssl-ca.pem"
-	externalDatastoreSSLCAFilePath   = externalDatastoreSSLCAPath + "/" + externalDatastoreSSLCAFilename
-	externalDatastoreSSLCAVolumeName = "external-datastore-certs"
-	enableSSLBitflag                 = 2048
+	enableSSLBitflag = 2048
 
 	mysqldConfigOverridesAnnotationName      = "planetscale.com/mysqld-config-overrides"
 	mysqldConfigOverridesAnnotationFieldPath = "metadata.annotations['" + mysqldConfigOverridesAnnotationName + "']"

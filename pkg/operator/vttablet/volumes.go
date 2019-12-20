@@ -20,6 +20,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 
 	"planetscale.dev/vitess-operator/pkg/operator/lazy"
+	"planetscale.dev/vitess-operator/pkg/operator/secrets"
 )
 
 func init() {
@@ -64,33 +65,18 @@ func init() {
 		}
 	})
 
-	// Mount shard-wide config files.
+	// Add Volumes for secrets.
 	tabletVolumes.Add(func(s lazy.Spec) []corev1.Volume {
 		spec := s.(*Spec)
-		return []corev1.Volume{
-			{
-				Name: "shard-config",
-				VolumeSource: corev1.VolumeSource{
-					Secret: &corev1.SecretVolumeSource{
-						SecretName: spec.DatabaseInitScriptSecret.Name,
-						Items: []corev1.KeyToPath{
-							{
-								Key:  spec.DatabaseInitScriptSecret.Key,
-								Path: dbInitScriptFileName,
-							},
-						},
-					},
-				},
-			},
-		}
+		dbInitScript := secrets.Mount(&spec.DatabaseInitScriptSecret, dbInitScriptDirName)
+		return dbInitScript.PodVolumes()
 	})
+	// Mount Volumes for secrets.
 	tabletVolumeMounts.Add(func(s lazy.Spec) []corev1.VolumeMount {
+		spec := s.(*Spec)
+		dbInitScript := secrets.Mount(&spec.DatabaseInitScriptSecret, dbInitScriptDirName)
 		return []corev1.VolumeMount{
-			{
-				Name:      "shard-config",
-				MountPath: shardConfigPath,
-				ReadOnly:  true,
-			},
+			dbInitScript.ContainerVolumeMount(),
 		}
 	})
 }

@@ -103,7 +103,7 @@ type VitessShardTemplate struct {
 	// DatabaseInitScriptSecret specifies the init_db.sql script file to use for this shard.
 	// This SQL script file is executed immediately after bootstrapping an empty database
 	// to set up initial tables and other MySQL-level entities needed by Vitess.
-	DatabaseInitScriptSecret *corev1.SecretKeySelector `json:"databaseInitScriptSecret,omitempty"`
+	DatabaseInitScriptSecret SecretSource `json:"databaseInitScriptSecret"`
 
 	// Replication configures Vitess replication settings for the shard.
 	Replication VitessReplicationSpec `json:"replication,omitempty"`
@@ -278,10 +278,10 @@ type ExternalDatastore struct {
 	//   ]
 	// }
 	// Vitess always uses the first password in the password array.
-	CredentialsSecret corev1.SecretKeySelector `json:"credentialsSecret"`
+	CredentialsSecret SecretSource `json:"credentialsSecret"`
 
 	// ServerCACertSecret should link to a certificate authority file if one is required by your externally managed MySQL endpoint.
-	ServerCACertSecret *corev1.SecretKeySelector `json:"serverCACertSecret,omitempty"`
+	ServerCACertSecret *SecretSource `json:"serverCACertSecret,omitempty"`
 }
 
 // VitessShardStatus defines the observed state of a VitessShard.

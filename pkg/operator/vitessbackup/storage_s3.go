@@ -20,6 +20,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
+	"planetscale.dev/vitess-operator/pkg/operator/secrets"
 	"planetscale.dev/vitess-operator/pkg/operator/vitess"
 )
 
@@ -36,22 +37,7 @@ func s3BackupVolumes(s3 *planetscalev2.S3BackupLocation) []corev1.Volume {
 	if s3.AuthSecret == nil {
 		return nil
 	}
-	return []corev1.Volume{
-		{
-			Name: s3AuthSecretVolumeName,
-			VolumeSource: corev1.VolumeSource{
-				Secret: &corev1.SecretVolumeSource{
-					SecretName: s3.AuthSecret.Name,
-					Items: []corev1.KeyToPath{
-						{
-							Key:  s3.AuthSecret.Key,
-							Path: s3AuthSecretFileName,
-						},
-					},
-				},
-			},
-		},
-	}
+	return secrets.Mount(s3.AuthSecret, s3AuthDirName).PodVolumes()
 }
 
 func s3BackupVolumeMounts(s3 *planetscalev2.S3BackupLocation) []corev1.VolumeMount {
@@ -59,10 +45,18 @@ func s3BackupVolumeMounts(s3 *planetscalev2.S3BackupLocation) []corev1.VolumeMou
 		return nil
 	}
 	return []corev1.VolumeMount{
+		secrets.Mount(s3.AuthSecret, s3AuthDirName).ContainerVolumeMount(),
+	}
+}
+
+func s3BackupEnvVars(s3 *planetscalev2.S3BackupLocation) []corev1.EnvVar {
+	if s3.AuthSecret == nil {
+		return nil
+	}
+	return []corev1.EnvVar{
 		{
-			Name:      s3AuthSecretVolumeName,
-			MountPath: s3AuthSecretMountPath,
-			ReadOnly:  true,
+			Name:  "AWS_SHARED_CREDENTIALS_FILE",
+			Value: secrets.Mount(s3.AuthSecret, s3AuthDirName).FilePath(),
 		},
 	}
 }

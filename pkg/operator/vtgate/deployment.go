@@ -29,6 +29,7 @@ import (
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 	"planetscale.dev/vitess-operator/pkg/operator/k8s"
 	"planetscale.dev/vitess-operator/pkg/operator/names"
+	"planetscale.dev/vitess-operator/pkg/operator/secrets"
 	"planetscale.dev/vitess-operator/pkg/operator/update"
 	"planetscale.dev/vitess-operator/pkg/operator/vitess"
 )
@@ -50,28 +51,10 @@ const (
 
 	grpcMaxMessageSize = 64 * 1024 * 1024
 
-	staticAuthVolumeName = "vtgate-static-auth"
-	staticAuthMountPath  = "/vtgate-static-auth"
-	staticAuthFileName   = "userdata.json"
-	staticAuthFilePath   = staticAuthMountPath + "/" + staticAuthFileName
-	staticAuthMountMode  = 0444
-
-	tlsMountMode = 0444
-
-	tlsCACertVolumeName = "vtgate-tls-ca-cert"
-	tlsCACertMountPath  = "/vtgate-tls-ca-cert"
-	tlsCACertFileName   = "ca-cert.pem"
-	tlsCACertFilePath   = tlsCACertMountPath + "/" + tlsCACertFileName
-
-	tlsCertVolumeName = "vtgate-tls-cert"
-	tlsCertMountPath  = "/vtgate-tls-cert"
-	tlsCertFileName   = "cert.pem"
-	tlsCertFilePath   = tlsCertMountPath + "/" + tlsCertFileName
-
-	tlsKeyVolumeName = "vtgate-tls-key"
-	tlsKeyMountPath  = "/vtgate-tls-key"
-	tlsKeyFileName   = "key.pem"
-	tlsKeyFilePath   = tlsKeyMountPath + "/" + tlsKeyFileName
+	staticAuthDirName      = "vtgate-static-auth"
+	tlsCertDirName         = "vtgate-tls-cert"
+	tlsKeyDirName          = "vtgate-tls-key"
+	tlsClientCACertDirName = "vtgate-tls-ca-cert"
 )
 
 // DeploymentName returns the name of the vtgate Deployment for a given cell.
@@ -128,6 +111,9 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 	// Deployment options.
 	obj.Spec.Replicas = pointer.Int32Ptr(spec.Replicas)
 	obj.Spec.RevisionHistoryLimit = pointer.Int32Ptr(0)
+
+	// Reset the list of volumes in the template so we remove old ones.
+	obj.Spec.Template.Spec.Volumes = nil
 
 	// Pod template options.
 	obj.Spec.Template.Spec.PriorityClassName = priorityClassName
@@ -265,32 +251,17 @@ func (spec *Spec) baseFlags() vitess.Flags {
 
 func updateAuth(spec *Spec, flags vitess.Flags, container *corev1.Container, podSpec *corev1.PodSpec) {
 	if spec.Authentication.Static != nil && spec.Authentication.Static.Secret != nil {
+		staticAuthFile := secrets.Mount(spec.Authentication.Static.Secret, staticAuthDirName)
+
 		// Get usernames and passwords from a static file, mounted from a Secret.
 		flags["mysql_auth_server_impl"] = "static"
-		flags["mysql_auth_server_static_file"] = staticAuthFilePath
+		flags["mysql_auth_server_static_file"] = staticAuthFile.FilePath()
 
 		// Add the volume to the Pod, if needed.
-		update.Volumes(&podSpec.Volumes, []corev1.Volume{
-			{
-				Name: staticAuthVolumeName,
-				VolumeSource: corev1.VolumeSource{
-					Secret: &corev1.SecretVolumeSource{
-						SecretName:  spec.Authentication.Static.Secret.Name,
-						DefaultMode: pointer.Int32Ptr(staticAuthMountMode),
-						Items: []corev1.KeyToPath{
-							{Key: spec.Authentication.Static.Secret.Key, Path: staticAuthFileName},
-						},
-					},
-				},
-			},
-		})
+		update.Volumes(&podSpec.Volumes, staticAuthFile.PodVolumes())
 
 		// Mount the volume in the Container.
-		container.VolumeMounts = append(container.VolumeMounts, corev1.VolumeMount{
-			Name:      staticAuthVolumeName,
-			MountPath: staticAuthMountPath,
-			ReadOnly:  true,
-		})
+		container.VolumeMounts = append(container.VolumeMounts, staticAuthFile.ContainerVolumeMount())
 	}
 }
 
@@ -303,80 +274,37 @@ func updateTransport(spec *Spec, flags vitess.Flags, container *corev1.Container
 			return
 		}
 
+		tlsCertFile := secrets.Mount(tls.CertSecret, tlsCertDirName)
+		tlsKeyFile := secrets.Mount(tls.KeySecret, tlsKeyDirName)
+
 		// GRPC does not have an equivalent flag,
 		// and all GRPC transport is required to be encrypted when certs are set.
 		flags["mysql_server_require_secure_transport"] = spec.SecureTransport.Required
 
-		flags["mysql_server_ssl_cert"] = tlsCertFilePath
-		flags["mysql_server_ssl_key"] = tlsKeyFilePath
-		flags["grpc_cert"] = tlsCertFilePath
-		flags["grpc_key"] = tlsKeyFilePath
+		flags["mysql_server_ssl_cert"] = tlsCertFile.FilePath()
+		flags["mysql_server_ssl_key"] = tlsKeyFile.FilePath()
+		flags["grpc_cert"] = tlsCertFile.FilePath()
+		flags["grpc_key"] = tlsKeyFile.FilePath()
 
 		// Add the volumes to the Pod, if needed.
-		update.Volumes(&podSpec.Volumes, []corev1.Volume{
-			{
-				Name: tlsCertVolumeName,
-				VolumeSource: corev1.VolumeSource{
-					Secret: &corev1.SecretVolumeSource{
-						SecretName:  tls.CertSecret.Name,
-						DefaultMode: pointer.Int32Ptr(tlsMountMode),
-						Items: []corev1.KeyToPath{
-							{Key: tls.CertSecret.Key, Path: tlsCertFileName},
-						},
-					},
-				},
-			},
-			{
-				Name: tlsKeyVolumeName,
-				VolumeSource: corev1.VolumeSource{
-					Secret: &corev1.SecretVolumeSource{
-						SecretName:  tls.KeySecret.Name,
-						DefaultMode: pointer.Int32Ptr(tlsMountMode),
-						Items: []corev1.KeyToPath{
-							{Key: tls.KeySecret.Key, Path: tlsKeyFileName},
-						},
-					},
-				},
-			},
-		})
+		update.Volumes(&podSpec.Volumes, tlsCertFile.PodVolumes())
+		update.Volumes(&podSpec.Volumes, tlsKeyFile.PodVolumes())
 
-		// Mount the volume in the Container.
+		// Mount the volumes in the Container.
 		container.VolumeMounts = append(container.VolumeMounts,
-			corev1.VolumeMount{
-				Name:      tlsCertVolumeName,
-				MountPath: tlsCertMountPath,
-				ReadOnly:  true,
-			}, corev1.VolumeMount{
-				Name:      tlsKeyVolumeName,
-				MountPath: tlsKeyMountPath,
-				ReadOnly:  true,
-			})
+			tlsCertFile.ContainerVolumeMount(),
+			tlsKeyFile.ContainerVolumeMount(),
+		)
 
 		if tls.ClientCACertSecret != nil {
-			flags["mysql_server_ssl_ca"] = tlsCACertFilePath
-			flags["grpc_ca"] = tlsCACertFilePath
+			clientCACertFile := secrets.Mount(tls.ClientCACertSecret, tlsClientCACertDirName)
 
-			update.Volumes(&podSpec.Volumes, []corev1.Volume{
-				{
-					Name: tlsCACertVolumeName,
-					VolumeSource: corev1.VolumeSource{
-						Secret: &corev1.SecretVolumeSource{
-							SecretName:  tls.ClientCACertSecret.Name,
-							DefaultMode: pointer.Int32Ptr(tlsMountMode),
-							Items: []corev1.KeyToPath{
-								{Key: tls.ClientCACertSecret.Key, Path: tlsCertFileName},
-							},
-						},
-					},
-				},
-			})
+			flags["mysql_server_ssl_ca"] = clientCACertFile.FilePath()
+			flags["grpc_ca"] = clientCACertFile.FilePath()
 
-			container.VolumeMounts = append(container.VolumeMounts,
-				corev1.VolumeMount{
-					Name:      tlsCACertVolumeName,
-					MountPath: tlsCACertMountPath,
-					ReadOnly:  true,
-				})
+			update.Volumes(&podSpec.Volumes, clientCACertFile.PodVolumes())
+
+			container.VolumeMounts = append(container.VolumeMounts, clientCACertFile.ContainerVolumeMount())
 		}
 	}
 }

@@ -20,9 +20,9 @@ import (
 	"fmt"
 	"strings"
 
+	corev1 "k8s.io/api/core/v1"
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 	"planetscale.dev/vitess-operator/pkg/operator/vitess"
-	corev1 "k8s.io/api/core/v1"
 )
 
 // rootKeyPrefix generates a root key prefix for the given cluster.
@@ -79,6 +79,8 @@ func StorageEnvVars(backupLocation *planetscalev2.VitessBackupLocation) []corev1
 	switch {
 	case backupLocation.GCS != nil:
 		return gcsBackupEnvVars(backupLocation.GCS)
+	case backupLocation.S3 != nil:
+		return s3BackupEnvVars(backupLocation.S3)
 	}
 	return nil
 }
