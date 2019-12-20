@@ -63,6 +63,7 @@ type Spec struct {
 	ExtraFlags        map[string]string
 	ExtraEnv          []corev1.EnvVar
 	ExtraVolumes      []corev1.Volume
+	InitContainers    []corev1.Container
 	ExtraVolumeMounts []corev1.VolumeMount
 	Annotations       map[string]string
 }
@@ -125,6 +126,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 	obj.Spec.Template.Spec.PriorityClassName = priorityClassName
 	update.Volumes(&obj.Spec.Template.Spec.Volumes, spec.ExtraVolumes)
 
+	update.Containers(&obj.Spec.Template.Spec.InitContainers, spec.InitContainers)
 	update.Containers(&obj.Spec.Template.Spec.Containers, []corev1.Container{
 		{
 			Name:            containerName,

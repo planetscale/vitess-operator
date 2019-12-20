@@ -146,6 +146,10 @@ type VitessCellGatewaySpec struct {
 	// should be mounted.
 	ExtraVolumes []corev1.Volume `json:"extraVolumes,omitempty"`
 
+	// InitContainers can optionally be used to supply extra init containers
+	// that will be run to completion one after another before any app containers are started.
+	InitContainers []corev1.Container `json:"initContainers,omitempty"`
+
 	// ExtraVolumeMounts can optionally be used to override default Pod
 	// volumeMounts defined by the operator, or specify additional mounts.
 	// Typically, these are used to mount volumes defined through extraVolumes.

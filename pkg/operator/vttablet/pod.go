@@ -234,6 +234,8 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	// Update the containers we care about in the Pod template,
 	// ignoring other containers that may have been injected.
 	update.Containers(&obj.Spec.InitContainers, tabletInitContainers.Get(spec))
+	// Update InitContainers with extra InitContainers provided from spec.
+	update.Containers(&obj.Spec.InitContainers, spec.InitContainers)
 	update.Containers(&obj.Spec.Containers, []corev1.Container{
 		*vttabletContainer,
 	})

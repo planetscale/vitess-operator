@@ -78,6 +78,7 @@ type Spec struct {
 	ExtraFlags        map[string]string
 	ExtraEnv          []corev1.EnvVar
 	ExtraVolumes      []corev1.Volume
+	InitContainers    []corev1.Container
 	ExtraVolumeMounts []corev1.VolumeMount
 	Affinity          *corev1.Affinity
 	Annotations       map[string]string
@@ -277,6 +278,9 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 
 	// Use the PriorityClass we defined for etcd in deploy/priority.yaml.
 	obj.Spec.PriorityClassName = etcdPriorityClassName
+
+	// Inject init containers from spec.
+	update.Containers(&obj.Spec.InitContainers, spec.InitContainers)
 
 	// Update the containers we care about in the Pod template,
 	// ignoring other containers that may have been injected.
