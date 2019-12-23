@@ -229,6 +229,7 @@ func vtbackupSpec(key client.ObjectKey, vts *planetscalev2.VitessShard, parentLa
 			DatabaseInitScriptSecret: vts.Spec.DatabaseInitScriptSecret,
 			BackupLocation:           backupLocation,
 			BackupEngine:             vts.Spec.BackupEngine,
+			InitContainers:           pool.InitContainers,
 		},
 	}
 }
