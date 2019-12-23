@@ -150,19 +150,6 @@ func schema_pkg_apis_planetscale_v2_EtcdLockserverSpec(ref common.ReferenceCallb
 							},
 						},
 					},
-					"initContainers": {
-						SchemaProps: spec.SchemaProps{
-							Description: "InitContainers can optionally be used to supply extra init containers that will be run to completion one after another before any app containers are started.",
-							Type:        []string{"array"},
-							Items: &spec.SchemaOrArray{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Ref: ref("k8s.io/api/core/v1.Container"),
-									},
-								},
-							},
-						},
-					},
 					"extraVolumeMounts": {
 						SchemaProps: spec.SchemaProps{
 							Description: "ExtraVolumeMounts can optionally be used to override default Pod volumeMounts defined by the operator, or specify additional mounts. Typically, these are used to mount volumes defined through extraVolumes.",
@@ -171,6 +158,19 @@ func schema_pkg_apis_planetscale_v2_EtcdLockserverSpec(ref common.ReferenceCallb
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Ref: ref("k8s.io/api/core/v1.VolumeMount"),
+									},
+								},
+							},
+						},
+					},
+					"initContainers": {
+						SchemaProps: spec.SchemaProps{
+							Description: "InitContainers can optionally be used to supply extra init containers that will be run to completion one after another before any app containers are started.",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("k8s.io/api/core/v1.Container"),
 									},
 								},
 							},

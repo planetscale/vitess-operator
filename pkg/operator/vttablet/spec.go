@@ -52,8 +52,8 @@ type Spec struct {
 	Affinity                 *corev1.Affinity
 	ExtraEnv                 []corev1.EnvVar
 	ExtraVolumes             []corev1.Volume
-	InitContainers           []corev1.Container
 	ExtraVolumeMounts        []corev1.VolumeMount
+	InitContainers           []corev1.Container
 }
 
 // localDatabaseName returns the MySQL database name for a tablet Spec in the case of locally managed MySQL.

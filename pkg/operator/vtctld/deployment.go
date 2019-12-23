@@ -63,8 +63,8 @@ type Spec struct {
 	ExtraFlags        map[string]string
 	ExtraEnv          []corev1.EnvVar
 	ExtraVolumes      []corev1.Volume
-	InitContainers    []corev1.Container
 	ExtraVolumeMounts []corev1.VolumeMount
+	InitContainers    []corev1.Container
 	Annotations       map[string]string
 }
 

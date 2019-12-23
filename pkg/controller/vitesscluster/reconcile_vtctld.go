@@ -162,8 +162,8 @@ func (r *ReconcileVitessCluster) vtctldSpecs(vt *planetscalev2.VitessCluster, pa
 			ExtraFlags:        extraFlags,
 			ExtraEnv:          vt.Spec.VitessDashboard.ExtraEnv,
 			ExtraVolumes:      vt.Spec.VitessDashboard.ExtraVolumes,
-			InitContainers:    vt.Spec.VitessDashboard.InitContainers,
 			ExtraVolumeMounts: vt.Spec.VitessDashboard.ExtraVolumeMounts,
+			InitContainers:    vt.Spec.VitessDashboard.InitContainers,
 			Annotations:       vt.Spec.VitessDashboard.Annotations,
 		})
 	}

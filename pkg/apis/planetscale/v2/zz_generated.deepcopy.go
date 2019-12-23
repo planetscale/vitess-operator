@@ -152,16 +152,16 @@ func (in *EtcdLockserverTemplate) DeepCopyInto(out *EtcdLockserverTemplate) {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
-	if in.InitContainers != nil {
-		in, out := &in.InitContainers, &out.InitContainers
-		*out = make([]v1.Container, len(*in))
+	if in.ExtraVolumeMounts != nil {
+		in, out := &in.ExtraVolumeMounts, &out.ExtraVolumeMounts
+		*out = make([]v1.VolumeMount, len(*in))
 		for i := range *in {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
-	if in.ExtraVolumeMounts != nil {
-		in, out := &in.ExtraVolumeMounts, &out.ExtraVolumeMounts
-		*out = make([]v1.VolumeMount, len(*in))
+	if in.InitContainers != nil {
+		in, out := &in.InitContainers, &out.InitContainers
+		*out = make([]v1.Container, len(*in))
 		for i := range *in {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
@@ -655,16 +655,16 @@ func (in *VitessCellGatewaySpec) DeepCopyInto(out *VitessCellGatewaySpec) {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
-	if in.InitContainers != nil {
-		in, out := &in.InitContainers, &out.InitContainers
-		*out = make([]v1.Container, len(*in))
+	if in.ExtraVolumeMounts != nil {
+		in, out := &in.ExtraVolumeMounts, &out.ExtraVolumeMounts
+		*out = make([]v1.VolumeMount, len(*in))
 		for i := range *in {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
-	if in.ExtraVolumeMounts != nil {
-		in, out := &in.ExtraVolumeMounts, &out.ExtraVolumeMounts
-		*out = make([]v1.VolumeMount, len(*in))
+	if in.InitContainers != nil {
+		in, out := &in.InitContainers, &out.InitContainers
+		*out = make([]v1.Container, len(*in))
 		for i := range *in {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
@@ -1111,16 +1111,16 @@ func (in *VitessDashboardSpec) DeepCopyInto(out *VitessDashboardSpec) {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
-	if in.InitContainers != nil {
-		in, out := &in.InitContainers, &out.InitContainers
-		*out = make([]v1.Container, len(*in))
+	if in.ExtraVolumeMounts != nil {
+		in, out := &in.ExtraVolumeMounts, &out.ExtraVolumeMounts
+		*out = make([]v1.VolumeMount, len(*in))
 		for i := range *in {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
-	if in.ExtraVolumeMounts != nil {
-		in, out := &in.ExtraVolumeMounts, &out.ExtraVolumeMounts
-		*out = make([]v1.VolumeMount, len(*in))
+	if in.InitContainers != nil {
+		in, out := &in.InitContainers, &out.InitContainers
+		*out = make([]v1.Container, len(*in))
 		for i := range *in {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
@@ -1852,16 +1852,16 @@ func (in *VitessShardTabletPool) DeepCopyInto(out *VitessShardTabletPool) {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
-	if in.InitContainers != nil {
-		in, out := &in.InitContainers, &out.InitContainers
-		*out = make([]v1.Container, len(*in))
+	if in.ExtraVolumeMounts != nil {
+		in, out := &in.ExtraVolumeMounts, &out.ExtraVolumeMounts
+		*out = make([]v1.VolumeMount, len(*in))
 		for i := range *in {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
-	if in.ExtraVolumeMounts != nil {
-		in, out := &in.ExtraVolumeMounts, &out.ExtraVolumeMounts
-		*out = make([]v1.VolumeMount, len(*in))
+	if in.InitContainers != nil {
+		in, out := &in.InitContainers, &out.InitContainers
+		*out = make([]v1.Container, len(*in))
 		for i := range *in {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
