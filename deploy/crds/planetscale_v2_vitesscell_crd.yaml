@@ -70,6 +70,35 @@ spec:
                         secret:
                           description: Secret configures vtgate to load the static
                             auth file from a given key in a given Secret.
+                          properties:
+                            key:
+                              description: Key is the name of the item within the
+                                data source to use as the value.  For a Kubernetes
+                                Secret object (specified with the 'name' field), this
+                                is the key within the 'data' map.  When 'volumeName'
+                                is used, this specifies the name of the file to load
+                                within that Volume.
+                              type: string
+                            name:
+                              description: Name is the name of a Kubernetes Secret
+                                object to use as the data source. The Secret must
+                                be in the same namespace as the VitessCluster.  The
+                                'key' field defines the item to pick from the Secret
+                                object's 'data' map.  If a Secret name is not specified,
+                                the data source must be defined with the 'volumeName'
+                                field instead.
+                              type: string
+                            volumeName:
+                              description: VolumeName directly specifies the name
+                                of a Volume in each Pod that should be mounted. You
+                                must ensure a Volume by that name exists in all relevant
+                                Pods, such as by using the appropriate ExtraVolumes
+                                fields. If specified, this takes precedence over the
+                                'name' field.  The 'key' field defines the name of
+                                the file to load within this Volume.
+                              type: string
+                          required:
+                          - key
                           type: object
                       type: object
                   type: object
@@ -133,16 +162,103 @@ spec:
                         certSecret:
                           description: CertSecret configures vtgate to load the TLS
                             cert PEM file from a given key in a given Secret.
+                          properties:
+                            key:
+                              description: Key is the name of the item within the
+                                data source to use as the value.  For a Kubernetes
+                                Secret object (specified with the 'name' field), this
+                                is the key within the 'data' map.  When 'volumeName'
+                                is used, this specifies the name of the file to load
+                                within that Volume.
+                              type: string
+                            name:
+                              description: Name is the name of a Kubernetes Secret
+                                object to use as the data source. The Secret must
+                                be in the same namespace as the VitessCluster.  The
+                                'key' field defines the item to pick from the Secret
+                                object's 'data' map.  If a Secret name is not specified,
+                                the data source must be defined with the 'volumeName'
+                                field instead.
+                              type: string
+                            volumeName:
+                              description: VolumeName directly specifies the name
+                                of a Volume in each Pod that should be mounted. You
+                                must ensure a Volume by that name exists in all relevant
+                                Pods, such as by using the appropriate ExtraVolumes
+                                fields. If specified, this takes precedence over the
+                                'name' field.  The 'key' field defines the name of
+                                the file to load within this Volume.
+                              type: string
+                          required:
+                          - key
                           type: object
                         clientCACertSecret:
                           description: ClientCACertSecret configures vtgate to load
                             the TLS certificate authority PEM file from a given key
                             in a given Secret. If specified, checks client certificates
                             are signed by this CA certificate. Optional.
+                          properties:
+                            key:
+                              description: Key is the name of the item within the
+                                data source to use as the value.  For a Kubernetes
+                                Secret object (specified with the 'name' field), this
+                                is the key within the 'data' map.  When 'volumeName'
+                                is used, this specifies the name of the file to load
+                                within that Volume.
+                              type: string
+                            name:
+                              description: Name is the name of a Kubernetes Secret
+                                object to use as the data source. The Secret must
+                                be in the same namespace as the VitessCluster.  The
+                                'key' field defines the item to pick from the Secret
+                                object's 'data' map.  If a Secret name is not specified,
+                                the data source must be defined with the 'volumeName'
+                                field instead.
+                              type: string
+                            volumeName:
+                              description: VolumeName directly specifies the name
+                                of a Volume in each Pod that should be mounted. You
+                                must ensure a Volume by that name exists in all relevant
+                                Pods, such as by using the appropriate ExtraVolumes
+                                fields. If specified, this takes precedence over the
+                                'name' field.  The 'key' field defines the name of
+                                the file to load within this Volume.
+                              type: string
+                          required:
+                          - key
                           type: object
                         keySecret:
                           description: KeySecret configures vtgate to load the TLS
                             key PEM file from a given key in a given Secret.
+                          properties:
+                            key:
+                              description: Key is the name of the item within the
+                                data source to use as the value.  For a Kubernetes
+                                Secret object (specified with the 'name' field), this
+                                is the key within the 'data' map.  When 'volumeName'
+                                is used, this specifies the name of the file to load
+                                within that Volume.
+                              type: string
+                            name:
+                              description: Name is the name of a Kubernetes Secret
+                                object to use as the data source. The Secret must
+                                be in the same namespace as the VitessCluster.  The
+                                'key' field defines the item to pick from the Secret
+                                object's 'data' map.  If a Secret name is not specified,
+                                the data source must be defined with the 'volumeName'
+                                field instead.
+                              type: string
+                            volumeName:
+                              description: VolumeName directly specifies the name
+                                of a Volume in each Pod that should be mounted. You
+                                must ensure a Volume by that name exists in all relevant
+                                Pods, such as by using the appropriate ExtraVolumes
+                                fields. If specified, this takes precedence over the
+                                'name' field.  The 'key' field defines the name of
+                                the file to load within this Volume.
+                              type: string
+                          required:
+                          - key
                           type: object
                       type: object
                   type: object

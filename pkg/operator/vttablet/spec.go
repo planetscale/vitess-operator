@@ -44,7 +44,7 @@ type Spec struct {
 	DataVolumePVCSpec        *corev1.PersistentVolumeClaimSpec
 	DataVolumePVCName        string
 	GlobalLockserver         planetscalev2.VitessLockserverParams
-	DatabaseInitScriptSecret *corev1.SecretKeySelector
+	DatabaseInitScriptSecret planetscalev2.SecretSource
 	EnableSemiSync           bool
 	Annotations              map[string]string
 	BackupLocation           *planetscalev2.VitessBackupLocation

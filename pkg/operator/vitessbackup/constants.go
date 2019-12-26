@@ -18,16 +18,10 @@ package vitessbackup
 
 const (
 	gcsBackupStorageImplementationName = "gcs"
-	gcsAuthSecretVolumeName            = "gcs-auth"
-	gcsAuthSecretMountPath             = "/vt/gcs-auth"
-	gcsAuthSecretFileName              = "key.json"
-	gcsAuthSecretFilePath              = gcsAuthSecretMountPath + "/" + gcsAuthSecretFileName
+	gcsAuthDirName                     = "gcs-backup-auth"
 
 	s3BackupStorageImplementationName = "s3"
-	s3AuthSecretVolumeName            = "s3-auth"
-	s3AuthSecretMountPath             = "/home/vitess/.aws"
-	s3AuthSecretFileName              = "credentials"
-	s3AuthSecretFilePath              = s3AuthSecretMountPath + "/" + s3AuthSecretFileName
+	s3AuthDirName                     = "s3-backup-auth"
 
 	fileBackupStorageImplementationName = "file"
 	fileBackupStorageVolumeName         = "vitess-backups"

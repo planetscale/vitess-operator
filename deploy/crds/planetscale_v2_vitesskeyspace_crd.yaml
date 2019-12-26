@@ -49,6 +49,34 @@ spec:
                           in the format expected for the GOOGLE_APPLICATION_CREDENTIALS
                           environment variable. Default: Use the default credentials
                           of the Node.'
+                        properties:
+                          key:
+                            description: Key is the name of the item within the data
+                              source to use as the value.  For a Kubernetes Secret
+                              object (specified with the 'name' field), this is the
+                              key within the 'data' map.  When 'volumeName' is used,
+                              this specifies the name of the file to load within that
+                              Volume.
+                            type: string
+                          name:
+                            description: Name is the name of a Kubernetes Secret object
+                              to use as the data source. The Secret must be in the
+                              same namespace as the VitessCluster.  The 'key' field
+                              defines the item to pick from the Secret object's 'data'
+                              map.  If a Secret name is not specified, the data source
+                              must be defined with the 'volumeName' field instead.
+                            type: string
+                          volumeName:
+                            description: VolumeName directly specifies the name of
+                              a Volume in each Pod that should be mounted. You must
+                              ensure a Volume by that name exists in all relevant
+                              Pods, such as by using the appropriate ExtraVolumes
+                              fields. If specified, this takes precedence over the
+                              'name' field.  The 'key' field defines the name of the
+                              file to load within this Volume.
+                            type: string
+                        required:
+                        - key
                         type: object
                       bucket:
                         description: Bucket is the name of the GCS bucket to use.
@@ -85,6 +113,34 @@ spec:
                           for S3 authentication. If set, this must point to a file
                           in the format expected for the `~/.aws/credentials` file.
                           Default: Use the default credentials of the Node.'
+                        properties:
+                          key:
+                            description: Key is the name of the item within the data
+                              source to use as the value.  For a Kubernetes Secret
+                              object (specified with the 'name' field), this is the
+                              key within the 'data' map.  When 'volumeName' is used,
+                              this specifies the name of the file to load within that
+                              Volume.
+                            type: string
+                          name:
+                            description: Name is the name of a Kubernetes Secret object
+                              to use as the data source. The Secret must be in the
+                              same namespace as the VitessCluster.  The 'key' field
+                              defines the item to pick from the Secret object's 'data'
+                              map.  If a Secret name is not specified, the data source
+                              must be defined with the 'volumeName' field instead.
+                            type: string
+                          volumeName:
+                            description: VolumeName directly specifies the name of
+                              a Volume in each Pod that should be mounted. You must
+                              ensure a Volume by that name exists in all relevant
+                              Pods, such as by using the appropriate ExtraVolumes
+                              fields. If specified, this takes precedence over the
+                              'name' field.  The 'key' field defines the name of the
+                              file to load within this Volume.
+                            type: string
+                        required:
+                        - key
                         type: object
                       bucket:
                         description: Bucket is the name of the S3 bucket to use.
@@ -270,6 +326,36 @@ spec:
                                 SQL script file is executed immediately after bootstrapping
                                 an empty database to set up initial tables and other
                                 MySQL-level entities needed by Vitess.
+                              properties:
+                                key:
+                                  description: Key is the name of the item within
+                                    the data source to use as the value.  For a Kubernetes
+                                    Secret object (specified with the 'name' field),
+                                    this is the key within the 'data' map.  When 'volumeName'
+                                    is used, this specifies the name of the file to
+                                    load within that Volume.
+                                  type: string
+                                name:
+                                  description: Name is the name of a Kubernetes Secret
+                                    object to use as the data source. The Secret must
+                                    be in the same namespace as the VitessCluster.  The
+                                    'key' field defines the item to pick from the
+                                    Secret object's 'data' map.  If a Secret name
+                                    is not specified, the data source must be defined
+                                    with the 'volumeName' field instead.
+                                  type: string
+                                volumeName:
+                                  description: VolumeName directly specifies the name
+                                    of a Volume in each Pod that should be mounted.
+                                    You must ensure a Volume by that name exists in
+                                    all relevant Pods, such as by using the appropriate
+                                    ExtraVolumes fields. If specified, this takes
+                                    precedence over the 'name' field.  The 'key' field
+                                    defines the name of the file to load within this
+                                    Volume.
+                                  type: string
+                              required:
+                              - key
                               type: object
                             keyRange:
                               description: 'KeyRange is the range of keys that this
@@ -393,6 +479,41 @@ spec:
                                           by Vitess and must be in the format: {   "username":
                                           [     "password"   ] } Vitess always uses
                                           the first password in the password array.'
+                                        properties:
+                                          key:
+                                            description: Key is the name of the item
+                                              within the data source to use as the
+                                              value.  For a Kubernetes Secret object
+                                              (specified with the 'name' field), this
+                                              is the key within the 'data' map.  When
+                                              'volumeName' is used, this specifies
+                                              the name of the file to load within
+                                              that Volume.
+                                            type: string
+                                          name:
+                                            description: Name is the name of a Kubernetes
+                                              Secret object to use as the data source.
+                                              The Secret must be in the same namespace
+                                              as the VitessCluster.  The 'key' field
+                                              defines the item to pick from the Secret
+                                              object's 'data' map.  If a Secret name
+                                              is not specified, the data source must
+                                              be defined with the 'volumeName' field
+                                              instead.
+                                            type: string
+                                          volumeName:
+                                            description: VolumeName directly specifies
+                                              the name of a Volume in each Pod that
+                                              should be mounted. You must ensure a
+                                              Volume by that name exists in all relevant
+                                              Pods, such as by using the appropriate
+                                              ExtraVolumes fields. If specified, this
+                                              takes precedence over the 'name' field.  The
+                                              'key' field defines the name of the
+                                              file to load within this Volume.
+                                            type: string
+                                        required:
+                                        - key
                                         type: object
                                       database:
                                         description: Database is the name of the database.
@@ -414,6 +535,41 @@ spec:
                                           to a certificate authority file if one is
                                           required by your externally managed MySQL
                                           endpoint.
+                                        properties:
+                                          key:
+                                            description: Key is the name of the item
+                                              within the data source to use as the
+                                              value.  For a Kubernetes Secret object
+                                              (specified with the 'name' field), this
+                                              is the key within the 'data' map.  When
+                                              'volumeName' is used, this specifies
+                                              the name of the file to load within
+                                              that Volume.
+                                            type: string
+                                          name:
+                                            description: Name is the name of a Kubernetes
+                                              Secret object to use as the data source.
+                                              The Secret must be in the same namespace
+                                              as the VitessCluster.  The 'key' field
+                                              defines the item to pick from the Secret
+                                              object's 'data' map.  If a Secret name
+                                              is not specified, the data source must
+                                              be defined with the 'volumeName' field
+                                              instead.
+                                            type: string
+                                          volumeName:
+                                            description: VolumeName directly specifies
+                                              the name of a Volume in each Pod that
+                                              should be mounted. You must ensure a
+                                              Volume by that name exists in all relevant
+                                              Pods, such as by using the appropriate
+                                              ExtraVolumes fields. If specified, this
+                                              takes precedence over the 'name' field.  The
+                                              'key' field defines the name of the
+                                              file to load within this Volume.
+                                            type: string
+                                        required:
+                                        - key
                                         type: object
                                       user:
                                         description: User is a provided database user
@@ -535,6 +691,7 @@ spec:
                               type: array
                           required:
                           - keyRange
+                          - databaseInitScriptSecret
                           type: object
                         type: array
                     required:
@@ -572,6 +729,35 @@ spec:
                               is executed immediately after bootstrapping an empty
                               database to set up initial tables and other MySQL-level
                               entities needed by Vitess.
+                            properties:
+                              key:
+                                description: Key is the name of the item within the
+                                  data source to use as the value.  For a Kubernetes
+                                  Secret object (specified with the 'name' field),
+                                  this is the key within the 'data' map.  When 'volumeName'
+                                  is used, this specifies the name of the file to
+                                  load within that Volume.
+                                type: string
+                              name:
+                                description: Name is the name of a Kubernetes Secret
+                                  object to use as the data source. The Secret must
+                                  be in the same namespace as the VitessCluster.  The
+                                  'key' field defines the item to pick from the Secret
+                                  object's 'data' map.  If a Secret name is not specified,
+                                  the data source must be defined with the 'volumeName'
+                                  field instead.
+                                type: string
+                              volumeName:
+                                description: VolumeName directly specifies the name
+                                  of a Volume in each Pod that should be mounted.
+                                  You must ensure a Volume by that name exists in
+                                  all relevant Pods, such as by using the appropriate
+                                  ExtraVolumes fields. If specified, this takes precedence
+                                  over the 'name' field.  The 'key' field defines
+                                  the name of the file to load within this Volume.
+                                type: string
+                            required:
+                            - key
                             type: object
                           replication:
                             description: Replication configures Vitess replication
@@ -660,6 +846,40 @@ spec:
                                         by Vitess and must be in the format: {   "username":
                                         [     "password"   ] } Vitess always uses
                                         the first password in the password array.'
+                                      properties:
+                                        key:
+                                          description: Key is the name of the item
+                                            within the data source to use as the value.  For
+                                            a Kubernetes Secret object (specified
+                                            with the 'name' field), this is the key
+                                            within the 'data' map.  When 'volumeName'
+                                            is used, this specifies the name of the
+                                            file to load within that Volume.
+                                          type: string
+                                        name:
+                                          description: Name is the name of a Kubernetes
+                                            Secret object to use as the data source.
+                                            The Secret must be in the same namespace
+                                            as the VitessCluster.  The 'key' field
+                                            defines the item to pick from the Secret
+                                            object's 'data' map.  If a Secret name
+                                            is not specified, the data source must
+                                            be defined with the 'volumeName' field
+                                            instead.
+                                          type: string
+                                        volumeName:
+                                          description: VolumeName directly specifies
+                                            the name of a Volume in each Pod that
+                                            should be mounted. You must ensure a Volume
+                                            by that name exists in all relevant Pods,
+                                            such as by using the appropriate ExtraVolumes
+                                            fields. If specified, this takes precedence
+                                            over the 'name' field.  The 'key' field
+                                            defines the name of the file to load within
+                                            this Volume.
+                                          type: string
+                                      required:
+                                      - key
                                       type: object
                                     database:
                                       description: Database is the name of the database.
@@ -680,6 +900,40 @@ spec:
                                         to a certificate authority file if one is
                                         required by your externally managed MySQL
                                         endpoint.
+                                      properties:
+                                        key:
+                                          description: Key is the name of the item
+                                            within the data source to use as the value.  For
+                                            a Kubernetes Secret object (specified
+                                            with the 'name' field), this is the key
+                                            within the 'data' map.  When 'volumeName'
+                                            is used, this specifies the name of the
+                                            file to load within that Volume.
+                                          type: string
+                                        name:
+                                          description: Name is the name of a Kubernetes
+                                            Secret object to use as the data source.
+                                            The Secret must be in the same namespace
+                                            as the VitessCluster.  The 'key' field
+                                            defines the item to pick from the Secret
+                                            object's 'data' map.  If a Secret name
+                                            is not specified, the data source must
+                                            be defined with the 'volumeName' field
+                                            instead.
+                                          type: string
+                                        volumeName:
+                                          description: VolumeName directly specifies
+                                            the name of a Volume in each Pod that
+                                            should be mounted. You must ensure a Volume
+                                            by that name exists in all relevant Pods,
+                                            such as by using the appropriate ExtraVolumes
+                                            fields. If specified, this takes precedence
+                                            over the 'name' field.  The 'key' field
+                                            defines the name of the file to load within
+                                            this Volume.
+                                          type: string
+                                      required:
+                                      - key
                                       type: object
                                     user:
                                       description: User is a provided database user
@@ -799,6 +1053,8 @@ spec:
                               - vttablet
                               type: object
                             type: array
+                        required:
+                        - databaseInitScriptSecret
                         type: object
                     required:
                     - parts

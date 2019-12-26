@@ -1135,7 +1135,7 @@ func schema_pkg_apis_planetscale_v2_VitessShardSpec(ref common.ReferenceCallback
 					"databaseInitScriptSecret": {
 						SchemaProps: spec.SchemaProps{
 							Description: "DatabaseInitScriptSecret specifies the init_db.sql script file to use for this shard. This SQL script file is executed immediately after bootstrapping an empty database to set up initial tables and other MySQL-level entities needed by Vitess.",
-							Ref:         ref("k8s.io/api/core/v1.SecretKeySelector"),
+							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.SecretSource"),
 						},
 					},
 					"replication": {
@@ -1224,11 +1224,11 @@ func schema_pkg_apis_planetscale_v2_VitessShardSpec(ref common.ReferenceCallback
 						},
 					},
 				},
-				Required: []string{"name", "zoneMap", "images", "keyRange", "globalLockserver"},
+				Required: []string{"databaseInitScriptSecret", "name", "zoneMap", "images", "keyRange", "globalLockserver"},
 			},
 		},
 		Dependencies: []string{
-			"k8s.io/api/core/v1.SecretKeySelector", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessBackupLocation", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImagePullPolicies", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyRange", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceImages", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessLockserverParams", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessReplicationSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessShardTabletPool"},
+			"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.SecretSource", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessBackupLocation", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImagePullPolicies", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyRange", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceImages", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessLockserverParams", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessReplicationSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessShardTabletPool"},
 	}
 }
 

@@ -20,6 +20,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
+	"planetscale.dev/vitess-operator/pkg/operator/secrets"
 	"planetscale.dev/vitess-operator/pkg/operator/vitess"
 )
 
@@ -35,22 +36,7 @@ func gcsBackupVolumes(gcs *planetscalev2.GCSBackupLocation) []corev1.Volume {
 	if gcs.AuthSecret == nil {
 		return nil
 	}
-	return []corev1.Volume{
-		{
-			Name: gcsAuthSecretVolumeName,
-			VolumeSource: corev1.VolumeSource{
-				Secret: &corev1.SecretVolumeSource{
-					SecretName: gcs.AuthSecret.Name,
-					Items: []corev1.KeyToPath{
-						{
-							Key:  gcs.AuthSecret.Key,
-							Path: gcsAuthSecretFileName,
-						},
-					},
-				},
-			},
-		},
-	}
+	return secrets.Mount(gcs.AuthSecret, gcsAuthDirName).PodVolumes()
 }
 
 func gcsBackupVolumeMounts(gcs *planetscalev2.GCSBackupLocation) []corev1.VolumeMount {
@@ -58,11 +44,7 @@ func gcsBackupVolumeMounts(gcs *planetscalev2.GCSBackupLocation) []corev1.Volume
 		return nil
 	}
 	return []corev1.VolumeMount{
-		{
-			Name:      gcsAuthSecretVolumeName,
-			MountPath: gcsAuthSecretMountPath,
-			ReadOnly:  true,
-		},
+		secrets.Mount(gcs.AuthSecret, gcsAuthDirName).ContainerVolumeMount(),
 	}
 }
 
@@ -73,7 +55,7 @@ func gcsBackupEnvVars(gcs *planetscalev2.GCSBackupLocation) []corev1.EnvVar {
 	return []corev1.EnvVar{
 		{
 			Name:  "GOOGLE_APPLICATION_CREDENTIALS",
-			Value: gcsAuthSecretFilePath,
+			Value: secrets.Mount(gcs.AuthSecret, gcsAuthDirName).FilePath(),
 		},
 	}
 }
