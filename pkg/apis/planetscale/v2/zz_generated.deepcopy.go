@@ -159,6 +159,13 @@ func (in *EtcdLockserverTemplate) DeepCopyInto(out *EtcdLockserverTemplate) {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
+	if in.InitContainers != nil {
+		in, out := &in.InitContainers, &out.InitContainers
+		*out = make([]v1.Container, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
+	}
 	if in.Affinity != nil {
 		in, out := &in.Affinity, &out.Affinity
 		*out = new(v1.Affinity)
@@ -671,6 +678,13 @@ func (in *VitessCellGatewaySpec) DeepCopyInto(out *VitessCellGatewaySpec) {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
+	if in.InitContainers != nil {
+		in, out := &in.InitContainers, &out.InitContainers
+		*out = make([]v1.Container, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
+	}
 	if in.Affinity != nil {
 		in, out := &in.Affinity, &out.Affinity
 		*out = new(v1.Affinity)
@@ -1116,6 +1130,13 @@ func (in *VitessDashboardSpec) DeepCopyInto(out *VitessDashboardSpec) {
 	if in.ExtraVolumeMounts != nil {
 		in, out := &in.ExtraVolumeMounts, &out.ExtraVolumeMounts
 		*out = make([]v1.VolumeMount, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
+	}
+	if in.InitContainers != nil {
+		in, out := &in.InitContainers, &out.InitContainers
+		*out = make([]v1.Container, len(*in))
 		for i := range *in {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
@@ -1850,6 +1871,13 @@ func (in *VitessShardTabletPool) DeepCopyInto(out *VitessShardTabletPool) {
 	if in.ExtraVolumeMounts != nil {
 		in, out := &in.ExtraVolumeMounts, &out.ExtraVolumeMounts
 		*out = make([]v1.VolumeMount, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
+	}
+	if in.InitContainers != nil {
+		in, out := &in.InitContainers, &out.InitContainers
+		*out = make([]v1.Container, len(*in))
 		for i := range *in {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}

@@ -299,6 +299,7 @@ func vttabletSpecs(vts *planetscalev2.VitessShard, parentLabels map[string]strin
 				Affinity:                 pool.Affinity,
 				ExtraEnv:                 pool.ExtraEnv,
 				ExtraVolumes:             pool.ExtraVolumes,
+				InitContainers:           pool.InitContainers,
 				ExtraVolumeMounts:        pool.ExtraVolumeMounts,
 			})
 		}

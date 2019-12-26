@@ -314,6 +314,13 @@ spec:
                         items:
                           type: object
                         type: array
+                      initContainers:
+                        description: InitContainers can optionally be used to supply
+                          extra init containers that will be run to completion one
+                          after another before any app containers are started.
+                        items:
+                          type: object
+                        type: array
                       replicas:
                         description: Replicas is the number of vtgate instances to
                           deploy in this cell.
@@ -525,6 +532,13 @@ spec:
                             description: ImagePullPolicy specifies if/when to pull
                               a container image.
                             type: string
+                          initContainers:
+                            description: InitContainers can optionally be used to
+                              supply extra init containers that will be run to completion
+                              one after another before any app containers are started.
+                            items:
+                              type: object
+                            type: array
                           resources:
                             description: 'Resources specify the compute resources
                               to allocate for each etcd member. Default: Let the operator
@@ -658,6 +672,13 @@ spec:
                       description: ImagePullPolicy specifies if/when to pull a container
                         image.
                       type: string
+                    initContainers:
+                      description: InitContainers can optionally be used to supply
+                        extra init containers that will be run to completion one after
+                        another before any app containers are started.
+                      items:
+                        type: object
+                      type: array
                     resources:
                       description: 'Resources specify the compute resources to allocate
                         for each etcd member. Default: Let the operator choose.'
@@ -1148,6 +1169,15 @@ spec:
                                           items:
                                             type: object
                                           type: array
+                                        initContainers:
+                                          description: InitContainers can optionally
+                                            be used to supply extra init containers
+                                            that will be run to completion one after
+                                            another before any app containers are
+                                            started.
+                                          items:
+                                            type: object
+                                          type: array
                                         mysqld:
                                           description: Mysqld configures a local MySQL
                                             running inside each tablet Pod. You must
@@ -1547,6 +1577,14 @@ spec:
                                         items:
                                           type: object
                                         type: array
+                                      initContainers:
+                                        description: InitContainers can optionally
+                                          be used to supply extra init containers
+                                          that will be run to completion one after
+                                          another before any app containers are started.
+                                        items:
+                                          type: object
+                                        type: array
                                       mysqld:
                                         description: Mysqld configures a local MySQL
                                           running inside each tablet Pod. You must
@@ -1720,6 +1758,13 @@ spec:
                     to the Pod. Note that when adding a new volume, you should usually
                     also add a volumeMount to specify where in each container's filesystem
                     the volume should be mounted.
+                  items:
+                    type: object
+                  type: array
+                initContainers:
+                  description: InitContainers can optionally be used to supply extra
+                    init containers that will be run to completion one after another
+                    before any app containers are started.
                   items:
                     type: object
                   type: array

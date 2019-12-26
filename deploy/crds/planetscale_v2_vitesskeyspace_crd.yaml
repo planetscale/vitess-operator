@@ -615,6 +615,14 @@ spec:
                                     items:
                                       type: object
                                     type: array
+                                  initContainers:
+                                    description: InitContainers can optionally be
+                                      used to supply extra init containers that will
+                                      be run to completion one after another before
+                                      any app containers are started.
+                                    items:
+                                      type: object
+                                    type: array
                                   mysqld:
                                     description: Mysqld configures a local MySQL running
                                       inside each tablet Pod. You must specify either
@@ -976,6 +984,14 @@ spec:
                                     in each container's filesystem the volume should
                                     be mounted. These volumes are available to be
                                     mounted by both vttablet and mysqld.
+                                  items:
+                                    type: object
+                                  type: array
+                                initContainers:
+                                  description: InitContainers can optionally be used
+                                    to supply extra init containers that will be run
+                                    to completion one after another before any app
+                                    containers are started.
                                   items:
                                     type: object
                                   type: array

@@ -143,6 +143,7 @@ func memberSpecs(ls *planetscalev2.EtcdLockserver, parentLabels map[string]strin
 			ExtraEnv:          ls.Spec.ExtraEnv,
 			ExtraVolumes:      ls.Spec.ExtraVolumes,
 			ExtraVolumeMounts: ls.Spec.ExtraVolumeMounts,
+			InitContainers:    ls.Spec.InitContainers,
 			Affinity:          ls.Spec.Affinity,
 			Annotations:       ls.Spec.Annotations,
 		})

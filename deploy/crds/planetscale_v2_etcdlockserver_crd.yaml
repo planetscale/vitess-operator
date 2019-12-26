@@ -89,6 +89,13 @@ spec:
             imagePullPolicy:
               description: ImagePullPolicy specifies if/when to pull a container image.
               type: string
+            initContainers:
+              description: InitContainers can optionally be used to supply extra init
+                containers that will be run to completion one after another before
+                any app containers are started.
+              items:
+                type: object
+              type: array
             resources:
               description: 'Resources specify the compute resources to allocate for
                 each etcd member. Default: Let the operator choose.'

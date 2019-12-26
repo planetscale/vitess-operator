@@ -151,6 +151,10 @@ type VitessCellGatewaySpec struct {
 	// Typically, these are used to mount volumes defined through extraVolumes.
 	ExtraVolumeMounts []corev1.VolumeMount `json:"extraVolumeMounts,omitempty"`
 
+	// InitContainers can optionally be used to supply extra init containers
+	// that will be run to completion one after another before any app containers are started.
+	InitContainers []corev1.Container `json:"initContainers,omitempty"`
+
 	// Affinity allows you to set rules that constrain the scheduling of
 	// your vtgate pods. WARNING: These affinity rules will override all default affinities
 	// that we set; in turn, we can't guarantee optimal scheduling of your pods if you

@@ -17,6 +17,7 @@ limitations under the License.
 package vttablet
 
 import (
+	"planetscale.dev/vitess-operator/pkg/operator/update"
 	"strconv"
 	"time"
 
@@ -107,7 +108,7 @@ func NewBackupPod(key client.ObjectKey, backupSpec *BackupSpec) *corev1.Pod {
 	volumeMounts = append(volumeMounts, tabletVolumeMounts.Get(tabletSpec)...)
 	volumeMounts = append(volumeMounts, vttabletVolumeMounts.Get(tabletSpec)...)
 
-	return &corev1.Pod{
+	pod := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace:   key.Namespace,
 			Name:        key.Name,
@@ -158,4 +159,7 @@ func NewBackupPod(key client.ObjectKey, backupSpec *BackupSpec) *corev1.Pod {
 			},
 		},
 	}
+
+	update.Containers(&pod.Spec.InitContainers, backupSpec.TabletSpec.InitContainers)
+	return pod
 }
