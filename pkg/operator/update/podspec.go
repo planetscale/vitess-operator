@@ -86,9 +86,6 @@ srcLoop:
 // admission webhooks, other controllers, or the API server.
 func Container(dst, src *corev1.Container) {
 	// Save fields that need to be recursively merged.
-	dstVolumeMounts := dst.VolumeMounts
-	VolumeMounts(&dstVolumeMounts, src.VolumeMounts)
-
 	dstResources := dst.Resources
 	ResourceRequirements(&dstResources, &src.Resources)
 
@@ -99,7 +96,6 @@ func Container(dst, src *corev1.Container) {
 	*dst = *src
 
 	// Restore saved fields.
-	dst.VolumeMounts = dstVolumeMounts
 	dst.Resources = dstResources
 	dst.SecurityContext = dstSecurityContext
 }
