@@ -111,6 +111,9 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 	// Deployment options.
 	obj.Spec.RevisionHistoryLimit = pointer.Int32Ptr(0)
 
+	// Reset the list of volumes in the template so we remove old ones.
+	obj.Spec.Template.Spec.Volumes = nil
+
 	// Apply user-provided flag overrides after generating base flags.
 	flags := spec.flags()
 	for key, value := range spec.ExtraFlags {
