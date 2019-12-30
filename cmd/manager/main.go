@@ -41,8 +41,7 @@ import (
 )
 
 var (
-	statusMetricsPollInterval = flag.Duration("status_metrics_poll_interval", 30*time.Second, "Interval at which to update status metrics")
-	cacheInvalidateInterval   = flag.Duration("cache_invalidate_interval", 10*time.Minute, "Interval at which to invalidate the local cache and relist objects from the API server")
+	cacheInvalidateInterval = flag.Duration("cache_invalidate_interval", 10*time.Minute, "Interval at which to invalidate the local cache and relist objects from the API server")
 )
 
 // Change below variables to serve metrics on different host or port.
