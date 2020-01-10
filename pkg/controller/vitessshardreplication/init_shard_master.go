@@ -58,7 +58,7 @@ func (r *ReconcileVitessShard) initShardMaster(ctx context.Context, vts *planets
 	//
 	// If we're using external mysql then we should not ever call initShardMaster,
 	// but should instead try to use tabletExternallyReparented.
-	if vts.UsingExternalDatastore() || vts.Spec.BackupsEnabled() {
+	if vts.Spec.UsingExternalDatastore() || vts.Spec.BackupsEnabled() {
 		return resultBuilder.Result()
 	}
 

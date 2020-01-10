@@ -268,7 +268,7 @@ func (r *ReconcileVitessShard) reconcileDrain(ctx context.Context, vts *planetsc
 	}
 
 	// See if there's a candidate master for a planned reparent.
-	newMaster := candidateMaster(ctx, wr, shard, tablets, pods, vts.UsingExternalDatastore())
+	newMaster := candidateMaster(ctx, wr, shard, tablets, pods, vts.Spec.UsingExternalDatastore())
 	if newMaster == nil {
 		r.recorder.Eventf(vts, corev1.EventTypeWarning, "DrainBlocked", "unable to drain master tablet %v: no other tablet is a suitable master candidate", masterAliasStr)
 		return resultBuilder.RequeueAfter(replicationRequeueDelay)
@@ -279,7 +279,7 @@ func (r *ReconcileVitessShard) reconcileDrain(ctx context.Context, vts *planetsc
 	defer cancel()
 
 	var reparentErr error
-	if vts.UsingExternalDatastore() {
+	if vts.Spec.UsingExternalDatastore() {
 		reparentErr = r.handleExternalReparent(ctx, vts, wr, newMaster.Tablet, shard.MasterAlias)
 	} else {
 		reparentErr = wr.PlannedReparentShard(reparentCtx, keyspaceName, vts.Spec.Name, newMaster.Alias, nil, plannedReparentTimeout)

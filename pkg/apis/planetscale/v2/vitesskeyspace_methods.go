@@ -17,6 +17,7 @@ limitations under the License.
 package v2
 
 import (
+	"sort"
 	"encoding/hex"
 
 	"planetscale.dev/vitess-operator/pkg/operator/partitioning"
@@ -99,4 +100,40 @@ func (spec *VitessKeyspaceTemplate) ShardTemplates() []*VitessKeyspaceKeyRangeSh
 		shards = append(shards, shardMap[kr])
 	}
 	return shards
+}
+
+// CellNames returns a sorted list of all cells in which any part of the keyspace
+// (any tablet pool of any shard) should be deployed.
+func (s *VitessKeyspaceSpec) CellNames() []string {
+	cellMap := make(map[string]struct{})
+
+	for partitionIndex := range s.Partitionings {
+		pools := s.Partitionings[partitionIndex].TabletPools()
+		for poolIndex := range pools {
+			cellMap[pools[poolIndex].Cell] = struct{}{}
+		}
+	}
+
+	cells := make([]string, 0, len(cellMap))
+	for cellName := range cellMap {
+		cells = append(cells, cellName)
+	}
+	sort.Strings(cells)
+
+	return cells
+}
+
+// TabletPools returns the list of tablet pools from whichever paritioning sub-field is defined.
+func (p *VitessKeyspacePartitioning) TabletPools() []VitessShardTabletPool {
+	if p.Equal != nil {
+		return p.Equal.ShardTemplate.TabletPools
+	}
+	if p.Custom != nil {
+		var pools []VitessShardTabletPool
+		for i := range p.Custom.Shards {
+			pools = append(pools, p.Custom.Shards[i].TabletPools...)
+		}
+		return pools
+	}
+	return nil
 }

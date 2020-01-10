@@ -80,7 +80,7 @@ func (r *ReconcileVitessShard) repairReplication(ctx context.Context, vts *plane
 	resultBuilder := &results.Builder{}
 
 	// If using external datastore then replication is handled for us.
-	if vts.UsingExternalDatastore() {
+	if vts.Spec.UsingExternalDatastore() {
 		return resultBuilder.Result()
 	}
 
