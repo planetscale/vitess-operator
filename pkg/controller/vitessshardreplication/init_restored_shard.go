@@ -61,7 +61,7 @@ func (r *ReconcileVitessShard) initRestoredShard(ctx context.Context, vts *plane
 	resultBuilder := &results.Builder{}
 
 	// If backups are disabled, the shard can't have been restored from backup.
-	if !vts.Spec.BackupsEnabled() || vts.UsingExternalDatastore() {
+	if !vts.Spec.BackupsEnabled() || vts.Spec.UsingExternalDatastore() {
 		return resultBuilder.Result()
 	}
 

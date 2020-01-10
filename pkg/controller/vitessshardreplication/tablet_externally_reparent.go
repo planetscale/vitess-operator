@@ -20,9 +20,9 @@ import (
 	"context"
 	"time"
 
+	corev1 "k8s.io/api/core/v1"
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 	"planetscale.dev/vitess-operator/pkg/operator/results"
-	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	topodatapb "vitess.io/vitess/go/vt/proto/topodata"
 	"vitess.io/vitess/go/vt/topo/topoproto"
@@ -38,7 +38,7 @@ func (r *ReconcileVitessShard) tabletExternallyReparent(ctx context.Context, vts
 
 	// If we're using local MySQL then we should not call externallyReparent,
 	// but should instead try to use initShardMaster.
-	if !vts.UsingExternalDatastore() {
+	if !vts.Spec.UsingExternalDatastore() {
 		return resultBuilder.Result()
 	}
 

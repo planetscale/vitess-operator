@@ -38,7 +38,7 @@ func (r *ReconcileVitessShard) reconcileBackupJob(ctx context.Context, vts *plan
 
 	// Break early if we find we are using an externally managed MySQL, or if any tablet pools have nil for Mysqld,
 	// because we should not be configuring backups in either case.
-	if vts.UsingExternalDatastore() || !vts.AllPoolsUsingMysqld() {
+	if vts.Spec.UsingExternalDatastore() || !vts.Spec.AllPoolsUsingMysqld() {
 		return resultBuilder.Result()
 	}
 
