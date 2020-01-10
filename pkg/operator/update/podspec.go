@@ -60,10 +60,14 @@ srcLoop:
 	}
 }
 
-// Containers updates entries in 'dst' based on the values in 'src'.
+// PodContainers updates entries in 'dst' based on the values in 'src'.
 // It leaves extra entries (found in 'dst' but not in 'src') untouched,
 // since those might be set by mutating admission webhooks or other controllers.
-func Containers(dst *[]corev1.Container, src []corev1.Container) {
+//
+// PodContainers uses rules appropriate for directly managing Pods.
+// Use PodTemplateContainers if you are instead filling in a PodTemplate inside
+// another object, such as a Deployment.
+func PodContainers(dst *[]corev1.Container, src []corev1.Container) {
 srcLoop:
 	for srcIndex := range src {
 		srcObj := &src[srcIndex]
@@ -71,7 +75,7 @@ srcLoop:
 		for dstIndex := range *dst {
 			dstObj := &(*dst)[dstIndex]
 			if dstObj.Name == srcObj.Name {
-				Container(dstObj, srcObj)
+				PodContainer(dstObj, srcObj)
 				continue srcLoop
 			}
 		}
@@ -80,11 +84,70 @@ srcLoop:
 	}
 }
 
-// Container updates entries in 'dst' based on the values in 'src'.
+// PodTemplateContainers updates entries in 'dst' based on the values in 'src'.
+// It leaves extra entries (found in 'dst' but not in 'src') untouched,
+// since those might be set by mutating admission webhooks or other controllers.
+//
+// PodTemplateContainers uses rules appropriate for filling in a PodTemplate
+// inside another object, such as a Deployment.
+// Use PodContainers if you are instead directly managing Pods.
+func PodTemplateContainers(dst *[]corev1.Container, src []corev1.Container) {
+srcLoop:
+	for srcIndex := range src {
+		srcObj := &src[srcIndex]
+		// If this item is already there, update it.
+		for dstIndex := range *dst {
+			dstObj := &(*dst)[dstIndex]
+			if dstObj.Name == srcObj.Name {
+				PodTemplateContainer(dstObj, srcObj)
+				continue srcLoop
+			}
+		}
+		// Otherwise, append it.
+		*dst = append(*dst, *srcObj)
+	}
+}
+
+// PodContainer updates entries in 'dst' based on the values in 'src'.
 // It leaves extra entries (found in 'dst' but not in 'src') untouched
 // for certain fields of Container, since those might be set by mutating
 // admission webhooks, other controllers, or the API server.
-func Container(dst, src *corev1.Container) {
+//
+// PodContainer uses rules appropriate for directly managing Pods.
+// Use PodTemplateContainer if you are instead filling in a PodTemplate inside
+// another object, such as a Deployment.
+func PodContainer(dst, src *corev1.Container) {
+	// Save fields that need to be recursively merged.
+	dstResources := dst.Resources
+	ResourceRequirements(&dstResources, &src.Resources)
+
+	dstSecurityContext := dst.SecurityContext
+	SecurityContext(&dstSecurityContext, src.SecurityContext)
+
+	// Unlike for Containers in PodTemplates, when directly managing Pods,
+	// we have to allow extra VolumeMounts because the API server injects some,
+	// such as the service account token.
+	dstVolumeMounts := dst.VolumeMounts
+	VolumeMounts(&dstVolumeMounts, src.VolumeMounts)
+
+	// Overwrite everything we didn't specifically save.
+	*dst = *src
+
+	// Restore saved fields.
+	dst.Resources = dstResources
+	dst.SecurityContext = dstSecurityContext
+	dst.VolumeMounts = dstVolumeMounts
+}
+
+// PodTemplateContainer updates entries in 'dst' based on the values in 'src'.
+// It leaves extra entries (found in 'dst' but not in 'src') untouched
+// for certain fields of Container, since those might be set by mutating
+// admission webhooks, other controllers, or the API server.
+//
+// PodTemplateContainer uses rules appropriate for filling in a PodTemplate
+// inside another object, such as a Deployment.
+// Use PodContainer if you are instead directly managing Pods.
+func PodTemplateContainer(dst, src *corev1.Container) {
 	// Save fields that need to be recursively merged.
 	dstResources := dst.Resources
 	ResourceRequirements(&dstResources, &src.Resources)

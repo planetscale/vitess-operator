@@ -160,6 +160,6 @@ func NewBackupPod(key client.ObjectKey, backupSpec *BackupSpec) *corev1.Pod {
 		},
 	}
 
-	update.Containers(&pod.Spec.InitContainers, backupSpec.TabletSpec.InitContainers)
+	update.PodContainers(&pod.Spec.InitContainers, backupSpec.TabletSpec.InitContainers)
 	return pod
 }

@@ -32,9 +32,9 @@ import (
 	"vitess.io/vitess/go/vt/topo/topoproto"
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
+	"planetscale.dev/vitess-operator/pkg/operator/contenthash"
 	"planetscale.dev/vitess-operator/pkg/operator/k8s"
 	"planetscale.dev/vitess-operator/pkg/operator/names"
-	"planetscale.dev/vitess-operator/pkg/operator/stringmaps"
 	"planetscale.dev/vitess-operator/pkg/operator/update"
 )
 
@@ -76,7 +76,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	// Record a hash of desired annotation keys to force the Pod
 	// to be recreated if a key disappears from the desired list.
 	update.Annotations(&obj.Annotations, map[string]string{
-		"planetscale.com/annotations-keys-hash": stringmaps.HashKeys(spec.Annotations),
+		"planetscale.com/annotations-keys-hash": contenthash.StringMapKeys(spec.Annotations),
 	})
 
 	// Collect some common values that will be shared across containers.
@@ -231,27 +231,36 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 		}
 	}
 
-	// Update the containers we care about in the Pod template,
-	// ignoring other containers that may have been injected.
-	update.Containers(&obj.Spec.InitContainers, tabletInitContainers.Get(spec))
-	// Update InitContainers with extra InitContainers provided from spec.
-	update.Containers(&obj.Spec.InitContainers, spec.InitContainers)
-	update.Containers(&obj.Spec.Containers, []corev1.Container{
+	// Make the final list of desired containers and init containers.
+	initContainers := []corev1.Container{}
+	initContainers = append(initContainers, tabletInitContainers.Get(spec)...)
+	initContainers = append(initContainers, spec.InitContainers...)
+
+	containers := []corev1.Container{
 		*vttabletContainer,
-	})
+	}
 
 	if spec.Mysqld != nil {
-		update.Containers(&obj.Spec.Containers, []corev1.Container{
-			*mysqldContainer,
-		})
+		containers = append(containers, *mysqldContainer)
 
 		// Only deploy mysqld-exporter if the image is set.
 		if mysqldExporterContainer.Image != "" {
-			update.Containers(&obj.Spec.Containers, []corev1.Container{
-				*mysqldExporterContainer,
-			})
+			containers = append(containers, *mysqldExporterContainer)
 		}
 	}
+
+	// Record a hash of desired containers to force the Pod to be recreated if
+	// something is removed from our desired state that we otherwise might
+	// mistake for an item added by the API server and leave behind.
+	update.Annotations(&obj.Annotations, map[string]string{
+		"planetscale.com/init-containers-hash": contenthash.ContainersUpdates(initContainers),
+		"planetscale.com/containers-hash":      contenthash.ContainersUpdates(containers),
+	})
+
+	// Update the containers we care about in the Pod template,
+	// ignoring other containers that may have been injected.
+	update.PodContainers(&obj.Spec.InitContainers, initContainers)
+	update.PodContainers(&obj.Spec.Containers, containers)
 
 	// Update other parts of the Pod.
 	update.Annotations(&obj.Annotations, tabletAnnotations.Get(spec))
