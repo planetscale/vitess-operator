@@ -129,8 +129,8 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 	obj.Spec.Template.Spec.PriorityClassName = priorityClassName
 	update.Volumes(&obj.Spec.Template.Spec.Volumes, spec.ExtraVolumes)
 
-	update.Containers(&obj.Spec.Template.Spec.InitContainers, spec.InitContainers)
-	update.Containers(&obj.Spec.Template.Spec.Containers, []corev1.Container{
+	update.PodTemplateContainers(&obj.Spec.Template.Spec.InitContainers, spec.InitContainers)
+	update.PodTemplateContainers(&obj.Spec.Template.Spec.Containers, []corev1.Container{
 		{
 			Name:            containerName,
 			Image:           spec.Image,

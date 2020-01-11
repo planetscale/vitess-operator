@@ -19,12 +19,10 @@ package secrets
 
 import (
 	"context"
-	"crypto/md5"
-	"encoding/hex"
-	"sort"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
+	"planetscale.dev/vitess-operator/pkg/operator/contenthash"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -32,11 +30,11 @@ import (
 func ContentHash(secrets ...*corev1.Secret) string {
 	hashes := map[string][]byte{}
 	for _, s := range secrets {
-		hashes[s.Name] = []byte(contentHash(s.Data))
+		hashes[s.Name] = []byte(contenthash.BytesMap(s.Data))
 	}
 
 	// Digest of all the dependent hashes.
-	return contentHash(hashes)
+	return contenthash.BytesMap(hashes)
 }
 
 // GetByNames gets all secretNames in namespace.
@@ -58,25 +56,4 @@ func GetByNames(ctx context.Context, cl client.Client, namespace string, secretN
 	}
 
 	return secrets, nil
-}
-
-func contentHash(m map[string][]byte) string {
-	keys := make([]string, 0, len(m))
-	for k := range m {
-		keys = append(keys, k)
-	}
-
-	sort.Strings(keys)
-
-	h := md5.New()
-	for _, k := range keys {
-		v := m[k]
-		kHash := md5.Sum([]byte(k))
-		h.Write(kHash[:])
-		vHash := md5.Sum(v)
-		h.Write(vHash[:])
-	}
-
-	sum := h.Sum(nil)
-	return hex.EncodeToString(sum)
 }

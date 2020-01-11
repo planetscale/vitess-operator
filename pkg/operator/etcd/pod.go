@@ -20,15 +20,14 @@ import (
 	"fmt"
 	"strings"
 
-	"planetscale.dev/vitess-operator/pkg/operator/stringmaps"
-	"planetscale.dev/vitess-operator/pkg/operator/vitess"
-
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	"planetscale.dev/vitess-operator/pkg/operator/contenthash"
 	"planetscale.dev/vitess-operator/pkg/operator/k8s"
 	"planetscale.dev/vitess-operator/pkg/operator/update"
+	"planetscale.dev/vitess-operator/pkg/operator/vitess"
 )
 
 const (
@@ -117,7 +116,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	// Record a hash of desired annotation keys to force the Pod
 	// to be recreated if a key disappears from the desired list.
 	update.Annotations(&obj.Annotations, map[string]string{
-		"planetscale.com/annotations-keys-hash": stringmaps.HashKeys(spec.Annotations),
+		"planetscale.com/annotations-keys-hash": contenthash.StringMapKeys(spec.Annotations),
 	})
 
 	// Compute default environment variables first.
@@ -279,14 +278,27 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	// Use the PriorityClass we defined for etcd in deploy/priority.yaml.
 	obj.Spec.PriorityClassName = etcdPriorityClassName
 
+	// Make a final list of desired containers and init containers before merging.
+	initContainers := spec.InitContainers
+	containers := []corev1.Container{
+		*etcdContainer,
+	}
+
+	// Record a hash of desired containers to force the Pod to be recreated if
+	// something is removed from our desired state that we otherwise might
+	// mistake for an item added by the API server and leave behind.
+	update.Annotations(&obj.Annotations, map[string]string{
+		"planetscale.com/init-containers-hash": contenthash.ContainersUpdates(initContainers),
+		"planetscale.com/containers-hash":      contenthash.ContainersUpdates(containers),
+	})
+
 	// Inject init containers from spec.
-	update.Containers(&obj.Spec.InitContainers, spec.InitContainers)
+	update.PodContainers(&obj.Spec.InitContainers, spec.InitContainers)
 
 	// Update the containers we care about in the Pod template,
 	// ignoring other containers that may have been injected.
-	update.Containers(&obj.Spec.Containers, []corev1.Container{
-		*etcdContainer,
-	})
+	update.PodContainers(&obj.Spec.Containers, containers)
+
 }
 
 // Args returns the etcd args.
