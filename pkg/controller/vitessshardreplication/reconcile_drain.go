@@ -118,7 +118,7 @@ func (r *ReconcileVitessShard) reconcileDrain(ctx context.Context, vts *planetsc
 	}
 
 	// Get all the tablet records for the shard.
-	tablets, err := wr.TopoServer().GetTabletMapForShard(ctx, keyspaceName, vts.Spec.Name)
+	tablets, err := wr.TopoServer().GetTabletMapForShardByCell(ctx, keyspaceName, vts.Spec.Name, vts.Spec.GetCells().UnsortedList())
 	if err != nil {
 		r.recorder.Eventf(vts, corev1.EventTypeWarning, "TopoGetFailed", "failed to get tablet records: %v", err)
 		return resultBuilder.RequeueAfter(replicationRequeueDelay)
