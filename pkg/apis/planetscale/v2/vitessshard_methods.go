@@ -128,7 +128,7 @@ func (s *VitessShardSpec) BackupsEnabled() bool {
 	return false
 }
 
-// GetCells returns a filtered and de-duplicated list of all cells the current shard is responsible for.
+// GetCells returns a set of all cells the current shard is responsible for.
 func (s *VitessShardSpec) GetCells() sets.String {
 	cells := sets.String{}
 
