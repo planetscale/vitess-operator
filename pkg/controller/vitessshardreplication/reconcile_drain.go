@@ -117,7 +117,9 @@ func (r *ReconcileVitessShard) reconcileDrain(ctx context.Context, vts *planetsc
 		return resultBuilder.RequeueAfter(replicationRequeueDelay)
 	}
 
-	// Get all the tablet records for the shard.
+	// Get all the tablet records for the shard, in cells to which we deploy.
+	// We ignore tablets in cells we don't deploy, since we assume there's
+	// a separate operator instance handling drains on those tablets.
 	tablets, err := wr.TopoServer().GetTabletMapForShardByCell(ctx, keyspaceName, vts.Spec.Name, vts.Spec.GetCells().UnsortedList())
 	if err != nil {
 		r.recorder.Eventf(vts, corev1.EventTypeWarning, "TopoGetFailed", "failed to get tablet records: %v", err)

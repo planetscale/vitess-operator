@@ -128,7 +128,8 @@ func (s *VitessShardSpec) BackupsEnabled() bool {
 	return false
 }
 
-// GetCells returns a set of all cells the current shard is responsible for.
+// GetCells returns the set of all cells used by any tablet pools
+// defined in this VitessShardSpec.
 func (s *VitessShardSpec) GetCells() sets.String {
 	cells := sets.String{}
 
