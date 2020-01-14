@@ -18,6 +18,7 @@ package v2
 
 import (
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/sets"
 )
 
 // IsExternalMaster indicates whether the tablet is in a pool of type "externalmaster".
@@ -125,4 +126,16 @@ func (s *VitessShardSpec) BackupsEnabled() bool {
 		}
 	}
 	return false
+}
+
+// GetCells returns the set of all cells used by any tablet pools
+// defined in this VitessShardSpec.
+func (s *VitessShardSpec) GetCells() sets.String {
+	cells := sets.String{}
+
+	for i := range s.TabletPools {
+		cells.Insert(s.TabletPools[i].Cell)
+	}
+
+	return cells
 }
