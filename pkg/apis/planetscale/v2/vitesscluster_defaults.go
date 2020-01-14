@@ -29,6 +29,7 @@ func DefaultVitessCluster(vt *VitessCluster) {
 	DefaultVitessDashboard(&vt.Spec.VitessDashboard)
 	DefaultVitessKeyspaceTemplates(vt.Spec.Keyspaces)
 	defaultClusterBackup(vt.Spec.Backup)
+	defaultTopoReconcileConfig(vt)
 }
 
 func defaultGlobalLockserver(vt *VitessCluster) {
@@ -106,5 +107,43 @@ func defaultClusterBackup(backup *ClusterBackupSpec) {
 	}
 	if backup.Engine == "" {
 		backup.Engine = defaultBackupEngine
+	}
+}
+
+func defaultTopoReconcileConfig(vt *VitessCluster) {
+	// Defaulting registration code.
+	if vt.Spec.TopoReconciliation.RegisterCells == nil {
+		registerCells := true
+		vt.Spec.TopoReconciliation.RegisterCells = &registerCells
+	}
+	if vt.Spec.TopoReconciliation.RegisterCellsAliases == nil {
+		registerCellsAliases := true
+		vt.Spec.TopoReconciliation.RegisterCellsAliases = &registerCellsAliases
+	}
+
+	// Defaulting pruning code.
+	if vt.Spec.TopoReconciliation.PruneCells == nil {
+		pruneCells := true
+		vt.Spec.TopoReconciliation.PruneCells = &pruneCells
+	}
+	if vt.Spec.TopoReconciliation.PruneKeyspaces == nil {
+		pruneKeyspaces := true
+		vt.Spec.TopoReconciliation.PruneKeyspaces = &pruneKeyspaces
+	}
+	if vt.Spec.TopoReconciliation.PruneShards == nil {
+		pruneShards := true
+		vt.Spec.TopoReconciliation.PruneShards = &pruneShards
+	}
+	if vt.Spec.TopoReconciliation.PruneShardCells == nil {
+		pruneShardCells := true
+		vt.Spec.TopoReconciliation.PruneShardCells = &pruneShardCells
+	}
+	if vt.Spec.TopoReconciliation.PruneTablets == nil {
+		pruneTablets := true
+		vt.Spec.TopoReconciliation.PruneTablets = &pruneTablets
+	}
+	if vt.Spec.TopoReconciliation.PruneSrvKeyspaces == nil {
+		pruneSrvingKeyspaces := true
+		vt.Spec.TopoReconciliation.PruneSrvKeyspaces = &pruneSrvingKeyspaces
 	}
 }

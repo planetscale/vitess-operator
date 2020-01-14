@@ -766,12 +766,18 @@ func schema_pkg_apis_planetscale_v2_VitessClusterSpec(ref common.ReferenceCallba
 							},
 						},
 					},
+					"topoReconciliation": {
+						SchemaProps: spec.SchemaProps{
+							Description: "TopoReconciliation can be used to enable or disable registration or pruning of various vitess components to and from topo records.",
+							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.TopoReconcileConfig"),
+						},
+					},
 				},
 				Required: []string{"cells"},
 			},
 		},
 		Dependencies: []string{
-			"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.ClusterBackupSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.LockserverSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessCellTemplate", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessDashboardSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImagePullPolicies", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImages", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceTemplate"},
+			"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.ClusterBackupSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.LockserverSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.TopoReconcileConfig", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessCellTemplate", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessDashboardSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImagePullPolicies", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImages", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceTemplate"},
 	}
 }
 

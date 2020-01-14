@@ -1702,6 +1702,43 @@ spec:
                 - partitionings
                 type: object
               type: array
+            topoReconciliation:
+              description: TopoReconciliation can be used to enable or disable registration
+                or pruning of various vitess components to and from topo records.
+              properties:
+                pruneCells:
+                  description: PruneCells can be used to enable or disable pruning
+                    of extraneous cells from topo records.
+                  type: boolean
+                pruneKeyspaces:
+                  description: PruneKeyspaces can be used to enable or disable pruning
+                    of extraneous keyspaces from topo records.
+                  type: boolean
+                pruneShardCells:
+                  description: PruneShardCells can be used to enable or disable pruning
+                    of extraneous shard cells from topo records.
+                  type: boolean
+                pruneShards:
+                  description: PruneShards can be used to enable or disable pruning
+                    of extraneous shards from topo records.
+                  type: boolean
+                pruneSrvKeyspaces:
+                  description: PruneSrvKeyspaces can be used to enable or disable
+                    pruning of extraneous serving keyspaces from topo records.
+                  type: boolean
+                pruneTablets:
+                  description: PruneTablets can be used to enable or disable pruning
+                    of extraneous tablets from topo records.
+                  type: boolean
+                registerCells:
+                  description: RegisterCells can be used to enable or disable registering
+                    cells into topo records.
+                  type: boolean
+                registerCellsAliases:
+                  description: RegisterCellsAliases can be used to enable or disable
+                    registering cells aliases into topo records.
+                  type: boolean
+              type: object
             vitessDashboard:
               description: Dashboard deploys a set of Vitess Dashboard servers (vtctld)
                 for the Vitess cluster.

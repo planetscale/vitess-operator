@@ -107,6 +107,37 @@ type VitessClusterSpec struct {
 	// not have any prefix (just "flag", not "-flag"). To set a boolean flag,
 	// set the string value to either "true" or "false".
 	ExtraVitessFlags map[string]string `json:"extraVitessFlags,omitempty"`
+
+	// TopoReconciliation can be used to enable or disable registration or pruning of various vitess components to and from topo records.
+	TopoReconciliation TopoReconcileConfig `json:"topoReconciliation,omitempty"`
+}
+
+// TopoReconcileConfig can be used to turn on or off registration or pruning of specific vitess components from topo records.
+// This should only be necessary if you need to override defaults, and shouldn't be required for the vast majority of use cases.
+type TopoReconcileConfig struct {
+	// RegisterCellsAliases can be used to enable or disable registering cells aliases into topo records.
+	RegisterCellsAliases *bool `json:"registerCellsAliases,omitempty"`
+
+	// RegisterCells can be used to enable or disable registering cells into topo records.
+	RegisterCells *bool `json:"registerCells,omitempty"`
+
+	// PruneCells can be used to enable or disable pruning of extraneous cells from topo records.
+	PruneCells *bool `json:"pruneCells,omitempty"`
+
+	// PruneKeyspaces can be used to enable or disable pruning of extraneous keyspaces from topo records.
+	PruneKeyspaces *bool `json:"pruneKeyspaces,omitempty"`
+
+	// PruneSrvKeyspaces can be used to enable or disable pruning of extraneous serving keyspaces from topo records.
+	PruneSrvKeyspaces *bool `json:"pruneSrvKeyspaces,omitempty"`
+
+	// PruneShards can be used to enable or disable pruning of extraneous shards from topo records.
+	PruneShards *bool `json:"pruneShards,omitempty"`
+
+	// PruneShardCells can be used to enable or disable pruning of extraneous shard cells from topo records.
+	PruneShardCells *bool `json:"pruneShardCells,omitempty"`
+
+	// PruneTablets can be used to enable or disable pruning of extraneous tablets from topo records.
+	PruneTablets *bool `json:"pruneTablets,omitempty"`
 }
 
 // VitessImages specifies container images to use for Vitess components.
