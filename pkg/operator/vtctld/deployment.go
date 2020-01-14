@@ -204,9 +204,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 
 func (spec *Spec) flags() vitess.Flags {
 	return vitess.Flags{
-		"cell":     spec.Cell.Name,
-		"web_dir":  webDir,
-		"web_dir2": webDir2,
+		"cell": spec.Cell.Name,
 
 		"port":        planetscalev2.DefaultWebPort,
 		"grpc_port":   planetscalev2.DefaultGrpcPort,
