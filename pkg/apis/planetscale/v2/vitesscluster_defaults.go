@@ -29,7 +29,7 @@ func DefaultVitessCluster(vt *VitessCluster) {
 	DefaultVitessDashboard(&vt.Spec.VitessDashboard)
 	DefaultVitessKeyspaceTemplates(vt.Spec.Keyspaces)
 	defaultClusterBackup(vt.Spec.Backup)
-	defaultTopoReconcileConfig(vt)
+	defaultTopoReconcileConfig(&vt.Spec.TopologyReconciliation)
 }
 
 func defaultGlobalLockserver(vt *VitessCluster) {
@@ -110,40 +110,32 @@ func defaultClusterBackup(backup *ClusterBackupSpec) {
 	}
 }
 
-func defaultTopoReconcileConfig(vt *VitessCluster) {
+func defaultTopoReconcileConfig(t *TopoReconcileConfig) {
 	// Defaulting registration code.
-	if vt.Spec.TopologyReconciliation.RegisterCells == nil {
-		registerCells := true
-		vt.Spec.TopologyReconciliation.RegisterCells = &registerCells
+	if t.RegisterCells == nil {
+		t.RegisterCells = pointer.BoolPtr(true)
 	}
-	if vt.Spec.TopologyReconciliation.RegisterCellsAliases == nil {
-		registerCellsAliases := true
-		vt.Spec.TopologyReconciliation.RegisterCellsAliases = &registerCellsAliases
+	if t.RegisterCellsAliases == nil {
+		t.RegisterCellsAliases = pointer.BoolPtr(true)
 	}
 
 	// Defaulting pruning code.
-	if vt.Spec.TopologyReconciliation.PruneCells == nil {
-		pruneCells := true
-		vt.Spec.TopologyReconciliation.PruneCells = &pruneCells
+	if t.PruneCells == nil {
+		t.PruneCells = pointer.BoolPtr(true)
 	}
-	if vt.Spec.TopologyReconciliation.PruneKeyspaces == nil {
-		pruneKeyspaces := true
-		vt.Spec.TopologyReconciliation.PruneKeyspaces = &pruneKeyspaces
+	if t.PruneKeyspaces == nil {
+		t.PruneKeyspaces = pointer.BoolPtr(true)
 	}
-	if vt.Spec.TopologyReconciliation.PruneShards == nil {
-		pruneShards := true
-		vt.Spec.TopologyReconciliation.PruneShards = &pruneShards
+	if t.PruneShards == nil {
+		t.PruneShards = pointer.BoolPtr(true)
 	}
-	if vt.Spec.TopologyReconciliation.PruneShardCells == nil {
-		pruneShardCells := true
-		vt.Spec.TopologyReconciliation.PruneShardCells = &pruneShardCells
+	if t.PruneShardCells == nil {
+		t.PruneShardCells = pointer.BoolPtr(true)
 	}
-	if vt.Spec.TopologyReconciliation.PruneTablets == nil {
-		pruneTablets := true
-		vt.Spec.TopologyReconciliation.PruneTablets = &pruneTablets
+	if t.PruneTablets == nil {
+		t.PruneTablets = pointer.BoolPtr(true)
 	}
-	if vt.Spec.TopologyReconciliation.PruneSrvKeyspaces == nil {
-		pruneSrvingKeyspaces := true
-		vt.Spec.TopologyReconciliation.PruneSrvKeyspaces = &pruneSrvingKeyspaces
+	if t.PruneSrvKeyspaces == nil {
+		t.PruneSrvKeyspaces = pointer.BoolPtr(true)
 	}
 }
