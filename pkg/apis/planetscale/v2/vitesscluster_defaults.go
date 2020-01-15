@@ -22,6 +22,19 @@ import (
 	"k8s.io/utils/pointer"
 )
 
+var (
+	defaultTopologyReconciliationConfig = TopoReconcileConfig{
+		RegisterCellsAliases: pointer.BoolPtr(true),
+		RegisterCells:        pointer.BoolPtr(true),
+		PruneCells:           pointer.BoolPtr(true),
+		PruneKeyspaces:       pointer.BoolPtr(true),
+		PruneSrvKeyspaces:    pointer.BoolPtr(true),
+		PruneShards:          pointer.BoolPtr(true),
+		PruneShardCells:      pointer.BoolPtr(true),
+		PruneTablets:         pointer.BoolPtr(true),
+	}
+)
+
 // DefaultVitessCluster fills in default values for unspecified fields.
 func DefaultVitessCluster(vt *VitessCluster) {
 	defaultGlobalLockserver(vt)
@@ -29,7 +42,7 @@ func DefaultVitessCluster(vt *VitessCluster) {
 	DefaultVitessDashboard(&vt.Spec.VitessDashboard)
 	DefaultVitessKeyspaceTemplates(vt.Spec.Keyspaces)
 	defaultClusterBackup(vt.Spec.Backup)
-	defaultTopoReconcileConfig(&vt.Spec.TopologyReconciliation)
+	defaultTopoReconcileConfig(vt.Spec.TopologyReconciliation)
 }
 
 func defaultGlobalLockserver(vt *VitessCluster) {
@@ -111,6 +124,12 @@ func defaultClusterBackup(backup *ClusterBackupSpec) {
 }
 
 func defaultTopoReconcileConfig(t *TopoReconcileConfig) {
+	// Fail fast with static defaults if user didn't supply any field.
+	if t == nil {
+		t = &defaultTopologyReconciliationConfig
+		return
+	}
+
 	// Defaulting registration code.
 	if t.RegisterCells == nil {
 		t.RegisterCells = pointer.BoolPtr(true)

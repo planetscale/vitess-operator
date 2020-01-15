@@ -109,7 +109,7 @@ type VitessClusterSpec struct {
 	ExtraVitessFlags map[string]string `json:"extraVitessFlags,omitempty"`
 
 	// TopologyReconciliation can be used to enable or disable registration or pruning of various vitess components to and from topo records.
-	TopologyReconciliation TopoReconcileConfig `json:"topologyReconciliation,omitempty"`
+	TopologyReconciliation *TopoReconcileConfig `json:"topologyReconciliation,omitempty"`
 }
 
 // TopoReconcileConfig can be used to turn on or off registration or pruning of specific vitess components from topo records.
