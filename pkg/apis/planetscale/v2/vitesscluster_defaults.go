@@ -22,19 +22,6 @@ import (
 	"k8s.io/utils/pointer"
 )
 
-var (
-	defaultTopologyReconciliationConfig = TopoReconcileConfig{
-		RegisterCellsAliases: pointer.BoolPtr(true),
-		RegisterCells:        pointer.BoolPtr(true),
-		PruneCells:           pointer.BoolPtr(true),
-		PruneKeyspaces:       pointer.BoolPtr(true),
-		PruneSrvKeyspaces:    pointer.BoolPtr(true),
-		PruneShards:          pointer.BoolPtr(true),
-		PruneShardCells:      pointer.BoolPtr(true),
-		PruneTablets:         pointer.BoolPtr(true),
-	}
-)
-
 // DefaultVitessCluster fills in default values for unspecified fields.
 func DefaultVitessCluster(vt *VitessCluster) {
 	defaultGlobalLockserver(vt)
@@ -42,7 +29,7 @@ func DefaultVitessCluster(vt *VitessCluster) {
 	DefaultVitessDashboard(&vt.Spec.VitessDashboard)
 	DefaultVitessKeyspaceTemplates(vt.Spec.Keyspaces)
 	defaultClusterBackup(vt.Spec.Backup)
-	defaultTopoReconcileConfig(vt.Spec.TopologyReconciliation)
+	defaultTopoReconcileConfig(&vt.Spec.TopologyReconciliation)
 }
 
 func defaultGlobalLockserver(vt *VitessCluster) {
@@ -123,38 +110,38 @@ func defaultClusterBackup(backup *ClusterBackupSpec) {
 	}
 }
 
-func defaultTopoReconcileConfig(t *TopoReconcileConfig) {
+func defaultTopoReconcileConfig(confPtr **TopoReconcileConfig) {
 	// Fail fast with static defaults if user didn't supply any field.
-	if t == nil {
-		t = &defaultTopologyReconciliationConfig
-		return
+	if *confPtr == nil {
+		*confPtr = &TopoReconcileConfig{}
 	}
+	conf := *confPtr
 
 	// Defaulting registration code.
-	if t.RegisterCells == nil {
-		t.RegisterCells = pointer.BoolPtr(true)
+	if conf.RegisterCells == nil {
+		conf.RegisterCells = pointer.BoolPtr(true)
 	}
-	if t.RegisterCellsAliases == nil {
-		t.RegisterCellsAliases = pointer.BoolPtr(true)
+	if conf.RegisterCellsAliases == nil {
+		conf.RegisterCellsAliases = pointer.BoolPtr(true)
 	}
 
 	// Defaulting pruning code.
-	if t.PruneCells == nil {
-		t.PruneCells = pointer.BoolPtr(true)
+	if conf.PruneCells == nil {
+		conf.PruneCells = pointer.BoolPtr(true)
 	}
-	if t.PruneKeyspaces == nil {
-		t.PruneKeyspaces = pointer.BoolPtr(true)
+	if conf.PruneKeyspaces == nil {
+		conf.PruneKeyspaces = pointer.BoolPtr(true)
 	}
-	if t.PruneShards == nil {
-		t.PruneShards = pointer.BoolPtr(true)
+	if conf.PruneShards == nil {
+		conf.PruneShards = pointer.BoolPtr(true)
 	}
-	if t.PruneShardCells == nil {
-		t.PruneShardCells = pointer.BoolPtr(true)
+	if conf.PruneShardCells == nil {
+		conf.PruneShardCells = pointer.BoolPtr(true)
 	}
-	if t.PruneTablets == nil {
-		t.PruneTablets = pointer.BoolPtr(true)
+	if conf.PruneTablets == nil {
+		conf.PruneTablets = pointer.BoolPtr(true)
 	}
-	if t.PruneSrvKeyspaces == nil {
-		t.PruneSrvKeyspaces = pointer.BoolPtr(true)
+	if conf.PruneSrvKeyspaces == nil {
+		conf.PruneSrvKeyspaces = pointer.BoolPtr(true)
 	}
 }
