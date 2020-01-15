@@ -766,9 +766,9 @@ func schema_pkg_apis_planetscale_v2_VitessClusterSpec(ref common.ReferenceCallba
 							},
 						},
 					},
-					"topoReconciliation": {
+					"topologyReconciliation": {
 						SchemaProps: spec.SchemaProps{
-							Description: "TopoReconciliation can be used to enable or disable registration or pruning of various vitess components to and from topo records.",
+							Description: "TopologyReconciliation can be used to enable or disable registration or pruning of various vitess components to and from topo records.",
 							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.TopoReconcileConfig"),
 						},
 					},

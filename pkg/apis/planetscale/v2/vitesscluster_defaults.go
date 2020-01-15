@@ -112,38 +112,38 @@ func defaultClusterBackup(backup *ClusterBackupSpec) {
 
 func defaultTopoReconcileConfig(vt *VitessCluster) {
 	// Defaulting registration code.
-	if vt.Spec.TopoReconciliation.RegisterCells == nil {
+	if vt.Spec.TopologyReconciliation.RegisterCells == nil {
 		registerCells := true
-		vt.Spec.TopoReconciliation.RegisterCells = &registerCells
+		vt.Spec.TopologyReconciliation.RegisterCells = &registerCells
 	}
-	if vt.Spec.TopoReconciliation.RegisterCellsAliases == nil {
+	if vt.Spec.TopologyReconciliation.RegisterCellsAliases == nil {
 		registerCellsAliases := true
-		vt.Spec.TopoReconciliation.RegisterCellsAliases = &registerCellsAliases
+		vt.Spec.TopologyReconciliation.RegisterCellsAliases = &registerCellsAliases
 	}
 
 	// Defaulting pruning code.
-	if vt.Spec.TopoReconciliation.PruneCells == nil {
+	if vt.Spec.TopologyReconciliation.PruneCells == nil {
 		pruneCells := true
-		vt.Spec.TopoReconciliation.PruneCells = &pruneCells
+		vt.Spec.TopologyReconciliation.PruneCells = &pruneCells
 	}
-	if vt.Spec.TopoReconciliation.PruneKeyspaces == nil {
+	if vt.Spec.TopologyReconciliation.PruneKeyspaces == nil {
 		pruneKeyspaces := true
-		vt.Spec.TopoReconciliation.PruneKeyspaces = &pruneKeyspaces
+		vt.Spec.TopologyReconciliation.PruneKeyspaces = &pruneKeyspaces
 	}
-	if vt.Spec.TopoReconciliation.PruneShards == nil {
+	if vt.Spec.TopologyReconciliation.PruneShards == nil {
 		pruneShards := true
-		vt.Spec.TopoReconciliation.PruneShards = &pruneShards
+		vt.Spec.TopologyReconciliation.PruneShards = &pruneShards
 	}
-	if vt.Spec.TopoReconciliation.PruneShardCells == nil {
+	if vt.Spec.TopologyReconciliation.PruneShardCells == nil {
 		pruneShardCells := true
-		vt.Spec.TopoReconciliation.PruneShardCells = &pruneShardCells
+		vt.Spec.TopologyReconciliation.PruneShardCells = &pruneShardCells
 	}
-	if vt.Spec.TopoReconciliation.PruneTablets == nil {
+	if vt.Spec.TopologyReconciliation.PruneTablets == nil {
 		pruneTablets := true
-		vt.Spec.TopoReconciliation.PruneTablets = &pruneTablets
+		vt.Spec.TopologyReconciliation.PruneTablets = &pruneTablets
 	}
-	if vt.Spec.TopoReconciliation.PruneSrvKeyspaces == nil {
+	if vt.Spec.TopologyReconciliation.PruneSrvKeyspaces == nil {
 		pruneSrvingKeyspaces := true
-		vt.Spec.TopoReconciliation.PruneSrvKeyspaces = &pruneSrvingKeyspaces
+		vt.Spec.TopologyReconciliation.PruneSrvKeyspaces = &pruneSrvingKeyspaces
 	}
 }

@@ -1057,7 +1057,7 @@ func (in *VitessClusterSpec) DeepCopyInto(out *VitessClusterSpec) {
 			(*out)[key] = val
 		}
 	}
-	in.TopoReconciliation.DeepCopyInto(&out.TopoReconciliation)
+	in.TopologyReconciliation.DeepCopyInto(&out.TopologyReconciliation)
 	return
 }
 
