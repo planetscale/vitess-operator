@@ -85,18 +85,18 @@ func (r *ReconcileVitessCluster) reconcileCellTopology(ctx context.Context, vt *
 		desiredCells[cell.Name] = cell
 	}
 
-	if *vt.Spec.TopologyReconciliation.RegisterCellsAliases == true {
+	if *vt.Spec.TopologyReconciliation.RegisterCellsAliases {
 		result, err := r.registerCellsAliases(ctx, vt, ts, desiredCells, resultBuilder)
 		if err != nil {
 			return result, err
 		}
 	}
 
-	if *vt.Spec.TopologyReconciliation.RegisterCells == true {
+	if *vt.Spec.TopologyReconciliation.RegisterCells {
 		r.registerCells(ctx, vt, ts, globalTopoImpl, desiredCells, resultBuilder)
 	}
 
-	if *vt.Spec.TopologyReconciliation.PruneCells == true {
+	if *vt.Spec.TopologyReconciliation.PruneCells {
 		result, err := r.pruneCells(ctx, vt, ts, desiredCells, resultBuilder)
 		if err != nil {
 			return result, err
