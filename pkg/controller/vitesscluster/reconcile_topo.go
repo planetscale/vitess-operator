@@ -93,28 +93,30 @@ func (r *ReconcileVitessCluster) reconcileCellTopology(ctx context.Context, vt *
 	}
 
 	if *vt.Spec.TopologyReconciliation.RegisterCells {
-		err := r.registerCells(ctx, vt, ts, globalTopoImpl, desiredCells)
-		if err != nil {
-			return resultBuilder.RequeueAfter(topoRequeueDelay)
-		}
+		result, err := r.registerCells(ctx, vt, ts, globalTopoImpl, desiredCells)
+		resultBuilder.Merge(result, err)
 	}
 
 	if *vt.Spec.TopologyReconciliation.PruneCells {
-		err := r.pruneCells(ctx, vt, ts, desiredCells)
+		result, err := r.pruneCells(ctx, vt, ts, desiredCells)
 		if err != nil {
 			return resultBuilder.RequeueAfter(topoRequeueDelay)
+		} else {
+			resultBuilder.Merge(result, err)
 		}
 	}
 
 	return resultBuilder.Result()
 }
 
-func (r *ReconcileVitessCluster) pruneCells(ctx context.Context, vt *planetscalev2.VitessCluster, ts *topo.Server, desiredCells map[string]*planetscalev2.VitessCellTemplate) error {
+func (r *ReconcileVitessCluster) pruneCells(ctx context.Context, vt *planetscalev2.VitessCluster, ts *topo.Server, desiredCells map[string]*planetscalev2.VitessCellTemplate) (reconcile.Result, error) {
+	resultBuilder := &results.Builder{}
+
 	// Get list of cells in topo.
 	cellNames, err := ts.GetCellInfoNames(ctx)
 	if err != nil {
 		r.recorder.Eventf(vt, corev1.EventTypeWarning, "TopoListFailed", "failed to list cells in topology: %v", err)
-		return err
+		return resultBuilder.Error(err)
 	}
 
 	// Clean up cells that exist but shouldn't.
@@ -125,16 +127,18 @@ func (r *ReconcileVitessCluster) pruneCells(ctx context.Context, vt *planetscale
 			// See if we can delete it. This will fail if the cell is not empty.
 			if err := ts.DeleteCellInfo(ctx, name); err != nil {
 				r.recorder.Eventf(vt, corev1.EventTypeWarning, "TopoCleanupFailed", "unable to remove cell %s from topology: %v", name, err)
-				return err
+				resultBuilder.RequeueAfter(topoRequeueDelay)
 			} else {
 				r.recorder.Eventf(vt, corev1.EventTypeNormal, "TopoCleanup", "removed unwanted cell %s from topology", name)
 			}
 		}
 	}
-	return nil
+	return resultBuilder.Result()
 }
 
-func (r *ReconcileVitessCluster) registerCells(ctx context.Context, vt *planetscalev2.VitessCluster, ts *topo.Server, globalTopoImpl string, desiredCells map[string]*planetscalev2.VitessCellTemplate) error {
+func (r *ReconcileVitessCluster) registerCells(ctx context.Context, vt *planetscalev2.VitessCluster, ts *topo.Server, globalTopoImpl string, desiredCells map[string]*planetscalev2.VitessCellTemplate) (reconcile.Result, error) {
+	resultBuilder := &results.Builder{}
+
 	// Create or update cell info for cells that should exist.
 	for name, cell := range desiredCells {
 		params := lockserver.LocalConnectionParams(vt, cell)
@@ -160,13 +164,13 @@ func (r *ReconcileVitessCluster) registerCells(ctx context.Context, vt *planetsc
 		if err != nil {
 			// Record the error and continue trying other cells.
 			r.recorder.Eventf(vt, corev1.EventTypeWarning, "TopoUpdateFailed", "failed to update lockserver address for cell %v", name)
-			return err
+			resultBuilder.RequeueAfter(topoRequeueDelay)
 		}
 		if updated {
 			r.recorder.Eventf(vt, corev1.EventTypeNormal, "TopoUpdated", "updated lockserver addess for cell %v", name)
 		}
 	}
-	return nil
+	return resultBuilder.Result()
 }
 
 func (r *ReconcileVitessCluster) registerCellsAliases(ctx context.Context, vt *planetscalev2.VitessCluster, ts *topo.Server, desiredCells map[string]*planetscalev2.VitessCellTemplate) error {
