@@ -101,9 +101,8 @@ func (r *ReconcileVitessCluster) reconcileCellTopology(ctx context.Context, vt *
 		result, err := r.pruneCells(ctx, vt, ts, desiredCells)
 		if err != nil {
 			return resultBuilder.RequeueAfter(topoRequeueDelay)
-		} else {
-			resultBuilder.Merge(result, err)
 		}
+		resultBuilder.Merge(result, err)
 	}
 
 	return resultBuilder.Result()
