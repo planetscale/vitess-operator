@@ -16,6 +16,14 @@ limitations under the License.
 
 package v2
 
+// DefaultVitessKeyspace fills in VitessKeyspace defaults for unspecified fields.
+// Note: This should only be used for nillable fields passed down from a parent because controllers run in parallel,
+// and the defaulting code for a parent object may not have been run yet, meaning the values passed down from that parent
+// might not be safe to deref.
+func DefaultVitessKeyspace(dst *VitessKeyspace) {
+	defaultTopoReconcileConfig(&dst.Spec.TopologyReconciliation)
+}
+
 // DefaultVitessKeyspaceImages fills in unspecified keyspace-level images from cluster-level defaults.
 // The clusterDefaults should have already had its unspecified fields filled in with operator defaults.
 func DefaultVitessKeyspaceImages(dst *VitessKeyspaceImages, clusterDefaults *VitessImages) {

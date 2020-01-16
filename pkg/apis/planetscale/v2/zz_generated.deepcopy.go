@@ -1605,6 +1605,11 @@ func (in *VitessKeyspaceSpec) DeepCopyInto(out *VitessKeyspaceSpec) {
 			(*out)[key] = val
 		}
 	}
+	if in.TopologyReconciliation != nil {
+		in, out := &in.TopologyReconciliation, &out.TopologyReconciliation
+		*out = new(TopoReconcileConfig)
+		(*in).DeepCopyInto(*out)
+	}
 	return
 }
 
