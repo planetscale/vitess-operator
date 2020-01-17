@@ -18,6 +18,7 @@ package vitesscell
 
 import (
 	"context"
+	"planetscale.dev/vitess-operator/pkg/operator/toposerver"
 
 	corev1 "k8s.io/api/core/v1"
 	apilabels "k8s.io/apimachinery/pkg/labels"
@@ -97,9 +98,29 @@ func (r *ReconcileVitessCell) reconcileKeyspaces(ctx context.Context, vtc *plane
 		vtc.Status.Idle = corev1.ConditionFalse
 	}
 
+	if vtc.Status.Lockserver.Etcd != nil {
+		// We know something about local etcd status.
+		// We can use that to avoid trying to connect when we know it won't work.
+		if vtc.Status.Lockserver.Etcd.Available != corev1.ConditionTrue {
+			r.recorder.Event(vtc, corev1.EventTypeNormal, "TopoWaiting", "waiting for local etcd to become Available")
+			// Return success. We don't need to requeue because we'll get queued any time the EtcdCluster status changes.
+			return resultBuilder.Result()
+		}
+	}
+
+	// We actually know the address of the local lockserver already,
+	// but for now we'll follow the same rule as all Vitess components,
+	// which is to use the global lockserver to find the local ones.
+	ts, err := toposerver.Open(ctx, vtc.Spec.GlobalLockserver)
+	if err != nil {
+		r.recorder.Eventf(vtc, corev1.EventTypeWarning, "TopoConnectFailed", "failed to connect to global lockserver: %v", err)
+		return resultBuilder.Error(err)
+	}
+	defer ts.Close()
+
 	// We have the list of keyspaces that should exist in this cell.
 	// See if we need to clean up topology.
-	topoEntries, err := r.reconcileTopology(ctx, vtc, keyspaces)
+	topoEntries, err := r.reconcileTopology(ctx, vtc, ts, keyspaces)
 	if err != nil {
 		return resultBuilder.RequeueAfter(topoRequeueDelay)
 	}
