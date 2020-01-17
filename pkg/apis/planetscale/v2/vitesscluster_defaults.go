@@ -111,7 +111,6 @@ func defaultClusterBackup(backup *ClusterBackupSpec) {
 }
 
 func defaultTopoReconcileConfig(confPtr **TopoReconcileConfig) {
-	// Fail fast with static defaults if user didn't supply any field.
 	if *confPtr == nil {
 		*confPtr = &TopoReconcileConfig{}
 	}
