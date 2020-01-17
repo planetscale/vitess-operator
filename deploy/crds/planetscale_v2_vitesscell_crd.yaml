@@ -448,6 +448,43 @@ spec:
               minLength: 1
               pattern: ^[a-z0-9]([a-z0-9]*[a-z0-9])?$
               type: string
+            topologyReconciliation:
+              description: TopologyReconciliation is inherited from the parent's VitessClusterSpec.
+              properties:
+                pruneCells:
+                  description: 'PruneCells can be used to enable or disable pruning
+                    of extraneous cells from topo records. Default: true'
+                  type: boolean
+                pruneKeyspaces:
+                  description: 'PruneKeyspaces can be used to enable or disable pruning
+                    of extraneous keyspaces from topo records. Default: true'
+                  type: boolean
+                pruneShardCells:
+                  description: 'PruneShardCells can be used to enable or disable pruning
+                    of extraneous shard cells from topo records. Default: true'
+                  type: boolean
+                pruneShards:
+                  description: 'PruneShards can be used to enable or disable pruning
+                    of extraneous shards from topo records. Default: true'
+                  type: boolean
+                pruneSrvKeyspaces:
+                  description: 'PruneSrvKeyspaces can be used to enable or disable
+                    pruning of extraneous serving keyspaces from topo records. Default:
+                    true'
+                  type: boolean
+                pruneTablets:
+                  description: 'PruneTablets can be used to enable or disable pruning
+                    of extraneous tablets from topo records. Default: true'
+                  type: boolean
+                registerCells:
+                  description: 'RegisterCells can be used to enable or disable registering
+                    cells into topo records. Default: true'
+                  type: boolean
+                registerCellsAliases:
+                  description: 'RegisterCellsAliases can be used to enable or disable
+                    registering cells aliases into topo records. Default: true'
+                  type: boolean
+              type: object
             zone:
               description: Zone is the name of the Availability Zone that this Vitess
                 Cell should run in. This value should match the value of the "failure-domain.beta.kubernetes.io/zone"

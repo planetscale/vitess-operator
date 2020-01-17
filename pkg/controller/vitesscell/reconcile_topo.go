@@ -61,6 +61,14 @@ func (r *ReconcileVitessCell) reconcileTopology(ctx context.Context, vtc *planet
 	}
 	defer ts.Close()
 
+	if *vtc.Spec.TopologyReconciliation.PruneSrvKeyspaces {
+		return r.pruneSrvKeyspaces(ctx, vtc, keyspaces, ts)
+	}
+
+	return nil, nil
+}
+
+func (r *ReconcileVitessCell) pruneSrvKeyspaces(ctx context.Context, vtc *planetscalev2.VitessCell, keyspaces []*planetscalev2.VitessKeyspace, ts *toposerver.Conn) ([]string, error) {
 	// Get the list of keyspaces deployed (served) in this cell.
 	srvKeyspaceNames, err := ts.GetSrvKeyspaceNames(ctx, vtc.Spec.Name)
 	if err != nil {
@@ -73,7 +81,7 @@ func (r *ReconcileVitessCell) reconcileTopology(ctx context.Context, vtc *planet
 	// However, only we know when it's time to remove a keyspace entry from topo,
 	// when the keyspace has been undeployed from this cell.
 	resultBuilder := &results.Builder{}
-	topoEntries = make([]string, 0, len(srvKeyspaceNames))
+	topoEntries := make([]string, 0, len(srvKeyspaceNames))
 	wanted := make(map[string]bool, len(keyspaces))
 	for _, vtk := range keyspaces {
 		wanted[vtk.Spec.Name] = true

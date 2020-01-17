@@ -866,6 +866,11 @@ func (in *VitessCellSpec) DeepCopyInto(out *VitessCellSpec) {
 		}
 	}
 	out.ImagePullPolicies = in.ImagePullPolicies
+	if in.TopologyReconciliation != nil {
+		in, out := &in.TopologyReconciliation, &out.TopologyReconciliation
+		*out = new(TopoReconcileConfig)
+		(*in).DeepCopyInto(*out)
+	}
 	return
 }
 
