@@ -63,6 +63,59 @@ func (r *ReconcileVitessShard) reconcileTopology(ctx context.Context, vts *plane
 	defer ts.Close()
 	wr := wrangler.New(logutil.NewConsoleLogger(), ts.Server, nil)
 
+	if *vts.Spec.TopologyReconciliation.PruneShardCells {
+		result, err := r.pruneShardCells(ctx, vts, keyspaceName, ts, wr)
+		resultBuilder.Merge(result, err)
+	}
+
+	if *vts.Spec.TopologyReconciliation.PruneTablets {
+		result, err := r.pruneTablets(ctx, vts, keyspaceName, ts, wr)
+		resultBuilder.Merge(result, err)
+	}
+
+	return resultBuilder.Result()
+}
+
+func (r *ReconcileVitessShard) pruneTablets(ctx context.Context, vts *planetscalev2.VitessShard, keyspaceName string, ts *toposerver.Conn, wr *wrangler.Wrangler) (reconcile.Result, error) {
+	resultBuilder := &results.Builder{}
+
+	// Get all the tablet records for this shard.
+	if tablets, err := ts.GetTabletMapForShard(ctx, keyspaceName, vts.Spec.Name); err == nil {
+		// Update status for desired tablets.
+		for name, status := range vts.Status.Tablets {
+			tablet := tablets[name]
+			if tablet == nil {
+				continue
+			}
+			status.Type = strings.ToLower(tablet.GetType().String())
+		}
+
+		// Clean up tablets that exist but shouldn't.
+		for name, tabletInfo := range tablets {
+			if vts.Status.Tablets[name] == nil && vts.Status.OrphanedTablets[name] == nil {
+				// The tablet exists in topo, but not in the VitessShard spec.
+				// It's also not being kept around by a blocked turn-down.
+				// We use the Vitess wrangler (multi-step command executor) to delete the tablet.
+				// This is equivalent to `vtctl DeleteTablet`.
+				if err := wr.DeleteTablet(ctx, tabletInfo.Alias, false /* allowMaster */); err != nil {
+					r.recorder.Eventf(vts, corev1.EventTypeWarning, "TopoCleanupFailed", "unable to remove tablet %s from topology: %v", name, err)
+					resultBuilder.RequeueAfter(topoRequeueDelay)
+				} else {
+					r.recorder.Eventf(vts, corev1.EventTypeNormal, "TopoCleanup", "removed unwanted tablet %s from topology", name)
+				}
+			}
+		}
+	} else {
+		r.recorder.Eventf(vts, corev1.EventTypeWarning, "TopoGetFailed", "failed to get tablet records: %v", err)
+		resultBuilder.RequeueAfter(topoRequeueDelay)
+	}
+
+	return resultBuilder.Result()
+}
+
+func (r *ReconcileVitessShard) pruneShardCells(ctx context.Context, vts *planetscalev2.VitessShard, keyspaceName string, ts *toposerver.Conn, wr *wrangler.Wrangler) (reconcile.Result, error) {
+	resultBuilder := &results.Builder{}
+
 	// Get the shard record.
 	if shard, err := ts.GetShard(ctx, keyspaceName, vts.Spec.Name); err == nil {
 		vts.Status.HasMaster = k8s.ConditionStatus(shard.HasMaster())
@@ -94,37 +147,6 @@ func (r *ReconcileVitessShard) reconcileTopology(ctx context.Context, vts *plane
 		}
 	} else {
 		r.recorder.Eventf(vts, corev1.EventTypeWarning, "TopoGetFailed", "failed to get shard info: %v", err)
-		resultBuilder.RequeueAfter(topoRequeueDelay)
-	}
-
-	// Get all the tablet records for this shard.
-	if tablets, err := ts.GetTabletMapForShard(ctx, keyspaceName, vts.Spec.Name); err == nil {
-		// Update status for desired tablets.
-		for name, status := range vts.Status.Tablets {
-			tablet := tablets[name]
-			if tablet == nil {
-				continue
-			}
-			status.Type = strings.ToLower(tablet.GetType().String())
-		}
-
-		// Clean up tablets that exist but shouldn't.
-		for name, tabletInfo := range tablets {
-			if vts.Status.Tablets[name] == nil && vts.Status.OrphanedTablets[name] == nil {
-				// The tablet exists in topo, but not in the VitessShard spec.
-				// It's also not being kept around by a blocked turn-down.
-				// We use the Vitess wrangler (multi-step command executor) to delete the tablet.
-				// This is equivalent to `vtctl DeleteTablet`.
-				if err := wr.DeleteTablet(ctx, tabletInfo.Alias, false /* allowMaster */); err != nil {
-					r.recorder.Eventf(vts, corev1.EventTypeWarning, "TopoCleanupFailed", "unable to remove tablet %s from topology: %v", name, err)
-					resultBuilder.RequeueAfter(topoRequeueDelay)
-				} else {
-					r.recorder.Eventf(vts, corev1.EventTypeNormal, "TopoCleanup", "removed unwanted tablet %s from topology", name)
-				}
-			}
-		}
-	} else {
-		r.recorder.Eventf(vts, corev1.EventTypeWarning, "TopoGetFailed", "failed to get tablet records: %v", err)
 		resultBuilder.RequeueAfter(topoRequeueDelay)
 	}
 
