@@ -120,15 +120,23 @@ func (r *ReconcileVitessCell) reconcileKeyspaces(ctx context.Context, vtc *plane
 
 	// We have the list of keyspaces that should exist in this cell.
 	// See if we need to clean up topology.
-	topoEntries, err := r.reconcileTopology(ctx, vtc, ts, keyspaces)
+	result, err := r.reconcileTopology(ctx, vtc, ts, keyspaces)
+	resultBuilder.Merge(result, err)
 	if err != nil {
 		return resultBuilder.RequeueAfter(topoRequeueDelay)
 	}
 
-	if topoEntries != nil {
+	// Get the list of keyspaces deployed (served) in this cell.
+	srvKeyspaceNames, err := ts.GetSrvKeyspaceNames(ctx, vtc.Spec.Name)
+	if err != nil {
+		r.recorder.Eventf(vtc, corev1.EventTypeWarning, "TopoListFailed", "failed to list keyspaces in cell-local lockserver: %v", err)
+		return resultBuilder.Error(err)
+	}
+
+	if srvKeyspaceNames != nil {
 		// We successfully listed topo, so know we know the whole picture.
 		// We're idle if both topo and our list of VitessKeyspaces are confirmed empty.
-		vtc.Status.Idle = k8s.ConditionStatus(len(topoEntries) == 0 && len(keyspaces) == 0)
+		vtc.Status.Idle = k8s.ConditionStatus(len(srvKeyspaceNames) == 0 && len(keyspaces) == 0)
 	}
 
 	return resultBuilder.Result()

@@ -18,11 +18,9 @@ package vitesscell
 
 import (
 	"context"
+	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"time"
-	"vitess.io/vitess/go/vt/topo"
-
-	corev1 "k8s.io/api/core/v1"
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 	"planetscale.dev/vitess-operator/pkg/operator/results"
@@ -38,7 +36,7 @@ const (
 	topoRequeueDelay = 5 * time.Second
 )
 
-func (r *ReconcileVitessCell) reconcileTopology(ctx context.Context, vtc *planetscalev2.VitessCell, ts *topo.Server, keyspaces []*planetscalev2.VitessKeyspace) (reconcile.Result, error) {
+func (r *ReconcileVitessCell) reconcileTopology(ctx context.Context, vtc *planetscalev2.VitessCell, ts *toposerver.Conn, keyspaces []*planetscalev2.VitessKeyspace) (reconcile.Result, error) {
 	resultBuilder := &results.Builder{}
 
 	// Don't hold our slot in the reconcile work queue for too long.
