@@ -224,16 +224,16 @@ func (r *ReconcileVitessCluster) reconcileKeyspaceTopology(ctx context.Context, 
 	}
 
 	if *vt.Spec.TopologyReconciliation.PruneKeyspaces == true {
-		result, err := r.pruneKeyspaces(ctx, vt, ts, desiredKeyspaces, resultBuilder)
-		if err != nil {
-			return result, err
-		}
+		result, err := r.pruneKeyspaces(ctx, vt, ts, desiredKeyspaces)
+		resultBuilder.Merge(result, err)
 	}
 
 	return resultBuilder.Result()
 }
 
-func (r *ReconcileVitessCluster) pruneKeyspaces(ctx context.Context, vt *planetscalev2.VitessCluster, ts *topo.Server, desiredKeyspaces map[string]*planetscalev2.VitessKeyspaceTemplate, resultBuilder *results.Builder) (reconcile.Result, error) {
+func (r *ReconcileVitessCluster) pruneKeyspaces(ctx context.Context, vt *planetscalev2.VitessCluster, ts *topo.Server, desiredKeyspaces map[string]*planetscalev2.VitessKeyspaceTemplate) (reconcile.Result, error) {
+	resultBuilder := &results.Builder{}
+
 	// Get list of keyspaces in topo.
 	keyspaceNames, err := ts.GetKeyspaces(ctx)
 	if err != nil {
