@@ -1387,7 +1387,8 @@ Kubernetes meta/v1.Time
 <p>
 (<em>Appears on:</em>
 <a href="#planetscale.com/v2.VitessClusterSpec">VitessClusterSpec</a>, 
-<a href="#planetscale.com/v2.VitessKeyspaceSpec">VitessKeyspaceSpec</a>)
+<a href="#planetscale.com/v2.VitessKeyspaceSpec">VitessKeyspaceSpec</a>, 
+<a href="#planetscale.com/v2.VitessShardSpec">VitessShardSpec</a>)
 </p>
 <p>
 <p>TopoReconcileConfig can be used to turn on or off registration or pruning of specific vitess components from topo records.
@@ -4724,6 +4725,19 @@ map[string]string
 <p>ExtraVitessFlags is inherited from the parent&rsquo;s VitessClusterSpec.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>topologyReconciliation</code></br>
+<em>
+<a href="#planetscale.com/v2.TopoReconcileConfig">
+TopoReconcileConfig
+</a>
+</em>
+</td>
+<td>
+<p>TopologyReconciliation is inherited from the parent&rsquo;s VitessClusterSpec.</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -4889,6 +4903,19 @@ map[string]string
 </td>
 <td>
 <p>ExtraVitessFlags is inherited from the parent&rsquo;s VitessClusterSpec.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>topologyReconciliation</code></br>
+<em>
+<a href="#planetscale.com/v2.TopoReconcileConfig">
+TopoReconcileConfig
+</a>
+</em>
+</td>
+<td>
+<p>TopologyReconciliation is inherited from the parent&rsquo;s VitessClusterSpec.</p>
 </td>
 </tr>
 </tbody>

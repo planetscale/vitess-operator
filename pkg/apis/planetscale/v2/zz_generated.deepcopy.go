@@ -1814,6 +1814,11 @@ func (in *VitessShardSpec) DeepCopyInto(out *VitessShardSpec) {
 			(*out)[key] = val
 		}
 	}
+	if in.TopologyReconciliation != nil {
+		in, out := &in.TopologyReconciliation, &out.TopologyReconciliation
+		*out = new(TopoReconcileConfig)
+		(*in).DeepCopyInto(*out)
+	}
 	return
 }
 
