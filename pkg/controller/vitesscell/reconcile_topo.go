@@ -58,7 +58,7 @@ func (r *ReconcileVitessCell) pruneSrvKeyspaces(ctx context.Context, vtc *planet
 	srvKeyspaceNames, err := ts.GetSrvKeyspaceNames(ctx, vtc.Spec.Name)
 	if err != nil {
 		r.recorder.Eventf(vtc, corev1.EventTypeWarning, "TopoListFailed", "failed to list keyspaces in cell-local lockserver: %v", err)
-		return resultBuilder.Error(err)
+		return resultBuilder.Requeue()
 	}
 
 	// We don't need to create Keyspace entries in topo for keyspaces that should exist.
@@ -79,7 +79,7 @@ func (r *ReconcileVitessCell) pruneSrvKeyspaces(ctx context.Context, vtc *planet
 		// It's not wanted. Try to delete it.
 		if err := ts.DeleteSrvKeyspace(ctx, vtc.Spec.Name, srvKeyspaceName); err != nil {
 			r.recorder.Eventf(vtc, corev1.EventTypeWarning, "TopoCleanupBlocked", "unable to remove keyspace %s from cell-local topology: %v", srvKeyspaceName, err)
-			resultBuilder.Error(err)
+			resultBuilder.Requeue()
 		} else {
 			r.recorder.Eventf(vtc, corev1.EventTypeNormal, "TopoCleanup", "removed unwanted keyspace %s from cell-local topology", srvKeyspaceName)
 		}
