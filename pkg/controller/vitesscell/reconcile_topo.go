@@ -61,18 +61,12 @@ func (r *ReconcileVitessCell) pruneSrvKeyspaces(ctx context.Context, vtc *planet
 		return resultBuilder.Requeue()
 	}
 
-	// We don't need to create Keyspace entries in topo for keyspaces that should exist.
-	// The tablets we deploy take care of that automatically.
-	// However, only we know when it's time to remove a keyspace entry from topo,
-	// when the keyspace has been undeployed from this cell.
-	topoEntries := make([]string, 0, len(srvKeyspaceNames))
 	wanted := make(map[string]bool, len(keyspaces))
 	for _, vtk := range keyspaces {
 		wanted[vtk.Spec.Name] = true
 	}
 	for _, srvKeyspaceName := range srvKeyspaceNames {
 		if wanted[srvKeyspaceName] {
-			topoEntries = append(topoEntries, srvKeyspaceName)
 			continue
 		}
 
