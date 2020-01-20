@@ -130,11 +130,9 @@ func (r *ReconcileVitessCell) reconcileKeyspaces(ctx context.Context, vtc *plane
 		return resultBuilder.Error(err)
 	}
 
-	if srvKeyspaceNames != nil {
-		// We successfully listed topo, so know we know the whole picture.
-		// We're idle if both topo and our list of VitessKeyspaces are confirmed empty.
-		vtc.Status.Idle = k8s.ConditionStatus(len(srvKeyspaceNames) == 0 && len(keyspaces) == 0)
-	}
+	// We successfully listed topo, so know we know the whole picture.
+	// We're idle if both topo and our list of VitessKeyspaces are confirmed empty.
+	vtc.Status.Idle = k8s.ConditionStatus(len(srvKeyspaceNames) == 0 && len(keyspaces) == 0)
 
 	return resultBuilder.Result()
 }
