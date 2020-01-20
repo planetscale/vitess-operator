@@ -114,7 +114,7 @@ func (r *ReconcileVitessCell) reconcileKeyspaces(ctx context.Context, vtc *plane
 	ts, err := toposerver.Open(ctx, vtc.Spec.GlobalLockserver)
 	if err != nil {
 		r.recorder.Eventf(vtc, corev1.EventTypeWarning, "TopoConnectFailed", "failed to connect to global lockserver: %v", err)
-		return resultBuilder.Error(err)
+		return resultBuilder.RequeueAfter(topoRequeueDelay)
 	}
 	defer ts.Close()
 
