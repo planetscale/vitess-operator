@@ -88,7 +88,7 @@ func init() {
 			"tablet_uid":          spec.Alias.Uid,
 			"socket_file":         mysqlctlSocketPath,
 			"db-config-dba-uname": dbConfigDbaUname,
-			"db_charset":          dbConfigCharset,
+			"db_charset":          spec.dbConfigCharset(),
 			"init_db_sql_file":    dbInitScript.FilePath(),
 		}
 	})
@@ -119,7 +119,7 @@ func init() {
 			"init_db_name_override": spec.localDatabaseName(),
 
 			"db-config-dba-uname": dbConfigDbaUname,
-			"db_charset":          dbConfigCharset,
+			"db_charset":          spec.dbConfigCharset(),
 
 			"init_db_sql_file": dbInitScript.FilePath(),
 		}
