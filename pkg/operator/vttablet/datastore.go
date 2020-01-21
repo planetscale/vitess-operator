@@ -76,7 +76,7 @@ func datastoreFlags(spec *Spec) vitess.Flags {
 
 func localDatastoreFlags(spec *Spec) vitess.Flags {
 	return vitess.Flags{
-		"db_charset":               dbConfigCharset,
+		"db_charset":               spec.dbConfigCharset(),
 		"db-config-app-uname":      dbConfigAppUname,
 		"db-config-dba-uname":      dbConfigDbaUname,
 		"db-config-repl-uname":     dbConfigReplUname,

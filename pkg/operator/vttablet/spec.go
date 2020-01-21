@@ -95,3 +95,15 @@ func (spec *Spec) myCnfFilePath() string {
 func (spec *Spec) mysqldUnixSocketPath() string {
 	return spec.tabletDir() + "/mysql.sock"
 }
+
+// dbConfigCharset returns the charset for vttablet's mysql connection pools.
+func (spec *Spec) dbConfigCharset() string {
+	// For flavors that we know are 8.0-compatible, use the new default charset
+	// that Vitess switched to for 8.0+.
+	if spec.Images.Mysqld != nil && spec.Images.Mysqld.Mysql80Compatible != "" {
+		return defaultMySQL80Charset
+	}
+
+	// For all others, use the old default that Vitess had since 5.6 until 8.0.
+	return defaultMySQL56Charset
+}

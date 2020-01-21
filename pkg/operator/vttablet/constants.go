@@ -68,7 +68,9 @@ const (
 
 	pvcVolumeName = "persistent-volume-claim"
 
-	dbConfigCharset       = "utf8"
+	defaultMySQL56Charset = "utf8"
+	defaultMySQL80Charset = "utf8mb4"
+
 	dbConfigAppUname      = "vt_app"
 	dbConfigDbaUname      = "vt_dba"
 	dbConfigReplUname     = "vt_repl"
