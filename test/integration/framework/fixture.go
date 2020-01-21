@@ -19,6 +19,7 @@ limitations under the License.
 package framework
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"testing"
@@ -26,9 +27,12 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/yaml"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 
+	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 	"planetscale.dev/vitess-operator/pkg/operator/controllermanager"
 )
 
@@ -100,6 +104,32 @@ func (f *Fixture) CreateNamespace(ctx context.Context, namespace string) *corev1
 	return ns
 }
 
+// CreateVitessClusterYAML creates a VitessCluster (from YAML input) that will
+// be deleted after this test finishes.
+func (f *Fixture) CreateVitessClusterYAML(ctx context.Context, namespace, name, vtYAML string) *planetscalev2.VitessCluster {
+	vt := &planetscalev2.VitessCluster{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: namespace,
+			Name:      name,
+		},
+	}
+	mustDecodeYAML(vtYAML, vt)
+
+	if err := f.client.Create(ctx, vt); err != nil {
+		f.t.Fatal(err)
+	}
+	f.deferTeardown(func(ctx context.Context) error {
+		// Make a fresh object with just the name, so the delete is unconditional.
+		return f.client.Delete(ctx, &planetscalev2.VitessCluster{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace: namespace,
+				Name:      name,
+			},
+		}, client.PropagationPolicy(metav1.DeletePropagationForeground))
+	})
+	return vt
+}
+
 // TearDown cleans up resources created through this instance of the test fixture.
 func (f *Fixture) TearDown(ctx context.Context) {
 	for i := len(f.teardownFuncs) - 1; i >= 0; i-- {
@@ -140,6 +170,57 @@ func (f *Fixture) Wait(condition func() (bool, error)) error {
 	}
 }
 
+// MustGet waits up to a default timeout for the named object to exist and then returns it.
+// If the timeout expires before the object appears, the test is aborted.
+func (f *Fixture) MustGet(namespace, name string, obj runtime.Object) {
+	ctx := context.TODO()
+	key := client.ObjectKey{
+		Namespace: namespace,
+		Name:      name,
+	}
+	f.t.Logf("Waiting for %T %v/%v to be created...", obj, namespace, name)
+	err := f.Wait(func() (bool, error) {
+		if err := f.client.Get(ctx, key, obj); err != nil {
+			return false, err
+		}
+		return true, nil
+	})
+	if err != nil {
+		f.t.Fatalf("Error waiting for %T %v/%v to be created: %v", obj, namespace, name, err)
+	}
+}
+
+// ExpectPods waits up to a default timeout for the given selector to match the
+// expected number of Pods. If the timeout expires, the test is aborted.
+func (f *Fixture) ExpectPods(listOpts *client.ListOptions, expectedCount int) *corev1.PodList {
+	ctx := context.TODO()
+
+	var pods *corev1.PodList
+
+	f.t.Logf("Waiting for %v Pods matching %v to be created...", expectedCount, listOpts)
+	err := f.Wait(func() (bool, error) {
+		pods = &corev1.PodList{}
+		if err := f.client.List(ctx, listOpts, pods); err != nil {
+			return false, err
+		}
+		if len(pods.Items) != expectedCount {
+			return false, nil
+		}
+		return true, nil
+	})
+	if err != nil {
+		f.t.Fatalf("Error waiting for %v Pods matching %v to be created: %v", expectedCount, listOpts, err)
+	}
+
+	return pods
+}
+
 func (f *Fixture) deferTeardown(teardown func(ctx context.Context) error) {
 	f.teardownFuncs = append(f.teardownFuncs, teardown)
+}
+
+func mustDecodeYAML(yamlStr string, into interface{}) {
+	if err := yaml.NewYAMLOrJSONDecoder(bytes.NewReader([]byte(yamlStr)), 0).Decode(into); err != nil {
+		panic(fmt.Errorf("can't decode YAML: %v", err))
+	}
 }
