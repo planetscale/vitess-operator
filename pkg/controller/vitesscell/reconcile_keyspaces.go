@@ -127,7 +127,7 @@ func (r *ReconcileVitessCell) reconcileKeyspaces(ctx context.Context, vtc *plane
 	srvKeyspaceNames, err := ts.GetSrvKeyspaceNames(ctx, vtc.Spec.Name)
 	if err != nil {
 		r.recorder.Eventf(vtc, corev1.EventTypeWarning, "TopoListFailed", "failed to list keyspaces in cell-local lockserver: %v", err)
-		return resultBuilder.Error(err)
+		return resultBuilder.RequeueAfter(topoRequeueDelay)
 	}
 
 	// We successfully listed topo, so know we know the whole picture.
