@@ -213,23 +213,23 @@ func (r *ReconcileVitessCluster) registerCellsAliases(ctx context.Context, vt *p
 func (r *ReconcileVitessCluster) reconcileKeyspaceTopology(ctx context.Context, vt *planetscalev2.VitessCluster, ts *topo.Server) (reconcile.Result, error) {
 	resultBuilder := &results.Builder{}
 
-	// Make a map from keyspace name (as Vitess calls them) back to the keyspace spec.
-	desiredKeyspaces := make(map[string]*planetscalev2.VitessKeyspaceTemplate, len(vt.Spec.Keyspaces))
-	for i := range vt.Spec.Keyspaces {
-		keyspace := &vt.Spec.Keyspaces[i]
-		desiredKeyspaces[keyspace.Name] = keyspace
-	}
-
-	if *vt.Spec.TopologyReconciliation.PruneKeyspaces == true {
-		result, err := r.pruneKeyspaces(ctx, vt, ts, desiredKeyspaces)
+	if *vt.Spec.TopologyReconciliation.PruneKeyspaces {
+		result, err := r.pruneKeyspaces(ctx, vt, ts)
 		resultBuilder.Merge(result, err)
 	}
 
 	return resultBuilder.Result()
 }
 
-func (r *ReconcileVitessCluster) pruneKeyspaces(ctx context.Context, vt *planetscalev2.VitessCluster, ts *topo.Server, desiredKeyspaces map[string]*planetscalev2.VitessKeyspaceTemplate) (reconcile.Result, error) {
+func (r *ReconcileVitessCluster) pruneKeyspaces(ctx context.Context, vt *planetscalev2.VitessCluster, ts *topo.Server) (reconcile.Result, error) {
 	resultBuilder := &results.Builder{}
+
+	// Make a map from keyspace name (as Vitess calls them) back to the keyspace spec.
+	desiredKeyspaces := make(map[string]*planetscalev2.VitessKeyspaceTemplate, len(vt.Spec.Keyspaces))
+	for i := range vt.Spec.Keyspaces {
+		keyspace := &vt.Spec.Keyspaces[i]
+		desiredKeyspaces[keyspace.Name] = keyspace
+	}
 
 	// Get list of keyspaces in topo.
 	keyspaceNames, err := ts.GetKeyspaces(ctx)
