@@ -99,9 +99,6 @@ func (r *ReconcileVitessCluster) reconcileCellTopology(ctx context.Context, vt *
 
 	if *vt.Spec.TopologyReconciliation.PruneCells {
 		result, err := r.pruneCells(ctx, vt, ts, desiredCells)
-		if err != nil {
-			return resultBuilder.RequeueAfter(topoRequeueDelay)
-		}
 		resultBuilder.Merge(result, err)
 	}
 
@@ -115,7 +112,7 @@ func (r *ReconcileVitessCluster) pruneCells(ctx context.Context, vt *planetscale
 	cellNames, err := ts.GetCellInfoNames(ctx)
 	if err != nil {
 		r.recorder.Eventf(vt, corev1.EventTypeWarning, "TopoListFailed", "failed to list cells in topology: %v", err)
-		return resultBuilder.Error(err)
+		return resultBuilder.RequeueAfter(topoRequeueDelay)
 	}
 
 	// Clean up cells that exist but shouldn't.
