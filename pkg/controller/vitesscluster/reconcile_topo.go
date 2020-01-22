@@ -86,6 +86,13 @@ func (r *ReconcileVitessCluster) reconcileCellTopology(ctx context.Context, vt *
 	}
 
 	if *vt.Spec.TopologyReconciliation.RegisterCellsAliases {
+		// We need to add an alias for all the cells in each region so that vtgate
+		// knows that it can route traffic between them.
+		// Currently, only one region is supported so we allow routing anywhere.
+		//
+		// We also need to create the aliases before we create the cells because we
+		// don't want any vtgates to start after the cells are created but before
+		// the alias exists.
 		err := r.registerCellsAliases(ctx, vt, ts, desiredCells)
 		if err != nil {
 			return resultBuilder.Error(err)
@@ -170,13 +177,6 @@ func (r *ReconcileVitessCluster) registerCells(ctx context.Context, vt *planetsc
 }
 
 func (r *ReconcileVitessCluster) registerCellsAliases(ctx context.Context, vt *planetscalev2.VitessCluster, ts *topo.Server, desiredCells map[string]*planetscalev2.VitessCellTemplate) error {
-	// We need to add an alias for all the cells in each region so that vtgate
-	// knows that it can route traffic between them.
-	// Currently, only one region is supported so we allow routing anywhere.
-	//
-	// We also need to create the aliases before we create the cells because we
-	// don't want any vtgates to start after the cells are created but before
-	// the alias exists.
 	desiredCellsAliases := buildCellsAliases(desiredCells)
 	currentCellsAliases, err := ts.GetCellsAliases(ctx, true)
 	if err != nil {
