@@ -407,6 +407,19 @@ not have any prefix (just &ldquo;flag&rdquo;, not &ldquo;-flag&rdquo;). To set a
 set the string value to either &ldquo;true&rdquo; or &ldquo;false&rdquo;.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>topologyReconciliation</code></br>
+<em>
+<a href="#planetscale.com/v2.TopoReconcileConfig">
+TopoReconcileConfig
+</a>
+</em>
+</td>
+<td>
+<p>TopologyReconciliation can be used to enable or disable registration or pruning of various vitess components to and from topo records.</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -1369,6 +1382,125 @@ Kubernetes meta/v1.Time
 </tr>
 </tbody>
 </table>
+<h3 id="planetscale.com/v2.TopoReconcileConfig">TopoReconcileConfig
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#planetscale.com/v2.VitessCellSpec">VitessCellSpec</a>, 
+<a href="#planetscale.com/v2.VitessClusterSpec">VitessClusterSpec</a>, 
+<a href="#planetscale.com/v2.VitessKeyspaceSpec">VitessKeyspaceSpec</a>, 
+<a href="#planetscale.com/v2.VitessShardSpec">VitessShardSpec</a>)
+</p>
+<p>
+<p>TopoReconcileConfig can be used to turn on or off registration or pruning of specific vitess components from topo records.
+This should only be necessary if you need to override defaults, and shouldn&rsquo;t be required for the vast majority of use cases.</p>
+</p>
+<table class="table table-striped">
+<thead class="thead-dark">
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>registerCellsAliases</code></br>
+<em>
+bool
+</em>
+</td>
+<td>
+<p>RegisterCellsAliases can be used to enable or disable registering cells aliases into topo records.
+Default: true</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>registerCells</code></br>
+<em>
+bool
+</em>
+</td>
+<td>
+<p>RegisterCells can be used to enable or disable registering cells into topo records.
+Default: true</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>pruneCells</code></br>
+<em>
+bool
+</em>
+</td>
+<td>
+<p>PruneCells can be used to enable or disable pruning of extraneous cells from topo records.
+Default: true</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>pruneKeyspaces</code></br>
+<em>
+bool
+</em>
+</td>
+<td>
+<p>PruneKeyspaces can be used to enable or disable pruning of extraneous keyspaces from topo records.
+Default: true</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>pruneSrvKeyspaces</code></br>
+<em>
+bool
+</em>
+</td>
+<td>
+<p>PruneSrvKeyspaces can be used to enable or disable pruning of extraneous serving keyspaces from topo records.
+Default: true</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>pruneShards</code></br>
+<em>
+bool
+</em>
+</td>
+<td>
+<p>PruneShards can be used to enable or disable pruning of extraneous shards from topo records.
+Default: true</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>pruneShardCells</code></br>
+<em>
+bool
+</em>
+</td>
+<td>
+<p>PruneShardCells can be used to enable or disable pruning of extraneous shard cells from topo records.
+Default: true</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>pruneTablets</code></br>
+<em>
+bool
+</em>
+</td>
+<td>
+<p>PruneTablets can be used to enable or disable pruning of extraneous tablets from topo records.
+Default: true</p>
+</td>
+</tr>
+</tbody>
+</table>
 <h3 id="planetscale.com/v2.VitessBackupEngine">VitessBackupEngine
 (<code>string</code> alias)</p></h3>
 <p>
@@ -1855,6 +1987,19 @@ VitessImagePullPolicies
 <p>ImagePullPolicies are inherited from the VitessCluster spec.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>topologyReconciliation</code></br>
+<em>
+<a href="#planetscale.com/v2.TopoReconcileConfig">
+TopoReconcileConfig
+</a>
+</em>
+</td>
+<td>
+<p>TopologyReconciliation is inherited from the parent&rsquo;s VitessClusterSpec.</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -2224,6 +2369,19 @@ VitessImagePullPolicies
 </td>
 <td>
 <p>ImagePullPolicies are inherited from the VitessCluster spec.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>topologyReconciliation</code></br>
+<em>
+<a href="#planetscale.com/v2.TopoReconcileConfig">
+TopoReconcileConfig
+</a>
+</em>
+</td>
+<td>
+<p>TopologyReconciliation is inherited from the parent&rsquo;s VitessClusterSpec.</p>
 </td>
 </tr>
 </tbody>
@@ -2710,6 +2868,19 @@ An example use-case would be topo flags.</p>
 <p>All entries must be key-value string pairs of the form &ldquo;flag&rdquo;: &ldquo;value&rdquo;. The flag name should
 not have any prefix (just &ldquo;flag&rdquo;, not &ldquo;-flag&rdquo;). To set a boolean flag,
 set the string value to either &ldquo;true&rdquo; or &ldquo;false&rdquo;.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>topologyReconciliation</code></br>
+<em>
+<a href="#planetscale.com/v2.TopoReconcileConfig">
+TopoReconcileConfig
+</a>
+</em>
+</td>
+<td>
+<p>TopologyReconciliation can be used to enable or disable registration or pruning of various vitess components to and from topo records.</p>
 </td>
 </tr>
 </tbody>
@@ -3595,6 +3766,19 @@ map[string]string
 <p>ExtraVitessFlags is inherited from the parent&rsquo;s VitessClusterSpec.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>topologyReconciliation</code></br>
+<em>
+<a href="#planetscale.com/v2.TopoReconcileConfig">
+TopoReconcileConfig
+</a>
+</em>
+</td>
+<td>
+<p>TopologyReconciliation is inherited from the parent&rsquo;s VitessClusterSpec.</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -4096,6 +4280,19 @@ map[string]string
 <p>ExtraVitessFlags is inherited from the parent&rsquo;s VitessClusterSpec.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>topologyReconciliation</code></br>
+<em>
+<a href="#planetscale.com/v2.TopoReconcileConfig">
+TopoReconcileConfig
+</a>
+</em>
+</td>
+<td>
+<p>TopologyReconciliation is inherited from the parent&rsquo;s VitessClusterSpec.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="planetscale.com/v2.VitessKeyspaceStatus">VitessKeyspaceStatus
@@ -4555,6 +4752,19 @@ map[string]string
 <p>ExtraVitessFlags is inherited from the parent&rsquo;s VitessClusterSpec.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>topologyReconciliation</code></br>
+<em>
+<a href="#planetscale.com/v2.TopoReconcileConfig">
+TopoReconcileConfig
+</a>
+</em>
+</td>
+<td>
+<p>TopologyReconciliation is inherited from the parent&rsquo;s VitessClusterSpec.</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -4720,6 +4930,19 @@ map[string]string
 </td>
 <td>
 <p>ExtraVitessFlags is inherited from the parent&rsquo;s VitessClusterSpec.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>topologyReconciliation</code></br>
+<em>
+<a href="#planetscale.com/v2.TopoReconcileConfig">
+TopoReconcileConfig
+</a>
+</em>
+</td>
+<td>
+<p>TopologyReconciliation is inherited from the parent&rsquo;s VitessClusterSpec.</p>
 </td>
 </tr>
 </tbody>

@@ -18,6 +18,7 @@ package vitesscell
 
 import (
 	"context"
+	"planetscale.dev/vitess-operator/pkg/operator/toposerver"
 
 	corev1 "k8s.io/api/core/v1"
 	apilabels "k8s.io/apimachinery/pkg/labels"
@@ -97,18 +98,41 @@ func (r *ReconcileVitessCell) reconcileKeyspaces(ctx context.Context, vtc *plane
 		vtc.Status.Idle = corev1.ConditionFalse
 	}
 
+	if vtc.Status.Lockserver.Etcd != nil {
+		// We know something about local etcd status.
+		// We can use that to avoid trying to connect when we know it won't work.
+		if vtc.Status.Lockserver.Etcd.Available != corev1.ConditionTrue {
+			r.recorder.Event(vtc, corev1.EventTypeNormal, "TopoWaiting", "waiting for local etcd to become Available")
+			// Return success. We don't need to requeue because we'll get queued any time the EtcdCluster status changes.
+			return resultBuilder.Result()
+		}
+	}
+
+	// We actually know the address of the local lockserver already,
+	// but for now we'll follow the same rule as all Vitess components,
+	// which is to use the global lockserver to find the local ones.
+	ts, err := toposerver.Open(ctx, vtc.Spec.GlobalLockserver)
+	if err != nil {
+		r.recorder.Eventf(vtc, corev1.EventTypeWarning, "TopoConnectFailed", "failed to connect to global lockserver: %v", err)
+		return resultBuilder.RequeueAfter(topoRequeueDelay)
+	}
+	defer ts.Close()
+
 	// We have the list of keyspaces that should exist in this cell.
 	// See if we need to clean up topology.
-	topoEntries, err := r.reconcileTopology(ctx, vtc, keyspaces)
+	result, err := r.reconcileTopology(ctx, vtc, ts, keyspaces)
+	resultBuilder.Merge(result, err)
+
+	// Get the list of keyspaces deployed (served) in this cell.
+	srvKeyspaceNames, err := ts.GetSrvKeyspaceNames(ctx, vtc.Spec.Name)
 	if err != nil {
+		r.recorder.Eventf(vtc, corev1.EventTypeWarning, "TopoListFailed", "failed to list keyspaces in cell-local lockserver: %v", err)
 		return resultBuilder.RequeueAfter(topoRequeueDelay)
 	}
 
-	if topoEntries != nil {
-		// We successfully listed topo, so know we know the whole picture.
-		// We're idle if both topo and our list of VitessKeyspaces are confirmed empty.
-		vtc.Status.Idle = k8s.ConditionStatus(len(topoEntries) == 0 && len(keyspaces) == 0)
-	}
+	// We successfully listed topo, so know we know the whole picture.
+	// We're idle if both topo and our list of VitessKeyspaces are confirmed empty.
+	vtc.Status.Idle = k8s.ConditionStatus(len(srvKeyspaceNames) == 0 && len(keyspaces) == 0)
 
 	return resultBuilder.Result()
 }

@@ -74,6 +74,9 @@ type VitessKeyspaceSpec struct {
 
 	// ExtraVitessFlags is inherited from the parent's VitessClusterSpec.
 	ExtraVitessFlags map[string]string `json:"extraVitessFlags,omitempty"`
+
+	// TopologyReconciliation is inherited from the parent's VitessClusterSpec.
+	TopologyReconciliation *TopoReconcileConfig `json:"topologyReconciliation,omitempty"`
 }
 
 // VitessKeyspaceTemplate contains only the user-specified parts of a VitessKeyspace object.

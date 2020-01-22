@@ -16,27 +16,10 @@ limitations under the License.
 
 package v2
 
-// DefaultVitessKeyspace fills in VitessKeyspace defaults for unspecified fields.
+// DefaultVitessShard fills in VitessShard defaults for unspecified fields.
 // Note: This should only be used for nillable fields passed down from a parent because controllers run in parallel,
 // and the defaulting code for a parent object may not have been run yet, meaning the values passed down from that parent
 // might not be safe to deref.
-func DefaultVitessKeyspace(dst *VitessKeyspace) {
+func DefaultVitessShard(dst *VitessShard) {
 	defaultTopoReconcileConfig(&dst.Spec.TopologyReconciliation)
-}
-
-// DefaultVitessKeyspaceImages fills in unspecified keyspace-level images from cluster-level defaults.
-// The clusterDefaults should have already had its unspecified fields filled in with operator defaults.
-func DefaultVitessKeyspaceImages(dst *VitessKeyspaceImages, clusterDefaults *VitessImages) {
-	if dst.Vttablet == "" {
-		dst.Vttablet = clusterDefaults.Vttablet
-	}
-	if dst.Vtbackup == "" {
-		dst.Vtbackup = clusterDefaults.Vtbackup
-	}
-	if dst.Mysqld == nil {
-		dst.Mysqld = clusterDefaults.Mysqld
-	}
-	if dst.MysqldExporter == "" {
-		dst.MysqldExporter = clusterDefaults.MysqldExporter
-	}
 }

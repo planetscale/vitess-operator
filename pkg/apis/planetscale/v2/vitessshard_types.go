@@ -83,6 +83,9 @@ type VitessShardSpec struct {
 
 	// ExtraVitessFlags is inherited from the parent's VitessClusterSpec.
 	ExtraVitessFlags map[string]string `json:"extraVitessFlags,omitempty"`
+
+	// TopologyReconciliation is inherited from the parent's VitessClusterSpec.
+	TopologyReconciliation *TopoReconcileConfig `json:"topologyReconciliation,omitempty"`
 }
 
 // VitessShardTemplate contains only the user-specified parts of a VitessShard object.

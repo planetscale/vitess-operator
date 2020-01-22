@@ -73,6 +73,9 @@ type VitessCellSpec struct {
 
 	// ImagePullPolicies are inherited from the VitessCluster spec.
 	ImagePullPolicies VitessImagePullPolicies `json:"imagePullPolicies,omitempty"`
+
+	// TopologyReconciliation is inherited from the parent's VitessClusterSpec.
+	TopologyReconciliation *TopoReconcileConfig `json:"topologyReconciliation,omitempty"`
 }
 
 // VitessCellTemplate contains only the user-specified parts of a VitessCell object.

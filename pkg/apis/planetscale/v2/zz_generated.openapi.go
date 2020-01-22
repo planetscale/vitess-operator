@@ -573,12 +573,18 @@ func schema_pkg_apis_planetscale_v2_VitessCellSpec(ref common.ReferenceCallback)
 							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImagePullPolicies"),
 						},
 					},
+					"topologyReconciliation": {
+						SchemaProps: spec.SchemaProps{
+							Description: "TopologyReconciliation is inherited from the parent's VitessClusterSpec.",
+							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.TopoReconcileConfig"),
+						},
+					},
 				},
 				Required: []string{"name", "globalLockserver", "allCells"},
 			},
 		},
 		Dependencies: []string{
-			"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.LockserverSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessCellGatewaySpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessCellImages", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImagePullPolicies", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessLockserverParams"},
+			"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.LockserverSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.TopoReconcileConfig", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessCellGatewaySpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessCellImages", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImagePullPolicies", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessLockserverParams"},
 	}
 }
 
@@ -766,12 +772,18 @@ func schema_pkg_apis_planetscale_v2_VitessClusterSpec(ref common.ReferenceCallba
 							},
 						},
 					},
+					"topologyReconciliation": {
+						SchemaProps: spec.SchemaProps{
+							Description: "TopologyReconciliation can be used to enable or disable registration or pruning of various vitess components to and from topo records.",
+							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.TopoReconcileConfig"),
+						},
+					},
 				},
 				Required: []string{"cells"},
 			},
 		},
 		Dependencies: []string{
-			"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.ClusterBackupSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.LockserverSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessCellTemplate", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessDashboardSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImagePullPolicies", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImages", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceTemplate"},
+			"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.ClusterBackupSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.LockserverSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.TopoReconcileConfig", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessCellTemplate", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessDashboardSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImagePullPolicies", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImages", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceTemplate"},
 	}
 }
 
@@ -1009,12 +1021,18 @@ func schema_pkg_apis_planetscale_v2_VitessKeyspaceSpec(ref common.ReferenceCallb
 							},
 						},
 					},
+					"topologyReconciliation": {
+						SchemaProps: spec.SchemaProps{
+							Description: "TopologyReconciliation is inherited from the parent's VitessClusterSpec.",
+							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.TopoReconcileConfig"),
+						},
+					},
 				},
 				Required: []string{"name", "partitionings", "globalLockserver", "zoneMap"},
 			},
 		},
 		Dependencies: []string{
-			"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessBackupLocation", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImagePullPolicies", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceImages", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspacePartitioning", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessLockserverParams"},
+			"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.TopoReconcileConfig", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessBackupLocation", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImagePullPolicies", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceImages", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspacePartitioning", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessLockserverParams"},
 	}
 }
 
@@ -1236,12 +1254,18 @@ func schema_pkg_apis_planetscale_v2_VitessShardSpec(ref common.ReferenceCallback
 							},
 						},
 					},
+					"topologyReconciliation": {
+						SchemaProps: spec.SchemaProps{
+							Description: "TopologyReconciliation is inherited from the parent's VitessClusterSpec.",
+							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.TopoReconcileConfig"),
+						},
+					},
 				},
 				Required: []string{"databaseInitScriptSecret", "name", "zoneMap", "images", "keyRange", "globalLockserver"},
 			},
 		},
 		Dependencies: []string{
-			"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.SecretSource", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessBackupLocation", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImagePullPolicies", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyRange", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceImages", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessLockserverParams", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessReplicationSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessShardTabletPool"},
+			"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.SecretSource", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.TopoReconcileConfig", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessBackupLocation", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImagePullPolicies", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyRange", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceImages", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessLockserverParams", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessReplicationSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessShardTabletPool"},
 	}
 }
 

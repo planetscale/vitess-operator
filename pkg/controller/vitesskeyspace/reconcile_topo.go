@@ -55,7 +55,18 @@ func (r *ReconcileVitessKeyspace) reconcileTopology(ctx context.Context, vtk *pl
 	}
 	defer ts.Close()
 
-	// Get list of keyspaces in topo.
+	if *vtk.Spec.TopologyReconciliation.PruneShards {
+		result, err := r.pruneShards(ctx, vtk, ts)
+		resultBuilder.Merge(result, err)
+	}
+
+	return resultBuilder.Result()
+}
+
+func (r *ReconcileVitessKeyspace) pruneShards(ctx context.Context, vtk *planetscalev2.VitessKeyspace, ts *toposerver.Conn) (reconcile.Result, error) {
+	resultBuilder := &results.Builder{}
+
+	// Get list of shards in topo.
 	shardNames, err := ts.GetShardNames(ctx, vtk.Spec.Name)
 	if err != nil {
 		r.recorder.Eventf(vtk, corev1.EventTypeWarning, "TopoListFailed", "failed to list shards in topology: %v", err)
@@ -78,6 +89,5 @@ func (r *ReconcileVitessKeyspace) reconcileTopology(ctx context.Context, vtk *pl
 			}
 		}
 	}
-
 	return resultBuilder.Result()
 }

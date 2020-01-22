@@ -29,6 +29,7 @@ func DefaultVitessCluster(vt *VitessCluster) {
 	DefaultVitessDashboard(&vt.Spec.VitessDashboard)
 	DefaultVitessKeyspaceTemplates(vt.Spec.Keyspaces)
 	defaultClusterBackup(vt.Spec.Backup)
+	defaultTopoReconcileConfig(&vt.Spec.TopologyReconciliation)
 }
 
 func defaultGlobalLockserver(vt *VitessCluster) {
@@ -106,5 +107,40 @@ func defaultClusterBackup(backup *ClusterBackupSpec) {
 	}
 	if backup.Engine == "" {
 		backup.Engine = defaultBackupEngine
+	}
+}
+
+func defaultTopoReconcileConfig(confPtr **TopoReconcileConfig) {
+	if *confPtr == nil {
+		*confPtr = &TopoReconcileConfig{}
+	}
+	conf := *confPtr
+
+	// Defaulting registration code.
+	if conf.RegisterCells == nil {
+		conf.RegisterCells = pointer.BoolPtr(true)
+	}
+	if conf.RegisterCellsAliases == nil {
+		conf.RegisterCellsAliases = pointer.BoolPtr(true)
+	}
+
+	// Defaulting pruning code.
+	if conf.PruneCells == nil {
+		conf.PruneCells = pointer.BoolPtr(true)
+	}
+	if conf.PruneKeyspaces == nil {
+		conf.PruneKeyspaces = pointer.BoolPtr(true)
+	}
+	if conf.PruneShards == nil {
+		conf.PruneShards = pointer.BoolPtr(true)
+	}
+	if conf.PruneShardCells == nil {
+		conf.PruneShardCells = pointer.BoolPtr(true)
+	}
+	if conf.PruneTablets == nil {
+		conf.PruneTablets = pointer.BoolPtr(true)
+	}
+	if conf.PruneSrvKeyspaces == nil {
+		conf.PruneSrvKeyspaces = pointer.BoolPtr(true)
 	}
 }

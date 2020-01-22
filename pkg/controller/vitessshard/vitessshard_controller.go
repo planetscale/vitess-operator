@@ -166,6 +166,7 @@ func (r *ReconcileVitessShard) Reconcile(request reconcile.Request) (reconcile.R
 		// Error reading the object - requeue the request.
 		return resultBuilder.Error(err)
 	}
+	planetscalev2.DefaultVitessShard(vts)
 
 	// Reset status, since that's all out of date info that we will recompute now.
 	oldStatus := vts.Status

@@ -107,6 +107,45 @@ type VitessClusterSpec struct {
 	// not have any prefix (just "flag", not "-flag"). To set a boolean flag,
 	// set the string value to either "true" or "false".
 	ExtraVitessFlags map[string]string `json:"extraVitessFlags,omitempty"`
+
+	// TopologyReconciliation can be used to enable or disable registration or pruning of various vitess components to and from topo records.
+	TopologyReconciliation *TopoReconcileConfig `json:"topologyReconciliation,omitempty"`
+}
+
+// TopoReconcileConfig can be used to turn on or off registration or pruning of specific vitess components from topo records.
+// This should only be necessary if you need to override defaults, and shouldn't be required for the vast majority of use cases.
+type TopoReconcileConfig struct {
+	// RegisterCellsAliases can be used to enable or disable registering cells aliases into topo records.
+	// Default: true
+	RegisterCellsAliases *bool `json:"registerCellsAliases,omitempty"`
+
+	// RegisterCells can be used to enable or disable registering cells into topo records.
+	// Default: true
+	RegisterCells *bool `json:"registerCells,omitempty"`
+
+	// PruneCells can be used to enable or disable pruning of extraneous cells from topo records.
+	// Default: true
+	PruneCells *bool `json:"pruneCells,omitempty"`
+
+	// PruneKeyspaces can be used to enable or disable pruning of extraneous keyspaces from topo records.
+	// Default: true
+	PruneKeyspaces *bool `json:"pruneKeyspaces,omitempty"`
+
+	// PruneSrvKeyspaces can be used to enable or disable pruning of extraneous serving keyspaces from topo records.
+	// Default: true
+	PruneSrvKeyspaces *bool `json:"pruneSrvKeyspaces,omitempty"`
+
+	// PruneShards can be used to enable or disable pruning of extraneous shards from topo records.
+	// Default: true
+	PruneShards *bool `json:"pruneShards,omitempty"`
+
+	// PruneShardCells can be used to enable or disable pruning of extraneous shard cells from topo records.
+	// Default: true
+	PruneShardCells *bool `json:"pruneShardCells,omitempty"`
+
+	// PruneTablets can be used to enable or disable pruning of extraneous tablets from topo records.
+	// Default: true
+	PruneTablets *bool `json:"pruneTablets,omitempty"`
 }
 
 // VitessImages specifies container images to use for Vitess components.

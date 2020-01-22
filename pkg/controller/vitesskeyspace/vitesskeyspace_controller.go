@@ -143,6 +143,7 @@ func (r *ReconcileVitessKeyspace) Reconcile(request reconcile.Request) (reconcil
 		// Error reading the object - requeue the request.
 		return resultBuilder.Error(err)
 	}
+	planetscalev2.DefaultVitessKeyspace(vtk)
 
 	// Reset status, since that's all out of date info that we will recompute now.
 	oldStatus := vtk.Status

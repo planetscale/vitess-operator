@@ -1079,6 +1079,43 @@ spec:
               maxItems: 2
               minItems: 1
               type: array
+            topologyReconciliation:
+              description: TopologyReconciliation is inherited from the parent's VitessClusterSpec.
+              properties:
+                pruneCells:
+                  description: 'PruneCells can be used to enable or disable pruning
+                    of extraneous cells from topo records. Default: true'
+                  type: boolean
+                pruneKeyspaces:
+                  description: 'PruneKeyspaces can be used to enable or disable pruning
+                    of extraneous keyspaces from topo records. Default: true'
+                  type: boolean
+                pruneShardCells:
+                  description: 'PruneShardCells can be used to enable or disable pruning
+                    of extraneous shard cells from topo records. Default: true'
+                  type: boolean
+                pruneShards:
+                  description: 'PruneShards can be used to enable or disable pruning
+                    of extraneous shards from topo records. Default: true'
+                  type: boolean
+                pruneSrvKeyspaces:
+                  description: 'PruneSrvKeyspaces can be used to enable or disable
+                    pruning of extraneous serving keyspaces from topo records. Default:
+                    true'
+                  type: boolean
+                pruneTablets:
+                  description: 'PruneTablets can be used to enable or disable pruning
+                    of extraneous tablets from topo records. Default: true'
+                  type: boolean
+                registerCells:
+                  description: 'RegisterCells can be used to enable or disable registering
+                    cells into topo records. Default: true'
+                  type: boolean
+                registerCellsAliases:
+                  description: 'RegisterCellsAliases can be used to enable or disable
+                    registering cells aliases into topo records. Default: true'
+                  type: boolean
+              type: object
             turndownPolicy:
               description: 'TurndownPolicy specifies what should happen if this keyspace
                 is ever removed from the VitessCluster spec. By default, removing
