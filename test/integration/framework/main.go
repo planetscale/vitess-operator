@@ -21,9 +21,11 @@ package framework
 import (
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path"
+	"strings"
 	"time"
 
 	"k8s.io/klog"
@@ -43,6 +45,45 @@ See tools/get-kube-binaries.sh
 // deployDir is the path from the integration test binary working dir to the
 // directory containing manifests to install vitess-operator.
 const deployDir = "../../../deploy"
+
+// operatorPod is a minimal fake Pod spec to pretend that we're running the
+// operator in a Pod, even though we're actually just running it in the test
+// process. Note that nothing actually acts on Pod objects because this
+// integration test environment intentionally does not have any kubelets.
+const operatorPod = `
+apiVersion: v1
+kind: Pod
+metadata:
+  namespace: default
+  name: vitess-operator
+  labels:
+    app: vitess-operator
+spec:
+  containers:
+  - name: vitess-operator
+    image: planetscale/vitess-operator
+    command:
+    - vitess-operator
+`
+
+const defaultServiceAccount = `
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  namespace: default
+  name: default
+secrets:
+- name: default-token
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  namespace: default
+  name: default-token
+  annotations:
+    kubernetes.io/service-account.name: default
+type: kubernetes.io/service-account-token
+`
 
 // getKubectlPath returns a path to a kube-apiserver executable.
 func getKubectlPath() (string, error) {
@@ -89,7 +130,15 @@ func testMain(tests func() int) error {
 		time.Sleep(time.Second)
 	}
 
-	// Install vites-operator base files, but not the Deployment itself.
+	// Create a default ServiceAccount. We have to do this in order to make the
+	// apiserver accept Pods. Normally this is done automatically by parts of
+	// the k8s distrubtion that we don't run in this integration test
+	// environment, so we have to do it manually.
+	if out, err := execKubectlStdin(strings.NewReader(defaultServiceAccount), "create", "-f", "-"); err != nil {
+		return fmt.Errorf("cannot create default ServiceAccount: %v\n%s", err, out)
+	}
+
+	// Install vitess-operator base files, but not the Deployment itself.
 	files := []string{
 		"service_account.yaml",
 		"role.yaml",
@@ -118,6 +167,20 @@ func testMain(tests func() int) error {
 		time.Sleep(time.Second)
 	}
 
+	// Create a fake Pod to represent the operator, which is actually just
+	// running in this test process.
+	if out, err := execKubectlStdin(strings.NewReader(operatorPod), "create", "-f", "-"); err != nil {
+		return fmt.Errorf("cannot create vitess-operator Pod: %v\n%s", err, out)
+	}
+
+	// Set env vars that vitess-operator expects, to simulate the values
+	// provided in deploy/operator.yaml.
+	os.Setenv("WATCH_NAMESPACE", "default")
+	os.Setenv("POD_NAME", "vitess-operator")
+	os.Setenv("PS_OPERATOR_POD_NAMESPACE", "default")
+	os.Setenv("PS_OPERATOR_POD_NAME", "vitess-operator")
+	os.Setenv("OPERATOR_NAME", "vitess-operator")
+
 	// Start vitess-operator in this test process.
 	mgr, err := controllermanager.New("", ApiserverConfig(), manager.Options{
 		Namespace: "default",
@@ -141,11 +204,16 @@ func testMain(tests func() int) error {
 }
 
 func execKubectl(args ...string) ([]byte, error) {
+	return execKubectlStdin(nil, args...)
+}
+
+func execKubectlStdin(stdin io.Reader, args ...string) ([]byte, error) {
 	execPath, err := exec.LookPath("kubectl")
 	if err != nil {
 		return nil, fmt.Errorf("cannot exec kubectl: %v", err)
 	}
 	cmdline := append([]string{"--server", ApiserverURL()}, args...)
 	cmd := exec.Command(execPath, cmdline...)
+	cmd.Stdin = stdin
 	return cmd.CombinedOutput()
 }
