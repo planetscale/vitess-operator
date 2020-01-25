@@ -29,7 +29,7 @@ func DefaultVitessCluster(vt *VitessCluster) {
 	DefaultVitessDashboard(&vt.Spec.VitessDashboard)
 	DefaultVitessKeyspaceTemplates(vt.Spec.Keyspaces)
 	defaultClusterBackup(vt.Spec.Backup)
-	defaultTopoReconcileConfig(&vt.Spec.TopologyReconciliation)
+	DefaultTopoReconcileConfig(&vt.Spec.TopologyReconciliation)
 }
 
 func defaultGlobalLockserver(vt *VitessCluster) {
@@ -110,7 +110,7 @@ func defaultClusterBackup(backup *ClusterBackupSpec) {
 	}
 }
 
-func defaultTopoReconcileConfig(confPtr **TopoReconcileConfig) {
+func DefaultTopoReconcileConfig(confPtr **TopoReconcileConfig) {
 	if *confPtr == nil {
 		*confPtr = &TopoReconcileConfig{}
 	}

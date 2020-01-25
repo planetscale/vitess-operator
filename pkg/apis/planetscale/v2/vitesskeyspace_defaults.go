@@ -21,7 +21,7 @@ package v2
 // and the defaulting code for a parent object may not have been run yet, meaning the values passed down from that parent
 // might not be safe to deref.
 func DefaultVitessKeyspace(dst *VitessKeyspace) {
-	defaultTopoReconcileConfig(&dst.Spec.TopologyReconciliation)
+	DefaultTopoReconcileConfig(&dst.Spec.TopologyReconciliation)
 }
 
 // DefaultVitessKeyspaceImages fills in unspecified keyspace-level images from cluster-level defaults.

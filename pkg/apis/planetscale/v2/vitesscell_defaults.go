@@ -26,7 +26,7 @@ import (
 func DefaultVitessCell(vtc *VitessCell) {
 	DefaultLocalLockserver(&vtc.Spec.Lockserver)
 	DefaultVitessGateway(&vtc.Spec.Gateway)
-	defaultTopoReconcileConfig(&vtc.Spec.TopologyReconciliation)
+	DefaultTopoReconcileConfig(&vtc.Spec.TopologyReconciliation)
 }
 
 func DefaultLocalLockserver(ls *LockserverSpec) {
