@@ -1,3 +1,19 @@
+/*
+Copyright 2019 PlanetScale Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package vitesscluster
 
 import (
@@ -20,6 +36,7 @@ spec:
   cells:
   - name: cell1
   - name: cell2
+  - name: cell3
   keyspaces:
   - name: keyspace1
     partitionings:
@@ -48,6 +65,22 @@ spec:
               resources:
                 requests:
                   storage: 1Gi
+    - equal:
+        parts: 1
+        shardTemplate:
+          databaseInitScriptSecret:
+            key: init_db.sql
+            name: init-script-secret
+          tabletPools:
+          - cell: cell3
+            type: replica
+            replicas: 3
+            mysqld: {}
+            dataVolumeClaimTemplate:
+              accessModes: [ReadWriteOnce]
+              resources:
+                requests:
+                  storage: 1Gi
   backup:
     locations:
     - name: vbs1
@@ -62,13 +95,13 @@ func TestMain(m *testing.M) {
 func TestBasicVitessCluster(t *testing.T) {
 	ctx := context.Background()
 
-	f := framework.NewFixture(t)
-	defer f.TearDown(ctx)
+	f := framework.NewFixture(ctx, t)
+	defer f.TearDown()
 
 	ns := "default"
-	cluster := "cluster1"
+	cluster := "test-basic-vitess-cluster"
 
-	f.CreateVitessClusterYAML(ctx, ns, cluster, basicVitessCluster)
+	f.CreateVitessClusterYAML(ns, cluster, basicVitessCluster)
 	verifyBasicVitessCluster(f, ns, cluster)
 }
 
@@ -80,6 +113,7 @@ func verifyBasicVitessCluster(f *framework.Fixture, ns, cluster string) {
 	// VitessCluster creates VitessCells.
 	verifyBasicVitessCell(f, ns, cluster, "cell1")
 	verifyBasicVitessCell(f, ns, cluster, "cell2")
+	verifyBasicVitessCell(f, ns, cluster, "cell3")
 
 	// VitessCluster creates VitessKeyspaces.
 	verifyBasicVitessKeyspace(f, ns, cluster, "keyspace1")
@@ -99,6 +133,7 @@ func verifyBasicVitessCluster(f *framework.Fixture, ns, cluster string) {
 	// VitessCluster creates vtctld Deployments.
 	f.MustGet(ns, names.Join(cluster, "cell1", "vtctld"), &appsv1.Deployment{})
 	f.MustGet(ns, names.Join(cluster, "cell2", "vtctld"), &appsv1.Deployment{})
+	f.MustGet(ns, names.Join(cluster, "cell3", "vtctld"), &appsv1.Deployment{})
 }
 
 func verifyBasicVitessBackupStorage(f *framework.Fixture, ns, cluster, location string) {
@@ -145,22 +180,27 @@ func verifyBasicVitessKeyspace(f *framework.Fixture, ns, cluster, keyspace strin
 	f.MustGet(ns, names.Join(cluster, keyspace), &planetscalev2.VitessKeyspace{})
 
 	// VitessKeyspaces create VitessShards.
-	verifyBasicVitessShard(f, ns, cluster, keyspace, "x-80")
-	verifyBasicVitessShard(f, ns, cluster, keyspace, "80-x")
+	verifyBasicVitessShard(f, ns, cluster, keyspace, "x-80", []int{3, 3, 0})
+	verifyBasicVitessShard(f, ns, cluster, keyspace, "80-x", []int{3, 3, 0})
+	verifyBasicVitessShard(f, ns, cluster, keyspace, "x-x", []int{0, 0, 3})
 }
 
-func verifyBasicVitessShard(f *framework.Fixture, ns, cluster, keyspace, shard string) {
+func verifyBasicVitessShard(f *framework.Fixture, ns, cluster, keyspace, shard string, expectedTabletCount []int) {
 	f.MustGet(ns, names.Join(cluster, keyspace, shard), &planetscalev2.VitessShard{})
 
 	// VitessShard creates vttablet Pods.
 	cell1Pods := f.ExpectPods(&client.ListOptions{
 		Namespace:     ns,
 		LabelSelector: tabletPodSelector(cluster, keyspace, shard, "cell1", "replica"),
-	}, 3)
+	}, expectedTabletCount[0])
 	cell2Pods := f.ExpectPods(&client.ListOptions{
 		Namespace:     ns,
 		LabelSelector: tabletPodSelector(cluster, keyspace, shard, "cell2", "rdonly"),
-	}, 3)
+	}, expectedTabletCount[1])
+	cell3Pods := f.ExpectPods(&client.ListOptions{
+		Namespace:     ns,
+		LabelSelector: tabletPodSelector(cluster, keyspace, shard, "cell3", "replica"),
+	}, expectedTabletCount[2])
 
 	// Each vttablet Pod should have a PVC.
 	for i := range cell1Pods.Items {
@@ -168,6 +208,9 @@ func verifyBasicVitessShard(f *framework.Fixture, ns, cluster, keyspace, shard s
 	}
 	for i := range cell2Pods.Items {
 		f.MustGet(ns, cell2Pods.Items[i].Name, &corev1.PersistentVolumeClaim{})
+	}
+	for i := range cell3Pods.Items {
+		f.MustGet(ns, cell3Pods.Items[i].Name, &corev1.PersistentVolumeClaim{})
 	}
 
 	// VitessShard creates vtbackup-init Pod/PVC.

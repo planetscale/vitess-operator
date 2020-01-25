@@ -43,14 +43,18 @@ const (
 
 // Fixture is a collection of scaffolding for each integration test method.
 type Fixture struct {
-	t *testing.T
+	*testing.T
+	ctx context.Context
 
 	teardownFuncs []func(ctx context.Context) error
 
 	client client.Client
 }
 
-func NewFixture(t *testing.T) *Fixture {
+// NewFixture creates a new test fixture.
+// Each Test*() function should create its own fixture and immediately defer a
+// call to that fixture's TearDown() method.
+func NewFixture(ctx context.Context, t *testing.T) *Fixture {
 	config := ApiserverConfig()
 
 	scheme, err := controllermanager.NewScheme()
@@ -72,9 +76,15 @@ func NewFixture(t *testing.T) *Fixture {
 	}
 
 	return &Fixture{
-		t:      t,
+		T:      t,
+		ctx:    ctx,
 		client: kubeClient,
 	}
+}
+
+// Context returns the Context for the running test.
+func (f *Fixture) Context() context.Context {
+	return f.ctx
 }
 
 // Client returns the Kubernetes client.
@@ -91,7 +101,7 @@ func (f *Fixture) CreateNamespace(ctx context.Context, namespace string) *corev1
 		},
 	}
 	if err := f.client.Create(ctx, ns); err != nil {
-		f.t.Fatal(err)
+		f.Fatal(err)
 	}
 	f.deferTeardown(func(ctx context.Context) error {
 		// Make a fresh object with just the name, so the delete is unconditional.
@@ -106,18 +116,22 @@ func (f *Fixture) CreateNamespace(ctx context.Context, namespace string) *corev1
 
 // CreateVitessClusterYAML creates a VitessCluster (from YAML input) that will
 // be deleted after this test finishes.
-func (f *Fixture) CreateVitessClusterYAML(ctx context.Context, namespace, name, vtYAML string) *planetscalev2.VitessCluster {
-	vt := &planetscalev2.VitessCluster{
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace: namespace,
-			Name:      name,
-		},
-	}
-	mustDecodeYAML(vtYAML, vt)
+func (f *Fixture) CreateVitessClusterYAML(namespace, name, vtYAML string) *planetscalev2.VitessCluster {
+	vt := &planetscalev2.VitessCluster{}
+	MustDecodeYAML(vtYAML, vt)
+	return f.CreateVitessCluster(namespace, name, vt)
+}
 
-	if err := f.client.Create(ctx, vt); err != nil {
-		f.t.Fatal(err)
+// CreateVitessCluster creates a VitessCluster that will be deleted after this
+// test finishes.
+func (f *Fixture) CreateVitessCluster(namespace, name string, vt *planetscalev2.VitessCluster) *planetscalev2.VitessCluster {
+	vt.Namespace = namespace
+	vt.Name = name
+
+	if err := f.client.Create(f.ctx, vt); err != nil {
+		f.Fatal(err)
 	}
+
 	f.deferTeardown(func(ctx context.Context) error {
 		// Make a fresh object with just the name, so the delete is unconditional.
 		return f.client.Delete(ctx, &planetscalev2.VitessCluster{
@@ -131,40 +145,36 @@ func (f *Fixture) CreateVitessClusterYAML(ctx context.Context, namespace, name, 
 }
 
 // TearDown cleans up resources created through this instance of the test fixture.
-func (f *Fixture) TearDown(ctx context.Context) {
+func (f *Fixture) TearDown() {
 	for i := len(f.teardownFuncs) - 1; i >= 0; i-- {
 		teardown := f.teardownFuncs[i]
-		if err := teardown(ctx); err != nil {
-			f.t.Logf("Error during teardown: %v", err)
+		if err := teardown(f.ctx); err != nil {
+			f.Logf("Error during teardown: %v", err)
 			// Mark the test as failed, but continue trying to tear down.
-			f.t.Fail()
+			f.Fail()
 		}
 	}
 }
 
-// Wait polls the condition until it's true, with a default interval and timeout.
+// WaitFor polls the check function until it returns true, with a default interval and timeout.
 // This is meant for use in integration tests, so frequent polling is fine.
 //
-// The condition function returns a bool indicating whether it is satisfied,
-// as well as an error which should be non-nil if and only if the function was
-// unable to determine whether or not the condition is satisfied (for example
-// if the check involves calling a remote server and the request failed).
+// The check function should return nil if it is satisfied, or a non-nil error
+// indicating why it's not satisfied.
 //
-// If the condition function returns a non-nil error, Wait will log the error
-// and continue retrying until the timeout.
-func (f *Fixture) Wait(condition func() (bool, error)) error {
+// If the timeout expires before the check function is satisfied, the test will
+// be aborted.
+func (f *Fixture) WaitFor(condition string, check func() error) {
+	f.Logf("Waiting for %v...", condition)
 	start := time.Now()
 	for {
-		ok, err := condition()
-		if err == nil && ok {
-			return nil
-		}
-		if err != nil {
-			// Log error, but keep trying until timeout.
-			f.t.Logf("error while waiting for condition: %v", err)
+		err := check()
+		if err == nil {
+			f.Logf("Done waiting for %v.", condition)
+			return
 		}
 		if time.Since(start) > defaultWaitTimeout {
-			return fmt.Errorf("timed out waiting for condition (%v)", err)
+			f.Fatalf("Timed out waiting for %v: %v", condition, err)
 		}
 		time.Sleep(defaultWaitInterval)
 	}
@@ -173,44 +183,32 @@ func (f *Fixture) Wait(condition func() (bool, error)) error {
 // MustGet waits up to a default timeout for the named object to exist and then returns it.
 // If the timeout expires before the object appears, the test is aborted.
 func (f *Fixture) MustGet(namespace, name string, obj runtime.Object) {
-	ctx := context.TODO()
 	key := client.ObjectKey{
 		Namespace: namespace,
 		Name:      name,
 	}
-	f.t.Logf("Waiting for %T %v/%v to be created...", obj, namespace, name)
-	err := f.Wait(func() (bool, error) {
-		if err := f.client.Get(ctx, key, obj); err != nil {
-			return false, err
-		}
-		return true, nil
+	condition := fmt.Sprintf("%T %v/%v to exist", obj, namespace, name)
+	f.WaitFor(condition, func() error {
+		return f.client.Get(f.ctx, key, obj)
 	})
-	if err != nil {
-		f.t.Fatalf("Error waiting for %T %v/%v to be created: %v", obj, namespace, name, err)
-	}
 }
 
 // ExpectPods waits up to a default timeout for the given selector to match the
 // expected number of Pods. If the timeout expires, the test is aborted.
 func (f *Fixture) ExpectPods(listOpts *client.ListOptions, expectedCount int) *corev1.PodList {
-	ctx := context.TODO()
-
 	var pods *corev1.PodList
 
-	f.t.Logf("Waiting for %v Pods matching %v to be created...", expectedCount, listOpts)
-	err := f.Wait(func() (bool, error) {
+	condition := fmt.Sprintf("%v Pods matching %v to exist", expectedCount, listOpts)
+	f.WaitFor(condition, func() error {
 		pods = &corev1.PodList{}
-		if err := f.client.List(ctx, listOpts, pods); err != nil {
-			return false, err
+		if err := f.client.List(f.ctx, listOpts, pods); err != nil {
+			return err
 		}
-		if len(pods.Items) != expectedCount {
-			return false, nil
+		if got, want := len(pods.Items), expectedCount; got != want {
+			return fmt.Errorf("found %v matching Pods; want %v", got, want)
 		}
-		return true, nil
+		return nil
 	})
-	if err != nil {
-		f.t.Fatalf("Error waiting for %v Pods matching %v to be created: %v", expectedCount, listOpts, err)
-	}
 
 	return pods
 }
@@ -219,7 +217,9 @@ func (f *Fixture) deferTeardown(teardown func(ctx context.Context) error) {
 	f.teardownFuncs = append(f.teardownFuncs, teardown)
 }
 
-func mustDecodeYAML(yamlStr string, into interface{}) {
+// MustDecodeYAML decodes YAML into the given object.
+// It will panic if the decode fails.
+func MustDecodeYAML(yamlStr string, into interface{}) {
 	if err := yaml.NewYAMLOrJSONDecoder(bytes.NewReader([]byte(yamlStr)), 0).Decode(into); err != nil {
 		panic(fmt.Errorf("can't decode YAML: %v", err))
 	}

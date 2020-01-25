@@ -112,3 +112,10 @@ func startEtcd() (func(), error) {
 	}
 	return stop, nil
 }
+
+// EtcdURL returns the URL to connect to the etcd instance launched for this
+// test environment. This can be shared as long as each component uses a unique
+// key prefix.
+func EtcdURL() string {
+	return etcdURL
+}
