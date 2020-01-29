@@ -171,6 +171,10 @@ func (r *ReconcileVitessShard) Reconcile(request reconcile.Request) (reconcile.R
 	// Reset status, since that's all out of date info that we will recompute now.
 	oldStatus := vts.Status
 	vts.Status = planetscalev2.NewVitessShardStatus()
+	// Make sure we don't rinse old conditions - these states need to persist.
+	if len(oldStatus.Conditions) > 0 {
+		vts.Status.Conditions = oldStatus.Conditions
+	}
 
 	// Create/update desired tablets.
 	tabletResult, err := r.reconcileTablets(ctx, vts)
