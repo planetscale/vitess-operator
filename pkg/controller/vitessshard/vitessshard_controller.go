@@ -172,9 +172,7 @@ func (r *ReconcileVitessShard) Reconcile(request reconcile.Request) (reconcile.R
 	oldStatus := vts.Status
 	vts.Status = planetscalev2.NewVitessShardStatus()
 	// Make sure we don't rinse old conditions - these states need to persist.
-	if len(oldStatus.Conditions) > 0 {
-		vts.Status.Conditions = oldStatus.Conditions
-	}
+	vts.Status.Conditions = oldStatus.DeepCopyConditions()
 
 	// Create/update desired tablets.
 	tabletResult, err := r.reconcileTablets(ctx, vts)

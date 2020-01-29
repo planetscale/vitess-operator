@@ -194,3 +194,14 @@ func (c *VitessShardCondition) Duration() time.Duration {
 
 	return time.Now().Sub(c.LastTransitionTime.Time)
 }
+
+// DeepCopyConditions deep copies the conditions map for VitessShardStatus.
+func (s *VitessShardStatus) DeepCopyConditions() map[VitessShardConditionType]*VitessShardCondition {
+	out := make(map[VitessShardConditionType]*VitessShardCondition, len(s.Conditions))
+
+	for key, _ := range s.Conditions {
+		out[key] = out[key].DeepCopy()
+	}
+
+	return out
+}

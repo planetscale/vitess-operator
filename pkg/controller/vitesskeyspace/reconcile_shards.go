@@ -71,6 +71,7 @@ func (r *ReconcileVitessKeyspace) reconcileShards(ctx context.Context, vtk *plan
 
 			status := vtk.Status.Shards[curObj.Spec.KeyRange.String()]
 			status.Cells = curObj.Status.Cells
+			// TODO: Check empty states on status from child.
 			status.HasMaster = curObj.Status.Conditions[planetscalev2.HasMaster].CurrentStatus()
 			status.Tablets = int32(len(curObj.Status.Tablets))
 			status.PendingChanges = curObj.Annotations[rollout.ScheduledAnnotation]
