@@ -65,14 +65,14 @@ func (r *ReconcileVitessShard) reconcileTopology(ctx context.Context, vts *plane
 
 	// Get the shard record.
 	if shard, err := ts.GetShard(ctx, keyspaceName, vts.Spec.Name); err == nil {
-		vts.Status.Conditions[planetscalev2.HasMaster].ChangeStatus(k8s.ConditionStatus(shard.HasMaster()))
+		vts.Status.HasMaster = k8s.ConditionStatus(shard.HasMaster())
 		if shard.MasterAlias != nil {
 			vts.Status.MasterAlias = topoproto.TabletAliasString(shard.MasterAlias)
 		}
 
 		// Is the shard in the serving partition for any cell or tablet type?
 		if servingCells, err := ts.GetShardServingCells(ctx, shard); err == nil {
-			vts.Status.Conditions[planetscalev2.Idle].ChangeStatus(k8s.ConditionStatus(len(servingCells) == 0))
+			vts.Status.Idle = k8s.ConditionStatus(len(servingCells) == 0)
 
 			if *vts.Spec.TopologyReconciliation.PruneShardCells {
 				result, err := r.pruneShardCells(ctx, vts, keyspaceName, servingCells, wr)

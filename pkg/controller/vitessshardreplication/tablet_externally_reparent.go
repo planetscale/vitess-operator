@@ -43,7 +43,7 @@ func (r *ReconcileVitessShard) tabletExternallyReparent(ctx context.Context, vts
 	}
 
 	// If we already have a master we can bail early.
-	if vts.Status.Conditions[planetscalev2.HasMaster].CurrentStatus() == corev1.ConditionTrue {
+	if vts.Status.HasMaster == corev1.ConditionTrue {
 		return resultBuilder.Result()
 	}
 

@@ -305,8 +305,13 @@ type VitessShardStatus struct {
 	// Cells is a list of cells in which any tablets for this shard are deployed.
 	Cells []string `json:"cells,omitempty"`
 
-	// Conditions is a map of all VitessShard specific conditions we want to set and monitor.
-	Conditions map[VitessShardConditionType]*VitessShardCondition `json:"conditions,omitempty"`
+	// HasMaster is a condition indicating whether the Vitess topology
+	// reflects a master for this shard.
+	HasMaster corev1.ConditionStatus `json:"hasMaster,omitempty"`
+
+	// HasInitialBackup is a condition indicating whether the initial backup
+	// has been seeded for the shard.
+	HasInitialBackup corev1.ConditionStatus `json:"hasInitialBackup,omitempty"`
 
 	// MasterAlias is the tablet alias of the master according to the global
 	// shard record. This could be empty either because there is no master,
@@ -317,23 +322,19 @@ type VitessShardStatus struct {
 	// BackupLocations reports information about the backups for this shard in
 	// each backup location.
 	BackupLocations []*ShardBackupLocationStatus `json:"backupLocations,omitempty"`
+
+	// Idle is a condition indicating whether the shard can be turned down.
+	// If Idle is True, the shard is not part of the active shard set
+	// (partitioning) for any tablet type in any cell, so it should be safe
+	// to turn down the shard.
+	Idle corev1.ConditionStatus `json:"idle,omitempty"`
+
+	// Conditions is a map of all VitessShard specific conditions we want to set and monitor.
+	Conditions map[VitessShardConditionType]*VitessShardCondition `json:"conditions,omitempty"`
 }
 
 // VitessShardConditionType is a valid value for VitessShardCondition.Type
 type VitessShardConditionType string
-
-// These are valid conditions of VitessShard.
-const (
-	// HasMaster indicates whether the Vitess topology reflects a master for this shard.
-	HasMaster VitessShardConditionType = "HasMaster"
-	// HasInitialBackup indicates whether the initial backup has been seeded for the shard.
-	HasInitialBackup VitessShardConditionType = "HasInitialBackup"
-	// Idle indicates whether the shard can be turned down.
-	// If Idle is True, the shard is not part of the active shard set
-	// (partitioning) for any tablet type in any cell, so it should be safe
-	// to turn down the shard.
-	Idle VitessShardConditionType = "Idle"
-)
 
 // VitessShardCondition contains details for the current condition of this VitessShard.
 type VitessShardCondition struct {
@@ -358,15 +359,12 @@ type VitessShardCondition struct {
 
 // NewVitessShardStatus creates a new status object with default values.
 func NewVitessShardStatus() VitessShardStatus {
-	conditions := make(map[VitessShardConditionType]*VitessShardCondition)
-	conditions[HasMaster] = NewVitessShardCondition(HasMaster, corev1.ConditionUnknown)
-	conditions[HasInitialBackup] = NewVitessShardCondition(HasInitialBackup, corev1.ConditionUnknown)
-	conditions[Idle] = NewVitessShardCondition(Idle, corev1.ConditionUnknown)
-
 	return VitessShardStatus{
-		Tablets:         make(map[string]*VitessTabletStatus),
-		OrphanedTablets: make(map[string]*OrphanStatus),
-		Conditions:      conditions,
+		Tablets:          make(map[string]*VitessTabletStatus),
+		OrphanedTablets:  make(map[string]*OrphanStatus),
+		HasMaster:        corev1.ConditionUnknown,
+		HasInitialBackup: corev1.ConditionUnknown,
+		Idle:             corev1.ConditionUnknown,
 	}
 }
 

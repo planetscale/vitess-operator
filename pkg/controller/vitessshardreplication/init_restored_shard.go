@@ -66,7 +66,7 @@ func (r *ReconcileVitessShard) initRestoredShard(ctx context.Context, vts *plane
 	}
 
 	// Check if the shard has a master.
-	switch vts.Status.Conditions[planetscalev2.HasMaster].CurrentStatus() {
+	switch vts.Status.HasMaster {
 	case corev1.ConditionTrue:
 		// The shard already has a master. Nothing to do.
 		return resultBuilder.Result()
@@ -79,7 +79,7 @@ func (r *ReconcileVitessShard) initRestoredShard(ctx context.Context, vts *plane
 	// we ran the initial vtbackup job and it found that a backup already
 	// existed (the cold restore case), since vtbackup's "initial backup" mode
 	// is idempotent.
-	if vts.Status.Conditions[planetscalev2.HasInitialBackup].CurrentStatus() != corev1.ConditionTrue {
+	if vts.Status.HasInitialBackup != corev1.ConditionTrue {
 		r.recorder.Eventf(vts, corev1.EventTypeNormal, "InitShardWaiting", "can't initialize shard: waiting for initial backup to complete")
 		return resultBuilder.Result()
 	}
