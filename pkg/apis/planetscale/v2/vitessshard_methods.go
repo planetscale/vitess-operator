@@ -139,3 +139,15 @@ func (s *VitessShardSpec) GetCells() sets.String {
 
 	return cells
 }
+
+// CellInCluster returns whether the given cell name is defined in the
+// VitessCluster to which this shard ultimately belongs.
+func (s *VitessShardSpec) CellInCluster(cellName string) bool {
+	// The set of cells defined in the VitessCluster is ultimately passed down
+	// to each VitessShard in the form of a map from Vitess cell names to
+	// provider-specific zone names (even if zone names are left empty).
+	// Therefore the key exists in this map if and only if that cell name is
+	// defined in the VitessCluster.
+	_, inZoneMap := s.ZoneMap[cellName]
+	return inZoneMap
+}
