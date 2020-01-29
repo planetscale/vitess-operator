@@ -71,7 +71,7 @@ func (r *ReconcileVitessKeyspace) reconcileShards(ctx context.Context, vtk *plan
 
 			status := vtk.Status.Shards[curObj.Spec.KeyRange.String()]
 			status.Cells = curObj.Status.Cells
-			status.HasMaster = curObj.Status.HasMaster
+			status.HasMaster = curObj.Status.Conditions[planetscalev2.HasMaster].CurrentStatus()
 			status.Tablets = int32(len(curObj.Status.Tablets))
 			status.PendingChanges = curObj.Annotations[rollout.ScheduledAnnotation]
 
@@ -94,7 +94,7 @@ func (r *ReconcileVitessKeyspace) reconcileShards(ctx context.Context, vtk *plan
 			// Make sure it's ok to delete this shard.
 			// We err on the safe side since losing a shard accidentally is very disruptive.
 			curObj := obj.(*planetscalev2.VitessShard)
-			if curObj.Status.Idle == corev1.ConditionTrue {
+			if curObj.Status.Conditions[planetscalev2.Idle].CurrentStatus() == corev1.ConditionTrue {
 				// The shard is not in any serving partitioning anywhere.
 				return nil
 			}

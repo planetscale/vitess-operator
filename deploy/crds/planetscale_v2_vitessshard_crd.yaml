@@ -679,20 +679,40 @@ spec:
               items:
                 type: string
               type: array
-            hasInitialBackup:
-              description: HasInitialBackup is a condition indicating whether the
-                initial backup has been seeded for the shard.
-              type: string
-            hasMaster:
-              description: HasMaster is a condition indicating whether the Vitess
-                topology reflects a master for this shard.
-              type: string
-            idle:
-              description: Idle is a condition indicating whether the shard can be
-                turned down. If Idle is True, the shard is not part of the active
-                shard set (partitioning) for any tablet type in any cell, so it should
-                be safe to turn down the shard.
-              type: string
+            conditions:
+              additionalProperties:
+                properties:
+                  lastProbeTime:
+                    description: Last time we probed the condition.
+                    format: date-time
+                    type: string
+                  lastTransitionTime:
+                    description: Last time the condition transitioned from one status
+                      to another.
+                    format: date-time
+                    type: string
+                  message:
+                    description: Human-readable message indicating details about last
+                      transition.
+                    type: string
+                  reason:
+                    description: Unique, one-word, CamelCase reason for the condition's
+                      last transition.
+                    type: string
+                  status:
+                    description: Status is the status of the condition. Can be True,
+                      False, Unknown.
+                    type: string
+                  type:
+                    description: Type is the type of the condition.
+                    type: string
+                required:
+                - type
+                - status
+                type: object
+              description: Conditions is a map of all VitessShard specific conditions
+                we want to set and monitor.
+              type: object
             masterAlias:
               description: MasterAlias is the tablet alias of the master according
                 to the global shard record. This could be empty either because there

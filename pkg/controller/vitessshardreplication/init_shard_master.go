@@ -133,7 +133,7 @@ func (r *ReconcileVitessShard) initShardMaster(ctx context.Context, vts *planets
 }
 
 func (r *ReconcileVitessShard) readyForMaster(vts *planetscalev2.VitessShard, resultBuilder *results.Builder) bool {
-	switch vts.Status.HasMaster {
+	switch vts.Status.Conditions[planetscalev2.HasMaster].CurrentStatus() {
 	case corev1.ConditionTrue:
 		// The shard already has a master. Nothing to do.
 		return false

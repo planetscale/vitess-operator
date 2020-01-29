@@ -18,7 +18,9 @@ package v2
 
 import (
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
+	"time"
 )
 
 // IsExternalMaster indicates whether the tablet is in a pool of type "externalmaster".
@@ -150,4 +152,45 @@ func (s *VitessShardSpec) CellInCluster(cellName string) bool {
 	// defined in the VitessCluster.
 	_, inZoneMap := s.ZoneMap[cellName]
 	return inZoneMap
+}
+
+// NewVitessShardCondition returns a VitessShardCondition object based on the provided type and initial state.
+func NewVitessShardCondition(ty VitessShardConditionType, initState corev1.ConditionStatus) *VitessShardCondition {
+	return &VitessShardCondition{
+		Type:               ty,
+		Status:             initState,
+		LastProbeTime:      v1.Time{},
+		LastTransitionTime: v1.NewTime(time.Now()),
+		Reason:             "initState",
+		Message:            "The initial state for this VitessShardCondition.",
+	}
+}
+
+// ChangeStatus changes the status if the current status is not the same as the new status, and updates the
+// last transition time.
+func (c *VitessShardCondition) ChangeStatus(newStatus corev1.ConditionStatus) {
+	if c.Status == newStatus {
+		return
+	}
+
+	c.Status = newStatus
+	// TODO: Should we force a caller to supply a reason and message?
+	c.Reason = ""
+	c.Message = ""
+	c.LastTransitionTime = v1.NewTime(time.Now())
+}
+
+// CurrentStatus returns the status for the condition and updates the probe time.
+func (c *VitessShardCondition) CurrentStatus() corev1.ConditionStatus {
+	c.LastProbeTime = v1.NewTime(time.Now())
+
+	return c.Status
+}
+
+// Duration returns the duration since LastTransitionTime. It represents how long we've been in the current status for
+// this condition.
+func (c *VitessShardCondition) Duration() time.Duration {
+	c.LastProbeTime = v1.NewTime(time.Now())
+
+	return time.Now().Sub(c.LastTransitionTime.Time)
 }

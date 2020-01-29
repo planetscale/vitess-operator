@@ -101,7 +101,7 @@ func (r *ReconcileVitessShard) reconcileBackupJob(ctx context.Context, vts *plan
 		}
 	} else {
 		// We have at least one complete backup already.
-		vts.Status.HasInitialBackup = corev1.ConditionTrue
+		vts.Status.Conditions[planetscalev2.HasInitialBackup].ChangeStatus(corev1.ConditionTrue)
 	}
 
 	// Reconcile vtbackup Pods.
@@ -122,9 +122,9 @@ func (r *ReconcileVitessShard) reconcileBackupJob(ctx context.Context, vts *plan
 				// Otherwise, we leave it as Unknown since we can't tell.
 				switch pod.Status.Phase {
 				case corev1.PodSucceeded:
-					vts.Status.HasInitialBackup = corev1.ConditionTrue
+					vts.Status.Conditions[planetscalev2.HasInitialBackup].ChangeStatus(corev1.ConditionTrue)
 				case corev1.PodFailed:
-					vts.Status.HasInitialBackup = corev1.ConditionFalse
+					vts.Status.Conditions[planetscalev2.HasInitialBackup].ChangeStatus(corev1.ConditionFalse)
 				}
 			}
 		},

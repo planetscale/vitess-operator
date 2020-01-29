@@ -1322,30 +1322,22 @@ func schema_pkg_apis_planetscale_v2_VitessShardStatus(ref common.ReferenceCallba
 							},
 						},
 					},
-					"hasMaster": {
+					"conditions": {
 						SchemaProps: spec.SchemaProps{
-							Description: "HasMaster is a condition indicating whether the Vitess topology reflects a master for this shard.",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"hasInitialBackup": {
-						SchemaProps: spec.SchemaProps{
-							Description: "HasInitialBackup is a condition indicating whether the initial backup has been seeded for the shard.",
-							Type:        []string{"string"},
-							Format:      "",
+							Description: "Conditions is a map of all VitessShard specific conditions we want to set and monitor.",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessShardCondition"),
+									},
+								},
+							},
 						},
 					},
 					"masterAlias": {
 						SchemaProps: spec.SchemaProps{
 							Description: "MasterAlias is the tablet alias of the master according to the global shard record. This could be empty either because there is no master, or because the shard record could not be read. Check the HasMaster condition whenever the distinction is important.",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"idle": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Idle is a condition indicating whether the shard can be turned down. If Idle is True, the shard is not part of the active shard set (partitioning) for any tablet type in any cell, so it should be safe to turn down the shard.",
 							Type:        []string{"string"},
 							Format:      "",
 						},
@@ -1367,6 +1359,6 @@ func schema_pkg_apis_planetscale_v2_VitessShardStatus(ref common.ReferenceCallba
 			},
 		},
 		Dependencies: []string{
-			"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.ShardBackupLocationStatus", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessTabletStatus"},
+			"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.ShardBackupLocationStatus", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessShardCondition", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessTabletStatus"},
 	}
 }
