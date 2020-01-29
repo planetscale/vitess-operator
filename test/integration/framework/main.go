@@ -20,6 +20,7 @@ package framework
 
 import (
 	"errors"
+	"flag"
 	"fmt"
 	"io"
 	"os"
@@ -181,6 +182,14 @@ func testMain(tests func() int) error {
 	os.Setenv("PS_OPERATOR_POD_NAME", "vitess-operator")
 	os.Setenv("OPERATOR_NAME", "vitess-operator")
 
+	// Set operator flags to values that are good for testing.
+	// For example, we set faster resync so we can test periodic topo pruning
+	// without having to wait too long.
+	flag.Set("vitesscluster_resync_period", "5s")
+	flag.Set("vitesscell_resync_period", "5s")
+	flag.Set("vitesskeyspace_resync_period", "5s")
+	flag.Set("vitessshard_resync_period", "5s")
+
 	// Start vitess-operator in this test process.
 	mgr, err := controllermanager.New("", ApiserverConfig(), manager.Options{
 		Namespace: "default",
@@ -198,6 +207,14 @@ func testMain(tests func() int) error {
 
 	// Now actually run the tests.
 	if exitCode := tests(); exitCode != 0 {
+		// If one of the tests failed, dump all the events in the apiserver.
+		out, err := execKubectl("get", "events")
+		if err != nil {
+			klog.Errorf("cannot dump apiserver events")
+		} else {
+			klog.Infof("apiserver events:\n%s", out)
+		}
+
 		return fmt.Errorf("one or more tests failed with exit code: %v", exitCode)
 	}
 	return nil

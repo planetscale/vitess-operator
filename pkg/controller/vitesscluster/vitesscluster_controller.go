@@ -19,6 +19,7 @@ package vitesscluster
 import (
 	"context"
 	"flag"
+	"time"
 
 	"github.com/sirupsen/logrus"
 
@@ -39,10 +40,16 @@ import (
 	"planetscale.dev/vitess-operator/pkg/operator/metrics"
 	"planetscale.dev/vitess-operator/pkg/operator/reconciler"
 	"planetscale.dev/vitess-operator/pkg/operator/results"
+	"planetscale.dev/vitess-operator/pkg/operator/resync"
+)
+
+const (
+	controllerName = "vitesscluster-controller"
 )
 
 var (
 	maxConcurrentReconciles = flag.Int("vitesscluster_concurrent_reconciles", 10, "the maximum number of different VitessClusters to reconcile concurrently")
+	resyncPeriod            = flag.Duration("vitesscluster_resync_period", 30*time.Minute, "reconcile vitessclusters with this period even if no Kubernetes events occur")
 )
 
 var log = logrus.WithField("controller", "VitessCluster")
@@ -65,23 +72,24 @@ func Add(mgr manager.Manager) error {
 }
 
 // newReconciler returns a new reconcile.Reconciler
-func newReconciler(mgr manager.Manager) reconcile.Reconciler {
+func newReconciler(mgr manager.Manager) *ReconcileVitessCluster {
 	c := mgr.GetClient()
 	scheme := mgr.GetScheme()
-	recorder := mgr.GetRecorder("vitesscluster-controller")
+	recorder := mgr.GetRecorder(controllerName)
 
 	return &ReconcileVitessCluster{
 		client:     c,
 		scheme:     scheme,
+		resync:     resync.NewPeriodic(controllerName, *resyncPeriod),
 		recorder:   recorder,
 		reconciler: reconciler.New(c, scheme, recorder),
 	}
 }
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
-func add(mgr manager.Manager, r reconcile.Reconciler) error {
+func add(mgr manager.Manager, r *ReconcileVitessCluster) error {
 	// Create a new controller
-	c, err := controller.New("vitesscluster-controller", mgr, controller.Options{
+	c, err := controller.New(controllerName, mgr, controller.Options{
 		Reconciler:              r,
 		MaxConcurrentReconciles: *maxConcurrentReconciles,
 	})
@@ -105,6 +113,11 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		}
 	}
 
+	// Periodically resync even when no Kubernetes events have come in.
+	if err := c.Watch(r.resync.WatchSource(), &handler.EnqueueRequestForObject{}); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -116,6 +129,7 @@ type ReconcileVitessCluster struct {
 	// that reads objects from the cache and writes to the apiserver
 	client     client.Client
 	scheme     *runtime.Scheme
+	resync     *resync.Periodic
 	recorder   record.EventRecorder
 	reconciler *reconciler.Reconciler
 }
@@ -203,6 +217,10 @@ func (r *ReconcileVitessCluster) Reconcile(request reconcile.Request) (reconcile
 			resultBuilder.Error(err)
 		}
 	}
+
+	// Request a periodic resync for the cluster so we can recheck topology even
+	// if no Kubernetes events have occurred.
+	r.resync.Enqueue(request.NamespacedName)
 
 	result, err := resultBuilder.Result()
 	reconcileCount.WithLabelValues(vt.Name, metrics.Result(err)).Inc()
