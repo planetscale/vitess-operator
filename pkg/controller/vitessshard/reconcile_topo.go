@@ -137,16 +137,25 @@ func (r *ReconcileVitessShard) pruneShardCells(ctx context.Context, vts *planets
 
 	// Clean up cells from the shard record that we don't deploy to anymore.
 	for _, cellName := range servingCells {
-		if !topo.InCellList(cellName, vts.Status.Cells) {
-			// The cell is listed in topo, but we don't deploy there anymore.
-			// We use the Vitess wrangler (multi-step command executor) to remove the cell from that shard.
-			// This is equivalent to `vtctl RemoveShardCell`.
-			if err := wr.RemoveShardCell(ctx, keyspaceName, vts.Spec.Name, cellName, false /* force*/, false /* recursive */); err != nil {
-				r.recorder.Eventf(vts, corev1.EventTypeWarning, "TopoCleanupFailed", "unable to remove cell %s from shard: %v", cellName, err)
-				resultBuilder.RequeueAfter(topoRequeueDelay)
-			} else {
-				r.recorder.Eventf(vts, corev1.EventTypeNormal, "TopoCleanup", "removed unwanted cell %s from shard", cellName)
-			}
+		if !vts.Spec.CellInCluster(cellName) {
+			// Skip cells that are not even present in the VitessCluster.
+			// We should only operate on cells that we've been told to manage,
+			// since the others might be externally managed.
+			continue
+		}
+		if topo.InCellList(cellName, vts.Status.Cells) {
+			// We still have tablets here. Don't prune this cell.
+			continue
+		}
+
+		// The cell is listed in topo, but we don't deploy there anymore.
+		// We use the Vitess wrangler (multi-step command executor) to remove the cell from that shard.
+		// This is equivalent to `vtctl RemoveShardCell`.
+		if err := wr.RemoveShardCell(ctx, keyspaceName, vts.Spec.Name, cellName, false /* force*/, false /* recursive */); err != nil {
+			r.recorder.Eventf(vts, corev1.EventTypeWarning, "TopoCleanupFailed", "unable to remove cell %s from shard: %v", cellName, err)
+			resultBuilder.RequeueAfter(topoRequeueDelay)
+		} else {
+			r.recorder.Eventf(vts, corev1.EventTypeNormal, "TopoCleanup", "removed unwanted cell %s from shard", cellName)
 		}
 	}
 
