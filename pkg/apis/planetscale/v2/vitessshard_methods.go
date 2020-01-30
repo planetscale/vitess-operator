@@ -156,10 +156,11 @@ func (s *VitessShardSpec) CellInCluster(cellName string) bool {
 
 // NewVitessShardCondition returns a VitessShardCondition object based on the provided type and initial state.
 func NewVitessShardCondition(ty VitessShardConditionType, initState corev1.ConditionStatus) *VitessShardCondition {
+	now := v1.NewTime(time.Now())
 	return &VitessShardCondition{
 		Type:               ty,
 		Status:             initState,
-		LastTransitionTime: v1.NewTime(time.Now()),
+		LastTransitionTime: &now,
 		Reason:             "initState",
 		Message:            "The initial state for this VitessShardCondition.",
 	}
@@ -176,7 +177,8 @@ func (c *VitessShardCondition) ChangeStatus(newStatus corev1.ConditionStatus, re
 	}
 
 	c.Status = newStatus
-	c.LastTransitionTime = v1.NewTime(time.Now())
+	now := v1.NewTime(time.Now())
+	c.LastTransitionTime = &now
 }
 
 // Duration returns the duration since LastTransitionTime. It represents how long we've been in the current status for
