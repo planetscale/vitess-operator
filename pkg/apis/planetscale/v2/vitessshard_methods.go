@@ -17,10 +17,11 @@ limitations under the License.
 package v2
 
 import (
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/sets"
 	"time"
+
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/sets"
 )
 
 // IsExternalMaster indicates whether the tablet is in a pool of type "externalmaster".
@@ -156,7 +157,7 @@ func (s *VitessShardSpec) CellInCluster(cellName string) bool {
 
 // NewVitessShardCondition returns a VitessShardCondition object based on the provided type and initial state.
 func NewVitessShardCondition(ty VitessShardConditionType, initState corev1.ConditionStatus) *VitessShardCondition {
-	now := v1.NewTime(time.Now())
+	now := metav1.NewTime(time.Now())
 	return &VitessShardCondition{
 		Type:               ty,
 		Status:             initState,
@@ -177,7 +178,7 @@ func (c *VitessShardCondition) ChangeStatus(newStatus corev1.ConditionStatus, re
 	}
 
 	c.Status = newStatus
-	now := v1.NewTime(time.Now())
+	now := metav1.NewTime(time.Now())
 	c.LastTransitionTime = &now
 }
 
