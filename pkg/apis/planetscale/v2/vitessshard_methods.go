@@ -167,9 +167,9 @@ func NewVitessShardCondition(ty VitessShardConditionType) *VitessShardCondition 
 	}
 }
 
-// ChangeStatus changes the status if the current status is not the same as the new status, and updates the
+// SetStatus changes the status if the current status is not the same as the new status, and updates the
 // last transition time.
-func (c *VitessShardCondition) ChangeStatus(newStatus corev1.ConditionStatus, reason, message string) {
+func (c *VitessShardCondition) SetStatus(newStatus corev1.ConditionStatus, reason, message string) {
 	// We should update reason and message regardless of whether the status type is different.
 	c.Reason = reason
 	c.Message = message
@@ -182,9 +182,9 @@ func (c *VitessShardCondition) ChangeStatus(newStatus corev1.ConditionStatus, re
 	c.LastTransitionTime = &now
 }
 
-// Duration returns the duration since LastTransitionTime. It represents how long we've been in the current status for
+// StatusDuration returns the duration since LastTransitionTime. It represents how long we've been in the current status for
 // this condition.
-func (c *VitessShardCondition) Duration() time.Duration {
+func (c *VitessShardCondition) StatusDuration() time.Duration {
 	return time.Now().Sub(c.LastTransitionTime.Time)
 }
 
