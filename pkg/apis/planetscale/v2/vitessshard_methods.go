@@ -191,8 +191,8 @@ func (c *VitessShardCondition) Duration() time.Duration {
 func (s *VitessShardStatus) DeepCopyConditions() map[VitessShardConditionType]*VitessShardCondition {
 	out := make(map[VitessShardConditionType]*VitessShardCondition, len(s.Conditions))
 
-	for key, _ := range s.Conditions {
-		out[key] = out[key].DeepCopy()
+	for key, val := range s.Conditions {
+		out[key] = val.DeepCopy()
 	}
 
 	return out
