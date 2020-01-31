@@ -171,7 +171,7 @@ func (r *ReconcileVitessShard) Reconcile(request reconcile.Request) (reconcile.R
 	// Reset status, since that's all out of date info that we will recompute now.
 	oldStatus := vts.Status
 	vts.Status = planetscalev2.NewVitessShardStatus()
-	// Make sure we don't rinse old conditions - these states need to persist.
+	// Make sure we don't rinse old conditions - these states need to persist. They may have been added by some other controller.
 	vts.Status.Conditions = oldStatus.DeepCopyConditions()
 
 	// Create/update desired tablets.
