@@ -155,11 +155,10 @@ func (s *VitessShardSpec) CellInCluster(cellName string) bool {
 	return inZoneMap
 }
 
-// NewVitessShardCondition returns a VitessShardCondition object based on the provided type and initial state.
-func NewVitessShardCondition(ty VitessShardConditionType) *VitessShardCondition {
+// NewVitessShardCondition returns an init VitessShardCondition object.
+func NewVitessShardCondition() *VitessShardCondition {
 	now := metav1.NewTime(time.Now())
 	return &VitessShardCondition{
-		Type:               ty,
 		Status:             corev1.ConditionUnknown,
 		LastTransitionTime: &now,
 		Reason:             "initState",

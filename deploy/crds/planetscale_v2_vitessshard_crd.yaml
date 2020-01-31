@@ -701,11 +701,7 @@ spec:
                     enum:
                     - True;False;Unknown
                     type: string
-                  type:
-                    description: Type is the type of the condition.
-                    type: string
                 required:
-                - type
                 - status
                 type: object
               description: Conditions is a map of all VitessShard specific conditions
