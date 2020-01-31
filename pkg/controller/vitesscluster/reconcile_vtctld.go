@@ -18,6 +18,7 @@ package vitesscluster
 
 import (
 	"context"
+
 	"planetscale.dev/vitess-operator/pkg/operator/update"
 
 	appsv1 "k8s.io/api/apps/v1"

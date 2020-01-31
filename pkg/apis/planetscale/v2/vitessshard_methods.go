@@ -176,8 +176,8 @@ func (c *VitessShardCondition) SetStatus(newStatus corev1.ConditionStatus, reaso
 		return
 	}
 
-	c.Status = newStatus
 	now := metav1.NewTime(time.Now())
+	c.Status = newStatus
 	c.LastTransitionTime = &now
 }
 
