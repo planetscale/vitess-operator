@@ -333,7 +333,8 @@ type VitessShardStatus struct {
 	BackupLocations []*ShardBackupLocationStatus `json:"backupLocations,omitempty"`
 }
 
-// VitessShardConditionType is a valid value for VitessShardCondition.Type
+// VitessShardConditionType is a valid value for the key of a VitessShardCondition map where the key is a
+// VitessShardConditionType and the value is a VitessShardCondition.
 type VitessShardConditionType string
 
 // VitessShardCondition contains details for the current condition of this VitessShard.
