@@ -166,8 +166,9 @@ func NewVitessShardCondition() *VitessShardCondition {
 	}
 }
 
-// SetStatus changes the status if the current status is not the same as the new status, and updates the
-// last transition time.
+// SetStatus always updates the reason and message every time. If the current status is the same as the supplied
+// newStatus, then we do not update LastTransitionTime. However, if newStatus is different from current status, then
+// we update the status and update the transition time.
 func (c *VitessShardCondition) SetStatus(newStatus corev1.ConditionStatus, reason, message string) {
 	// We should update reason and message regardless of whether the status type is different.
 	c.Reason = reason
