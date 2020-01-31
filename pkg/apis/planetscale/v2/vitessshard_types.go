@@ -342,6 +342,7 @@ type VitessShardCondition struct {
 	Type VitessShardConditionType `json:"type"`
 	// Status is the status of the condition.
 	// Can be True, False, Unknown.
+	// +kubebuilder:validation:Enum=True;False;Unknown
 	Status corev1.ConditionStatus `json:"status"`
 	// Last time the condition transitioned from one status to another.
 	// +optional

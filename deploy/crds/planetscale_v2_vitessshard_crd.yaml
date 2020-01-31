@@ -698,6 +698,8 @@ spec:
                   status:
                     description: Status is the status of the condition. Can be True,
                       False, Unknown.
+                    enum:
+                    - True;False;Unknown
                     type: string
                   type:
                     description: Type is the type of the condition.
