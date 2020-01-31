@@ -684,16 +684,16 @@ spec:
                 properties:
                   lastTransitionTime:
                     description: Last time the condition transitioned from one status
-                      to another.
+                      to another. Optional.
                     format: date-time
                     type: string
                   message:
                     description: Human-readable message indicating details about last
-                      transition.
+                      transition. Optional.
                     type: string
                   reason:
                     description: Unique, one-word, CamelCase reason for the condition's
-                      last transition.
+                      last transition. Optional.
                     type: string
                   status:
                     description: Status is the status of the condition. Can be True,

@@ -345,13 +345,13 @@ type VitessShardCondition struct {
 	// +kubebuilder:validation:Enum=True;False;Unknown
 	Status corev1.ConditionStatus `json:"status"`
 	// Last time the condition transitioned from one status to another.
-	// +optional
+	// Optional.
 	LastTransitionTime *metav1.Time `json:"lastTransitionTime,omitempty"`
 	// Unique, one-word, CamelCase reason for the condition's last transition.
-	// +optional
+	// Optional.
 	Reason string `json:"reason,omitempty"`
 	// Human-readable message indicating details about last transition.
-	// +optional
+	// Optional.
 	Message string `json:"message,omitempty"`
 }
 
