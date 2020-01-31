@@ -5131,34 +5131,6 @@ has been seeded for the shard.</p>
 </tr>
 <tr>
 <td>
-<code>masterAlias</code></br>
-<em>
-string
-</em>
-</td>
-<td>
-<p>MasterAlias is the tablet alias of the master according to the global
-shard record. This could be empty either because there is no master,
-or because the shard record could not be read. Check the HasMaster
-condition whenever the distinction is important.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>backupLocations</code></br>
-<em>
-<a href="#planetscale.com/v2.*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.ShardBackupLocationStatus">
-[]*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.ShardBackupLocationStatus
-</a>
-</em>
-</td>
-<td>
-<p>BackupLocations reports information about the backups for this shard in
-each backup location.</p>
-</td>
-</tr>
-<tr>
-<td>
 <code>idle</code></br>
 <em>
 <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#conditionstatus-v1-core">
@@ -5184,6 +5156,34 @@ map[planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessShardCondition
 </td>
 <td>
 <p>Conditions is a map of all VitessShard specific conditions we want to set and monitor.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>masterAlias</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>MasterAlias is the tablet alias of the master according to the global
+shard record. This could be empty either because there is no master,
+or because the shard record could not be read. Check the HasMaster
+condition whenever the distinction is important.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>backupLocations</code></br>
+<em>
+<a href="#planetscale.com/v2.*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.ShardBackupLocationStatus">
+[]*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.ShardBackupLocationStatus
+</a>
+</em>
+</td>
+<td>
+<p>BackupLocations reports information about the backups for this shard in
+each backup location.</p>
 </td>
 </tr>
 </tbody>

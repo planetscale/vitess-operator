@@ -1336,26 +1336,6 @@ func schema_pkg_apis_planetscale_v2_VitessShardStatus(ref common.ReferenceCallba
 							Format:      "",
 						},
 					},
-					"masterAlias": {
-						SchemaProps: spec.SchemaProps{
-							Description: "MasterAlias is the tablet alias of the master according to the global shard record. This could be empty either because there is no master, or because the shard record could not be read. Check the HasMaster condition whenever the distinction is important.",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"backupLocations": {
-						SchemaProps: spec.SchemaProps{
-							Description: "BackupLocations reports information about the backups for this shard in each backup location.",
-							Type:        []string{"array"},
-							Items: &spec.SchemaOrArray{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Ref: ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.ShardBackupLocationStatus"),
-									},
-								},
-							},
-						},
-					},
 					"idle": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Idle is a condition indicating whether the shard can be turned down. If Idle is True, the shard is not part of the active shard set (partitioning) for any tablet type in any cell, so it should be safe to turn down the shard.",
@@ -1371,6 +1351,26 @@ func schema_pkg_apis_planetscale_v2_VitessShardStatus(ref common.ReferenceCallba
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Ref: ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessShardCondition"),
+									},
+								},
+							},
+						},
+					},
+					"masterAlias": {
+						SchemaProps: spec.SchemaProps{
+							Description: "MasterAlias is the tablet alias of the master according to the global shard record. This could be empty either because there is no master, or because the shard record could not be read. Check the HasMaster condition whenever the distinction is important.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"backupLocations": {
+						SchemaProps: spec.SchemaProps{
+							Description: "BackupLocations reports information about the backups for this shard in each backup location.",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.ShardBackupLocationStatus"),
 									},
 								},
 							},
