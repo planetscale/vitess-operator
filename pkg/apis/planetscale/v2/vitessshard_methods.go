@@ -183,9 +183,14 @@ func (c *VitessShardCondition) SetStatus(newStatus corev1.ConditionStatus, reaso
 }
 
 // StatusDuration returns the duration since LastTransitionTime. It represents how long we've been in the current status for
-// this condition.
+// this condition. If LastTransitionTime is nil, then we return zero to indicate that we have no confidence about the duration
+// of the status.
 func (c *VitessShardCondition) StatusDuration() time.Duration {
-	return time.Now().Sub(c.LastTransitionTime.Time)
+	if c.LastTransitionTime == nil {
+		return time.Duration(0)
+	}
+
+	return time.Since(c.LastTransitionTime.Time)
 }
 
 // DeepCopyConditions deep copies the conditions map for VitessShardStatus.
