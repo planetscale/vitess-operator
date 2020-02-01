@@ -161,8 +161,8 @@ func NewVitessShardCondition() *VitessShardCondition {
 	return &VitessShardCondition{
 		Status:             corev1.ConditionUnknown,
 		LastTransitionTime: &now,
-		Reason:             "initState",
-		Message:            "The initial state for this VitessShardCondition.",
+		Reason:             "",
+		Message:            "",
 	}
 }
 
