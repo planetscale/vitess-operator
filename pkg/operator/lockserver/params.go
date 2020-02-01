@@ -33,15 +33,15 @@ const (
 
 // GlobalConnectionParams returns the Vitess connection parameters for a
 // VitessCluster's global lockserver.
-func GlobalConnectionParams(lockSpec *planetscalev2.LockserverSpec, name string) *planetscalev2.VitessLockserverParams {
+func GlobalConnectionParams(lockSpec *planetscalev2.LockserverSpec, clusterName string) *planetscalev2.VitessLockserverParams {
 	switch {
 	case lockSpec.External != nil:
 		return lockSpec.External
 	case lockSpec.Etcd != nil:
 		return &planetscalev2.VitessLockserverParams{
 			Implementation: VitessEtcdImplementationName,
-			Address:        fmt.Sprintf("%s-client:%d", GlobalEtcdName(name), EtcdClientPort),
-			RootPath:       fmt.Sprintf("/vitess/%s/global", name),
+			Address:        fmt.Sprintf("%s-client:%d", GlobalEtcdName(clusterName), EtcdClientPort),
+			RootPath:       fmt.Sprintf("/vitess/%s/global", clusterName),
 		}
 	default:
 		return nil
