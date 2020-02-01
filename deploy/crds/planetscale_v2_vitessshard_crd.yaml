@@ -705,7 +705,8 @@ spec:
                 - status
                 type: object
               description: Conditions is a map of all VitessShard specific conditions
-                we want to set and monitor.
+                we want to set and monitor. It's ok for multiple controllers to add
+                conditions here, and those conditions will be preserved.
               type: object
             hasInitialBackup:
               description: HasInitialBackup is a condition indicating whether the

@@ -320,6 +320,7 @@ type VitessShardStatus struct {
 	Idle corev1.ConditionStatus `json:"idle,omitempty"`
 
 	// Conditions is a map of all VitessShard specific conditions we want to set and monitor.
+	// It's ok for multiple controllers to add conditions here, and those conditions will be preserved.
 	Conditions map[VitessShardConditionType]*VitessShardCondition `json:"conditions,omitempty"`
 
 	// MasterAlias is the tablet alias of the master according to the global

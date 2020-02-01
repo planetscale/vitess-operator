@@ -1345,7 +1345,7 @@ func schema_pkg_apis_planetscale_v2_VitessShardStatus(ref common.ReferenceCallba
 					},
 					"conditions": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Conditions is a map of all VitessShard specific conditions we want to set and monitor.",
+							Description: "Conditions is a map of all VitessShard specific conditions we want to set and monitor. It's ok for multiple controllers to add conditions here, and those conditions will be preserved.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
 								Schema: &spec.Schema{
