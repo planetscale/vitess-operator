@@ -161,7 +161,7 @@ func newVitessKeyspace(key client.ObjectKey, vt *planetscalev2.VitessCluster, pa
 		},
 		Spec: planetscalev2.VitessKeyspaceSpec{
 			VitessKeyspaceTemplate: *template,
-			GlobalLockserver:       *lockserver.GlobalConnectionParams(vt),
+			GlobalLockserver:       *lockserver.GlobalConnectionParams(&vt.Spec.GlobalLockserver, vt.Name),
 			Images:                 images,
 			ImagePullPolicies:      vt.Spec.ImagePullPolicies,
 			ZoneMap:                vt.Spec.ZoneMap(),

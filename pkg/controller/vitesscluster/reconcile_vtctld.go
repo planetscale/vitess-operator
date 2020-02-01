@@ -18,6 +18,7 @@ package vitesscluster
 
 import (
 	"context"
+
 	"planetscale.dev/vitess-operator/pkg/operator/update"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -133,7 +134,7 @@ func (r *ReconcileVitessCluster) vtctldSpecs(vt *planetscalev2.VitessCluster, pa
 		}
 	}
 
-	glsParams := lockserver.GlobalConnectionParams(vt)
+	glsParams := lockserver.GlobalConnectionParams(&vt.Spec.GlobalLockserver, vt.Name)
 
 	// Make a vtctld Deployment spec for each cell.
 	specs := make([]*vtctld.Spec, 0, len(cells))
