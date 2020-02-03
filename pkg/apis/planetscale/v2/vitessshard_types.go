@@ -308,14 +308,10 @@ type VitessShardStatus struct {
 	// HasMaster is a condition indicating whether the Vitess topology
 	// reflects a master for this shard.
 	HasMaster corev1.ConditionStatus `json:"hasMaster,omitempty"`
+
 	// HasInitialBackup is a condition indicating whether the initial backup
 	// has been seeded for the shard.
 	HasInitialBackup corev1.ConditionStatus `json:"hasInitialBackup,omitempty"`
-	// MasterAlias is the tablet alias of the master according to the global
-	// shard record. This could be empty either because there is no master,
-	// or because the shard record could not be read. Check the HasMaster
-	// condition whenever the distinction is important.
-	MasterAlias string `json:"masterAlias,omitempty"`
 
 	// Idle is a condition indicating whether the shard can be turned down.
 	// If Idle is True, the shard is not part of the active shard set
@@ -323,9 +319,40 @@ type VitessShardStatus struct {
 	// to turn down the shard.
 	Idle corev1.ConditionStatus `json:"idle,omitempty"`
 
+	// Conditions is a map of all VitessShard specific conditions we want to set and monitor.
+	// It's ok for multiple controllers to add conditions here, and those conditions will be preserved.
+	Conditions map[VitessShardConditionType]*VitessShardCondition `json:"conditions,omitempty"`
+
+	// MasterAlias is the tablet alias of the master according to the global
+	// shard record. This could be empty either because there is no master,
+	// or because the shard record could not be read. Check the HasMaster
+	// condition whenever the distinction is important.
+	MasterAlias string `json:"masterAlias,omitempty"`
+
 	// BackupLocations reports information about the backups for this shard in
 	// each backup location.
 	BackupLocations []*ShardBackupLocationStatus `json:"backupLocations,omitempty"`
+}
+
+// VitessShardConditionType is a valid value for the key of a VitessShardCondition map where the key is a
+// VitessShardConditionType and the value is a VitessShardCondition.
+type VitessShardConditionType string
+
+// VitessShardCondition contains details for the current condition of this VitessShard.
+type VitessShardCondition struct {
+	// Status is the status of the condition.
+	// Can be True, False, Unknown.
+	// +kubebuilder:validation:Enum=True,False,Unknown
+	Status corev1.ConditionStatus `json:"status"`
+	// Last time the condition transitioned from one status to another.
+	// Optional.
+	LastTransitionTime *metav1.Time `json:"lastTransitionTime,omitempty"`
+	// Unique, one-word, PascalCase reason for the condition's last transition.
+	// Optional.
+	Reason string `json:"reason,omitempty"`
+	// Human-readable message indicating details about last transition.
+	// Optional.
+	Message string `json:"message,omitempty"`
 }
 
 // NewVitessShardStatus creates a new status object with default values.

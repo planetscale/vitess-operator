@@ -17,7 +17,10 @@ limitations under the License.
 package v2
 
 import (
+	"time"
+
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 )
 
@@ -150,4 +153,53 @@ func (s *VitessShardSpec) CellInCluster(cellName string) bool {
 	// defined in the VitessCluster.
 	_, inZoneMap := s.ZoneMap[cellName]
 	return inZoneMap
+}
+
+// NewVitessShardCondition returns an init VitessShardCondition object.
+func NewVitessShardCondition() *VitessShardCondition {
+	now := metav1.NewTime(time.Now())
+	return &VitessShardCondition{
+		Status:             corev1.ConditionUnknown,
+		LastTransitionTime: &now,
+		Reason:             "",
+		Message:            "",
+	}
+}
+
+// SetStatus always updates the reason and message every time. If the current status is the same as the supplied
+// newStatus, then we do not update LastTransitionTime. However, if newStatus is different from current status, then
+// we update the status and update the transition time.
+func (c *VitessShardCondition) SetStatus(newStatus corev1.ConditionStatus, reason, message string) {
+	// We should update reason and message regardless of whether the status type is different.
+	c.Reason = reason
+	c.Message = message
+	if c.Status == newStatus {
+		return
+	}
+
+	now := metav1.NewTime(time.Now())
+	c.Status = newStatus
+	c.LastTransitionTime = &now
+}
+
+// StatusDuration returns the duration since LastTransitionTime. It represents how long we've been in the current status for
+// this condition. If LastTransitionTime is nil, then we return zero to indicate that we have no confidence about the duration
+// of the status.
+func (c *VitessShardCondition) StatusDuration() time.Duration {
+	if c.LastTransitionTime == nil {
+		return time.Duration(0)
+	}
+
+	return time.Since(c.LastTransitionTime.Time)
+}
+
+// DeepCopyConditions deep copies the conditions map for VitessShardStatus.
+func (s *VitessShardStatus) DeepCopyConditions() map[VitessShardConditionType]*VitessShardCondition {
+	out := make(map[VitessShardConditionType]*VitessShardCondition, len(s.Conditions))
+
+	for key, val := range s.Conditions {
+		out[key] = val.DeepCopy()
+	}
+
+	return out
 }

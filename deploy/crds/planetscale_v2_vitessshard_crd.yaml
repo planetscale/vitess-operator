@@ -679,6 +679,37 @@ spec:
               items:
                 type: string
               type: array
+            conditions:
+              additionalProperties:
+                properties:
+                  lastTransitionTime:
+                    description: Last time the condition transitioned from one status
+                      to another. Optional.
+                    format: date-time
+                    type: string
+                  message:
+                    description: Human-readable message indicating details about last
+                      transition. Optional.
+                    type: string
+                  reason:
+                    description: Unique, one-word, PascalCase reason for the condition's
+                      last transition. Optional.
+                    type: string
+                  status:
+                    description: Status is the status of the condition. Can be True,
+                      False, Unknown.
+                    enum:
+                    - "True"
+                    - "False"
+                    - Unknown
+                    type: string
+                required:
+                - status
+                type: object
+              description: Conditions is a map of all VitessShard specific conditions
+                we want to set and monitor. It's ok for multiple controllers to add
+                conditions here, and those conditions will be preserved.
+              type: object
             hasInitialBackup:
               description: HasInitialBackup is a condition indicating whether the
                 initial backup has been seeded for the shard.

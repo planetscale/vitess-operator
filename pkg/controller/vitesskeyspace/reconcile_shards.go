@@ -71,7 +71,9 @@ func (r *ReconcileVitessKeyspace) reconcileShards(ctx context.Context, vtk *plan
 
 			status := vtk.Status.Shards[curObj.Spec.KeyRange.String()]
 			status.Cells = curObj.Status.Cells
-			status.HasMaster = curObj.Status.HasMaster
+			if curObj.Status.HasMaster != "" {
+				status.HasMaster = curObj.Status.HasMaster
+			}
 			status.Tablets = int32(len(curObj.Status.Tablets))
 			status.PendingChanges = curObj.Annotations[rollout.ScheduledAnnotation]
 
