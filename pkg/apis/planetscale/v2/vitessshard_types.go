@@ -347,7 +347,7 @@ type VitessShardCondition struct {
 	// Last time the condition transitioned from one status to another.
 	// Optional.
 	LastTransitionTime *metav1.Time `json:"lastTransitionTime,omitempty"`
-	// Unique, one-word, CamelCase reason for the condition's last transition.
+	// Unique, one-word, PascalCase reason for the condition's last transition.
 	// Optional.
 	Reason string `json:"reason,omitempty"`
 	// Human-readable message indicating details about last transition.

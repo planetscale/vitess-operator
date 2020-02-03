@@ -692,7 +692,7 @@ spec:
                       transition. Optional.
                     type: string
                   reason:
-                    description: Unique, one-word, CamelCase reason for the condition's
+                    description: Unique, one-word, PascalCase reason for the condition's
                       last transition. Optional.
                     type: string
                   status:
