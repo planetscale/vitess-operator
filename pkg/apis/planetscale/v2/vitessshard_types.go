@@ -363,6 +363,7 @@ func NewVitessShardStatus() VitessShardStatus {
 		HasMaster:        corev1.ConditionUnknown,
 		HasInitialBackup: corev1.ConditionUnknown,
 		Idle:             corev1.ConditionUnknown,
+		Conditions:       make(map[VitessShardConditionType]*VitessShardCondition),
 	}
 }
 

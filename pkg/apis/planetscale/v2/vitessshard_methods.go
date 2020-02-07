@@ -155,6 +155,32 @@ func (s *VitessShardSpec) CellInCluster(cellName string) bool {
 	return inZoneMap
 }
 
+// SetConditionStatus first ensures we have allocated a conditions map, and also ensures we have allocated a ShardCondition
+// for the VitessShardConditionType key supplied. It then moves onto setting the conditions status.
+// For the condition's status, it always updates the reason and message every time. If the current status is the same as the supplied
+// newStatus, then we do not update LastTransitionTime. However, if newStatus is different from current status, then
+// we update the status and update the transition time.
+func (s *VitessShardStatus) SetConditionStatus(condType VitessShardConditionType, newStatus corev1.ConditionStatus, reason, message string) {
+	if s.Conditions == nil {
+		s.Conditions = make(map[VitessShardConditionType]*VitessShardCondition)
+	}
+
+	if s.Conditions[condType] == nil {
+		s.Conditions[condType] = NewVitessShardCondition()
+	}
+
+	// We should update reason and message regardless of whether the status type is different.
+	s.Conditions[condType].Reason = reason
+	s.Conditions[condType].Message = message
+	if s.Conditions[condType].Status == newStatus {
+		return
+	}
+
+	now := metav1.NewTime(time.Now())
+	s.Conditions[condType].Status = newStatus
+	s.Conditions[condType].LastTransitionTime = &now
+}
+
 // NewVitessShardCondition returns an init VitessShardCondition object.
 func NewVitessShardCondition() *VitessShardCondition {
 	now := metav1.NewTime(time.Now())
@@ -164,22 +190,6 @@ func NewVitessShardCondition() *VitessShardCondition {
 		Reason:             "",
 		Message:            "",
 	}
-}
-
-// SetStatus always updates the reason and message every time. If the current status is the same as the supplied
-// newStatus, then we do not update LastTransitionTime. However, if newStatus is different from current status, then
-// we update the status and update the transition time.
-func (c *VitessShardCondition) SetStatus(newStatus corev1.ConditionStatus, reason, message string) {
-	// We should update reason and message regardless of whether the status type is different.
-	c.Reason = reason
-	c.Message = message
-	if c.Status == newStatus {
-		return
-	}
-
-	now := metav1.NewTime(time.Now())
-	c.Status = newStatus
-	c.LastTransitionTime = &now
 }
 
 // StatusDuration returns the duration since LastTransitionTime. It represents how long we've been in the current status for
@@ -195,6 +205,9 @@ func (c *VitessShardCondition) StatusDuration() time.Duration {
 
 // DeepCopyConditions deep copies the conditions map for VitessShardStatus.
 func (s *VitessShardStatus) DeepCopyConditions() map[VitessShardConditionType]*VitessShardCondition {
+	if s == nil {
+		return nil
+	}
 	out := make(map[VitessShardConditionType]*VitessShardCondition, len(s.Conditions))
 
 	for key, val := range s.Conditions {
