@@ -1,6 +1,6 @@
 module planetscale.dev/vitess-operator
 
-go 1.12
+go 1.13
 
 require (
 	contrib.go.opencensus.io/exporter/ocagent v0.4.12 // indirect
@@ -64,6 +64,3 @@ replace github.com/operator-framework/operator-sdk => github.com/operator-framew
 // ****************************
 // END GENERATED OPERATOR-SDK
 // ****************************
-
-// The git.apache.org server doesn't load. Go directly to GitHub.
-replace git.apache.org/thrift.git => github.com/apache/thrift v0.12.0
