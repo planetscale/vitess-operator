@@ -172,10 +172,8 @@ func (r *ReconcileVitessShard) Reconcile(request reconcile.Request) (reconcile.R
 	oldStatus := vts.Status
 	vts.Status = planetscalev2.NewVitessShardStatus()
 	// Make sure we don't rinse old conditions - these states need to persist. They may have been added by some other controller.
-	// First check if conditions is nil - this would be true on first round, and allocate map if so.
-	if oldStatus.Conditions == nil {
-		vts.Status.Conditions = make(map[planetscalev2.VitessShardConditionType]*planetscalev2.VitessShardCondition)
-	} else {
+	// Only persist if old condition is not nil, otherwise use the map allocated above when `NewVitessShardStatus()` was called.
+	if oldStatus.Conditions != nil {
 		vts.Status.Conditions = oldStatus.DeepCopyConditions()
 	}
 
