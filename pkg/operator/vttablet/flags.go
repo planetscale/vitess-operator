@@ -90,6 +90,7 @@ func init() {
 			"db-config-dba-uname": dbConfigDbaUname,
 			"db_charset":          spec.dbConfigCharset(),
 			"init_db_sql_file":    dbInitScript.FilePath(),
+			"wait_time":           mysqlctlWaitTime,
 		}
 	})
 
