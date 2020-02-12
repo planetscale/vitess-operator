@@ -47,6 +47,13 @@ const (
 	fsGroup             = 999
 	healthCheckInterval = 5 * time.Second
 
+	// terminationGracePeriodSeconds is how long Kubernetes will wait for the
+	// tablet processes (vttablet, mysqlctld) to terminate gracefully after
+	// sending SIGTERM, before resorting to SIGKILL. We set this fairly high
+	// because mysqld needs time to flush buffers to disk in order to shut down
+	// cleanly.
+	terminationGracePeriodSeconds = 30 * 60 // 30min
+
 	grpcMaxMessageSize = 64 * 1024 * 1024 // 64 MiB
 
 	queryserverConfigMaxResultSize = 100000

@@ -272,6 +272,8 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	}
 	obj.Spec.SecurityContext.FSGroup = pointer.Int64Ptr(fsGroup)
 
+	obj.Spec.TerminationGracePeriodSeconds = pointer.Int64Ptr(terminationGracePeriodSeconds)
+
 	// In both the case of the user injecting their own affinity and the default, we
 	// simply override the pod's existing affinity configuration.
 	if spec.Affinity != nil {
