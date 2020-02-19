@@ -17,8 +17,6 @@ limitations under the License.
 package v2
 
 import (
-	"time"
-
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -367,13 +365,12 @@ type VitessShardCondition struct {
 // NewVitessShardStatus creates a new status object with default values.
 func NewVitessShardStatus() VitessShardStatus {
 	return VitessShardStatus{
-		Tablets:            make(map[string]*VitessTabletStatus),
-		OrphanedTablets:    make(map[string]*OrphanStatus),
-		HasMaster:          corev1.ConditionUnknown,
-		HasInitialBackup:   corev1.ConditionUnknown,
-		Idle:               corev1.ConditionUnknown,
-		Conditions:         make(map[VitessShardConditionType]*VitessShardCondition),
-		ConditionDurations: make(map[VitessShardConditionType]time.Duration),
+		Tablets:          make(map[string]*VitessTabletStatus),
+		OrphanedTablets:  make(map[string]*OrphanStatus),
+		HasMaster:        corev1.ConditionUnknown,
+		HasInitialBackup: corev1.ConditionUnknown,
+		Idle:             corev1.ConditionUnknown,
+		Conditions:       make(map[VitessShardConditionType]*VitessShardCondition),
 	}
 }
 
