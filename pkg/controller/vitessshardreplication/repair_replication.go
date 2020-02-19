@@ -194,8 +194,8 @@ func (r *ReconcileVitessShard) canRepairReplication(ctx context.Context, vts *pl
 }
 
 func masterRdOnlyShouldBeFixed(vts *planetscalev2.VitessShard) bool {
-	rdOnlyCondition := vts.Status.Conditions[planetscalev2.ReadOnlyMasterConditionType]
-	if rdOnlyCondition.Status != corev1.ConditionTrue {
+	rdOnlyCondition, exists := vts.Status.Conditions[planetscalev2.ReadOnlyMasterConditionType]
+	if !exists || rdOnlyCondition.Status != corev1.ConditionTrue {
 		return false
 	}
 
