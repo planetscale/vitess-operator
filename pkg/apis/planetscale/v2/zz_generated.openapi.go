@@ -1267,8 +1267,7 @@ func schema_pkg_apis_planetscale_v2_VitessShardSpec(ref common.ReferenceCallback
 							AdditionalProperties: &spec.SchemaOrBool{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Type:   []string{"integer"},
-										Format: "int64",
+										Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.Duration"),
 									},
 								},
 							},
@@ -1279,7 +1278,7 @@ func schema_pkg_apis_planetscale_v2_VitessShardSpec(ref common.ReferenceCallback
 			},
 		},
 		Dependencies: []string{
-			"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.SecretSource", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.TopoReconcileConfig", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessBackupLocation", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImagePullPolicies", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyRange", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceImages", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessLockserverParams", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessReplicationSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessShardTabletPool"},
+			"k8s.io/apimachinery/pkg/apis/meta/v1.Duration", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.SecretSource", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.TopoReconcileConfig", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessBackupLocation", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImagePullPolicies", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyRange", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceImages", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessLockserverParams", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessReplicationSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessShardTabletPool"},
 	}
 }
 

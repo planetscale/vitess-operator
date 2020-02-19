@@ -326,8 +326,7 @@ spec:
               type: object
             maxConditionDurations:
               additionalProperties:
-                format: int64
-                type: integer
+                type: string
               description: MaxConditionDurations is an optional way to provide maximum
                 acceptable durations for various known VitessShardCondition types.
               type: object

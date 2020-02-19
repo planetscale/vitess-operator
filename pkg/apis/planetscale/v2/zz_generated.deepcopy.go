@@ -5,9 +5,8 @@
 package v2
 
 import (
-	time "time"
-
 	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -1848,7 +1847,7 @@ func (in *VitessShardSpec) DeepCopyInto(out *VitessShardSpec) {
 	}
 	if in.MaxConditionDurations != nil {
 		in, out := &in.MaxConditionDurations, &out.MaxConditionDurations
-		*out = make(map[VitessShardConditionType]time.Duration, len(*in))
+		*out = make(map[VitessShardConditionType]metav1.Duration, len(*in))
 		for key, val := range *in {
 			(*out)[key] = val
 		}

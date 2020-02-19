@@ -193,7 +193,7 @@ func (r *ReconcileVitessShard) canRepairReplication(ctx context.Context, vts *pl
 
 func masterRdOnlyShouldBeFixed(vts *planetscalev2.VitessShard) bool {
 	if maxDuration, exists := vts.Spec.MaxConditionDurations[planetscalev2.ReadOnlyMasterConditionType]; exists {
-		if vts.Status.Conditions[planetscalev2.ReadOnlyMasterConditionType].StatusDuration() < maxDuration {
+		if vts.Status.Conditions[planetscalev2.ReadOnlyMasterConditionType].StatusDuration() < maxDuration.Duration {
 			return false
 		}
 	}
