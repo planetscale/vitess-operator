@@ -1845,8 +1845,8 @@ func (in *VitessShardSpec) DeepCopyInto(out *VitessShardSpec) {
 		*out = new(TopoReconcileConfig)
 		(*in).DeepCopyInto(*out)
 	}
-	if in.MaxConditionDurations != nil {
-		in, out := &in.MaxConditionDurations, &out.MaxConditionDurations
+	if in.ConditionMaxDurations != nil {
+		in, out := &in.ConditionMaxDurations, &out.ConditionMaxDurations
 		*out = make(map[VitessShardConditionType]metav1.Duration, len(*in))
 		for key, val := range *in {
 			(*out)[key] = val

@@ -199,7 +199,7 @@ func masterRdOnlyShouldBeFixed(vts *planetscalev2.VitessShard) bool {
 		return false
 	}
 
-	if maxDuration, exists := vts.Spec.MaxConditionDurations[planetscalev2.ReadOnlyMasterConditionType]; exists {
+	if maxDuration, exists := vts.Spec.ConditionMaxDurations[planetscalev2.ReadOnlyMasterConditionType]; exists {
 		if rdOnlyCondition.StatusDuration() < maxDuration.Duration {
 			return false
 		}

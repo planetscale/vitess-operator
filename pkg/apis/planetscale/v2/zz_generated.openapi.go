@@ -1262,7 +1262,7 @@ func schema_pkg_apis_planetscale_v2_VitessShardSpec(ref common.ReferenceCallback
 					},
 					"maxConditionDurations": {
 						SchemaProps: spec.SchemaProps{
-							Description: "MaxConditionDurations is an optional way to provide maximum acceptable durations for various known VitessShardCondition types.",
+							Description: "ConditionMaxDurations is an optional way to provide maximum acceptable durations for various known VitessShardCondition types.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
 								Schema: &spec.Schema{

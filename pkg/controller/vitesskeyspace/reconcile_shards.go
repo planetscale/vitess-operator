@@ -141,7 +141,7 @@ func newVitessShard(key client.ObjectKey, vtk *planetscalev2.VitessKeyspace, par
 			BackupEngine:           vtk.Spec.BackupEngine,
 			ExtraVitessFlags:       vtk.Spec.ExtraVitessFlags,
 			TopologyReconciliation: vtk.Spec.TopologyReconciliation,
-			MaxConditionDurations:  make(map[planetscalev2.VitessShardConditionType]metav1.Duration),
+			ConditionMaxDurations:  make(map[planetscalev2.VitessShardConditionType]metav1.Duration),
 		},
 	}
 }
