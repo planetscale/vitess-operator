@@ -341,8 +341,8 @@ type VitessShardStatus struct {
 // VitessShardConditionType and the value is a VitessShardCondition.
 type VitessShardConditionType string
 
-var (
-	ReadOnlyMasterConditionType VitessShardConditionType
+const (
+	ReadOnlyMasterConditionType VitessShardConditionType = "ReadOnlyMasterConditionType"
 )
 
 // VitessShardCondition contains details for the current condition of this VitessShard.
