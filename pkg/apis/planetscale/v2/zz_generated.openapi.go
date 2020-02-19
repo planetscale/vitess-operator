@@ -1260,6 +1260,20 @@ func schema_pkg_apis_planetscale_v2_VitessShardSpec(ref common.ReferenceCallback
 							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.TopoReconcileConfig"),
 						},
 					},
+					"maxConditionDurations": {
+						SchemaProps: spec.SchemaProps{
+							Description: "MaxConditionDurations is an optional way to provide maximum acceptable durations for various known VitessShardCondition types.",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"integer"},
+										Format: "int64",
+									},
+								},
+							},
+						},
+					},
 				},
 				Required: []string{"databaseInitScriptSecret", "name", "zoneMap", "images", "keyRange", "globalLockserver"},
 			},

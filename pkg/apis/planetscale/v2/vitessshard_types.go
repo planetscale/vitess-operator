@@ -17,6 +17,8 @@ limitations under the License.
 package v2
 
 import (
+	"time"
+
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -86,6 +88,9 @@ type VitessShardSpec struct {
 
 	// TopologyReconciliation is inherited from the parent's VitessClusterSpec.
 	TopologyReconciliation *TopoReconcileConfig `json:"topologyReconciliation,omitempty"`
+
+	// MaxConditionDurations is an optional way to provide maximum acceptable durations for various known VitessShardCondition types.
+	MaxConditionDurations map[VitessShardConditionType]time.Duration `json:"maxConditionDurations,omitempty"`
 }
 
 // VitessShardTemplate contains only the user-specified parts of a VitessShard object.
@@ -338,6 +343,10 @@ type VitessShardStatus struct {
 // VitessShardConditionType and the value is a VitessShardCondition.
 type VitessShardConditionType string
 
+var (
+	ReadOnlyMasterConditionType VitessShardConditionType
+)
+
 // VitessShardCondition contains details for the current condition of this VitessShard.
 type VitessShardCondition struct {
 	// Status is the status of the condition.
@@ -358,12 +367,13 @@ type VitessShardCondition struct {
 // NewVitessShardStatus creates a new status object with default values.
 func NewVitessShardStatus() VitessShardStatus {
 	return VitessShardStatus{
-		Tablets:          make(map[string]*VitessTabletStatus),
-		OrphanedTablets:  make(map[string]*OrphanStatus),
-		HasMaster:        corev1.ConditionUnknown,
-		HasInitialBackup: corev1.ConditionUnknown,
-		Idle:             corev1.ConditionUnknown,
-		Conditions:       make(map[VitessShardConditionType]*VitessShardCondition),
+		Tablets:            make(map[string]*VitessTabletStatus),
+		OrphanedTablets:    make(map[string]*OrphanStatus),
+		HasMaster:          corev1.ConditionUnknown,
+		HasInitialBackup:   corev1.ConditionUnknown,
+		Idle:               corev1.ConditionUnknown,
+		Conditions:         make(map[VitessShardConditionType]*VitessShardCondition),
+		ConditionDurations: make(map[VitessShardConditionType]time.Duration),
 	}
 }
 

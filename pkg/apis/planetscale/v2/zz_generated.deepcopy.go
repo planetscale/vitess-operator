@@ -5,6 +5,8 @@
 package v2
 
 import (
+	time "time"
+
 	v1 "k8s.io/api/core/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 )
@@ -1843,6 +1845,13 @@ func (in *VitessShardSpec) DeepCopyInto(out *VitessShardSpec) {
 		in, out := &in.TopologyReconciliation, &out.TopologyReconciliation
 		*out = new(TopoReconcileConfig)
 		(*in).DeepCopyInto(*out)
+	}
+	if in.MaxConditionDurations != nil {
+		in, out := &in.MaxConditionDurations, &out.MaxConditionDurations
+		*out = make(map[VitessShardConditionType]time.Duration, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
 	}
 	return
 }

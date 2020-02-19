@@ -151,7 +151,11 @@ func (r *ReconcileVitessShard) canRepairReplication(ctx context.Context, vts *pl
 		return false, fmt.Errorf("failed to execute query against master tablet %v: %v", vts.Status.MasterAlias, err)
 	}
 	if masterReadOnly {
-		return true, nil
+		vts.Status.SetConditionStatus(planetscalev2.ReadOnlyMasterConditionType, corev1.ConditionTrue, "MasterReadOnlyDetected", "Master ReadOnly State Detected.")
+		shouldFix := masterRdOnlyShouldBeFixed(vts)
+		if shouldFix {
+			return true, nil
+		}
 	}
 
 	// List all tablets for the shard. A partial result is ok. We might miss
@@ -185,6 +189,15 @@ func (r *ReconcileVitessShard) canRepairReplication(ctx context.Context, vts *pl
 		}
 	}
 	return foundFixableTablet, nil
+}
+
+func masterRdOnlyShouldBeFixed(vts *planetscalev2.VitessShard) bool {
+	if maxDuration, exists := vts.Spec.MaxConditionDurations[planetscalev2.ReadOnlyMasterConditionType]; exists {
+		if vts.Status.Conditions[planetscalev2.ReadOnlyMasterConditionType].StatusDuration() < maxDuration {
+			return false
+		}
+	}
+	return true
 }
 
 func canRepairTablet(ctx context.Context, tabletAlias string, tabletInfo, masterTabletInfo *topo.TabletInfo, wr *wrangler.Wrangler) bool {

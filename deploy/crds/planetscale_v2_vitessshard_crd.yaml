@@ -324,6 +324,13 @@ spec:
                   pattern: ^([0-9a-f][0-9a-f])*$
                   type: string
               type: object
+            maxConditionDurations:
+              additionalProperties:
+                format: int64
+                type: integer
+              description: MaxConditionDurations is an optional way to provide maximum
+                acceptable durations for various known VitessShardCondition types.
+              type: object
             name:
               description: Name is the shard name as its known to Vitess.
               type: string
