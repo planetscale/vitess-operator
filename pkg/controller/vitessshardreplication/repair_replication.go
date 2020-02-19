@@ -156,6 +156,8 @@ func (r *ReconcileVitessShard) canRepairReplication(ctx context.Context, vts *pl
 		if shouldFix {
 			return true, nil
 		}
+	} else {
+		vts.Status.SetConditionStatus(planetscalev2.ReadOnlyMasterConditionType, corev1.ConditionFalse, "MasterNotReadOnly", "Master is not in ReadOnly State.")
 	}
 
 	// List all tablets for the shard. A partial result is ok. We might miss
@@ -192,11 +194,18 @@ func (r *ReconcileVitessShard) canRepairReplication(ctx context.Context, vts *pl
 }
 
 func masterRdOnlyShouldBeFixed(vts *planetscalev2.VitessShard) bool {
+	rdOnlyCondition := vts.Status.Conditions[planetscalev2.ReadOnlyMasterConditionType]
+	if rdOnlyCondition.Status != corev1.ConditionTrue {
+		return false
+	}
+
 	if maxDuration, exists := vts.Spec.MaxConditionDurations[planetscalev2.ReadOnlyMasterConditionType]; exists {
-		if vts.Status.Conditions[planetscalev2.ReadOnlyMasterConditionType].StatusDuration() < maxDuration.Duration {
+		rdOnlyCondition := vts.Status.Conditions[planetscalev2.ReadOnlyMasterConditionType]
+		if rdOnlyCondition.Status != corev1.ConditionTrue || rdOnlyCondition.StatusDuration() < maxDuration.Duration {
 			return false
 		}
 	}
+
 	return true
 }
 
