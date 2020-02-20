@@ -77,6 +77,9 @@ type VitessKeyspaceSpec struct {
 
 	// TopologyReconciliation is inherited from the parent's VitessClusterSpec.
 	TopologyReconciliation *TopoReconcileConfig `json:"topologyReconciliation,omitempty"`
+
+	// ConditionMaxDurations is inherited from the parent's VitessClusterSpec.
+	ConditionMaxDurations map[VitessShardConditionType]metav1.Duration `json:"conditionMaxDurations,omitempty"`
 }
 
 // VitessKeyspaceTemplate contains only the user-specified parts of a VitessKeyspace object.

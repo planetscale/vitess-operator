@@ -19,6 +19,7 @@ package v2
 import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/pointer"
 )
 
@@ -30,6 +31,7 @@ func DefaultVitessCluster(vt *VitessCluster) {
 	DefaultVitessKeyspaceTemplates(vt.Spec.Keyspaces)
 	defaultClusterBackup(vt.Spec.Backup)
 	DefaultTopoReconcileConfig(&vt.Spec.TopologyReconciliation)
+	defaultConditionMaxDurations(&vt.Spec)
 }
 
 func defaultGlobalLockserver(vt *VitessCluster) {
@@ -142,5 +144,11 @@ func DefaultTopoReconcileConfig(confPtr **TopoReconcileConfig) {
 	}
 	if conf.PruneSrvKeyspaces == nil {
 		conf.PruneSrvKeyspaces = pointer.BoolPtr(true)
+	}
+}
+
+func defaultConditionMaxDurations(vts *VitessClusterSpec) {
+	if vts.ConditionMaxDurations == nil {
+		vts.ConditionMaxDurations = make(map[VitessShardConditionType]metav1.Duration)
 	}
 }

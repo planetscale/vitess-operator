@@ -778,12 +778,25 @@ func schema_pkg_apis_planetscale_v2_VitessClusterSpec(ref common.ReferenceCallba
 							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.TopoReconcileConfig"),
 						},
 					},
+					"conditionMaxDurations": {
+						SchemaProps: spec.SchemaProps{
+							Description: "ConditionMaxDurations is an optional way to provide maximum acceptable durations for various known VitessShardCondition types.",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.Duration"),
+									},
+								},
+							},
+						},
+					},
 				},
 				Required: []string{"cells"},
 			},
 		},
 		Dependencies: []string{
-			"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.ClusterBackupSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.LockserverSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.TopoReconcileConfig", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessCellTemplate", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessDashboardSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImagePullPolicies", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImages", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceTemplate"},
+			"k8s.io/apimachinery/pkg/apis/meta/v1.Duration", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.ClusterBackupSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.LockserverSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.TopoReconcileConfig", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessCellTemplate", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessDashboardSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImagePullPolicies", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImages", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceTemplate"},
 	}
 }
 
@@ -1027,12 +1040,25 @@ func schema_pkg_apis_planetscale_v2_VitessKeyspaceSpec(ref common.ReferenceCallb
 							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.TopoReconcileConfig"),
 						},
 					},
+					"conditionMaxDurations": {
+						SchemaProps: spec.SchemaProps{
+							Description: "ConditionMaxDurations is inherited from the parent's VitessClusterSpec.",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.Duration"),
+									},
+								},
+							},
+						},
+					},
 				},
 				Required: []string{"name", "partitionings", "globalLockserver", "zoneMap"},
 			},
 		},
 		Dependencies: []string{
-			"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.TopoReconcileConfig", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessBackupLocation", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImagePullPolicies", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceImages", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspacePartitioning", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessLockserverParams"},
+			"k8s.io/apimachinery/pkg/apis/meta/v1.Duration", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.TopoReconcileConfig", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessBackupLocation", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImagePullPolicies", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceImages", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspacePartitioning", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessLockserverParams"},
 	}
 }
 
@@ -1262,7 +1288,7 @@ func schema_pkg_apis_planetscale_v2_VitessShardSpec(ref common.ReferenceCallback
 					},
 					"conditionMaxDurations": {
 						SchemaProps: spec.SchemaProps{
-							Description: "ConditionMaxDurations is an optional way to provide maximum acceptable durations for various known VitessShardCondition types.",
+							Description: "ConditionMaxDurations is inherited from the parent's VitessClusterSpec.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
 								Schema: &spec.Schema{

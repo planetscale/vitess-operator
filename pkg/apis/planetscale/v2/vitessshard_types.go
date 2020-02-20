@@ -87,7 +87,7 @@ type VitessShardSpec struct {
 	// TopologyReconciliation is inherited from the parent's VitessClusterSpec.
 	TopologyReconciliation *TopoReconcileConfig `json:"topologyReconciliation,omitempty"`
 
-	// ConditionMaxDurations is an optional way to provide maximum acceptable durations for various known VitessShardCondition types.
+	// ConditionMaxDurations is inherited from the parent's VitessClusterSpec.
 	ConditionMaxDurations map[VitessShardConditionType]metav1.Duration `json:"conditionMaxDurations,omitempty"`
 }
 

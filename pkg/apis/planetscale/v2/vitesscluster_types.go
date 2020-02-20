@@ -110,6 +110,9 @@ type VitessClusterSpec struct {
 
 	// TopologyReconciliation can be used to enable or disable registration or pruning of various vitess components to and from topo records.
 	TopologyReconciliation *TopoReconcileConfig `json:"topologyReconciliation,omitempty"`
+
+	// ConditionMaxDurations is an optional way to provide maximum acceptable durations for various known VitessShardCondition types.
+	ConditionMaxDurations map[VitessShardConditionType]metav1.Duration `json:"conditionMaxDurations,omitempty"`
 }
 
 // TopoReconcileConfig can be used to turn on or off registration or pruning of specific vitess components from topo records.

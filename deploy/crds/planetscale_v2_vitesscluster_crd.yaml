@@ -589,6 +589,12 @@ spec:
                 - name
                 type: object
               type: array
+            conditionMaxDurations:
+              additionalProperties:
+                type: string
+              description: ConditionMaxDurations is an optional way to provide maximum
+                acceptable durations for various known VitessShardCondition types.
+              type: object
             extraVitessFlags:
               additionalProperties:
                 type: string

@@ -420,6 +420,19 @@ TopoReconcileConfig
 <p>TopologyReconciliation can be used to enable or disable registration or pruning of various vitess components to and from topo records.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>conditionMaxDurations</code></br>
+<em>
+<a href="https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#Duration">
+map[planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessShardConditionType]k8s.io/apimachinery/pkg/apis/meta/v1.Duration
+</a>
+</em>
+</td>
+<td>
+<p>ConditionMaxDurations is an optional way to provide maximum acceptable durations for various known VitessShardCondition types.</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -2883,6 +2896,19 @@ TopoReconcileConfig
 <p>TopologyReconciliation can be used to enable or disable registration or pruning of various vitess components to and from topo records.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>conditionMaxDurations</code></br>
+<em>
+<a href="https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#Duration">
+map[planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessShardConditionType]k8s.io/apimachinery/pkg/apis/meta/v1.Duration
+</a>
+</em>
+</td>
+<td>
+<p>ConditionMaxDurations is an optional way to provide maximum acceptable durations for various known VitessShardCondition types.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="planetscale.com/v2.VitessClusterStatus">VitessClusterStatus
@@ -3779,6 +3805,19 @@ TopoReconcileConfig
 <p>TopologyReconciliation is inherited from the parent&rsquo;s VitessClusterSpec.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>conditionMaxDurations</code></br>
+<em>
+<a href="https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#Duration">
+map[planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessShardConditionType]k8s.io/apimachinery/pkg/apis/meta/v1.Duration
+</a>
+</em>
+</td>
+<td>
+<p>ConditionMaxDurations is inherited from the parent&rsquo;s VitessClusterSpec.</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -4293,6 +4332,19 @@ TopoReconcileConfig
 <p>TopologyReconciliation is inherited from the parent&rsquo;s VitessClusterSpec.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>conditionMaxDurations</code></br>
+<em>
+<a href="https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#Duration">
+map[planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessShardConditionType]k8s.io/apimachinery/pkg/apis/meta/v1.Duration
+</a>
+</em>
+</td>
+<td>
+<p>ConditionMaxDurations is inherited from the parent&rsquo;s VitessClusterSpec.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="planetscale.com/v2.VitessKeyspaceStatus">VitessKeyspaceStatus
@@ -4775,7 +4827,7 @@ map[planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessShardCondition
 </em>
 </td>
 <td>
-<p>ConditionMaxDurations is an optional way to provide maximum acceptable durations for various known VitessShardCondition types.</p>
+<p>ConditionMaxDurations is inherited from the parent&rsquo;s VitessClusterSpec.</p>
 </td>
 </tr>
 </table>
@@ -5041,7 +5093,7 @@ map[planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessShardCondition
 </em>
 </td>
 <td>
-<p>ConditionMaxDurations is an optional way to provide maximum acceptable durations for various known VitessShardCondition types.</p>
+<p>ConditionMaxDurations is inherited from the parent&rsquo;s VitessClusterSpec.</p>
 </td>
 </tr>
 </tbody>

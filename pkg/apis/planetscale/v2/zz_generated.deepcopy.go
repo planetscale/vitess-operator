@@ -1068,6 +1068,13 @@ func (in *VitessClusterSpec) DeepCopyInto(out *VitessClusterSpec) {
 		*out = new(TopoReconcileConfig)
 		(*in).DeepCopyInto(*out)
 	}
+	if in.ConditionMaxDurations != nil {
+		in, out := &in.ConditionMaxDurations, &out.ConditionMaxDurations
+		*out = make(map[VitessShardConditionType]metav1.Duration, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
 	return
 }
 
@@ -1615,6 +1622,13 @@ func (in *VitessKeyspaceSpec) DeepCopyInto(out *VitessKeyspaceSpec) {
 		in, out := &in.TopologyReconciliation, &out.TopologyReconciliation
 		*out = new(TopoReconcileConfig)
 		(*in).DeepCopyInto(*out)
+	}
+	if in.ConditionMaxDurations != nil {
+		in, out := &in.ConditionMaxDurations, &out.ConditionMaxDurations
+		*out = make(map[VitessShardConditionType]metav1.Duration, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
 	}
 	return
 }

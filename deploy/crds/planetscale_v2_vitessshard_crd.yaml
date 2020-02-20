@@ -176,8 +176,7 @@ spec:
             conditionMaxDurations:
               additionalProperties:
                 type: string
-              description: ConditionMaxDurations is an optional way to provide maximum
-                acceptable durations for various known VitessShardCondition types.
+              description: ConditionMaxDurations is inherited from the parent's VitessClusterSpec.
               type: object
             databaseInitScriptSecret:
               description: DatabaseInitScriptSecret specifies the init_db.sql script

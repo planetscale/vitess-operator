@@ -173,6 +173,11 @@ spec:
                     type: object
                 type: object
               type: array
+            conditionMaxDurations:
+              additionalProperties:
+                type: string
+              description: ConditionMaxDurations is inherited from the parent's VitessClusterSpec.
+              type: object
             extraVitessFlags:
               additionalProperties:
                 type: string
