@@ -88,7 +88,7 @@ type VitessShardSpec struct {
 	TopologyReconciliation *TopoReconcileConfig `json:"topologyReconciliation,omitempty"`
 
 	// ConditionMaxDurations is an optional way to provide maximum acceptable durations for various known VitessShardCondition types.
-	ConditionMaxDurations map[VitessShardConditionType]metav1.Duration `json:"maxConditionDurations,omitempty"`
+	ConditionMaxDurations map[VitessShardConditionType]metav1.Duration `json:"conditionMaxDurations,omitempty"`
 }
 
 // VitessShardTemplate contains only the user-specified parts of a VitessShard object.

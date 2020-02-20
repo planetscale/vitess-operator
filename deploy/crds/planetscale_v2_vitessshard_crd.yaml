@@ -173,6 +173,12 @@ spec:
                     type: object
                 type: object
               type: array
+            conditionMaxDurations:
+              additionalProperties:
+                type: string
+              description: ConditionMaxDurations is an optional way to provide maximum
+                acceptable durations for various known VitessShardCondition types.
+              type: object
             databaseInitScriptSecret:
               description: DatabaseInitScriptSecret specifies the init_db.sql script
                 file to use for this shard. This SQL script file is executed immediately
@@ -323,12 +329,6 @@ spec:
                     or equal to Start in lexicographical order to be in the range.
                   pattern: ^([0-9a-f][0-9a-f])*$
                   type: string
-              type: object
-            maxConditionDurations:
-              additionalProperties:
-                type: string
-              description: MaxConditionDurations is an optional way to provide maximum
-                acceptable durations for various known VitessShardCondition types.
               type: object
             name:
               description: Name is the shard name as its known to Vitess.
