@@ -177,6 +177,8 @@ func (r *ReconcileVitessShard) Reconcile(request reconcile.Request) (reconcile.R
 		vts.Status.Conditions = oldStatus.DeepCopyConditions()
 	}
 
+	log.Infof("Conditions: %+v", vts.Status.Conditions)
+
 	// Create/update desired tablets.
 	tabletResult, err := r.reconcileTablets(ctx, vts)
 	resultBuilder.Merge(tabletResult, err)
