@@ -9,6 +9,10 @@ issues or PRs. Otherwise, please check back later!
 
 # Vitess Operator
 
+## Docs
+
+- [VitessCluster CRD API Reference](https://vitess-operator.planetscale.dev/api/)
+
 ## Build
 
 If you only want to deploy vitess-operator from pre-built images, you can skip to the
@@ -64,6 +68,9 @@ what will be applied to the cluster.
 
 The file `deploy/example.yaml` contains an example cluster with one keyspace and
 two shards.
+
+See the [VitessCluster CRD API Reference](https://vitess-operator.planetscale.dev/api/)
+for details on all of the fields.
 
 ### Cluster Config Secret
 
