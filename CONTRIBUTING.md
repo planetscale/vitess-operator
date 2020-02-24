@@ -26,13 +26,15 @@ tools/git/install-hooks.sh
 ### CRD API Documentation
 
 It may help to start by reading the user-facing docs for the public API,
-which can be found in `docs/api`.
+which can be found in `docs/api` or published at:
+
+https://vitess-operator.planetscale.dev/api/
 
 ### Go Package Documentation
 
 You can browse the Go package docs at:
 
-https://godoc.org/planetscale.dev/vitess-operator
+https://pkg.go.dev/mod/planetscale.dev/vitess-operator?tab=packages
 
 ### Directory Structure
 
