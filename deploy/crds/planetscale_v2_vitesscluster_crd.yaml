@@ -321,6 +321,14 @@ spec:
                         items:
                           type: object
                         type: array
+                      labels:
+                        additionalProperties:
+                          type: string
+                        description: Labels can optionally be used to attach custom
+                          labels to Pods created for this component. These will be
+                          attached to the underlying pods that the vtgate deployment
+                          creates.
+                        type: object
                       replicas:
                         description: Replicas is the number of vtgate instances to
                           deploy in this cell.
@@ -539,6 +547,12 @@ spec:
                             items:
                               type: object
                             type: array
+                          labels:
+                            additionalProperties:
+                              type: string
+                            description: Labels can optionally be used to attach custom
+                              labels to Pods created for this component.
+                            type: object
                           resources:
                             description: 'Resources specify the compute resources
                               to allocate for each etcd member. Default: Let the operator
@@ -679,6 +693,12 @@ spec:
                       items:
                         type: object
                       type: array
+                    labels:
+                      additionalProperties:
+                        type: string
+                      description: Labels can optionally be used to attach custom
+                        labels to Pods created for this component.
+                      type: object
                     resources:
                       description: 'Resources specify the compute resources to allocate
                         for each etcd member. Default: Let the operator choose.'
@@ -1178,6 +1198,13 @@ spec:
                                           items:
                                             type: object
                                           type: array
+                                        labels:
+                                          additionalProperties:
+                                            type: string
+                                          description: Labels can optionally be used
+                                            to attach custom labels to Pods created
+                                            for this component.
+                                          type: object
                                         mysqld:
                                           description: Mysqld configures a local MySQL
                                             running inside each tablet Pod. You must
@@ -1585,6 +1612,13 @@ spec:
                                         items:
                                           type: object
                                         type: array
+                                      labels:
+                                        additionalProperties:
+                                          type: string
+                                        description: Labels can optionally be used
+                                          to attach custom labels to Pods created
+                                          for this component.
+                                        type: object
                                       mysqld:
                                         description: Mysqld configures a local MySQL
                                           running inside each tablet Pod. You must
@@ -1807,6 +1841,13 @@ spec:
                   items:
                     type: object
                   type: array
+                labels:
+                  additionalProperties:
+                    type: string
+                  description: Labels can optionally be used to attach custom labels
+                    to Pods created for this component. These will be attached to
+                    the underlying pods that the vtctld deployment creates.
+                  type: object
                 replicas:
                   description: Replicas is the number of vtctld instances to deploy
                     in each cell.

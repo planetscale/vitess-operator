@@ -96,6 +96,12 @@ spec:
               items:
                 type: object
               type: array
+            labels:
+              additionalProperties:
+                type: string
+              description: Labels can optionally be used to attach custom labels to
+                Pods created for this component.
+              type: object
             resources:
               description: 'Resources specify the compute resources to allocate for
                 each etcd member. Default: Let the operator choose.'

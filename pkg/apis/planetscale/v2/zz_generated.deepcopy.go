@@ -178,6 +178,13 @@ func (in *EtcdLockserverTemplate) DeepCopyInto(out *EtcdLockserverTemplate) {
 			(*out)[key] = val
 		}
 	}
+	if in.Labels != nil {
+		in, out := &in.Labels, &out.Labels
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
 	return
 }
 
@@ -753,6 +760,13 @@ func (in *VitessCellGatewaySpec) DeepCopyInto(out *VitessCellGatewaySpec) {
 			(*out)[key] = val
 		}
 	}
+	if in.Labels != nil {
+		in, out := &in.Labels, &out.Labels
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
 	return
 }
 
@@ -1214,6 +1228,13 @@ func (in *VitessDashboardSpec) DeepCopyInto(out *VitessDashboardSpec) {
 	}
 	if in.Annotations != nil {
 		in, out := &in.Annotations, &out.Annotations
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
+	if in.Labels != nil {
+		in, out := &in.Labels, &out.Labels
 		*out = make(map[string]string, len(*in))
 		for key, val := range *in {
 			(*out)[key] = val
@@ -1960,6 +1981,13 @@ func (in *VitessShardTabletPool) DeepCopyInto(out *VitessShardTabletPool) {
 	}
 	if in.Annotations != nil {
 		in, out := &in.Annotations, &out.Annotations
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
+	if in.Labels != nil {
+		in, out := &in.Labels, &out.Labels
 		*out = make(map[string]string, len(*in))
 		for key, val := range *in {
 			(*out)[key] = val
