@@ -31,6 +31,7 @@ import (
 	"planetscale.dev/vitess-operator/pkg/operator/k8s"
 	"planetscale.dev/vitess-operator/pkg/operator/reconciler"
 	"planetscale.dev/vitess-operator/pkg/operator/results"
+	"planetscale.dev/vitess-operator/pkg/operator/update"
 )
 
 func (r *ReconcileEtcdLockserver) reconcileMembers(ctx context.Context, ls *planetscalev2.EtcdLockserver) (reconcile.Result, error) {
