@@ -50,9 +50,9 @@ func GlobalConnectionParams(lockSpec *planetscalev2.LockserverSpec, clusterName 
 
 // LocalConnectionParams returns the Vitess connection parameters for a
 // VitessCluster cell's local lockserver.
-func LocalConnectionParams(vt *planetscalev2.VitessCluster, cell *planetscalev2.VitessCellTemplate) *planetscalev2.VitessLockserverParams {
+func LocalConnectionParams(cell *planetscalev2.VitessCellTemplate, lockSpec *planetscalev2.LockserverSpec, clusterName string) *planetscalev2.VitessLockserverParams {
 	// The addition of "/local/" is important in case the cell name happens to be "global".
-	rootPath := fmt.Sprintf("/vitess/%s/local/%s", vt.Name, cell.Name)
+	rootPath := fmt.Sprintf("/vitess/%s/local/%s", clusterName, cell.Name)
 
 	switch {
 	case cell.Lockserver.External != nil:
@@ -61,13 +61,13 @@ func LocalConnectionParams(vt *planetscalev2.VitessCluster, cell *planetscalev2.
 		// Point to the client Service created by the local EtcdCluster.
 		return &planetscalev2.VitessLockserverParams{
 			Implementation: VitessEtcdImplementationName,
-			Address:        fmt.Sprintf("%s-client:%d", LocalEtcdName(vt.Name, cell.Name), EtcdClientPort),
+			Address:        fmt.Sprintf("%s-client:%d", LocalEtcdName(clusterName, cell.Name), EtcdClientPort),
 			RootPath:       rootPath,
 		}
 	default:
 		// No local lockserver was specified.
 		// Share the global lockserver with a cell-specific RootPath.
-		globalParams := GlobalConnectionParams(&vt.Spec.GlobalLockserver, vt.Name)
+		globalParams := GlobalConnectionParams(lockSpec, clusterName)
 		if globalParams == nil {
 			return nil
 		}
