@@ -37,7 +37,7 @@ func azblobBackupEnvVars(azblob *planetscalev2.AzblobBackupLocation) []corev1.En
 	}
 	return []corev1.EnvVar{
 		{
-			Name: "VITESS_AZBLOB_ACCOUNT_NAME",
+			Name: "VT_AZBLOB_ACCOUNT_NAME",
 			ValueFrom: &corev1.EnvVarSource{
 				SecretKeyRef: &corev1.SecretKeySelector{
 					LocalObjectReference: corev1.LocalObjectReference{
@@ -47,7 +47,7 @@ func azblobBackupEnvVars(azblob *planetscalev2.AzblobBackupLocation) []corev1.En
 				},
 			},
 		}, {
-			Name: "VITESS_AZBLOB_ACCOUNT_KEY",
+			Name: "VT_AZBLOB_ACCOUNT_KEY",
 			ValueFrom: &corev1.EnvVarSource{
 				SecretKeyRef: &corev1.SecretKeySelector{
 					LocalObjectReference: corev1.LocalObjectReference{
