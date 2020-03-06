@@ -24,8 +24,7 @@ const (
 	s3AuthDirName                     = "s3-backup-auth"
 
 	azblobBackupStorageImplementationName = "azblob"
-	azblobAccountKeyName                  = "azblob-account-key"
-	azblobAccountName                     = "azblob-account-name"
+	azblobAuthDirName                     = "azblob-backup-auth"
 
 	fileBackupStorageImplementationName = "file"
 	fileBackupStorageVolumeName         = "vitess-backups"

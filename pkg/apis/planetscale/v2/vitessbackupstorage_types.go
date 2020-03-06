@@ -120,6 +120,9 @@ type S3BackupLocation struct {
 
 // AzblobBackupLocation specifies a backup location in Amazon S3
 type AzblobBackupLocation struct {
+	// Account is the name of the Azure storage account to use
+	// +kubebuilder:validation:MinLength=1
+	Account string `json:"account"`
 	// Container is the name of the Azure storage account container to use.
 	// +kubebuilder:validation:MinLength=1
 	Container string `json:"container"`

@@ -3,8 +3,8 @@ module planetscale.dev/vitess-operator
 go 1.13
 
 require (
-	contrib.go.opencensus.io/exporter/ocagent v0.4.12 // indirect
-	github.com/Azure/go-autorest v11.7.1+incompatible // indirect
+	github.com/Azure/go-autorest v14.0.0+incompatible // indirect
+	github.com/Azure/go-autorest/autorest v0.9.2 // indirect
 	github.com/ahmetb/gen-crd-api-reference-docs v0.1.5-0.20190629210212-52e137b8d003
 	github.com/coreos/etcd v3.3.12+incompatible // indirect
 	github.com/docker/distribution v2.7.1+incompatible // indirect

@@ -20,42 +20,26 @@ import (
 	corev1 "k8s.io/api/core/v1"
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
+	"planetscale.dev/vitess-operator/pkg/operator/secrets"
 	"planetscale.dev/vitess-operator/pkg/operator/vitess"
 )
 
 func azblobBackupFlags(azblob *planetscalev2.AzblobBackupLocation, clusterName string) vitess.Flags {
 	return vitess.Flags{
-		"backup_storage_implementation": azblobBackupStorageImplementationName,
-		"azblob_backup_container_name":  azblob.Container,
-		"azblob_backup_storage_root":    rootKeyPrefix(azblob.KeyPrefix, clusterName),
+		"backup_storage_implementation":  azblobBackupStorageImplementationName,
+		"azblob_backup_account_name":     azblob.Account,
+		"azblob_backup_account_key_file": secrets.Mount(azblob.AuthSecret, azblobAuthDirName).FilePath(),
+		"azblob_backup_container_name":   azblob.Container,
+		"azblob_backup_storage_root":     rootKeyPrefix(azblob.KeyPrefix, clusterName),
 	}
 }
 
-func azblobBackupEnvVars(azblob *planetscalev2.AzblobBackupLocation) []corev1.EnvVar {
-	if azblob.AuthSecret == nil {
-		return nil
-	}
-	return []corev1.EnvVar{
-		{
-			Name: "VT_AZBLOB_ACCOUNT_NAME",
-			ValueFrom: &corev1.EnvVarSource{
-				SecretKeyRef: &corev1.SecretKeySelector{
-					LocalObjectReference: corev1.LocalObjectReference{
-						Name: azblob.AuthSecret.Name,
-					},
-					Key: azblobAccountName,
-				},
-			},
-		}, {
-			Name: "VT_AZBLOB_ACCOUNT_KEY",
-			ValueFrom: &corev1.EnvVarSource{
-				SecretKeyRef: &corev1.SecretKeySelector{
-					LocalObjectReference: corev1.LocalObjectReference{
-						Name: azblob.AuthSecret.Name,
-					},
-					Key: azblobAccountKeyName,
-				},
-			},
-		},
+func azblobBackupVolumes(azblob *planetscalev2.AzblobBackupLocation) []corev1.Volume {
+	return secrets.Mount(azblob.AuthSecret, azblobAuthDirName).PodVolumes()
+}
+
+func azblobBackupVolumeMounts(azblob *planetscalev2.AzblobBackupLocation) []corev1.VolumeMount {
+	return []corev1.VolumeMount{
+		secrets.Mount(azblob.AuthSecret, azblobAuthDirName).ContainerVolumeMount(),
 	}
 }
