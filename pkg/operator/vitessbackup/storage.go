@@ -42,6 +42,8 @@ func StorageFlags(backupLocation *planetscalev2.VitessBackupLocation, clusterNam
 		return gcsBackupFlags(backupLocation.GCS, clusterName)
 	case backupLocation.S3 != nil:
 		return s3BackupFlags(backupLocation.S3, clusterName)
+	case backupLocation.Azblob != nil:
+		return azblobBackupFlags(backupLocation.Azblob, clusterName)
 	case backupLocation.Volume != nil:
 		return fileBackupFlags(clusterName)
 	}
@@ -81,6 +83,8 @@ func StorageEnvVars(backupLocation *planetscalev2.VitessBackupLocation) []corev1
 		return gcsBackupEnvVars(backupLocation.GCS)
 	case backupLocation.S3 != nil:
 		return s3BackupEnvVars(backupLocation.S3)
+	case backupLocation.Azblob != nil:
+		return azblobBackupEnvVars(backupLocation.Azblob)
 	}
 	return nil
 }
