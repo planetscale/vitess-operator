@@ -549,7 +549,7 @@ If the Kubernetes Nodes don&rsquo;t have such a label, leave this empty.</p>
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#planetscale.com/v2.EtcdLockserver">EtcdLockserver</a>,
+<a href="#planetscale.com/v2.EtcdLockserver">EtcdLockserver</a>, 
 <a href="#planetscale.com/v2.LockserverStatus">LockserverStatus</a>)
 </p>
 <p>
@@ -604,7 +604,7 @@ string
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#planetscale.com/v2.EtcdLockserverSpec">EtcdLockserverSpec</a>,
+<a href="#planetscale.com/v2.EtcdLockserverSpec">EtcdLockserverSpec</a>, 
 <a href="#planetscale.com/v2.LockserverSpec">LockserverSpec</a>)
 </p>
 <p>
@@ -781,16 +781,15 @@ map[string]string
 created for this component.</p>
 </td>
 </tr>
-
 <tr>
 <td>
-<code>labels</code></br>
+<code>userLabels</code></br>
 <em>
 map[string]string
 </em>
 </td>
 <td>
-<p>Labels can optionally be used to attach custom labels to Pods
+<p>UserLabels can optionally be used to attach custom labels to Pods
 created for this component.</p>
 </td>
 </tr>
@@ -959,7 +958,7 @@ Default: Use the default credentials of the Node.</p>
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#planetscale.com/v2.VitessCellTemplate">VitessCellTemplate</a>,
+<a href="#planetscale.com/v2.VitessCellTemplate">VitessCellTemplate</a>, 
 <a href="#planetscale.com/v2.VitessClusterSpec">VitessClusterSpec</a>)
 </p>
 <p>
@@ -1008,7 +1007,7 @@ EtcdLockserverTemplate
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#planetscale.com/v2.VitessCellStatus">VitessCellStatus</a>,
+<a href="#planetscale.com/v2.VitessCellStatus">VitessCellStatus</a>, 
 <a href="#planetscale.com/v2.VitessClusterStatus">VitessClusterStatus</a>)
 </p>
 <p>
@@ -1041,7 +1040,7 @@ EtcdLockserverStatus
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#planetscale.com/v2.VitessImages">VitessImages</a>,
+<a href="#planetscale.com/v2.VitessImages">VitessImages</a>, 
 <a href="#planetscale.com/v2.VitessKeyspaceImages">VitessKeyspaceImages</a>)
 </p>
 <p>
@@ -1267,11 +1266,11 @@ Default: Use the default credentials of the Node.</p>
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#planetscale.com/v2.ExternalDatastore">ExternalDatastore</a>,
-<a href="#planetscale.com/v2.GCSBackupLocation">GCSBackupLocation</a>,
-<a href="#planetscale.com/v2.S3BackupLocation">S3BackupLocation</a>,
-<a href="#planetscale.com/v2.VitessGatewayStaticAuthentication">VitessGatewayStaticAuthentication</a>,
-<a href="#planetscale.com/v2.VitessGatewayTLSSecureTransport">VitessGatewayTLSSecureTransport</a>,
+<a href="#planetscale.com/v2.ExternalDatastore">ExternalDatastore</a>, 
+<a href="#planetscale.com/v2.GCSBackupLocation">GCSBackupLocation</a>, 
+<a href="#planetscale.com/v2.S3BackupLocation">S3BackupLocation</a>, 
+<a href="#planetscale.com/v2.VitessGatewayStaticAuthentication">VitessGatewayStaticAuthentication</a>, 
+<a href="#planetscale.com/v2.VitessGatewayTLSSecureTransport">VitessGatewayTLSSecureTransport</a>, 
 <a href="#planetscale.com/v2.VitessShardTemplate">VitessShardTemplate</a>)
 </p>
 <p>
@@ -1399,9 +1398,9 @@ Kubernetes meta/v1.Time
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#planetscale.com/v2.VitessCellSpec">VitessCellSpec</a>,
-<a href="#planetscale.com/v2.VitessClusterSpec">VitessClusterSpec</a>,
-<a href="#planetscale.com/v2.VitessKeyspaceSpec">VitessKeyspaceSpec</a>,
+<a href="#planetscale.com/v2.VitessCellSpec">VitessCellSpec</a>, 
+<a href="#planetscale.com/v2.VitessClusterSpec">VitessClusterSpec</a>, 
+<a href="#planetscale.com/v2.VitessKeyspaceSpec">VitessKeyspaceSpec</a>, 
 <a href="#planetscale.com/v2.VitessShardSpec">VitessShardSpec</a>)
 </p>
 <p>
@@ -1518,8 +1517,8 @@ Default: true</p>
 (<code>string</code> alias)</p></h3>
 <p>
 (<em>Appears on:</em>
-<a href="#planetscale.com/v2.ClusterBackupSpec">ClusterBackupSpec</a>,
-<a href="#planetscale.com/v2.VitessKeyspaceSpec">VitessKeyspaceSpec</a>,
+<a href="#planetscale.com/v2.ClusterBackupSpec">ClusterBackupSpec</a>, 
+<a href="#planetscale.com/v2.VitessKeyspaceSpec">VitessKeyspaceSpec</a>, 
 <a href="#planetscale.com/v2.VitessShardSpec">VitessShardSpec</a>)
 </p>
 <p>
@@ -1529,9 +1528,9 @@ Default: true</p>
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#planetscale.com/v2.ClusterBackupSpec">ClusterBackupSpec</a>,
-<a href="#planetscale.com/v2.VitessBackupStorageSpec">VitessBackupStorageSpec</a>,
-<a href="#planetscale.com/v2.VitessKeyspaceSpec">VitessKeyspaceSpec</a>,
+<a href="#planetscale.com/v2.ClusterBackupSpec">ClusterBackupSpec</a>, 
+<a href="#planetscale.com/v2.VitessBackupStorageSpec">VitessBackupStorageSpec</a>, 
+<a href="#planetscale.com/v2.VitessKeyspaceSpec">VitessKeyspaceSpec</a>, 
 <a href="#planetscale.com/v2.VitessShardSpec">VitessShardSpec</a>)
 </p>
 <p>
@@ -2201,16 +2200,15 @@ created for this component. These will be attached to the underlying
 pods that the vtgate deployment creates.</p>
 </td>
 </tr>
-
 <tr>
 <td>
-<code>labels</code></br>
+<code>userLabels</code></br>
 <em>
 map[string]string
 </em>
 </td>
 <td>
-<p>Labels can optionally be used to attach custom labels to Pods
+<p>UserLabels can optionally be used to attach custom labels to Pods
 created for this component. These will be attached to the underlying
 pods that the vtgate deployment creates.</p>
 </td>
@@ -2472,7 +2470,7 @@ VitessCellGatewayStatus
 <code>keyspaces</code></br>
 <em>
 <a href="#planetscale.com/v2.VitessCellKeyspaceStatus">
-map[string]planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessCellKeyspaceStatus
+map[string]github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessCellKeyspaceStatus
 </a>
 </em>
 </td>
@@ -2505,7 +2503,7 @@ should be safe to turn down the cell.</p>
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#planetscale.com/v2.VitessCellSpec">VitessCellSpec</a>,
+<a href="#planetscale.com/v2.VitessCellSpec">VitessCellSpec</a>, 
 <a href="#planetscale.com/v2.VitessClusterSpec">VitessClusterSpec</a>)
 </p>
 <p>
@@ -2981,8 +2979,8 @@ VitessDashboardStatus
 <td>
 <code>cells</code></br>
 <em>
-<a href="#planetscale.com/v2.*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessClusterCellStatus">
-map[string]*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessClusterCellStatus
+<a href="#planetscale.com/v2.*github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessClusterCellStatus">
+map[string]*github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessClusterCellStatus
 </a>
 </em>
 </td>
@@ -2994,8 +2992,8 @@ map[string]*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessCluste
 <td>
 <code>keyspaces</code></br>
 <em>
-<a href="#planetscale.com/v2.*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessClusterKeyspaceStatus">
-map[string]*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessClusterKeyspaceStatus
+<a href="#planetscale.com/v2.*github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessClusterKeyspaceStatus">
+map[string]*github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessClusterKeyspaceStatus
 </a>
 </em>
 </td>
@@ -3007,8 +3005,8 @@ map[string]*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessCluste
 <td>
 <code>orphanedCells</code></br>
 <em>
-<a href="#planetscale.com/v2.*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus">
-map[string]*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus
+<a href="#planetscale.com/v2.*github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus">
+map[string]*github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus
 </a>
 </em>
 </td>
@@ -3020,8 +3018,8 @@ map[string]*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus
 <td>
 <code>orphanedKeyspaces</code></br>
 <em>
-<a href="#planetscale.com/v2.*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus">
-map[string]*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus
+<a href="#planetscale.com/v2.*github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus">
+map[string]*github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus
 </a>
 </em>
 </td>
@@ -3191,13 +3189,13 @@ pods that the vtctld deployment creates.</p>
 </tr>
 <tr>
 <td>
-<code>labels</code></br>
+<code>userLabels</code></br>
 <em>
 map[string]string
 </em>
 </td>
 <td>
-<p>Labels can optionally be used to attach custom labels to Pods
+<p>UserLabels can optionally be used to attach custom labels to Pods
 created for this component. These will be attached to the underlying
 pods that the vtctld deployment creates.</p>
 </td>
@@ -3420,9 +3418,9 @@ SecretSource
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#planetscale.com/v2.VitessCellSpec">VitessCellSpec</a>,
-<a href="#planetscale.com/v2.VitessClusterSpec">VitessClusterSpec</a>,
-<a href="#planetscale.com/v2.VitessKeyspaceSpec">VitessKeyspaceSpec</a>,
+<a href="#planetscale.com/v2.VitessCellSpec">VitessCellSpec</a>, 
+<a href="#planetscale.com/v2.VitessClusterSpec">VitessClusterSpec</a>, 
+<a href="#planetscale.com/v2.VitessKeyspaceSpec">VitessKeyspaceSpec</a>, 
 <a href="#planetscale.com/v2.VitessShardSpec">VitessShardSpec</a>)
 </p>
 <p>
@@ -3610,7 +3608,7 @@ string
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#planetscale.com/v2.VitessKeyspaceKeyRangeShard">VitessKeyspaceKeyRangeShard</a>,
+<a href="#planetscale.com/v2.VitessKeyspaceKeyRangeShard">VitessKeyspaceKeyRangeShard</a>, 
 <a href="#planetscale.com/v2.VitessShardSpec">VitessShardSpec</a>)
 </p>
 <p>
@@ -3925,7 +3923,7 @@ use custom partitioning instead.</p>
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#planetscale.com/v2.VitessKeyspaceSpec">VitessKeyspaceSpec</a>,
+<a href="#planetscale.com/v2.VitessKeyspaceSpec">VitessKeyspaceSpec</a>, 
 <a href="#planetscale.com/v2.VitessShardSpec">VitessShardSpec</a>)
 </p>
 <p>
@@ -4367,8 +4365,8 @@ int64
 <td>
 <code>shards</code></br>
 <em>
-<a href="#planetscale.com/v2.*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceShardStatus">
-map[string]*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceShardStatus
+<a href="#planetscale.com/v2.*github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceShardStatus">
+map[string]*github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceShardStatus
 </a>
 </em>
 </td>
@@ -4380,8 +4378,8 @@ map[string]*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspa
 <td>
 <code>orphanedShards</code></br>
 <em>
-<a href="#planetscale.com/v2.*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus">
-map[string]*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus
+<a href="#planetscale.com/v2.*github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus">
+map[string]*github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus
 </a>
 </em>
 </td>
@@ -4410,7 +4408,7 @@ be safe to turn down the keyspace.</p>
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#planetscale.com/v2.VitessClusterSpec">VitessClusterSpec</a>,
+<a href="#planetscale.com/v2.VitessClusterSpec">VitessClusterSpec</a>, 
 <a href="#planetscale.com/v2.VitessKeyspaceSpec">VitessKeyspaceSpec</a>)
 </p>
 <p>
@@ -4519,9 +4517,9 @@ you can set the policy to Immediate to skip these checks.</p>
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#planetscale.com/v2.LockserverSpec">LockserverSpec</a>,
-<a href="#planetscale.com/v2.VitessCellSpec">VitessCellSpec</a>,
-<a href="#planetscale.com/v2.VitessKeyspaceSpec">VitessKeyspaceSpec</a>,
+<a href="#planetscale.com/v2.LockserverSpec">LockserverSpec</a>, 
+<a href="#planetscale.com/v2.VitessCellSpec">VitessCellSpec</a>, 
+<a href="#planetscale.com/v2.VitessKeyspaceSpec">VitessKeyspaceSpec</a>, 
 <a href="#planetscale.com/v2.VitessShardSpec">VitessShardSpec</a>)
 </p>
 <p>
@@ -5092,8 +5090,8 @@ int64
 <td>
 <code>tablets</code></br>
 <em>
-<a href="#planetscale.com/v2.*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessTabletStatus">
-map[string]*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessTabletStatus
+<a href="#planetscale.com/v2.*github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessTabletStatus">
+map[string]*github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessTabletStatus
 </a>
 </em>
 </td>
@@ -5105,8 +5103,8 @@ map[string]*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessTablet
 <td>
 <code>orphanedTablets</code></br>
 <em>
-<a href="#planetscale.com/v2.*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus">
-map[string]*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus
+<a href="#planetscale.com/v2.*github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus">
+map[string]*github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus
 </a>
 </em>
 </td>
@@ -5173,8 +5171,8 @@ to turn down the shard.</p>
 <td>
 <code>conditions</code></br>
 <em>
-<a href="#planetscale.com/v2.*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessShardCondition">
-map[planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessShardConditionType]*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessShardCondition
+<a href="#planetscale.com/v2.*github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessShardCondition">
+map[github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessShardConditionType]*github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessShardCondition
 </a>
 </em>
 </td>
@@ -5201,8 +5199,8 @@ condition whenever the distinction is important.</p>
 <td>
 <code>backupLocations</code></br>
 <em>
-<a href="#planetscale.com/v2.*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.ShardBackupLocationStatus">
-[]*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.ShardBackupLocationStatus
+<a href="#planetscale.com/v2.*github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.ShardBackupLocationStatus">
+[]*github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.ShardBackupLocationStatus
 </a>
 </em>
 </td>
@@ -5375,13 +5373,13 @@ created for this component.</p>
 </tr>
 <tr>
 <td>
-<code>labels</code></br>
+<code>userLabels</code></br>
 <em>
 map[string]string
 </em>
 </td>
 <td>
-<p>Labels can optionally be used to attach custom labels to Pods
+<p>UserLabels can optionally be used to attach custom labels to Pods
 created for this component.</p>
 </td>
 </tr>
@@ -5454,8 +5452,8 @@ that will be run to completion one after another before any app containers are s
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#planetscale.com/v2.VitessKeyspaceEqualPartitioning">VitessKeyspaceEqualPartitioning</a>,
-<a href="#planetscale.com/v2.VitessKeyspaceKeyRangeShard">VitessKeyspaceKeyRangeShard</a>,
+<a href="#planetscale.com/v2.VitessKeyspaceEqualPartitioning">VitessKeyspaceEqualPartitioning</a>, 
+<a href="#planetscale.com/v2.VitessKeyspaceKeyRangeShard">VitessKeyspaceKeyRangeShard</a>, 
 <a href="#planetscale.com/v2.VitessShardSpec">VitessShardSpec</a>)
 </p>
 <p>
