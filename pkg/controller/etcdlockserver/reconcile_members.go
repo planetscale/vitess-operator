@@ -130,7 +130,7 @@ func memberSpecs(ls *planetscalev2.EtcdLockserver, parentLabels map[string]strin
 		if _, hasClusterLabel := ls.Labels[planetscalev2.ClusterLabel]; hasClusterLabel {
 			labels[planetscalev2.ClusterLabel] = ls.Labels[planetscalev2.ClusterLabel]
 		}
-		update.Labels(&labels, ls.Spec.Labels)
+		update.Labels(&labels, ls.Spec.UserLabels)
 
 		members = append(members, &etcd.Spec{
 			LockserverName:    ls.Name,

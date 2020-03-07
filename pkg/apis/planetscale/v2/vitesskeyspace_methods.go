@@ -17,8 +17,8 @@ limitations under the License.
 package v2
 
 import (
-	"sort"
 	"encoding/hex"
+	"sort"
 
 	"planetscale.dev/vitess-operator/pkg/operator/partitioning"
 	topodatapb "vitess.io/vitess/go/vt/proto/topodata"

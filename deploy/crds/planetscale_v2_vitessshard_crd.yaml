@@ -525,12 +525,6 @@ spec:
                     items:
                       type: object
                     type: array
-                  labels:
-                    additionalProperties:
-                      type: string
-                    description: Labels can optionally be used to attach custom labels
-                      to Pods created for this component.
-                    type: object
                   mysqld:
                     description: Mysqld configures a local MySQL running inside each
                       tablet Pod. You must specify either Mysqld or ExternalDatastore,
@@ -569,6 +563,12 @@ spec:
                     - externalreplica
                     - externalrdonly
                     type: string
+                  userLabels:
+                    additionalProperties:
+                      type: string
+                    description: UserLabels can optionally be used to attach custom
+                      labels to Pods created for this component.
+                    type: object
                   vttablet:
                     description: Vttablet configures the vttablet server within each
                       tablet.

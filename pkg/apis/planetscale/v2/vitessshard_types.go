@@ -190,9 +190,9 @@ type VitessShardTabletPool struct {
 	// created for this component.
 	Annotations map[string]string `json:"annotations,omitempty"`
 
-	// Labels can optionally be used to attach custom labels to Pods
+	// UserLabels can optionally be used to attach custom labels to Pods
 	// created for this component.
-	Labels map[string]string `json:"labels,omitempty"`
+	UserLabels map[string]string `json:"userLabels,omitempty"`
 
 	// ExtraEnv can optionally be used to override default environment variables
 	// set by the operator, or pass additional environment variables.

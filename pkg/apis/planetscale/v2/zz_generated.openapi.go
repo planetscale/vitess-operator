@@ -196,9 +196,9 @@ func schema_pkg_apis_planetscale_v2_EtcdLockserverSpec(ref common.ReferenceCallb
 							},
 						},
 					},
-					"labels": {
+					"userLabels": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Labels can optionally be used to attach custom labels to Pods created for this component.",
+							Description: "UserLabels can optionally be used to attach custom labels to Pods created for this component.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
 								Schema: &spec.Schema{

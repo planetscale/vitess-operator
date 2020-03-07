@@ -169,10 +169,10 @@ type VitessCellGatewaySpec struct {
 	// pods that the vtgate deployment creates.
 	Annotations map[string]string `json:"annotations,omitempty"`
 
-	// Labels can optionally be used to attach custom labels to Pods
+	// UserLabels can optionally be used to attach custom labels to Pods
 	// created for this component. These will be attached to the underlying
 	// pods that the vtgate deployment creates.
-	Labels map[string]string `json:"labels,omitempty"`
+	UserLabels map[string]string `json:"userLabels,omitempty"`
 }
 
 // VitessGatewayAuthentication configures authentication for vtgate in this cell.
