@@ -8,7 +8,7 @@ require (
 	github.com/ahmetb/gen-crd-api-reference-docs v0.1.5-0.20190629210212-52e137b8d003
 	github.com/coreos/etcd v3.3.12+incompatible // indirect
 	github.com/docker/distribution v2.7.1+incompatible // indirect
-	github.com/go-openapi/spec v0.19.0
+	github.com/go-openapi/spec v0.19.3
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/gophercloud/gophercloud v0.0.0-20190410012400-2c55d17f707c // indirect
 	github.com/gregjones/httpcache v0.0.0-20190212212710-3befbb6ad0cc // indirect
@@ -21,13 +21,14 @@ require (
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.4.0
-	gopkg.in/yaml.v2 v2.2.7
+	gopkg.in/yaml.v2 v2.2.8
 	k8s.io/api v0.0.0-20190612125737-db0771252981
 	k8s.io/apimachinery v0.0.0-20190612125636-6a5db36e93ad
 	k8s.io/apiserver v0.0.0-20190228174905-79427f02047f // indirect
 	k8s.io/client-go v11.0.0+incompatible
-	k8s.io/klog v0.3.1
-	k8s.io/kube-openapi v0.0.0-20190320154901-5e45bb682580
+	k8s.io/code-generator v0.17.3 // indirect
+	k8s.io/klog v1.0.0
+	k8s.io/kube-openapi v0.0.0-20191107075043-30be4d16710a
 	k8s.io/kubernetes v1.13.4
 	k8s.io/utils v0.0.0-20190308190857-21c4ce38f2a7
 	sigs.k8s.io/controller-runtime v0.1.12
