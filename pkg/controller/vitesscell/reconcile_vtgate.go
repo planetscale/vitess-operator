@@ -81,7 +81,6 @@ func (r *ReconcileVitessCell) reconcileVtgate(ctx context.Context, vtc *planetsc
 		planetscalev2.CellLabel:      vtc.Spec.Name,
 		planetscalev2.ComponentLabel: planetscalev2.VtgateComponentName,
 	}
-
 	resultBuilder := results.Builder{}
 
 	// Reconcile vtgate Service.
