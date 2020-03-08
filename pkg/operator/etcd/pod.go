@@ -81,6 +81,7 @@ type Spec struct {
 	InitContainers    []corev1.Container
 	Affinity          *corev1.Affinity
 	Annotations       map[string]string
+	UserLabels        map[string]string
 }
 
 // NewPod creates a new etcd Pod.

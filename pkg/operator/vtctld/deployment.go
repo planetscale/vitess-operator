@@ -66,6 +66,7 @@ type Spec struct {
 	ExtraVolumeMounts []corev1.VolumeMount
 	InitContainers    []corev1.Container
 	Annotations       map[string]string
+	UserLabels        map[string]string
 }
 
 // NewDeployment creates a new Deployment object for vtctld.

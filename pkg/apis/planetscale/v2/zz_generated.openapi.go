@@ -40,6 +40,7 @@ func schema_pkg_apis_planetscale_v2_EtcdLockserver(ref common.ReferenceCallback)
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "EtcdLockserver runs an etcd cluster for use as a Vitess lockserver. Unlike etcd-operator, it uses static bootstrapping and PVCs, treating members as stateful rather the ephemeral. Bringing back existing members instead of creating new ones means etcd can recover from loss of quorum without data loss, which is important for Vitess because restoring from an etcd backup (resetting the lockserver to a point in the past) would violate the consistency model that Vitess expects of a lockserver.",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"kind": {
 						SchemaProps: spec.SchemaProps{
@@ -83,6 +84,7 @@ func schema_pkg_apis_planetscale_v2_EtcdLockserverSpec(ref common.ReferenceCallb
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "EtcdLockserverSpec defines the desired state of an EtcdLockserver.",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"image": {
 						SchemaProps: spec.SchemaProps{
@@ -115,6 +117,7 @@ func schema_pkg_apis_planetscale_v2_EtcdLockserverSpec(ref common.ReferenceCallb
 							Description: "ExtraFlags can optionally be used to override default flags set by the operator, or pass additional flags to etcd. All entries must be key-value string pairs of the form \"flag\": \"value\". The flag name should not have any prefix (just \"flag\", not \"-flag\"). To set a boolean flag, set the string value to either \"true\" or \"false\".",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Type:   []string{"string"},
@@ -187,6 +190,7 @@ func schema_pkg_apis_planetscale_v2_EtcdLockserverSpec(ref common.ReferenceCallb
 							Description: "Annotations can optionally be used to attach custom annotations to Pods created for this component.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Type:   []string{"string"},
@@ -201,6 +205,7 @@ func schema_pkg_apis_planetscale_v2_EtcdLockserverSpec(ref common.ReferenceCallb
 							Description: "UserLabels can optionally be used to attach custom labels to Pods created for this component.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Type:   []string{"string"},
@@ -230,6 +235,7 @@ func schema_pkg_apis_planetscale_v2_EtcdLockserverStatus(ref common.ReferenceCal
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "EtcdLockserverStatus defines the observed state of an EtcdLockserver.",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"observedGeneration": {
 						SchemaProps: spec.SchemaProps{
@@ -255,7 +261,6 @@ func schema_pkg_apis_planetscale_v2_EtcdLockserverStatus(ref common.ReferenceCal
 				},
 			},
 		},
-		Dependencies: []string{},
 	}
 }
 
@@ -264,6 +269,7 @@ func schema_pkg_apis_planetscale_v2_VitessBackup(ref common.ReferenceCallback) c
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "VitessBackup is a one-way mirror of metadata for a Vitess backup. These objects are created automatically by the VitessBackupStorage controller to provide access to backup metadata from Kubernetes. Each backup found in the storage location will be represented by its own VitessBackup object.",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"kind": {
 						SchemaProps: spec.SchemaProps{
@@ -307,10 +313,9 @@ func schema_pkg_apis_planetscale_v2_VitessBackupSpec(ref common.ReferenceCallbac
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "VitessBackupSpec defines the desired state of the backup.",
-				Properties:  map[string]spec.Schema{},
+				Type:        []string{"object"},
 			},
 		},
-		Dependencies: []string{},
 	}
 }
 
@@ -319,6 +324,7 @@ func schema_pkg_apis_planetscale_v2_VitessBackupStatus(ref common.ReferenceCallb
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "VitessBackupStatus describes the observed state of the backup.",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"startTime": {
 						SchemaProps: spec.SchemaProps{
@@ -380,6 +386,7 @@ func schema_pkg_apis_planetscale_v2_VitessBackupStorage(ref common.ReferenceCall
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "VitessBackupStorage represents a storage location for Vitess backups. It provides access to metadata about Vitess backups inside Kubernetes by maintaining a set of VitessBackup objects that represent backups in the given storage location. One VitessBackupStorage represents a storage location defined at the VitessCluster level, so it provides access to metadata about backups stored in that location for any keyspace and any shard in that cluster.",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"kind": {
 						SchemaProps: spec.SchemaProps{
@@ -423,6 +430,7 @@ func schema_pkg_apis_planetscale_v2_VitessBackupStorageSpec(ref common.Reference
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "VitessBackupStorageSpec defines the desired state of VitessBackupStorage.",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"location": {
 						SchemaProps: spec.SchemaProps{
@@ -444,6 +452,7 @@ func schema_pkg_apis_planetscale_v2_VitessBackupStorageStatus(ref common.Referen
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "VitessBackupStorageStatus defines the observed state of VitessBackupStorage.",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"observedGeneration": {
 						SchemaProps: spec.SchemaProps{
@@ -462,7 +471,6 @@ func schema_pkg_apis_planetscale_v2_VitessBackupStorageStatus(ref common.Referen
 				},
 			},
 		},
-		Dependencies: []string{},
 	}
 }
 
@@ -471,6 +479,7 @@ func schema_pkg_apis_planetscale_v2_VitessCell(ref common.ReferenceCallback) com
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "VitessCell represents a group of Nodes in a given failure domain (Zone), plus Vitess components like the lockserver and gateway that are local to each cell. Together, these cell-local components make it possible for Vitess instances (tablets) to run on those Nodes, and for clients to reach Vitess instances in the cell.\n\nNote that VitessCell does not \"own\" the VitessKeyspaces deployed in it, just like a Node does not own the Pods deployed on it. In addition, each VitessKeyspace can deploy Vitess instances in multiple VitessCells, just like a Deployment can manage Pods that run on multiple Nodes.",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"kind": {
 						SchemaProps: spec.SchemaProps{
@@ -514,6 +523,7 @@ func schema_pkg_apis_planetscale_v2_VitessCellSpec(ref common.ReferenceCallback)
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "VitessCellSpec defines the desired state of a VitessCell.",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"name": {
 						SchemaProps: spec.SchemaProps{
@@ -572,6 +582,7 @@ func schema_pkg_apis_planetscale_v2_VitessCellSpec(ref common.ReferenceCallback)
 							Description: "ExtraVitessFlags is inherited from the parent's VitessClusterSpec.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Type:   []string{"string"},
@@ -607,6 +618,7 @@ func schema_pkg_apis_planetscale_v2_VitessCellStatus(ref common.ReferenceCallbac
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "VitessCellStatus defines the observed state of VitessCell",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"observedGeneration": {
 						SchemaProps: spec.SchemaProps{
@@ -632,6 +644,7 @@ func schema_pkg_apis_planetscale_v2_VitessCellStatus(ref common.ReferenceCallbac
 							Description: "Keyspaces is a summary of keyspaces deployed in this cell. This summary could be empty either if there are no keyspaces, or if the controller failed to read the current state. Use the Idle condition to distinguish these scenarios when the difference matters.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Ref: ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessCellKeyspaceStatus"),
@@ -660,6 +673,7 @@ func schema_pkg_apis_planetscale_v2_VitessCluster(ref common.ReferenceCallback) 
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "VitessCluster is the top-level interface for configuring a cluster.\n\nAlthough the VitessCluster controller creates various secondary objects like VitessCells, all the user-accessible configuration ultimately lives here. The other objects should be considered read-only representations of subsets of the dynamic cluster status. For example, you can examine a specific VitessCell object to get more details on the status of that cell than are summarized in the VitessCluster status, but any configuration changes should only be made in the VitessCluster object.",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"kind": {
 						SchemaProps: spec.SchemaProps{
@@ -703,6 +717,7 @@ func schema_pkg_apis_planetscale_v2_VitessClusterSpec(ref common.ReferenceCallba
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "VitessClusterSpec defines the desired state of VitessCluster.",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"images": {
 						SchemaProps: spec.SchemaProps{
@@ -777,6 +792,7 @@ func schema_pkg_apis_planetscale_v2_VitessClusterSpec(ref common.ReferenceCallba
 							Description: "ExtraVitessFlags can optionally be used to pass flags to all Vitess components. WARNING: Any flags passed here must be flags that can be accepted by vtgate, vtctld and vttablet. An example use-case would be topo flags.\n\nAll entries must be key-value string pairs of the form \"flag\": \"value\". The flag name should not have any prefix (just \"flag\", not \"-flag\"). To set a boolean flag, set the string value to either \"true\" or \"false\".",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Type:   []string{"string"},
@@ -806,6 +822,7 @@ func schema_pkg_apis_planetscale_v2_VitessClusterStatus(ref common.ReferenceCall
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "VitessClusterStatus defines the observed state of VitessCluster",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"observedGeneration": {
 						SchemaProps: spec.SchemaProps{
@@ -838,6 +855,7 @@ func schema_pkg_apis_planetscale_v2_VitessClusterStatus(ref common.ReferenceCall
 							Description: "Cells is a summary of the status of desired cells.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Ref: ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessClusterCellStatus"),
@@ -851,6 +869,7 @@ func schema_pkg_apis_planetscale_v2_VitessClusterStatus(ref common.ReferenceCall
 							Description: "Keyspaces is a summary of the status of desired keyspaces.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Ref: ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessClusterKeyspaceStatus"),
@@ -864,6 +883,7 @@ func schema_pkg_apis_planetscale_v2_VitessClusterStatus(ref common.ReferenceCall
 							Description: "OrphanedCells is a list of unwanted cells that could not be turned down.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Ref: ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus"),
@@ -877,6 +897,7 @@ func schema_pkg_apis_planetscale_v2_VitessClusterStatus(ref common.ReferenceCall
 							Description: "OrphanedKeyspaces is a list of unwanted keyspaces that could not be turned down.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Ref: ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus"),
@@ -898,6 +919,7 @@ func schema_pkg_apis_planetscale_v2_VitessKeyspace(ref common.ReferenceCallback)
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "VitessKeyspace represents the deployment of a logical database in Vitess. Each keyspace consists of a number of shards, which then consist of tablets. The tablets belonging to one VitessKeyspace can ultimately be deployed across various VitessCells.",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"kind": {
 						SchemaProps: spec.SchemaProps{
@@ -941,6 +963,7 @@ func schema_pkg_apis_planetscale_v2_VitessKeyspaceSpec(ref common.ReferenceCallb
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "VitessKeyspaceSpec defines the desired state of a VitessKeyspace.",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"name": {
 						SchemaProps: spec.SchemaProps{
@@ -992,6 +1015,7 @@ func schema_pkg_apis_planetscale_v2_VitessKeyspaceSpec(ref common.ReferenceCallb
 							Description: "ZoneMap is a map from Vitess cell name to zone (failure domain) name for all cells defined in the VitessCluster.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Type:   []string{"string"},
@@ -1026,6 +1050,7 @@ func schema_pkg_apis_planetscale_v2_VitessKeyspaceSpec(ref common.ReferenceCallb
 							Description: "ExtraVitessFlags is inherited from the parent's VitessClusterSpec.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Type:   []string{"string"},
@@ -1055,6 +1080,7 @@ func schema_pkg_apis_planetscale_v2_VitessKeyspaceStatus(ref common.ReferenceCal
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "VitessKeyspaceStatus defines the observed state of a VitessKeyspace.",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"observedGeneration": {
 						SchemaProps: spec.SchemaProps{
@@ -1068,6 +1094,7 @@ func schema_pkg_apis_planetscale_v2_VitessKeyspaceStatus(ref common.ReferenceCal
 							Description: "Shards is a summary of the status of all desired shards.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Ref: ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceShardStatus"),
@@ -1081,6 +1108,7 @@ func schema_pkg_apis_planetscale_v2_VitessKeyspaceStatus(ref common.ReferenceCal
 							Description: "OrphanedShards is a list of unwanted shards that could not be turned down.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Ref: ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus"),
@@ -1109,6 +1137,7 @@ func schema_pkg_apis_planetscale_v2_VitessShard(ref common.ReferenceCallback) co
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "VitessShard represents a group of Vitess instances (tablets) that store a subset of the data in a logical database (keyspace).\n\nThe tablets belonging to one VitessShard can ultimately be deployed across various VitessCells. All the tablets in a given shard, across all cells, use MySQL replication to stay eventually consistent with the MySQL master for that shard.",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"kind": {
 						SchemaProps: spec.SchemaProps{
@@ -1152,11 +1181,12 @@ func schema_pkg_apis_planetscale_v2_VitessShardSpec(ref common.ReferenceCallback
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "VitessShardSpec defines the desired state of a VitessShard.",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"tabletPools": {
 						VendorExtensible: spec.VendorExtensible{
 							Extensions: spec.Extensions{
-								"x-kubernetes-list-map-keys": []string{
+								"x-kubernetes-list-map-keys": []interface{}{
 									"type",
 									"cell",
 								},
@@ -1201,6 +1231,7 @@ func schema_pkg_apis_planetscale_v2_VitessShardSpec(ref common.ReferenceCallback
 							Description: "ZoneMap is a map from Vitess cell name to zone (failure domain) name for all cells defined in the VitessCluster.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Type:   []string{"string"},
@@ -1259,6 +1290,7 @@ func schema_pkg_apis_planetscale_v2_VitessShardSpec(ref common.ReferenceCallback
 							Description: "ExtraVitessFlags is inherited from the parent's VitessClusterSpec.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Type:   []string{"string"},
@@ -1288,6 +1320,7 @@ func schema_pkg_apis_planetscale_v2_VitessShardStatus(ref common.ReferenceCallba
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "VitessShardStatus defines the observed state of a VitessShard.",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"observedGeneration": {
 						SchemaProps: spec.SchemaProps{
@@ -1301,6 +1334,7 @@ func schema_pkg_apis_planetscale_v2_VitessShardStatus(ref common.ReferenceCallba
 							Description: "Tablets is a summary of the status of all desired tablets in the shard.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Ref: ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessTabletStatus"),
@@ -1314,6 +1348,7 @@ func schema_pkg_apis_planetscale_v2_VitessShardStatus(ref common.ReferenceCallba
 							Description: "OrphanedTablets is a list of unwanted tablets that could not be turned down.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Ref: ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus"),
@@ -1362,6 +1397,7 @@ func schema_pkg_apis_planetscale_v2_VitessShardStatus(ref common.ReferenceCallba
 							Description: "Conditions is a map of all VitessShard specific conditions we want to set and monitor. It's ok for multiple controllers to add conditions here, and those conditions will be preserved.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Ref: ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessShardCondition"),
