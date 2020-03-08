@@ -31,7 +31,6 @@ import (
 	"planetscale.dev/vitess-operator/pkg/operator/k8s"
 	"planetscale.dev/vitess-operator/pkg/operator/reconciler"
 	"planetscale.dev/vitess-operator/pkg/operator/results"
-	"planetscale.dev/vitess-operator/pkg/operator/update"
 )
 
 func (r *ReconcileEtcdLockserver) reconcileMembers(ctx context.Context, ls *planetscalev2.EtcdLockserver) (reconcile.Result, error) {
@@ -130,7 +129,6 @@ func memberSpecs(ls *planetscalev2.EtcdLockserver, parentLabels map[string]strin
 		if _, hasClusterLabel := ls.Labels[planetscalev2.ClusterLabel]; hasClusterLabel {
 			labels[planetscalev2.ClusterLabel] = ls.Labels[planetscalev2.ClusterLabel]
 		}
-		update.Labels(&labels, ls.Spec.UserLabels)
 
 		members = append(members, &etcd.Spec{
 			LockserverName:    ls.Name,
