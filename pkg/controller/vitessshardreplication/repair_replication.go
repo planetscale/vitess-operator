@@ -84,6 +84,19 @@ func (r *ReconcileVitessShard) repairReplication(ctx context.Context, vts *plane
 		return resultBuilder.Result()
 	}
 
+	// If the current master is in a cell that this VitessCluster doesn't
+	// manage, skip replication repair and assume another instance will do it.
+	if vts.Status.HasMaster != corev1.ConditionTrue {
+		return resultBuilder.Result()
+	}
+	masterAlias, err := topoproto.ParseTabletAlias(vts.Status.MasterAlias)
+	if err != nil {
+		return resultBuilder.Result()
+	}
+	if !vts.Spec.CellInCluster(masterAlias.GetCell()) {
+		return resultBuilder.Result()
+	}
+
 	// Don't hold our slot in the reconcile work queue for too long.
 	ctx, cancel := context.WithTimeout(ctx, repairReplicationTimeout)
 	defer cancel()

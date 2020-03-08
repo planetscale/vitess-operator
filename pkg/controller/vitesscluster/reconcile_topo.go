@@ -144,7 +144,7 @@ func (r *ReconcileVitessCluster) registerCells(ctx context.Context, vt *planetsc
 
 	// Create or update cell info for cells that should exist.
 	for name, cell := range desiredCells {
-		params := lockserver.LocalConnectionParams(vt, cell)
+		params := lockserver.LocalConnectionParams(&vt.Spec.GlobalLockserver, &cell.Lockserver, vt.Name, cell.Name)
 		if params == nil {
 			r.recorder.Eventf(vt, corev1.EventTypeWarning, "TopoInvalid", "no local lockserver is defined for cell %v", name)
 			continue
