@@ -93,6 +93,9 @@ func UpdateDeploymentImmediate(obj *appsv1.Deployment, spec *Spec) {
 	// Set labels on the Deployment object.
 	update.Labels(&obj.Labels, spec.Labels)
 
+	// Set user labels on the Deployment object.
+	update.Labels(&obj.Labels, spec.UserLabels)
+
 	// Scaling up or down doesn't require a rolling update.
 	obj.Spec.Replicas = pointer.Int32Ptr(spec.Replicas)
 }

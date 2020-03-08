@@ -106,6 +106,10 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 	update.Labels(&obj.Labels, spec.Labels)
 	// Tell Deployment to set the same labels on the Pods it creates.
 	update.Labels(&obj.Spec.Template.Labels, spec.Labels)
+	// Set user labels on the Deployment object.
+	update.Labels(&obj.Labels, spec.UserLabels)
+	// Tell Deployment to set the same user labels on the Pods it creates.
+	update.Labels(&obj.Spec.Template.Labels, spec.UserLabels)
 	// Tell Deployment to set annotations on Pods it creates.
 	obj.Spec.Template.Annotations = spec.Annotations
 

@@ -110,6 +110,8 @@ func UpdatePodInPlace(obj *corev1.Pod, spec *Spec) {
 func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	// Update labels, but ignore existing ones we don't set.
 	update.Labels(&obj.Labels, spec.Labels)
+	// Update UserLabels, but ignore existing ones we don't set.
+	update.Labels(&obj.Labels, spec.UserLabels)
 
 	// Update desired annotations.
 	update.Annotations(&obj.Annotations, spec.Annotations)
