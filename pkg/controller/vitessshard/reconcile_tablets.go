@@ -261,8 +261,6 @@ func vttabletSpecs(vts *planetscalev2.VitessShard, parentLabels map[string]strin
 			labels[planetscalev2.TabletTypeLabel] = string(pool.Type)
 			labels[planetscalev2.TabletIndexLabel] = strconv.FormatUint(uint64(tabletIndex), 10)
 
-			update.Labels(&labels, pool.UserLabels)
-
 			// Merge ExtraVitessFlags into the tablet spec ExtraFlags field.
 			extraFlags := make(map[string]string)
 			update.StringMap(&extraFlags, vts.Spec.ExtraVitessFlags)
