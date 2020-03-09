@@ -118,9 +118,9 @@ type S3BackupLocation struct {
 	AuthSecret *SecretSource `json:"authSecret,omitempty"`
 }
 
-// AzblobBackupLocation specifies a backup location in Amazon S3
+// AzblobBackupLocation specifies a backup location in Azure Blob Storage.
 type AzblobBackupLocation struct {
-	// Account is the name of the Azure storage account to use
+	// Account is the name of the Azure storage account to use.
 	// +kubebuilder:validation:MinLength=1
 	Account string `json:"account"`
 	// Container is the name of the Azure storage account container to use.
@@ -134,9 +134,9 @@ type AzblobBackupLocation struct {
 	// +kubebuilder:validation:Pattern=^[^\r\n]*$
 	// +kubebuilder:validation:MaxLength=256
 	KeyPrefix string `json:"keyPrefix,omitempty"`
-	// AuthSecret is a reference to the Secret to use for the Azure authentication
+	// AuthSecret is a reference to the Secret to use for the Azure authentication.
 	// The secret must contain two keys; azblob-account-key, and azblob-account-name
-	AuthSecret *SecretSource `json:"authSecret"`
+	AuthSecret SecretSource `json:"authSecret"`
 }
 
 // VitessBackupStorageStatus defines the observed state of VitessBackupStorage.
