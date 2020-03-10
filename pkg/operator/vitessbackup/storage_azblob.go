@@ -28,18 +28,18 @@ func azblobBackupFlags(azblob *planetscalev2.AzblobBackupLocation, clusterName s
 	return vitess.Flags{
 		"backup_storage_implementation":  azblobBackupStorageImplementationName,
 		"azblob_backup_account_name":     azblob.Account,
-		"azblob_backup_account_key_file": secrets.Mount(azblob.AuthSecret, azblobAuthDirName).FilePath(),
+		"azblob_backup_account_key_file": secrets.Mount(&azblob.AuthSecret, azblobAuthDirName).FilePath(),
 		"azblob_backup_container_name":   azblob.Container,
 		"azblob_backup_storage_root":     rootKeyPrefix(azblob.KeyPrefix, clusterName),
 	}
 }
 
 func azblobBackupVolumes(azblob *planetscalev2.AzblobBackupLocation) []corev1.Volume {
-	return secrets.Mount(azblob.AuthSecret, azblobAuthDirName).PodVolumes()
+	return secrets.Mount(&azblob.AuthSecret, azblobAuthDirName).PodVolumes()
 }
 
 func azblobBackupVolumeMounts(azblob *planetscalev2.AzblobBackupLocation) []corev1.VolumeMount {
 	return []corev1.VolumeMount{
-		secrets.Mount(azblob.AuthSecret, azblobAuthDirName).ContainerVolumeMount(),
+		secrets.Mount(&azblob.AuthSecret, azblobAuthDirName).ContainerVolumeMount(),
 	}
 }
