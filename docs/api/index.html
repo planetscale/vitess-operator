@@ -437,6 +437,76 @@ VitessClusterStatus
 </tr>
 </tbody>
 </table>
+<h3 id="planetscale.com/v2.AzblobBackupLocation">AzblobBackupLocation
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#planetscale.com/v2.VitessBackupLocation">VitessBackupLocation</a>)
+</p>
+<p>
+<p>AzblobBackupLocation specifies a backup location in Azure Blob Storage.</p>
+</p>
+<table class="table table-striped">
+<thead class="thead-dark">
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>account</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Account is the name of the Azure storage account to use.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>container</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Container is the name of the Azure storage account container to use.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>keyPrefix</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>KeyPrefix is an optional prefix added to all object keys created by Vitess.
+This is only needed if the same container is also used for something other
+than backups for VitessClusters. Backups from different clusters,
+keyspaces, or shards will automatically avoid colliding with each other
+within a container, regardless of this setting.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>authSecret</code></br>
+<em>
+<a href="#planetscale.com/v2.SecretSource">
+SecretSource
+</a>
+</em>
+</td>
+<td>
+<p>AuthSecret is a reference to the Secret to use for the Azure authentication.
+The secret must contain two keys; azblob-account-key, and azblob-account-name</p>
+</td>
+</tr>
+</tbody>
+</table>
 <h3 id="planetscale.com/v2.ClusterBackupSpec">ClusterBackupSpec
 </h3>
 <p>
@@ -1254,6 +1324,7 @@ Default: Use the default credentials of the Node.</p>
 </h3>
 <p>
 (<em>Appears on:</em>
+<a href="#planetscale.com/v2.AzblobBackupLocation">AzblobBackupLocation</a>, 
 <a href="#planetscale.com/v2.ExternalDatastore">ExternalDatastore</a>, 
 <a href="#planetscale.com/v2.GCSBackupLocation">GCSBackupLocation</a>, 
 <a href="#planetscale.com/v2.S3BackupLocation">S3BackupLocation</a>, 
@@ -1571,6 +1642,19 @@ S3BackupLocation
 </td>
 <td>
 <p>S3 specifies a backup location in Amazon S3.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>azblob</code></br>
+<em>
+<a href="#planetscale.com/v2.AzblobBackupLocation">
+AzblobBackupLocation
+</a>
+</em>
+</td>
+<td>
+<p>Azblob specifies a backup location in Azure Blob Storage.</p>
 </td>
 </tr>
 <tr>

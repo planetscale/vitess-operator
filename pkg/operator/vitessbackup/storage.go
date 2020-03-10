@@ -42,6 +42,8 @@ func StorageFlags(backupLocation *planetscalev2.VitessBackupLocation, clusterNam
 		return gcsBackupFlags(backupLocation.GCS, clusterName)
 	case backupLocation.S3 != nil:
 		return s3BackupFlags(backupLocation.S3, clusterName)
+	case backupLocation.Azblob != nil:
+		return azblobBackupFlags(backupLocation.Azblob, clusterName)
 	case backupLocation.Volume != nil:
 		return fileBackupFlags(clusterName)
 	}
@@ -55,6 +57,8 @@ func StorageVolumes(backupLocation *planetscalev2.VitessBackupLocation) []corev1
 		return gcsBackupVolumes(backupLocation.GCS)
 	case backupLocation.S3 != nil:
 		return s3BackupVolumes(backupLocation.S3)
+	case backupLocation.Azblob != nil:
+		return azblobBackupVolumes(backupLocation.Azblob)
 	case backupLocation.Volume != nil:
 		return fileBackupVolumes(backupLocation.Volume)
 	}
@@ -68,6 +72,8 @@ func StorageVolumeMounts(backupLocation *planetscalev2.VitessBackupLocation) []c
 		return gcsBackupVolumeMounts(backupLocation.GCS)
 	case backupLocation.S3 != nil:
 		return s3BackupVolumeMounts(backupLocation.S3)
+	case backupLocation.Azblob != nil:
+		return azblobBackupVolumeMounts(backupLocation.Azblob)
 	case backupLocation.Volume != nil:
 		return fileBackupVolumeMounts()
 	}

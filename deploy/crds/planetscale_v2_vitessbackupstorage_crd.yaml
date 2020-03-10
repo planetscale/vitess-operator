@@ -35,6 +35,66 @@ spec:
               description: Location specifies the Vitess parameters for connecting
                 to the backup storage location.
               properties:
+                azblob:
+                  description: Azblob specifies a backup location in Azure Blob Storage.
+                  properties:
+                    account:
+                      description: Account is the name of the Azure storage account
+                        to use.
+                      minLength: 1
+                      type: string
+                    authSecret:
+                      description: AuthSecret is a reference to the Secret to use
+                        for the Azure authentication. The secret must contain two
+                        keys; azblob-account-key, and azblob-account-name
+                      properties:
+                        key:
+                          description: Key is the name of the item within the data
+                            source to use as the value.  For a Kubernetes Secret object
+                            (specified with the 'name' field), this is the key within
+                            the 'data' map.  When 'volumeName' is used, this specifies
+                            the name of the file to load within that Volume.
+                          type: string
+                        name:
+                          description: Name is the name of a Kubernetes Secret object
+                            to use as the data source. The Secret must be in the same
+                            namespace as the VitessCluster.  The 'key' field defines
+                            the item to pick from the Secret object's 'data' map.  If
+                            a Secret name is not specified, the data source must be
+                            defined with the 'volumeName' field instead.
+                          type: string
+                        volumeName:
+                          description: VolumeName directly specifies the name of a
+                            Volume in each Pod that should be mounted. You must ensure
+                            a Volume by that name exists in all relevant Pods, such
+                            as by using the appropriate ExtraVolumes fields. If specified,
+                            this takes precedence over the 'name' field.  The 'key'
+                            field defines the name of the file to load within this
+                            Volume.
+                          type: string
+                      required:
+                      - key
+                      type: object
+                    container:
+                      description: Container is the name of the Azure storage account
+                        container to use.
+                      minLength: 1
+                      type: string
+                    keyPrefix:
+                      description: KeyPrefix is an optional prefix added to all object
+                        keys created by Vitess. This is only needed if the same container
+                        is also used for something other than backups for VitessClusters.
+                        Backups from different clusters, keyspaces, or shards will
+                        automatically avoid colliding with each other within a container,
+                        regardless of this setting.
+                      maxLength: 256
+                      pattern: ^[^\r\n]*$
+                      type: string
+                  required:
+                  - account
+                  - container
+                  - authSecret
+                  type: object
                 gcs:
                   description: GCS specifies a backup location in Google Cloud Storage.
                   properties:

@@ -67,6 +67,8 @@ type VitessBackupLocation struct {
 	GCS *GCSBackupLocation `json:"gcs,omitempty"`
 	// S3 specifies a backup location in Amazon S3.
 	S3 *S3BackupLocation `json:"s3,omitempty"`
+	// Azblob specifies a backup location in Azure Blob Storage.
+	Azblob *AzblobBackupLocation `json:"azblob,omitempty"`
 	// Volume specifies a backup location as a Kubernetes Volume Source to mount.
 	// This can be used, for example, to store backups on an NFS mount, or on
 	// a shared host path for local testing.
@@ -114,6 +116,27 @@ type S3BackupLocation struct {
 	// `~/.aws/credentials` file.
 	// Default: Use the default credentials of the Node.
 	AuthSecret *SecretSource `json:"authSecret,omitempty"`
+}
+
+// AzblobBackupLocation specifies a backup location in Azure Blob Storage.
+type AzblobBackupLocation struct {
+	// Account is the name of the Azure storage account to use.
+	// +kubebuilder:validation:MinLength=1
+	Account string `json:"account"`
+	// Container is the name of the Azure storage account container to use.
+	// +kubebuilder:validation:MinLength=1
+	Container string `json:"container"`
+	// KeyPrefix is an optional prefix added to all object keys created by Vitess.
+	// This is only needed if the same container is also used for something other
+	// than backups for VitessClusters. Backups from different clusters,
+	// keyspaces, or shards will automatically avoid colliding with each other
+	// within a container, regardless of this setting.
+	// +kubebuilder:validation:Pattern=^[^\r\n]*$
+	// +kubebuilder:validation:MaxLength=256
+	KeyPrefix string `json:"keyPrefix,omitempty"`
+	// AuthSecret is a reference to the Secret to use for the Azure authentication.
+	// The secret must contain two keys; azblob-account-key, and azblob-account-name
+	AuthSecret SecretSource `json:"authSecret"`
 }
 
 // VitessBackupStorageStatus defines the observed state of VitessBackupStorage.
