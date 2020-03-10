@@ -38,7 +38,7 @@ import (
 
 const (
 	topoReconcileTimeout = 5 * time.Second
-	// topoRequeueDelay is how long to wait before retrying when a vitesstopo
+	// topoRequeueDelay is how long to wait before retrying when a topology
 	// server call failed. We typically return success with a requeue delay
 	// instead of returning an error, because it's unlikely that retrying
 	// immediately will be worthwhile.
@@ -119,7 +119,7 @@ func (r *ReconcileVitessCluster) pruneCells(ctx context.Context, vt *planetscale
 	// Get list of cells in topo.
 	cellNames, err := ts.GetCellInfoNames(ctx)
 	if err != nil {
-		r.recorder.Eventf(vt, corev1.EventTypeWarning, "TopoListFailed", "failed to list cells in vitesstopo: %v", err)
+		r.recorder.Eventf(vt, corev1.EventTypeWarning, "TopoListFailed", "failed to list cells in toplogy: %v", err)
 		return resultBuilder.RequeueAfter(topoRequeueDelay)
 	}
 
@@ -130,10 +130,10 @@ func (r *ReconcileVitessCluster) pruneCells(ctx context.Context, vt *planetscale
 			// It's also not being kept around by a blocked turn-down.
 			// See if we can delete it. This will fail if the cell is not empty.
 			if err := ts.DeleteCellInfo(ctx, name); err != nil {
-				r.recorder.Eventf(vt, corev1.EventTypeWarning, "TopoCleanupFailed", "unable to remove cell %s from vitesstopo: %v", name, err)
+				r.recorder.Eventf(vt, corev1.EventTypeWarning, "TopoCleanupFailed", "unable to remove cell %s from topology: %v", name, err)
 				resultBuilder.RequeueAfter(topoRequeueDelay)
 			} else {
-				r.recorder.Eventf(vt, corev1.EventTypeNormal, "TopoCleanup", "removed unwanted cell %s from vitesstopo", name)
+				r.recorder.Eventf(vt, corev1.EventTypeNormal, "TopoCleanup", "removed unwanted cell %s from topology", name)
 			}
 		}
 	}
@@ -198,7 +198,7 @@ func (r *ReconcileVitessCluster) pruneKeyspaces(ctx context.Context, vt *planets
 	// Get list of keyspaces in topo.
 	keyspaceNames, err := ts.GetKeyspaces(ctx)
 	if err != nil {
-		r.recorder.Eventf(vt, corev1.EventTypeWarning, "TopoListFailed", "failed to list keyspaces in vitesstopo: %v", err)
+		r.recorder.Eventf(vt, corev1.EventTypeWarning, "TopoListFailed", "failed to list keyspaces in topology: %v", err)
 		return resultBuilder.RequeueAfter(topoRequeueDelay)
 	}
 
@@ -211,10 +211,10 @@ func (r *ReconcileVitessCluster) pruneKeyspaces(ctx context.Context, vt *planets
 			// This is equivalent to `vtctl DeleteKeyspace -recursive`.
 			wr := wrangler.New(logutil.NewConsoleLogger(), ts, nil)
 			if err := wr.DeleteKeyspace(ctx, name, true); err != nil {
-				r.recorder.Eventf(vt, corev1.EventTypeWarning, "TopoCleanupFailed", "unable to remove keyspace %s from vitesstopo: %v", name, err)
+				r.recorder.Eventf(vt, corev1.EventTypeWarning, "TopoCleanupFailed", "unable to remove keyspace %s from topology: %v", name, err)
 				resultBuilder.RequeueAfter(topoRequeueDelay)
 			} else {
-				r.recorder.Eventf(vt, corev1.EventTypeNormal, "TopoCleanup", "removed unwanted keyspace %s from vitesstopo", name)
+				r.recorder.Eventf(vt, corev1.EventTypeNormal, "TopoCleanup", "removed unwanted keyspace %s from topology", name)
 			}
 		}
 	}
