@@ -56,5 +56,6 @@ func RegisterCells(ctx context.Context, vt *v2.VitessCluster, ts *topo.Server, r
 			(*recorder).Eventf(vt, v1.EventTypeNormal, "TopoUpdated", "updated lockserver addess for cell %v", name)
 		}
 	}
+
 	return resultBuilder.Result()
 }
