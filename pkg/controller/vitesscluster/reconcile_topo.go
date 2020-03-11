@@ -79,7 +79,7 @@ func (r *ReconcileVitessCluster) reconcileTopology(ctx context.Context, vt *plan
 func (r *ReconcileVitessCluster) reconcileCellTopology(ctx context.Context, vt *planetscalev2.VitessCluster, ts *topo.Server, globalTopoImpl string) (reconcile.Result, error) {
 	resultBuilder := &results.Builder{}
 
-	// Make a map from cell name (as Vitess calls them) back to the cell spec.
+	// Make a map from cell name (as Vitess calls them) back to the cell's lockserver spec.
 	desiredCells := make(map[string]*planetscalev2.LockserverSpec, len(vt.Spec.Cells))
 	for i := range vt.Spec.Cells {
 		cell := &vt.Spec.Cells[i]
