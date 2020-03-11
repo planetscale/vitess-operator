@@ -44,7 +44,7 @@ type RegisterCellsParams struct {
 	// EventObj holds the object type that the recorder will use when writing events.
 	EventObj         runtime.Object
 	TopoServer       *topo.Server
-	Recorder         *record.EventRecorder
+	Recorder         record.EventRecorder
 	GlobalLockserver *planetscalev2.LockserverSpec
 	ClusterName      string
 	GlobalTopoImpl   string
@@ -58,11 +58,11 @@ func RegisterCells(ctx context.Context, c RegisterCellsParams) (reconcile.Result
 	for name, lockserverSpec := range c.DesiredCells {
 		params := lockserver.LocalConnectionParams(c.GlobalLockserver, lockserverSpec, c.ClusterName, name)
 		if params == nil {
-			(*c.Recorder).Eventf(c.EventObj, corev1.EventTypeWarning, "TopoInvalid", "no local lockserver is defined for cell %v", name)
+			c.Recorder.Eventf(c.EventObj, corev1.EventTypeWarning, "TopoInvalid", "no local lockserver is defined for cell %v", name)
 			continue
 		}
 		if params.Implementation != c.GlobalTopoImpl {
-			(*c.Recorder).Eventf(c.EventObj, corev1.EventTypeWarning, "TopoInvalid", "local lockserver implementation for cell %v doesn't match global topo implementation", name)
+			c.Recorder.Eventf(c.EventObj, corev1.EventTypeWarning, "TopoInvalid", "local lockserver implementation for cell %v doesn't match global topo implementation", name)
 			continue
 		}
 		updated := false
@@ -78,11 +78,11 @@ func RegisterCells(ctx context.Context, c RegisterCellsParams) (reconcile.Result
 		})
 		if err != nil {
 			// Record the error and continue trying other cells.
-			(*c.Recorder).Eventf(c.EventObj, corev1.EventTypeWarning, "TopoUpdateFailed", "failed to update lockserver address for cell %v", name)
+			c.Recorder.Eventf(c.EventObj, corev1.EventTypeWarning, "TopoUpdateFailed", "failed to update lockserver address for cell %v", name)
 			resultBuilder.RequeueAfter(topoRequeueDelay)
 		}
 		if updated {
-			(*c.Recorder).Eventf(c.EventObj, corev1.EventTypeNormal, "TopoUpdated", "updated lockserver addess for cell %v", name)
+			c.Recorder.Eventf(c.EventObj, corev1.EventTypeNormal, "TopoUpdated", "updated lockserver addess for cell %v", name)
 		}
 	}
 
