@@ -1,3 +1,19 @@
+/*
+Copyright 2019 PlanetScale Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package vitesstopo
 
 import (
@@ -24,21 +40,34 @@ const (
 	topoRequeueDelay = 5 * time.Second
 )
 
-func RegisterCells(ctx context.Context, eventObj runtime.Object, ts *topo.Server, recorder *record.EventRecorder, globalLockserver v2.LockserverSpec, clusterName, globalTopoImpl string, desiredCells map[string]*v2.VitessCellTemplate) (reconcile.Result, error) {
+type RegisterCellsCmd struct {
+	Ctx context.Context
+	// EventObj holds the object type that the recorder will use when writing events.
+	EventObj         runtime.Object
+	Ts               *topo.Server
+	Recorder         *record.EventRecorder
+	GlobalLockserver v2.LockserverSpec
+	ClusterName      string
+	GlobalTopoImpl   string
+	// DesiredCells is a map of cell names to their lockserver specs.
+	DesiredCells map[string]*v2.LockserverSpec
+}
+
+func RegisterCells(c RegisterCellsCmd) (reconcile.Result, error) {
 	resultBuilder := &results.Builder{}
 
-	for name, cell := range desiredCells {
-		params := lockserver.LocalConnectionParams(&globalLockserver, &cell.Lockserver, clusterName, cell.Name)
+	for name, lockserverSpec := range c.DesiredCells {
+		params := lockserver.LocalConnectionParams(&c.GlobalLockserver, lockserverSpec, c.ClusterName, name)
 		if params == nil {
-			(*recorder).Eventf(eventObj, v1.EventTypeWarning, "TopoInvalid", "no local lockserver is defined for cell %v", name)
+			(*c.Recorder).Eventf(c.EventObj, v1.EventTypeWarning, "TopoInvalid", "no local lockserver is defined for cell %v", name)
 			continue
 		}
-		if params.Implementation != globalTopoImpl {
-			(*recorder).Eventf(eventObj, v1.EventTypeWarning, "TopoInvalid", "local lockserver implementation for cell %v doesn't match global topo implementation", name)
+		if params.Implementation != c.GlobalTopoImpl {
+			(*c.Recorder).Eventf(c.EventObj, v1.EventTypeWarning, "TopoInvalid", "local lockserver implementation for cell %v doesn't match global topo implementation", name)
 			continue
 		}
 		updated := false
-		err := ts.UpdateCellInfoFields(ctx, name, func(cellInfo *topodata.CellInfo) error {
+		err := c.Ts.UpdateCellInfoFields(c.Ctx, name, func(cellInfo *topodata.CellInfo) error {
 			// Skip the update if it already matches.
 			if cellInfo.ServerAddress == params.Address && cellInfo.Root == params.RootPath {
 				return topo.NewError(topo.NoUpdateNeeded, "")
@@ -50,11 +79,11 @@ func RegisterCells(ctx context.Context, eventObj runtime.Object, ts *topo.Server
 		})
 		if err != nil {
 			// Record the error and continue trying other cells.
-			(*recorder).Eventf(eventObj, v1.EventTypeWarning, "TopoUpdateFailed", "failed to update lockserver address for cell %v", name)
+			(*c.Recorder).Eventf(c.EventObj, v1.EventTypeWarning, "TopoUpdateFailed", "failed to update lockserver address for cell %v", name)
 			resultBuilder.RequeueAfter(topoRequeueDelay)
 		}
 		if updated {
-			(*recorder).Eventf(eventObj, v1.EventTypeNormal, "TopoUpdated", "updated lockserver addess for cell %v", name)
+			(*c.Recorder).Eventf(c.EventObj, v1.EventTypeNormal, "TopoUpdated", "updated lockserver addess for cell %v", name)
 		}
 	}
 

@@ -80,10 +80,10 @@ func (r *ReconcileVitessCluster) reconcileCellTopology(ctx context.Context, vt *
 	resultBuilder := &results.Builder{}
 
 	// Make a map from cell name (as Vitess calls them) back to the cell spec.
-	desiredCells := make(map[string]*planetscalev2.VitessCellTemplate, len(vt.Spec.Cells))
+	desiredCells := make(map[string]*planetscalev2.LockserverSpec, len(vt.Spec.Cells))
 	for i := range vt.Spec.Cells {
 		cell := &vt.Spec.Cells[i]
-		desiredCells[cell.Name] = cell
+		desiredCells[cell.Name] = &cell.Lockserver
 	}
 
 	if *vt.Spec.TopologyReconciliation.RegisterCellsAliases {
@@ -101,7 +101,16 @@ func (r *ReconcileVitessCluster) reconcileCellTopology(ctx context.Context, vt *
 	}
 
 	if *vt.Spec.TopologyReconciliation.RegisterCells {
-		result, err := vitesstopo.RegisterCells(ctx, vt, ts, &r.recorder, vt.Spec.GlobalLockserver, vt.Name, globalTopoImpl, desiredCells)
+		result, err := vitesstopo.RegisterCells(vitesstopo.RegisterCellsCmd{
+			Ctx:              ctx,
+			EventObj:         vt,
+			Ts:               ts,
+			Recorder:         &r.recorder,
+			GlobalLockserver: vt.Spec.GlobalLockserver,
+			ClusterName:      vt.Name,
+			GlobalTopoImpl:   globalTopoImpl,
+			DesiredCells:     desiredCells,
+		})
 		resultBuilder.Merge(result, err)
 	}
 
@@ -113,7 +122,7 @@ func (r *ReconcileVitessCluster) reconcileCellTopology(ctx context.Context, vt *
 	return resultBuilder.Result()
 }
 
-func (r *ReconcileVitessCluster) pruneCells(ctx context.Context, vt *planetscalev2.VitessCluster, ts *topo.Server, desiredCells map[string]*planetscalev2.VitessCellTemplate) (reconcile.Result, error) {
+func (r *ReconcileVitessCluster) pruneCells(ctx context.Context, vt *planetscalev2.VitessCluster, ts *topo.Server, desiredCells map[string]*planetscalev2.LockserverSpec) (reconcile.Result, error) {
 	resultBuilder := &results.Builder{}
 
 	// Get list of cells in topo.
@@ -140,7 +149,7 @@ func (r *ReconcileVitessCluster) pruneCells(ctx context.Context, vt *planetscale
 	return resultBuilder.Result()
 }
 
-func (r *ReconcileVitessCluster) registerCellsAliases(ctx context.Context, vt *planetscalev2.VitessCluster, ts *topo.Server, desiredCells map[string]*planetscalev2.VitessCellTemplate) error {
+func (r *ReconcileVitessCluster) registerCellsAliases(ctx context.Context, vt *planetscalev2.VitessCluster, ts *topo.Server, desiredCells map[string]*planetscalev2.LockserverSpec) error {
 	desiredCellsAliases := buildCellsAliases(desiredCells)
 	currentCellsAliases, err := ts.GetCellsAliases(ctx, true)
 	if err != nil {
