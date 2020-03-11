@@ -21,7 +21,7 @@ import (
 	topodatapb "vitess.io/vitess/go/vt/proto/topodata"
 )
 
-func buildCellsAliases(desiredCells map[string]*planetscalev2.VitessCellTemplate) map[string]*topodatapb.CellsAlias {
+func buildCellsAliases(desiredCells map[string]*planetscalev2.LockserverSpec) map[string]*topodatapb.CellsAlias {
 	cellsAlias := make(map[string]*topodatapb.CellsAlias)
 	for name := range desiredCells {
 		alias := "planetscale_operator_default"

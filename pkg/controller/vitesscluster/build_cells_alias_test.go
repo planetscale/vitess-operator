@@ -19,18 +19,10 @@ package vitesscluster
 import (
 	"testing"
 
-	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 	"github.com/stretchr/testify/assert"
+	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 	topodatapb "vitess.io/vitess/go/vt/proto/topodata"
 )
-
-func makeCellTemplate(name string, zone string) *planetscalev2.VitessCellTemplate {
-	cellTemplate := planetscalev2.VitessCellTemplate{
-		Name: name,
-		Zone: zone,
-	}
-	return &cellTemplate
-}
 
 func TestBuildCellAliases(t *testing.T) {
 	awsuseast1Alias := topodatapb.CellsAlias{
@@ -54,16 +46,16 @@ func TestBuildCellAliases(t *testing.T) {
 		"planetscale_operator_default": &gcpuscentral1Alias,
 	}
 
-	awsInput := map[string]*planetscalev2.VitessCellTemplate{
-		"awsuseast1a": makeCellTemplate("awsuseast1a", "us-east-1a"),
-		"awsuseast1b": makeCellTemplate("awsuseast1b", "us-east-1b"),
-		"awsuseast1c": makeCellTemplate("awsuseast1c", "us-east-1c"),
+	awsInput := map[string]*planetscalev2.LockserverSpec{
+		"awsuseast1a": nil,
+		"awsuseast1b": nil,
+		"awsuseast1c": nil,
 	}
 
-	gcpInput := map[string]*planetscalev2.VitessCellTemplate{
-		"gcpuscentral1a": makeCellTemplate("awsuseast1a", "us-central1-a"),
-		"gcpuscentral1c": makeCellTemplate("awsuseast1c", "us-central1-c"),
-		"gcpuscentral1f": makeCellTemplate("awsuseast1f", "us-central1-f"),
+	gcpInput := map[string]*planetscalev2.LockserverSpec{
+		"gcpuscentral1a": nil,
+		"gcpuscentral1c": nil,
+		"gcpuscentral1f": nil,
 	}
 
 	results := buildCellsAliases(awsInput)

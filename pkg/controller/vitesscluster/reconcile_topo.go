@@ -33,6 +33,7 @@ import (
 	"planetscale.dev/vitess-operator/pkg/operator/results"
 	"planetscale.dev/vitess-operator/pkg/operator/stringsets"
 	"planetscale.dev/vitess-operator/pkg/operator/toposerver"
+	"planetscale.dev/vitess-operator/pkg/operator/vitesstopo"
 )
 
 const (
@@ -78,11 +79,11 @@ func (r *ReconcileVitessCluster) reconcileTopology(ctx context.Context, vt *plan
 func (r *ReconcileVitessCluster) reconcileCellTopology(ctx context.Context, vt *planetscalev2.VitessCluster, ts *topo.Server, globalTopoImpl string) (reconcile.Result, error) {
 	resultBuilder := &results.Builder{}
 
-	// Make a map from cell name (as Vitess calls them) back to the cell spec.
-	desiredCells := make(map[string]*planetscalev2.VitessCellTemplate, len(vt.Spec.Cells))
+	// Make a map from cell name (as Vitess calls them) back to the cell's lockserver spec.
+	desiredCells := make(map[string]*planetscalev2.LockserverSpec, len(vt.Spec.Cells))
 	for i := range vt.Spec.Cells {
 		cell := &vt.Spec.Cells[i]
-		desiredCells[cell.Name] = cell
+		desiredCells[cell.Name] = &cell.Lockserver
 	}
 
 	if *vt.Spec.TopologyReconciliation.RegisterCellsAliases {
@@ -100,7 +101,15 @@ func (r *ReconcileVitessCluster) reconcileCellTopology(ctx context.Context, vt *
 	}
 
 	if *vt.Spec.TopologyReconciliation.RegisterCells {
-		result, err := r.registerCells(ctx, vt, ts, globalTopoImpl, desiredCells)
+		result, err := vitesstopo.RegisterCells(ctx, vitesstopo.RegisterCellsParams{
+			EventObj:         vt,
+			TopoServer:       ts,
+			Recorder:         r.recorder,
+			GlobalLockserver: &vt.Spec.GlobalLockserver,
+			ClusterName:      vt.Name,
+			GlobalTopoImpl:   globalTopoImpl,
+			DesiredCells:     desiredCells,
+		})
 		resultBuilder.Merge(result, err)
 	}
 
@@ -112,7 +121,7 @@ func (r *ReconcileVitessCluster) reconcileCellTopology(ctx context.Context, vt *
 	return resultBuilder.Result()
 }
 
-func (r *ReconcileVitessCluster) pruneCells(ctx context.Context, vt *planetscalev2.VitessCluster, ts *topo.Server, desiredCells map[string]*planetscalev2.VitessCellTemplate) (reconcile.Result, error) {
+func (r *ReconcileVitessCluster) pruneCells(ctx context.Context, vt *planetscalev2.VitessCluster, ts *topo.Server, desiredCells map[string]*planetscalev2.LockserverSpec) (reconcile.Result, error) {
 	resultBuilder := &results.Builder{}
 
 	// Get list of cells in topo.
@@ -139,44 +148,7 @@ func (r *ReconcileVitessCluster) pruneCells(ctx context.Context, vt *planetscale
 	return resultBuilder.Result()
 }
 
-func (r *ReconcileVitessCluster) registerCells(ctx context.Context, vt *planetscalev2.VitessCluster, ts *topo.Server, globalTopoImpl string, desiredCells map[string]*planetscalev2.VitessCellTemplate) (reconcile.Result, error) {
-	resultBuilder := &results.Builder{}
-
-	// Create or update cell info for cells that should exist.
-	for name, cell := range desiredCells {
-		params := lockserver.LocalConnectionParams(&vt.Spec.GlobalLockserver, &cell.Lockserver, vt.Name, cell.Name)
-		if params == nil {
-			r.recorder.Eventf(vt, corev1.EventTypeWarning, "TopoInvalid", "no local lockserver is defined for cell %v", name)
-			continue
-		}
-		if params.Implementation != globalTopoImpl {
-			r.recorder.Eventf(vt, corev1.EventTypeWarning, "TopoInvalid", "local lockserver implementation for cell %v doesn't match global topo implementation", name)
-			continue
-		}
-		updated := false
-		err := ts.UpdateCellInfoFields(ctx, name, func(cellInfo *topodatapb.CellInfo) error {
-			// Skip the update if it already matches.
-			if cellInfo.ServerAddress == params.Address && cellInfo.Root == params.RootPath {
-				return topo.NewError(topo.NoUpdateNeeded, "")
-			}
-			cellInfo.ServerAddress = params.Address
-			cellInfo.Root = params.RootPath
-			updated = true
-			return nil
-		})
-		if err != nil {
-			// Record the error and continue trying other cells.
-			r.recorder.Eventf(vt, corev1.EventTypeWarning, "TopoUpdateFailed", "failed to update lockserver address for cell %v", name)
-			resultBuilder.RequeueAfter(topoRequeueDelay)
-		}
-		if updated {
-			r.recorder.Eventf(vt, corev1.EventTypeNormal, "TopoUpdated", "updated lockserver addess for cell %v", name)
-		}
-	}
-	return resultBuilder.Result()
-}
-
-func (r *ReconcileVitessCluster) registerCellsAliases(ctx context.Context, vt *planetscalev2.VitessCluster, ts *topo.Server, desiredCells map[string]*planetscalev2.VitessCellTemplate) error {
+func (r *ReconcileVitessCluster) registerCellsAliases(ctx context.Context, vt *planetscalev2.VitessCluster, ts *topo.Server, desiredCells map[string]*planetscalev2.LockserverSpec) error {
 	desiredCellsAliases := buildCellsAliases(desiredCells)
 	currentCellsAliases, err := ts.GetCellsAliases(ctx, true)
 	if err != nil {
