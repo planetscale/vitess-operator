@@ -20,14 +20,14 @@ import (
 	"context"
 	"time"
 
-	v1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"vitess.io/vitess/go/vt/proto/topodata"
 	"vitess.io/vitess/go/vt/topo"
 
-	v2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
+	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 	"planetscale.dev/vitess-operator/pkg/operator/lockserver"
 	"planetscale.dev/vitess-operator/pkg/operator/results"
 )
@@ -45,11 +45,11 @@ type RegisterCellsParams struct {
 	EventObj         runtime.Object
 	TopoServer       *topo.Server
 	Recorder         *record.EventRecorder
-	GlobalLockserver v2.LockserverSpec
+	GlobalLockserver planetscalev2.LockserverSpec
 	ClusterName      string
 	GlobalTopoImpl   string
 	// DesiredCells is a map of cell names to their lockserver specs.
-	DesiredCells map[string]*v2.LockserverSpec
+	DesiredCells map[string]*planetscalev2.LockserverSpec
 }
 
 func RegisterCells(ctx context.Context, c RegisterCellsParams) (reconcile.Result, error) {
@@ -58,11 +58,11 @@ func RegisterCells(ctx context.Context, c RegisterCellsParams) (reconcile.Result
 	for name, lockserverSpec := range c.DesiredCells {
 		params := lockserver.LocalConnectionParams(&c.GlobalLockserver, lockserverSpec, c.ClusterName, name)
 		if params == nil {
-			(*c.Recorder).Eventf(c.EventObj, v1.EventTypeWarning, "TopoInvalid", "no local lockserver is defined for cell %v", name)
+			(*c.Recorder).Eventf(c.EventObj, corev1.EventTypeWarning, "TopoInvalid", "no local lockserver is defined for cell %v", name)
 			continue
 		}
 		if params.Implementation != c.GlobalTopoImpl {
-			(*c.Recorder).Eventf(c.EventObj, v1.EventTypeWarning, "TopoInvalid", "local lockserver implementation for cell %v doesn't match global topo implementation", name)
+			(*c.Recorder).Eventf(c.EventObj, corev1.EventTypeWarning, "TopoInvalid", "local lockserver implementation for cell %v doesn't match global topo implementation", name)
 			continue
 		}
 		updated := false
@@ -78,11 +78,11 @@ func RegisterCells(ctx context.Context, c RegisterCellsParams) (reconcile.Result
 		})
 		if err != nil {
 			// Record the error and continue trying other cells.
-			(*c.Recorder).Eventf(c.EventObj, v1.EventTypeWarning, "TopoUpdateFailed", "failed to update lockserver address for cell %v", name)
+			(*c.Recorder).Eventf(c.EventObj, corev1.EventTypeWarning, "TopoUpdateFailed", "failed to update lockserver address for cell %v", name)
 			resultBuilder.RequeueAfter(topoRequeueDelay)
 		}
 		if updated {
-			(*c.Recorder).Eventf(c.EventObj, v1.EventTypeNormal, "TopoUpdated", "updated lockserver addess for cell %v", name)
+			(*c.Recorder).Eventf(c.EventObj, corev1.EventTypeNormal, "TopoUpdated", "updated lockserver addess for cell %v", name)
 		}
 	}
 
