@@ -1,5 +1,5 @@
 /*
-Copyright 2019 PlanetScale Inc.
+Copyright 2020 PlanetScale Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@ limitations under the License.
 package v2
 
 import (
-	"sort"
 	"encoding/hex"
+	"sort"
 
 	"planetscale.dev/vitess-operator/pkg/operator/partitioning"
 	topodatapb "vitess.io/vitess/go/vt/proto/topodata"

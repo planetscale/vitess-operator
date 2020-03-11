@@ -1,5 +1,5 @@
 /*
-Copyright 2019 PlanetScale Inc.
+Copyright 2020 PlanetScale Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@ limitations under the License.
 package resync
 
 import (
-	"planetscale.dev/vitess-operator/pkg/operator/metrics"
 	"github.com/prometheus/client_golang/prometheus"
+	"planetscale.dev/vitess-operator/pkg/operator/metrics"
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 )

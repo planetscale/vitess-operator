@@ -1,5 +1,5 @@
 /*
-Copyright 2019 PlanetScale Inc.
+Copyright 2020 PlanetScale Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,9 +17,10 @@ limitations under the License.
 package vttablet
 
 import (
-	"planetscale.dev/vitess-operator/pkg/operator/update"
 	"strconv"
 	"time"
+
+	"planetscale.dev/vitess-operator/pkg/operator/update"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

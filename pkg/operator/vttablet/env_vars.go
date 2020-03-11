@@ -1,5 +1,5 @@
 /*
-Copyright 2019 PlanetScale Inc.
+Copyright 2020 PlanetScale Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@ package vttablet
 import (
 	"strings"
 
-	"planetscale.dev/vitess-operator/pkg/operator/lazy"
 	corev1 "k8s.io/api/core/v1"
+	"planetscale.dev/vitess-operator/pkg/operator/lazy"
 )
 
 func init() {

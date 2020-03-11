@@ -1,5 +1,5 @@
 /*
-Copyright 2019 PlanetScale Inc.
+Copyright 2020 PlanetScale Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package vitesscell
 
 import (
 	"context"
+
 	"planetscale.dev/vitess-operator/pkg/operator/toposerver"
 
 	corev1 "k8s.io/api/core/v1"
