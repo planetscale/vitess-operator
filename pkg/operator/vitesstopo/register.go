@@ -40,11 +40,10 @@ const (
 	topoRequeueDelay = 5 * time.Second
 )
 
-type RegisterCellsCmd struct {
-	Ctx context.Context
+type RegisterCellsParams struct {
 	// EventObj holds the object type that the recorder will use when writing events.
 	EventObj         runtime.Object
-	Ts               *topo.Server
+	TopoServer       *topo.Server
 	Recorder         *record.EventRecorder
 	GlobalLockserver v2.LockserverSpec
 	ClusterName      string
@@ -53,7 +52,7 @@ type RegisterCellsCmd struct {
 	DesiredCells map[string]*v2.LockserverSpec
 }
 
-func RegisterCells(c RegisterCellsCmd) (reconcile.Result, error) {
+func RegisterCells(ctx context.Context, c RegisterCellsParams) (reconcile.Result, error) {
 	resultBuilder := &results.Builder{}
 
 	for name, lockserverSpec := range c.DesiredCells {
@@ -67,7 +66,7 @@ func RegisterCells(c RegisterCellsCmd) (reconcile.Result, error) {
 			continue
 		}
 		updated := false
-		err := c.Ts.UpdateCellInfoFields(c.Ctx, name, func(cellInfo *topodata.CellInfo) error {
+		err := c.TopoServer.UpdateCellInfoFields(ctx, name, func(cellInfo *topodata.CellInfo) error {
 			// Skip the update if it already matches.
 			if cellInfo.ServerAddress == params.Address && cellInfo.Root == params.RootPath {
 				return topo.NewError(topo.NoUpdateNeeded, "")

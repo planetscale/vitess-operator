@@ -101,10 +101,9 @@ func (r *ReconcileVitessCluster) reconcileCellTopology(ctx context.Context, vt *
 	}
 
 	if *vt.Spec.TopologyReconciliation.RegisterCells {
-		result, err := vitesstopo.RegisterCells(vitesstopo.RegisterCellsCmd{
-			Ctx:              ctx,
+		result, err := vitesstopo.RegisterCells(ctx, vitesstopo.RegisterCellsParams{
 			EventObj:         vt,
-			Ts:               ts,
+			TopoServer:       ts,
 			Recorder:         &r.recorder,
 			GlobalLockserver: vt.Spec.GlobalLockserver,
 			ClusterName:      vt.Name,
