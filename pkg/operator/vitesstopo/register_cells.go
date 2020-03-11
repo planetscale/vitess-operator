@@ -45,7 +45,7 @@ type RegisterCellsParams struct {
 	EventObj         runtime.Object
 	TopoServer       *topo.Server
 	Recorder         *record.EventRecorder
-	GlobalLockserver planetscalev2.LockserverSpec
+	GlobalLockserver *planetscalev2.LockserverSpec
 	ClusterName      string
 	GlobalTopoImpl   string
 	// DesiredCells is a map of cell names to their lockserver specs.
@@ -56,7 +56,7 @@ func RegisterCells(ctx context.Context, c RegisterCellsParams) (reconcile.Result
 	resultBuilder := &results.Builder{}
 
 	for name, lockserverSpec := range c.DesiredCells {
-		params := lockserver.LocalConnectionParams(&c.GlobalLockserver, lockserverSpec, c.ClusterName, name)
+		params := lockserver.LocalConnectionParams(c.GlobalLockserver, lockserverSpec, c.ClusterName, name)
 		if params == nil {
 			(*c.Recorder).Eventf(c.EventObj, corev1.EventTypeWarning, "TopoInvalid", "no local lockserver is defined for cell %v", name)
 			continue

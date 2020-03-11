@@ -105,7 +105,7 @@ func (r *ReconcileVitessCluster) reconcileCellTopology(ctx context.Context, vt *
 			EventObj:         vt,
 			TopoServer:       ts,
 			Recorder:         &r.recorder,
-			GlobalLockserver: vt.Spec.GlobalLockserver,
+			GlobalLockserver: &vt.Spec.GlobalLockserver,
 			ClusterName:      vt.Name,
 			GlobalTopoImpl:   globalTopoImpl,
 			DesiredCells:     desiredCells,
