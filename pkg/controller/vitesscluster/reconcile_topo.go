@@ -128,7 +128,7 @@ func (r *ReconcileVitessCluster) pruneCells(ctx context.Context, vt *planetscale
 	// Get list of cells in topo.
 	cellNames, err := ts.GetCellInfoNames(ctx)
 	if err != nil {
-		r.recorder.Eventf(vt, corev1.EventTypeWarning, "TopoListFailed", "failed to list cells in toplogy: %v", err)
+		r.recorder.Eventf(vt, corev1.EventTypeWarning, "TopoListFailed", "failed to list cells in topology: %v", err)
 		return resultBuilder.RequeueAfter(topoRequeueDelay)
 	}
 
