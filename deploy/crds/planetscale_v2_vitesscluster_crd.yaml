@@ -73,8 +73,7 @@ spec:
                             type: string
                           authSecret:
                             description: AuthSecret is a reference to the Secret to
-                              use for the Azure authentication. The secret must contain
-                              two keys; azblob-account-key, and azblob-account-name
+                              use for Azure authentication.
                             properties:
                               key:
                                 description: Key is the name of the item within the
