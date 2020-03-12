@@ -134,8 +134,7 @@ type AzblobBackupLocation struct {
 	// +kubebuilder:validation:Pattern=^[^\r\n]*$
 	// +kubebuilder:validation:MaxLength=256
 	KeyPrefix string `json:"keyPrefix,omitempty"`
-	// AuthSecret is a reference to the Secret to use for the Azure authentication.
-	// The secret must contain two keys; azblob-account-key, and azblob-account-name
+	// AuthSecret is a reference to the Secret to use for Azure authentication.
 	AuthSecret SecretSource `json:"authSecret"`
 }
 
