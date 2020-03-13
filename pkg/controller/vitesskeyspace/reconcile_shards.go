@@ -135,7 +135,7 @@ func newVitessShard(key client.ObjectKey, vtk *planetscalev2.VitessKeyspace, par
 			Namespace: key.Namespace,
 			Name:      key.Name,
 			Labels:    labels,
-			Annotations: shard.VitessShardTemplate.Annotations,
+			Annotations: annotations,
 		},
 		Spec: planetscalev2.VitessShardSpec{
 			VitessShardTemplate:    *template,
