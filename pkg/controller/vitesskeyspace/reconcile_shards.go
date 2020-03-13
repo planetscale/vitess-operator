@@ -161,10 +161,8 @@ func updateVitessShard(key client.ObjectKey, vts *planetscalev2.VitessShard, vtk
 
 	// Remove old annotations that shouldn't be there that we injected previously.
 	differentAnnotations := stringkeys.DifferentKeys(newShard.Annotations, vts.Annotations["planetscale.com/annotations-keys"])
-	if len(differentAnnotations) > 0 {
-		for _, annotation := range differentAnnotations {
-			delete(vts.Annotations, annotation)
-		}
+	for _, annotation := range differentAnnotations {
+		delete(vts.Annotations, annotation)
 	}
 
 	update.Annotations(&vts.Annotations, map[string]string{
