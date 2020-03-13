@@ -27,6 +27,7 @@ import (
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 	"planetscale.dev/vitess-operator/pkg/operator/reconciler"
 	"planetscale.dev/vitess-operator/pkg/operator/rollout"
+	"planetscale.dev/vitess-operator/pkg/operator/stringkeys"
 	"planetscale.dev/vitess-operator/pkg/operator/update"
 	"planetscale.dev/vitess-operator/pkg/operator/vitessshard"
 )
@@ -123,11 +124,18 @@ func newVitessShard(key client.ObjectKey, vtk *planetscalev2.VitessKeyspace, par
 	}
 	labels[planetscalev2.ShardLabel] = shard.KeyRange.SafeName()
 
+	annotations := shard.VitessShardTemplate.Annotations
+
+	update.Annotations(&annotations, map[string]string{
+		"planetscale.com/annotations-keys": stringkeys.StringMapKeys(annotations),
+	})
+
 	return &planetscalev2.VitessShard{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: key.Namespace,
 			Name:      key.Name,
 			Labels:    labels,
+			Annotations: shard.VitessShardTemplate.Annotations,
 		},
 		Spec: planetscalev2.VitessShardSpec{
 			VitessShardTemplate:    *template,
@@ -151,6 +159,18 @@ func updateVitessShard(key client.ObjectKey, vts *planetscalev2.VitessShard, vtk
 	// Update labels, but ignore existing ones we don't set.
 	update.Labels(&vts.Labels, newShard.Labels)
 
+	// Remove old annotations that shouldn't be there that we injected previously.
+	differentAnnotations := stringkeys.DifferentKeys(vts.Annotations, vts.Annotations["planetscale.com/annotations-keys"])
+	if len(differentAnnotations) > 0 {
+		for _, annotation := range differentAnnotations {
+			delete(vts.Annotations, annotation)
+		}
+	}
+
+	// Update annotations we set.
+	update.Annotations(&vts.Annotations, newShard.Annotations)
+
 	// For now, everything in Spec is safe to update.
 	vts.Spec = newShard.Spec
 }
+

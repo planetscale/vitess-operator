@@ -1175,6 +1175,20 @@ func schema_pkg_apis_planetscale_v2_VitessShardSpec(ref common.ReferenceCallback
 							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessReplicationSpec"),
 						},
 					},
+					"annotations": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Annotations can optionally be used to attach custom annotations to VitessShardTemplates.",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
 					"name": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Name is the shard name as its known to Vitess.",
