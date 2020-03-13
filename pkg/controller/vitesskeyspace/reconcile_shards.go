@@ -126,6 +126,7 @@ func newVitessShard(key client.ObjectKey, vtk *planetscalev2.VitessKeyspace, par
 
 	annotations := shard.VitessShardTemplate.Annotations
 
+	// Set list of keys in annotations so we can properly update keys when updating VitessShard object.
 	update.Annotations(&annotations, map[string]string{
 		"planetscale.com/annotations-keys": stringkeys.StringMapKeys(annotations),
 	})
@@ -165,6 +166,7 @@ func updateVitessShard(key client.ObjectKey, vts *planetscalev2.VitessShard, vtk
 		delete(vts.Annotations, annotation)
 	}
 
+	// Update our list of keys we've added so on next round we can appropriately trim keys.
 	update.Annotations(&vts.Annotations, map[string]string{
 		"planetscale.com/annotations-keys": stringkeys.StringMapKeys(newShard.Annotations),
 	})
