@@ -111,8 +111,12 @@ func UpdatePodInPlace(obj *corev1.Pod, spec *Spec) {
 func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	// Update labels, but ignore existing ones we don't set.
 	update.Labels(&obj.Labels, spec.Labels)
-	// Update UserLabels, but ignore existing ones we don't set.
-	update.Labels(&obj.Labels, spec.UserLabels)
+
+	// Record a hash of desired label keys to force the Pod
+	// to be recreated if a key disappears from the desired list.
+	update.Labels(&obj.Annotations, map[string]string{
+		"planetscale.com/labels-keys-hash": contenthash.StringMapKeys(spec.UserLabels),
+	})
 
 	// Update desired annotations.
 	update.Annotations(&obj.Annotations, spec.Annotations)
