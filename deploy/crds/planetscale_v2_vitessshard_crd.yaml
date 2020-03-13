@@ -35,7 +35,7 @@ spec:
               additionalProperties:
                 type: string
               description: Annotations can optionally be used to attach custom annotations
-                to VitessShardTemplates.
+                to the VitessShard object.
               type: object
             backupEngine:
               description: BackupEngine specifies the Vitess backup engine to use,

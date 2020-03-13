@@ -914,7 +914,8 @@ spec:
                                     additionalProperties:
                                       type: string
                                     description: Annotations can optionally be used
-                                      to attach custom annotations to VitessShardTemplates.
+                                      to attach custom annotations to the VitessShard
+                                      object.
                                     type: object
                                   databaseInitScriptSecret:
                                     description: DatabaseInitScriptSecret specifies
@@ -1367,7 +1368,8 @@ spec:
                                   additionalProperties:
                                     type: string
                                   description: Annotations can optionally be used
-                                    to attach custom annotations to VitessShardTemplates.
+                                    to attach custom annotations to the VitessShard
+                                    object.
                                   type: object
                                 databaseInitScriptSecret:
                                   description: DatabaseInitScriptSecret specifies

@@ -1177,7 +1177,7 @@ func schema_pkg_apis_planetscale_v2_VitessShardSpec(ref common.ReferenceCallback
 					},
 					"annotations": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Annotations can optionally be used to attach custom annotations to VitessShardTemplates.",
+							Description: "Annotations can optionally be used to attach custom annotations to the VitessShard object.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
 								Schema: &spec.Schema{
