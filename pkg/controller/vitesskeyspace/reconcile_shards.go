@@ -125,10 +125,10 @@ func newVitessShard(key client.ObjectKey, vtk *planetscalev2.VitessKeyspace, par
 
 	return &planetscalev2.VitessShard{
 		ObjectMeta: metav1.ObjectMeta{
-			Namespace: key.Namespace,
-			Name:      key.Name,
-			Labels:    labels,
-			Annotations: shard.VitessShardTemplate.Annotations,
+			Namespace:   key.Namespace,
+			Name:        key.Name,
+			Labels:      labels,
+			Annotations: template.Annotations,
 		},
 		Spec: planetscalev2.VitessShardSpec{
 			VitessShardTemplate:    *template,
