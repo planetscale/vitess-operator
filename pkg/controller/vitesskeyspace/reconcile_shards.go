@@ -168,7 +168,7 @@ func updateVitessShard(key client.ObjectKey, vts *planetscalev2.VitessShard, vtk
 // differentKeys returns keys from an older map instance that are no longer in a newer map instance.
 func differentKeys(oldMap, newMap map[string]string) []string {
 	var differentKeys []string
-	for k, _ := range oldMap {
+	for k := range oldMap {
 		if _, exist := newMap[k]; !exist {
 			differentKeys = append(differentKeys, k)
 		}
