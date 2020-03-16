@@ -110,6 +110,9 @@ type VitessShardTemplate struct {
 
 	// Replication configures Vitess replication settings for the shard.
 	Replication VitessReplicationSpec `json:"replication,omitempty"`
+
+	// Annotations can optionally be used to attach custom annotations to the VitessShard object.
+	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
 // VitessReplicationSpec specifies how Vitess will set up MySQL replication.

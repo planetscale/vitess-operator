@@ -381,6 +381,12 @@ spec:
                           +patchMergeKey=keyRange +patchStrategy=merge
                         items:
                           properties:
+                            annotations:
+                              additionalProperties:
+                                type: string
+                              description: Annotations can optionally be used to attach
+                                custom annotations to the VitessShard object.
+                              type: object
                             databaseInitScriptSecret:
                               description: DatabaseInitScriptSecret specifies the
                                 init_db.sql script file to use for this shard. This
@@ -792,6 +798,12 @@ spec:
                           equal-sized shard. If you need shards that don't all share
                           the same configuration, use custom partitioning instead.
                         properties:
+                          annotations:
+                            additionalProperties:
+                              type: string
+                            description: Annotations can optionally be used to attach
+                              custom annotations to the VitessShard object.
+                            type: object
                           databaseInitScriptSecret:
                             description: DatabaseInitScriptSecret specifies the init_db.sql
                               script file to use for this shard. This SQL script file

@@ -125,9 +125,10 @@ func newVitessShard(key client.ObjectKey, vtk *planetscalev2.VitessKeyspace, par
 
 	return &planetscalev2.VitessShard{
 		ObjectMeta: metav1.ObjectMeta{
-			Namespace: key.Namespace,
-			Name:      key.Name,
-			Labels:    labels,
+			Namespace:   key.Namespace,
+			Name:        key.Name,
+			Labels:      labels,
+			Annotations: template.Annotations,
 		},
 		Spec: planetscalev2.VitessShardSpec{
 			VitessShardTemplate:    *template,
@@ -151,6 +152,28 @@ func updateVitessShard(key client.ObjectKey, vts *planetscalev2.VitessShard, vtk
 	// Update labels, but ignore existing ones we don't set.
 	update.Labels(&vts.Labels, newShard.Labels)
 
+	// Remove old annotations that shouldn't be there that we injected previously.
+	// This must be done before we update vts.Spec.
+	differentAnnotations := differentKeys(vts.Spec.Annotations, newShard.Spec.Annotations)
+	for _, annotation := range differentAnnotations {
+		delete(vts.Annotations, annotation)
+	}
+
+	// Update annotations we set.
+	update.Annotations(&vts.Annotations, newShard.Annotations)
+
 	// For now, everything in Spec is safe to update.
 	vts.Spec = newShard.Spec
+}
+
+// differentKeys returns keys from an older map instance that are no longer in a newer map instance.
+func differentKeys(oldMap, newMap map[string]string) []string {
+	var differentKeys []string
+	for k := range oldMap {
+		if _, exist := newMap[k]; !exist {
+			differentKeys = append(differentKeys, k)
+		}
+	}
+
+	return differentKeys
 }
