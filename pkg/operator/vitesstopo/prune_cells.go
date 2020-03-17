@@ -54,10 +54,10 @@ func PruneCells(ctx context.Context, p PruneCellsParams) (reconcile.Result, erro
 
 	for _, cellName := range candidates {
 		if err := p.TopoServer.DeleteCellInfo(ctx, cellName); err != nil {
-			p.Recorder.Eventf(p.EventObj, corev1.EventTypeWarning, "TopoCleanupFailed", "unable to remove cell %s from topology: %v", name, err)
+			p.Recorder.Eventf(p.EventObj, corev1.EventTypeWarning, "TopoCleanupFailed", "unable to remove cell %s from topology: %v", cellName, err)
 			resultBuilder.RequeueAfter(topoRequeueDelay)
 		} else {
-			p.Recorder.Eventf(p.EventObj, corev1.EventTypeNormal, "TopoCleanup", "removed unwanted cell %s from topology", name)
+			p.Recorder.Eventf(p.EventObj, corev1.EventTypeNormal, "TopoCleanup", "removed unwanted cell %s from topology", cellName)
 		}
 	}
 
