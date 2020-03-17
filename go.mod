@@ -8,6 +8,7 @@ require (
 	github.com/ahmetb/gen-crd-api-reference-docs v0.1.5-0.20190629210212-52e137b8d003
 	github.com/coreos/etcd v3.3.12+incompatible // indirect
 	github.com/docker/distribution v2.7.1+incompatible // indirect
+	github.com/elazarl/go-bindata-assetfs v1.0.0 // indirect
 	github.com/go-openapi/spec v0.19.3
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/gophercloud/gophercloud v0.0.0-20190410012400-2c55d17f707c // indirect
