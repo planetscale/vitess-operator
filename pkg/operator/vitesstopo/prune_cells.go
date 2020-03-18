@@ -52,14 +52,8 @@ func PruneCells(ctx context.Context, p PruneCellsParams) (reconcile.Result, erro
 	candidates, result, err := CellCandidatesForPruning(ctx, p)
 	resultBuilder.Merge(result, err)
 
-	for _, cellName := range candidates {
-		if err := p.TopoServer.DeleteCellInfo(ctx, cellName); err != nil {
-			p.Recorder.Eventf(p.EventObj, corev1.EventTypeWarning, "TopoCleanupFailed", "unable to remove cell %s from topology: %v", cellName, err)
-			resultBuilder.RequeueAfter(topoRequeueDelay)
-		} else {
-			p.Recorder.Eventf(p.EventObj, corev1.EventTypeNormal, "TopoCleanup", "removed unwanted cell %s from topology", cellName)
-		}
-	}
+	result, err = PruneCellCandidates(ctx, p.TopoServer, p.Recorder, p.EventObj, candidates)
+	resultBuilder.Merge(result, err)
 
 	return resultBuilder.Result()
 }
@@ -78,6 +72,22 @@ func CandidatesFromCellsList(cellNames []string, desiredCells map[string]*planet
 	}
 
 	return candidates
+}
+
+// PruneCellCandidates takes in a list of cell candidates (cell names) and prunes them from topology.
+func PruneCellCandidates(ctx context.Context, ts *topo.Server, recorder record.EventRecorder, eventObj runtime.Object, cellCandidates []string) (reconcile.Result, error) {
+	resultBuilder := &results.Builder{}
+
+	for _, cellName := range cellCandidates {
+		if err := ts.DeleteCellInfo(ctx, cellName); err != nil {
+			recorder.Eventf(eventObj, corev1.EventTypeWarning, "TopoCleanupFailed", "unable to remove cell %s from topology: %v", cellName, err)
+			resultBuilder.RequeueAfter(topoRequeueDelay)
+		} else {
+			recorder.Eventf(eventObj, corev1.EventTypeNormal, "TopoCleanup", "removed unwanted cell %s from topology", cellName)
+		}
+	}
+
+	return resultBuilder.Result()
 }
 
 // CellCandidatesForPruning returns a list of candidates that are optionally filtered by a list of cells aliases.
