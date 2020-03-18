@@ -51,16 +51,16 @@ func PruneCells(ctx context.Context, p PruneCellsParams) (reconcile.Result, erro
 		return resultBuilder.RequeueAfter(topoRequeueDelay)
 	}
 
-	candidates := CandidatesFromCellsList(cellNames, p.DesiredCells, p.OrphanedCells)
+	candidates := CellsToPrune(cellNames, p.DesiredCells, p.OrphanedCells)
 
-	result, err := PruneCellCandidates(ctx, p.TopoServer, p.Recorder, p.EventObj, candidates)
+	result, err := DeleteCells(ctx, p.TopoServer, p.Recorder, p.EventObj, candidates)
 	resultBuilder.Merge(result, err)
 
 	return resultBuilder.Result()
 }
 
-// CandidatesFromCellsList returns a list of cell candidates for pruning, based on a provided list of cells to consider.
-func CandidatesFromCellsList(cellNames []string, desiredCells map[string]*planetscalev2.LockserverSpec, orphanedCells map[string]*planetscalev2.OrphanStatus) []string {
+// CellsToPrune returns a list of cell candidates for pruning, based on a provided list of cells to consider.
+func CellsToPrune(cellNames []string, desiredCells map[string]*planetscalev2.LockserverSpec, orphanedCells map[string]*planetscalev2.OrphanStatus) []string {
 	var candidates []string
 
 	for _, name := range cellNames {
@@ -75,11 +75,11 @@ func CandidatesFromCellsList(cellNames []string, desiredCells map[string]*planet
 	return candidates
 }
 
-// PruneCellCandidates takes in a list of cell candidates (cell names) and prunes them from topology.
-func PruneCellCandidates(ctx context.Context, ts *topo.Server, recorder record.EventRecorder, eventObj runtime.Object, cellCandidates []string) (reconcile.Result, error) {
+// DeleteCells takes in a list of cell names and deletes their CellInfo records from topology.
+func DeleteCells(ctx context.Context, ts *topo.Server, recorder record.EventRecorder, eventObj runtime.Object, cellNames []string) (reconcile.Result, error) {
 	resultBuilder := &results.Builder{}
 
-	for _, cellName := range cellCandidates {
+	for _, cellName := range cellNames {
 		if err := ts.DeleteCellInfo(ctx, cellName); err != nil {
 			recorder.Eventf(eventObj, corev1.EventTypeWarning, "TopoCleanupFailed", "unable to remove cell %s from topology: %v", cellName, err)
 			resultBuilder.RequeueAfter(topoRequeueDelay)
