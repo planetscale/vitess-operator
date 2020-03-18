@@ -64,11 +64,25 @@ func PruneCells(ctx context.Context, p PruneCellsParams) (reconcile.Result, erro
 	return resultBuilder.Result()
 }
 
+// CandidatesFromCellsList returns a list of cell candidates for pruning, based on a provided list of cells to consider.
+func CandidatesFromCellsList(cellNames []string, desiredCells map[string]*planetscalev2.LockserverSpec, orphanedCells map[string]*planetscalev2.OrphanStatus) []string {
+	var candidates []string
+
+	for _, name := range cellNames {
+		if desiredCells[name] == nil && orphanedCells[name] == nil {
+			// The cell exists in topo, but not in the VT spec.
+			// It's also not being kept around by a blocked turn-down.
+			// We should add it to the list of candidates to prune.
+			candidates = append(candidates, name)
+		}
+	}
+
+	return candidates
+}
+
 // CellCandidatesForPruning returns a list of candidates that are optionally filtered by a list of cells aliases.
 func CellCandidatesForPruning(ctx context.Context, p PruneCellsParams) ([]string, reconcile.Result, error) {
 	resultBuilder := &results.Builder{}
-
-	var candidates []string
 
 	// Get list of cells in topology derives from cells aliases so we can optionally filter
 	// by a supplied list of cells aliases.
@@ -81,16 +95,7 @@ func CellCandidatesForPruning(ctx context.Context, p PruneCellsParams) ([]string
 
 	filteredAliases := filterAliasesByAliasSet(aliases, p.CellsAliasFilterSet)
 	cellNames := cellNamesFromCellsAliases(filteredAliases)
-
-	// Clean up cells that exist but shouldn't.
-	for _, name := range cellNames {
-		if p.DesiredCells[name] == nil && p.OrphanedCells[name] == nil {
-			// The cell exists in topo, but not in the VT spec.
-			// It's also not being kept around by a blocked turn-down.
-			// We should add it to the list of candidates to prune.
-			candidates = append(candidates, name)
-		}
-	}
+	candidates := CandidatesFromCellsList(cellNames, p.DesiredCells, p.OrphanedCells)
 
 	result, err := resultBuilder.Result()
 	return candidates, result, err
