@@ -114,37 +114,16 @@ func (r *ReconcileVitessCluster) reconcileCellTopology(ctx context.Context, vt *
 	}
 
 	if *vt.Spec.TopologyReconciliation.PruneCells {
-		result, err := r.pruneCells(ctx, vt, ts, desiredCells)
+		result, err := vitesstopo.PruneCells(ctx, vitesstopo.PruneCellsParams{
+			EventObj:      vt,
+			TopoServer:    ts,
+			Recorder:      r.recorder,
+			DesiredCells:  desiredCells,
+			OrphanedCells: vt.Status.OrphanedCells,
+		})
 		resultBuilder.Merge(result, err)
 	}
 
-	return resultBuilder.Result()
-}
-
-func (r *ReconcileVitessCluster) pruneCells(ctx context.Context, vt *planetscalev2.VitessCluster, ts *topo.Server, desiredCells map[string]*planetscalev2.LockserverSpec) (reconcile.Result, error) {
-	resultBuilder := &results.Builder{}
-
-	// Get list of cells in topo.
-	cellNames, err := ts.GetCellInfoNames(ctx)
-	if err != nil {
-		r.recorder.Eventf(vt, corev1.EventTypeWarning, "TopoListFailed", "failed to list cells in topology: %v", err)
-		return resultBuilder.RequeueAfter(topoRequeueDelay)
-	}
-
-	// Clean up cells that exist but shouldn't.
-	for _, name := range cellNames {
-		if desiredCells[name] == nil && vt.Status.OrphanedCells[name] == nil {
-			// The cell exists in topo, but not in the VT spec.
-			// It's also not being kept around by a blocked turn-down.
-			// See if we can delete it. This will fail if the cell is not empty.
-			if err := ts.DeleteCellInfo(ctx, name); err != nil {
-				r.recorder.Eventf(vt, corev1.EventTypeWarning, "TopoCleanupFailed", "unable to remove cell %s from topology: %v", name, err)
-				resultBuilder.RequeueAfter(topoRequeueDelay)
-			} else {
-				r.recorder.Eventf(vt, corev1.EventTypeNormal, "TopoCleanup", "removed unwanted cell %s from topology", name)
-			}
-		}
-	}
 	return resultBuilder.Result()
 }
 
