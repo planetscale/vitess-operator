@@ -26,9 +26,9 @@ import (
 const (
 	vtRootInitScript = `set -ex
 mkdir -p /mnt/vt/bin
-cp /vt/bin/mysqlctld /mnt/vt/bin/
+cp --no-clobber /vt/bin/mysqlctld /mnt/vt/bin/
 mkdir -p /mnt/vt/config
-cp -R /vt/config/mycnf /mnt/vt/config/
+cp --no-clobber -R /vt/config/mycnf /mnt/vt/config/
 mkdir -p /mnt/vt/vtdataroot
 ln -sf /dev/stderr /mnt/vt/config/stderr.symlink
 echo "log-error = /vt/config/stderr.symlink" > /mnt/vt/config/mycnf/log-error.cnf`

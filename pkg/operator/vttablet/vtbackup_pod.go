@@ -17,7 +17,6 @@ limitations under the License.
 package vttablet
 
 import (
-	"planetscale.dev/vitess-operator/pkg/operator/update"
 	"strconv"
 	"time"
 
@@ -28,18 +27,19 @@ import (
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 	"planetscale.dev/vitess-operator/pkg/operator/names"
+	"planetscale.dev/vitess-operator/pkg/operator/update"
 )
 
 const (
 	vtbackupInitScript = `set -ex
 mkdir -p /mnt/vt/bin
-cp /vt/bin/vtbackup /mnt/vt/bin/
+cp --no-clobber /vt/bin/vtbackup /mnt/vt/bin/
 mkdir -p /mnt/vt/config
-cp -R /vt/config/mycnf /mnt/vt/config/
+cp --no-clobber -R /vt/config/mycnf /mnt/vt/config/
 ln -sf /dev/stderr /mnt/vt/config/stderr.symlink
 echo "log-error = /vt/config/stderr.symlink" > /mnt/vt/config/mycnf/log-error.cnf
 mkdir -p /mnt/vt/certs
-cp /etc/ssl/certs/ca-certificates.crt /mnt/vt/certs/`
+cp --no-clobber /etc/ssl/certs/ca-certificates.crt /mnt/vt/certs/`
 )
 
 // BackupSpec is the spec for a Backup Pod.
