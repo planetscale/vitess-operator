@@ -322,13 +322,13 @@ type VitessDashboardSpec struct {
 
 	// Annotations can optionally be used to attach custom annotations to Pods
 	// created for this component. These will be attached to the underlying
-	// pods that the vtctld deployment creates.
+	// Pods that the vtctld Deployment creates.
 	Annotations map[string]string `json:"annotations,omitempty"`
 
-	// UserLabels can optionally be used to attach custom labels to Pods
+	// ExtraLabels can optionally be used to attach custom labels to Pods
 	// created for this component. These will be attached to the underlying
-	// pods that the vtctld deployment creates.
-	UserLabels map[string]string `json:"userLabels,omitempty"`
+	// Pods that the vtctld Deployment creates.
+	ExtraLabels map[string]string `json:"extraLabels,omitempty"`
 }
 
 // VitessDashboardStatus is a summary of the status of the vtctld deployment.

@@ -852,13 +852,13 @@ created for this component.</p>
 </tr>
 <tr>
 <td>
-<code>userLabels</code></br>
+<code>extraLabels</code></br>
 <em>
 map[string]string
 </em>
 </td>
 <td>
-<p>UserLabels can optionally be used to attach custom labels to Pods
+<p>ExtraLabels can optionally be used to attach custom labels to Pods
 created for this component.</p>
 </td>
 </tr>
@@ -2280,20 +2280,20 @@ map[string]string
 <td>
 <p>Annotations can optionally be used to attach custom annotations to Pods
 created for this component. These will be attached to the underlying
-pods that the vtgate deployment creates.</p>
+Pods that the vtgate Deployment creates.</p>
 </td>
 </tr>
 <tr>
 <td>
-<code>userLabels</code></br>
+<code>extraLabels</code></br>
 <em>
 map[string]string
 </em>
 </td>
 <td>
-<p>UserLabels can optionally be used to attach custom labels to Pods
+<p>ExtraLabels can optionally be used to attach custom labels to Pods
 created for this component. These will be attached to the underlying
-pods that the vtgate deployment creates.</p>
+Pods that the vtgate Deployment creates.</p>
 </td>
 </tr>
 </tbody>
@@ -2553,7 +2553,7 @@ VitessCellGatewayStatus
 <code>keyspaces</code></br>
 <em>
 <a href="#planetscale.com/v2.VitessCellKeyspaceStatus">
-map[string]github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessCellKeyspaceStatus
+map[string]planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessCellKeyspaceStatus
 </a>
 </em>
 </td>
@@ -3062,8 +3062,8 @@ VitessDashboardStatus
 <td>
 <code>cells</code></br>
 <em>
-<a href="#planetscale.com/v2.*github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessClusterCellStatus">
-map[string]*github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessClusterCellStatus
+<a href="#planetscale.com/v2.*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessClusterCellStatus">
+map[string]*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessClusterCellStatus
 </a>
 </em>
 </td>
@@ -3075,8 +3075,8 @@ map[string]*github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.Vites
 <td>
 <code>keyspaces</code></br>
 <em>
-<a href="#planetscale.com/v2.*github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessClusterKeyspaceStatus">
-map[string]*github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessClusterKeyspaceStatus
+<a href="#planetscale.com/v2.*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessClusterKeyspaceStatus">
+map[string]*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessClusterKeyspaceStatus
 </a>
 </em>
 </td>
@@ -3088,8 +3088,8 @@ map[string]*github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.Vites
 <td>
 <code>orphanedCells</code></br>
 <em>
-<a href="#planetscale.com/v2.*github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus">
-map[string]*github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus
+<a href="#planetscale.com/v2.*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus">
+map[string]*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus
 </a>
 </em>
 </td>
@@ -3101,8 +3101,8 @@ map[string]*github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.Orpha
 <td>
 <code>orphanedKeyspaces</code></br>
 <em>
-<a href="#planetscale.com/v2.*github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus">
-map[string]*github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus
+<a href="#planetscale.com/v2.*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus">
+map[string]*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus
 </a>
 </em>
 </td>
@@ -3267,20 +3267,20 @@ map[string]string
 <td>
 <p>Annotations can optionally be used to attach custom annotations to Pods
 created for this component. These will be attached to the underlying
-pods that the vtctld deployment creates.</p>
+Pods that the vtctld Deployment creates.</p>
 </td>
 </tr>
 <tr>
 <td>
-<code>userLabels</code></br>
+<code>extraLabels</code></br>
 <em>
 map[string]string
 </em>
 </td>
 <td>
-<p>UserLabels can optionally be used to attach custom labels to Pods
+<p>ExtraLabels can optionally be used to attach custom labels to Pods
 created for this component. These will be attached to the underlying
-pods that the vtctld deployment creates.</p>
+Pods that the vtctld Deployment creates.</p>
 </td>
 </tr>
 </tbody>
@@ -4448,8 +4448,8 @@ int64
 <td>
 <code>shards</code></br>
 <em>
-<a href="#planetscale.com/v2.*github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceShardStatus">
-map[string]*github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceShardStatus
+<a href="#planetscale.com/v2.*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceShardStatus">
+map[string]*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceShardStatus
 </a>
 </em>
 </td>
@@ -4461,8 +4461,8 @@ map[string]*github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.Vites
 <td>
 <code>orphanedShards</code></br>
 <em>
-<a href="#planetscale.com/v2.*github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus">
-map[string]*github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus
+<a href="#planetscale.com/v2.*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus">
+map[string]*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus
 </a>
 </em>
 </td>
@@ -5173,8 +5173,8 @@ int64
 <td>
 <code>tablets</code></br>
 <em>
-<a href="#planetscale.com/v2.*github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessTabletStatus">
-map[string]*github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessTabletStatus
+<a href="#planetscale.com/v2.*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessTabletStatus">
+map[string]*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessTabletStatus
 </a>
 </em>
 </td>
@@ -5186,8 +5186,8 @@ map[string]*github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.Vites
 <td>
 <code>orphanedTablets</code></br>
 <em>
-<a href="#planetscale.com/v2.*github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus">
-map[string]*github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus
+<a href="#planetscale.com/v2.*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus">
+map[string]*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus
 </a>
 </em>
 </td>
@@ -5254,8 +5254,8 @@ to turn down the shard.</p>
 <td>
 <code>conditions</code></br>
 <em>
-<a href="#planetscale.com/v2.*github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessShardCondition">
-map[github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessShardConditionType]*github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessShardCondition
+<a href="#planetscale.com/v2.*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessShardCondition">
+map[planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessShardConditionType]*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessShardCondition
 </a>
 </em>
 </td>
@@ -5282,8 +5282,8 @@ condition whenever the distinction is important.</p>
 <td>
 <code>backupLocations</code></br>
 <em>
-<a href="#planetscale.com/v2.*github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.ShardBackupLocationStatus">
-[]*github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.ShardBackupLocationStatus
+<a href="#planetscale.com/v2.*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.ShardBackupLocationStatus">
+[]*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.ShardBackupLocationStatus
 </a>
 </em>
 </td>
@@ -5456,13 +5456,13 @@ created for this component.</p>
 </tr>
 <tr>
 <td>
-<code>userLabels</code></br>
+<code>extraLabels</code></br>
 <em>
 map[string]string
 </em>
 </td>
 <td>
-<p>UserLabels can optionally be used to attach custom labels to Pods
+<p>ExtraLabels can optionally be used to attach custom labels to Pods
 created for this component.</p>
 </td>
 </tr>

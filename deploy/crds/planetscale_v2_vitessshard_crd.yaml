@@ -566,6 +566,12 @@ spec:
                     items:
                       type: object
                     type: array
+                  extraLabels:
+                    additionalProperties:
+                      type: string
+                    description: ExtraLabels can optionally be used to attach custom
+                      labels to Pods created for this component.
+                    type: object
                   extraVolumeMounts:
                     description: ExtraVolumeMounts can optionally be used to override
                       default Pod volumeMounts defined by the operator, or specify
@@ -630,12 +636,6 @@ spec:
                     - externalreplica
                     - externalrdonly
                     type: string
-                  userLabels:
-                    additionalProperties:
-                      type: string
-                    description: UserLabels can optionally be used to attach custom
-                      labels to Pods created for this component.
-                    type: object
                   vttablet:
                     description: Vttablet configures the vttablet server within each
                       tablet.

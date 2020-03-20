@@ -57,7 +57,7 @@ spec:
                     type: string
                   description: Annotations can optionally be used to attach custom
                     annotations to Pods created for this component. These will be
-                    attached to the underlying pods that the vtgate deployment creates.
+                    attached to the underlying Pods that the vtgate Deployment creates.
                   type: object
                 authentication:
                   description: Authentication configures how Vitess Gateway authenticates
@@ -118,6 +118,13 @@ spec:
                     "value". The flag name should not have any prefix (just "flag",
                     not "-flag"). To set a boolean flag, set the string value to either
                     "true" or "false".'
+                  type: object
+                extraLabels:
+                  additionalProperties:
+                    type: string
+                  description: ExtraLabels can optionally be used to attach custom
+                    labels to Pods created for this component. These will be attached
+                    to the underlying Pods that the vtgate Deployment creates.
                   type: object
                 extraVolumeMounts:
                   description: ExtraVolumeMounts can optionally be used to override
@@ -269,13 +276,6 @@ spec:
                           type: object
                       type: object
                   type: object
-                userLabels:
-                  additionalProperties:
-                    type: string
-                  description: UserLabels can optionally be used to attach custom
-                    labels to Pods created for this component. These will be attached
-                    to the underlying pods that the vtgate deployment creates.
-                  type: object
               type: object
             globalLockserver:
               description: GlobalLockserver are the params to connect to the global
@@ -386,6 +386,12 @@ spec:
                         (just "flag", not "-flag"). To set a boolean flag, set the
                         string value to either "true" or "false".'
                       type: object
+                    extraLabels:
+                      additionalProperties:
+                        type: string
+                      description: ExtraLabels can optionally be used to attach custom
+                        labels to Pods created for this component.
+                      type: object
                     extraVolumeMounts:
                       description: ExtraVolumeMounts can optionally be used to override
                         default Pod volumeMounts defined by the operator, or specify
@@ -421,12 +427,6 @@ spec:
                     resources:
                       description: 'Resources specify the compute resources to allocate
                         for each etcd member. Default: Let the operator choose.'
-                      type: object
-                    userLabels:
-                      additionalProperties:
-                        type: string
-                      description: UserLabels can optionally be used to attach custom
-                        labels to Pods created for this component.
                       type: object
                   type: object
                 external:
