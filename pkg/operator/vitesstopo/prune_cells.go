@@ -80,10 +80,11 @@ func DeleteCells(ctx context.Context, ts *topo.Server, recorder record.EventReco
 	resultBuilder := &results.Builder{}
 
 	for _, cellName := range cellNames {
-		if err := ts.DeleteCellInfo(ctx, cellName); err != nil {
+		// topo.NoNode is the error type returned if we can't find the cell when deleting. This ensures that this operation is idempotent.
+		if err := ts.DeleteCellInfo(ctx, cellName); err != nil && !topo.IsErrType(err, topo.NoNode) {
 			recorder.Eventf(eventObj, corev1.EventTypeWarning, "TopoCleanupFailed", "unable to remove cell %s from topology: %v", cellName, err)
 			resultBuilder.RequeueAfter(topoRequeueDelay)
-		} else {
+		} else if err == nil {
 			recorder.Eventf(eventObj, corev1.EventTypeNormal, "TopoCleanup", "removed unwanted cell %s from topology", cellName)
 		}
 	}
