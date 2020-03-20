@@ -1,7 +1,7 @@
-# ALPHA STAGE WARNING
+# PRE-ALPHA STAGE WARNING
 
 This project was only recently open-sourced and we are still working on making sure it's usable outside our own
-infrastructure.
+infrastructure, primarily in the scope of developing end-user documentation.  
 
 If you want to help develop features or find/fix bugs, you're welcome to give it a try and send
 issues or PRs.
