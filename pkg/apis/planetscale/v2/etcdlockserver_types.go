@@ -122,6 +122,10 @@ type EtcdLockserverTemplate struct {
 	// Annotations can optionally be used to attach custom annotations to Pods
 	// created for this component.
 	Annotations map[string]string `json:"annotations,omitempty"`
+
+	// UserLabels can optionally be used to attach custom labels to Pods
+	// created for this component.
+	UserLabels map[string]string `json:"userLabels,omitempty"`
 }
 
 // EtcdLockserverStatus defines the observed state of an EtcdLockserver.

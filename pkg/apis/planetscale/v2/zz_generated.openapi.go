@@ -11,27 +11,27 @@ import (
 
 func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenAPIDefinition {
 	return map[string]common.OpenAPIDefinition{
-		"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.EtcdLockserver":            schema_pkg_apis_planetscale_v2_EtcdLockserver(ref),
-		"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.EtcdLockserverSpec":        schema_pkg_apis_planetscale_v2_EtcdLockserverSpec(ref),
-		"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.EtcdLockserverStatus":      schema_pkg_apis_planetscale_v2_EtcdLockserverStatus(ref),
-		"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessBackup":              schema_pkg_apis_planetscale_v2_VitessBackup(ref),
-		"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessBackupSpec":          schema_pkg_apis_planetscale_v2_VitessBackupSpec(ref),
-		"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessBackupStatus":        schema_pkg_apis_planetscale_v2_VitessBackupStatus(ref),
-		"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessBackupStorage":       schema_pkg_apis_planetscale_v2_VitessBackupStorage(ref),
-		"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessBackupStorageSpec":   schema_pkg_apis_planetscale_v2_VitessBackupStorageSpec(ref),
-		"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessBackupStorageStatus": schema_pkg_apis_planetscale_v2_VitessBackupStorageStatus(ref),
-		"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessCell":                schema_pkg_apis_planetscale_v2_VitessCell(ref),
-		"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessCellSpec":            schema_pkg_apis_planetscale_v2_VitessCellSpec(ref),
-		"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessCellStatus":          schema_pkg_apis_planetscale_v2_VitessCellStatus(ref),
-		"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessCluster":             schema_pkg_apis_planetscale_v2_VitessCluster(ref),
-		"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessClusterSpec":         schema_pkg_apis_planetscale_v2_VitessClusterSpec(ref),
-		"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessClusterStatus":       schema_pkg_apis_planetscale_v2_VitessClusterStatus(ref),
-		"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspace":            schema_pkg_apis_planetscale_v2_VitessKeyspace(ref),
-		"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceSpec":        schema_pkg_apis_planetscale_v2_VitessKeyspaceSpec(ref),
-		"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceStatus":      schema_pkg_apis_planetscale_v2_VitessKeyspaceStatus(ref),
-		"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessShard":               schema_pkg_apis_planetscale_v2_VitessShard(ref),
-		"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessShardSpec":           schema_pkg_apis_planetscale_v2_VitessShardSpec(ref),
-		"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessShardStatus":         schema_pkg_apis_planetscale_v2_VitessShardStatus(ref),
+		"github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.EtcdLockserver":            schema_pkg_apis_planetscale_v2_EtcdLockserver(ref),
+		"github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.EtcdLockserverSpec":        schema_pkg_apis_planetscale_v2_EtcdLockserverSpec(ref),
+		"github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.EtcdLockserverStatus":      schema_pkg_apis_planetscale_v2_EtcdLockserverStatus(ref),
+		"github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessBackup":              schema_pkg_apis_planetscale_v2_VitessBackup(ref),
+		"github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessBackupSpec":          schema_pkg_apis_planetscale_v2_VitessBackupSpec(ref),
+		"github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessBackupStatus":        schema_pkg_apis_planetscale_v2_VitessBackupStatus(ref),
+		"github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessBackupStorage":       schema_pkg_apis_planetscale_v2_VitessBackupStorage(ref),
+		"github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessBackupStorageSpec":   schema_pkg_apis_planetscale_v2_VitessBackupStorageSpec(ref),
+		"github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessBackupStorageStatus": schema_pkg_apis_planetscale_v2_VitessBackupStorageStatus(ref),
+		"github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessCell":                schema_pkg_apis_planetscale_v2_VitessCell(ref),
+		"github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessCellSpec":            schema_pkg_apis_planetscale_v2_VitessCellSpec(ref),
+		"github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessCellStatus":          schema_pkg_apis_planetscale_v2_VitessCellStatus(ref),
+		"github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessCluster":             schema_pkg_apis_planetscale_v2_VitessCluster(ref),
+		"github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessClusterSpec":         schema_pkg_apis_planetscale_v2_VitessClusterSpec(ref),
+		"github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessClusterStatus":       schema_pkg_apis_planetscale_v2_VitessClusterStatus(ref),
+		"github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspace":            schema_pkg_apis_planetscale_v2_VitessKeyspace(ref),
+		"github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceSpec":        schema_pkg_apis_planetscale_v2_VitessKeyspaceSpec(ref),
+		"github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceStatus":      schema_pkg_apis_planetscale_v2_VitessKeyspaceStatus(ref),
+		"github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessShard":               schema_pkg_apis_planetscale_v2_VitessShard(ref),
+		"github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessShardSpec":           schema_pkg_apis_planetscale_v2_VitessShardSpec(ref),
+		"github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessShardStatus":         schema_pkg_apis_planetscale_v2_VitessShardStatus(ref),
 	}
 }
 
@@ -40,6 +40,7 @@ func schema_pkg_apis_planetscale_v2_EtcdLockserver(ref common.ReferenceCallback)
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "EtcdLockserver runs an etcd cluster for use as a Vitess lockserver. Unlike etcd-operator, it uses static bootstrapping and PVCs, treating members as stateful rather the ephemeral. Bringing back existing members instead of creating new ones means etcd can recover from loss of quorum without data loss, which is important for Vitess because restoring from an etcd backup (resetting the lockserver to a point in the past) would violate the consistency model that Vitess expects of a lockserver.",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"kind": {
 						SchemaProps: spec.SchemaProps{
@@ -62,19 +63,19 @@ func schema_pkg_apis_planetscale_v2_EtcdLockserver(ref common.ReferenceCallback)
 					},
 					"spec": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.EtcdLockserverSpec"),
+							Ref: ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.EtcdLockserverSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.EtcdLockserverStatus"),
+							Ref: ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.EtcdLockserverStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.EtcdLockserverSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.EtcdLockserverStatus"},
+			"github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.EtcdLockserverSpec", "github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.EtcdLockserverStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
@@ -83,6 +84,7 @@ func schema_pkg_apis_planetscale_v2_EtcdLockserverSpec(ref common.ReferenceCallb
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "EtcdLockserverSpec defines the desired state of an EtcdLockserver.",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"image": {
 						SchemaProps: spec.SchemaProps{
@@ -115,6 +117,7 @@ func schema_pkg_apis_planetscale_v2_EtcdLockserverSpec(ref common.ReferenceCallb
 							Description: "ExtraFlags can optionally be used to override default flags set by the operator, or pass additional flags to etcd. All entries must be key-value string pairs of the form \"flag\": \"value\". The flag name should not have any prefix (just \"flag\", not \"-flag\"). To set a boolean flag, set the string value to either \"true\" or \"false\".",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Type:   []string{"string"},
@@ -187,6 +190,22 @@ func schema_pkg_apis_planetscale_v2_EtcdLockserverSpec(ref common.ReferenceCallb
 							Description: "Annotations can optionally be used to attach custom annotations to Pods created for this component.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+					"userLabels": {
+						SchemaProps: spec.SchemaProps{
+							Description: "UserLabels can optionally be used to attach custom labels to Pods created for this component.",
+							Type:        []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Type:   []string{"string"},
@@ -216,6 +235,7 @@ func schema_pkg_apis_planetscale_v2_EtcdLockserverStatus(ref common.ReferenceCal
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "EtcdLockserverStatus defines the observed state of an EtcdLockserver.",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"observedGeneration": {
 						SchemaProps: spec.SchemaProps{
@@ -241,7 +261,6 @@ func schema_pkg_apis_planetscale_v2_EtcdLockserverStatus(ref common.ReferenceCal
 				},
 			},
 		},
-		Dependencies: []string{},
 	}
 }
 
@@ -250,6 +269,7 @@ func schema_pkg_apis_planetscale_v2_VitessBackup(ref common.ReferenceCallback) c
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "VitessBackup is a one-way mirror of metadata for a Vitess backup. These objects are created automatically by the VitessBackupStorage controller to provide access to backup metadata from Kubernetes. Each backup found in the storage location will be represented by its own VitessBackup object.",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"kind": {
 						SchemaProps: spec.SchemaProps{
@@ -272,19 +292,19 @@ func schema_pkg_apis_planetscale_v2_VitessBackup(ref common.ReferenceCallback) c
 					},
 					"spec": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessBackupSpec"),
+							Ref: ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessBackupSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessBackupStatus"),
+							Ref: ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessBackupStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessBackupSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessBackupStatus"},
+			"github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessBackupSpec", "github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessBackupStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
@@ -293,10 +313,9 @@ func schema_pkg_apis_planetscale_v2_VitessBackupSpec(ref common.ReferenceCallbac
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "VitessBackupSpec defines the desired state of the backup.",
-				Properties:  map[string]spec.Schema{},
+				Type:        []string{"object"},
 			},
 		},
-		Dependencies: []string{},
 	}
 }
 
@@ -305,6 +324,7 @@ func schema_pkg_apis_planetscale_v2_VitessBackupStatus(ref common.ReferenceCallb
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "VitessBackupStatus describes the observed state of the backup.",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"startTime": {
 						SchemaProps: spec.SchemaProps{
@@ -366,6 +386,7 @@ func schema_pkg_apis_planetscale_v2_VitessBackupStorage(ref common.ReferenceCall
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "VitessBackupStorage represents a storage location for Vitess backups. It provides access to metadata about Vitess backups inside Kubernetes by maintaining a set of VitessBackup objects that represent backups in the given storage location. One VitessBackupStorage represents a storage location defined at the VitessCluster level, so it provides access to metadata about backups stored in that location for any keyspace and any shard in that cluster.",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"kind": {
 						SchemaProps: spec.SchemaProps{
@@ -388,19 +409,19 @@ func schema_pkg_apis_planetscale_v2_VitessBackupStorage(ref common.ReferenceCall
 					},
 					"spec": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessBackupStorageSpec"),
+							Ref: ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessBackupStorageSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessBackupStorageStatus"),
+							Ref: ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessBackupStorageStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessBackupStorageSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessBackupStorageStatus"},
+			"github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessBackupStorageSpec", "github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessBackupStorageStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
@@ -409,11 +430,12 @@ func schema_pkg_apis_planetscale_v2_VitessBackupStorageSpec(ref common.Reference
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "VitessBackupStorageSpec defines the desired state of VitessBackupStorage.",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"location": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Location specifies the Vitess parameters for connecting to the backup storage location.",
-							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessBackupLocation"),
+							Ref:         ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessBackupLocation"),
 						},
 					},
 				},
@@ -421,7 +443,7 @@ func schema_pkg_apis_planetscale_v2_VitessBackupStorageSpec(ref common.Reference
 			},
 		},
 		Dependencies: []string{
-			"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessBackupLocation"},
+			"github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessBackupLocation"},
 	}
 }
 
@@ -430,6 +452,7 @@ func schema_pkg_apis_planetscale_v2_VitessBackupStorageStatus(ref common.Referen
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "VitessBackupStorageStatus defines the observed state of VitessBackupStorage.",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"observedGeneration": {
 						SchemaProps: spec.SchemaProps{
@@ -448,7 +471,6 @@ func schema_pkg_apis_planetscale_v2_VitessBackupStorageStatus(ref common.Referen
 				},
 			},
 		},
-		Dependencies: []string{},
 	}
 }
 
@@ -457,6 +479,7 @@ func schema_pkg_apis_planetscale_v2_VitessCell(ref common.ReferenceCallback) com
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "VitessCell represents a group of Nodes in a given failure domain (Zone), plus Vitess components like the lockserver and gateway that are local to each cell. Together, these cell-local components make it possible for Vitess instances (tablets) to run on those Nodes, and for clients to reach Vitess instances in the cell.\n\nNote that VitessCell does not \"own\" the VitessKeyspaces deployed in it, just like a Node does not own the Pods deployed on it. In addition, each VitessKeyspace can deploy Vitess instances in multiple VitessCells, just like a Deployment can manage Pods that run on multiple Nodes.",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"kind": {
 						SchemaProps: spec.SchemaProps{
@@ -479,19 +502,19 @@ func schema_pkg_apis_planetscale_v2_VitessCell(ref common.ReferenceCallback) com
 					},
 					"spec": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessCellSpec"),
+							Ref: ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessCellSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessCellStatus"),
+							Ref: ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessCellStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessCellSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessCellStatus"},
+			"github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessCellSpec", "github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessCellStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
@@ -500,6 +523,7 @@ func schema_pkg_apis_planetscale_v2_VitessCellSpec(ref common.ReferenceCallback)
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "VitessCellSpec defines the desired state of a VitessCell.",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"name": {
 						SchemaProps: spec.SchemaProps{
@@ -518,19 +542,19 @@ func schema_pkg_apis_planetscale_v2_VitessCellSpec(ref common.ReferenceCallback)
 					"lockserver": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Lockserver specifies either a deployed or external lockserver to be used as the Vitess cell-local topology store. Default: Put this cell's topology data in the global lockserver instead of its own lockserver.",
-							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.LockserverSpec"),
+							Ref:         ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.LockserverSpec"),
 						},
 					},
 					"gateway": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Gateway configures the Vitess Gateway deployment in this cell.",
-							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessCellGatewaySpec"),
+							Ref:         ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessCellGatewaySpec"),
 						},
 					},
 					"globalLockserver": {
 						SchemaProps: spec.SchemaProps{
 							Description: "GlobalLockserver are the params to connect to the global lockserver.",
-							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessLockserverParams"),
+							Ref:         ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessLockserverParams"),
 						},
 					},
 					"allCells": {
@@ -550,7 +574,7 @@ func schema_pkg_apis_planetscale_v2_VitessCellSpec(ref common.ReferenceCallback)
 					"images": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Images are not customizable by users at the cell level because version skew across the cluster is discouraged except during rolling updates, in which case this field is automatically managed by the VitessCluster controller that owns this VitessCell.",
-							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessCellImages"),
+							Ref:         ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessCellImages"),
 						},
 					},
 					"extraVitessFlags": {
@@ -558,6 +582,7 @@ func schema_pkg_apis_planetscale_v2_VitessCellSpec(ref common.ReferenceCallback)
 							Description: "ExtraVitessFlags is inherited from the parent's VitessClusterSpec.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Type:   []string{"string"},
@@ -570,13 +595,13 @@ func schema_pkg_apis_planetscale_v2_VitessCellSpec(ref common.ReferenceCallback)
 					"imagePullPolicies": {
 						SchemaProps: spec.SchemaProps{
 							Description: "ImagePullPolicies are inherited from the VitessCluster spec.",
-							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImagePullPolicies"),
+							Ref:         ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessImagePullPolicies"),
 						},
 					},
 					"topologyReconciliation": {
 						SchemaProps: spec.SchemaProps{
 							Description: "TopologyReconciliation is inherited from the parent's VitessClusterSpec.",
-							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.TopoReconcileConfig"),
+							Ref:         ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.TopoReconcileConfig"),
 						},
 					},
 				},
@@ -584,7 +609,7 @@ func schema_pkg_apis_planetscale_v2_VitessCellSpec(ref common.ReferenceCallback)
 			},
 		},
 		Dependencies: []string{
-			"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.LockserverSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.TopoReconcileConfig", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessCellGatewaySpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessCellImages", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImagePullPolicies", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessLockserverParams"},
+			"github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.LockserverSpec", "github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.TopoReconcileConfig", "github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessCellGatewaySpec", "github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessCellImages", "github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessImagePullPolicies", "github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessLockserverParams"},
 	}
 }
 
@@ -593,6 +618,7 @@ func schema_pkg_apis_planetscale_v2_VitessCellStatus(ref common.ReferenceCallbac
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "VitessCellStatus defines the observed state of VitessCell",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"observedGeneration": {
 						SchemaProps: spec.SchemaProps{
@@ -604,13 +630,13 @@ func schema_pkg_apis_planetscale_v2_VitessCellStatus(ref common.ReferenceCallbac
 					"lockserver": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Lockserver is a summary of the status of the cell-local lockserver.",
-							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.LockserverStatus"),
+							Ref:         ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.LockserverStatus"),
 						},
 					},
 					"gateway": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Gateway is a summary of the status of vtgate in this cell.",
-							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessCellGatewayStatus"),
+							Ref:         ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessCellGatewayStatus"),
 						},
 					},
 					"keyspaces": {
@@ -618,9 +644,10 @@ func schema_pkg_apis_planetscale_v2_VitessCellStatus(ref common.ReferenceCallbac
 							Description: "Keyspaces is a summary of keyspaces deployed in this cell. This summary could be empty either if there are no keyspaces, or if the controller failed to read the current state. Use the Idle condition to distinguish these scenarios when the difference matters.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Ref: ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessCellKeyspaceStatus"),
+										Ref: ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessCellKeyspaceStatus"),
 									},
 								},
 							},
@@ -637,7 +664,7 @@ func schema_pkg_apis_planetscale_v2_VitessCellStatus(ref common.ReferenceCallbac
 			},
 		},
 		Dependencies: []string{
-			"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.LockserverStatus", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessCellGatewayStatus", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessCellKeyspaceStatus"},
+			"github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.LockserverStatus", "github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessCellGatewayStatus", "github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessCellKeyspaceStatus"},
 	}
 }
 
@@ -646,6 +673,7 @@ func schema_pkg_apis_planetscale_v2_VitessCluster(ref common.ReferenceCallback) 
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "VitessCluster is the top-level interface for configuring a cluster.\n\nAlthough the VitessCluster controller creates various secondary objects like VitessCells, all the user-accessible configuration ultimately lives here. The other objects should be considered read-only representations of subsets of the dynamic cluster status. For example, you can examine a specific VitessCell object to get more details on the status of that cell than are summarized in the VitessCluster status, but any configuration changes should only be made in the VitessCluster object.",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"kind": {
 						SchemaProps: spec.SchemaProps{
@@ -668,19 +696,19 @@ func schema_pkg_apis_planetscale_v2_VitessCluster(ref common.ReferenceCallback) 
 					},
 					"spec": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessClusterSpec"),
+							Ref: ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessClusterSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessClusterStatus"),
+							Ref: ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessClusterStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessClusterSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessClusterStatus"},
+			"github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessClusterSpec", "github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessClusterStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
@@ -689,35 +717,36 @@ func schema_pkg_apis_planetscale_v2_VitessClusterSpec(ref common.ReferenceCallba
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "VitessClusterSpec defines the desired state of VitessCluster.",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"images": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Images specifies the container images (including version tag) to use in the cluster. Default: Let the operator choose.",
-							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImages"),
+							Ref:         ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessImages"),
 						},
 					},
 					"imagePullPolicies": {
 						SchemaProps: spec.SchemaProps{
 							Description: "ImagePullPolicies specifies the container image pull policies to use for images defined in the 'images' field.",
-							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImagePullPolicies"),
+							Ref:         ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessImagePullPolicies"),
 						},
 					},
 					"backup": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Backup specifies how to take and store Vitess backups. This is optional but strongly recommended. In addition to disaster recovery, Vitess currently depends on backups to support provisioning of a new tablet in a shard with existing data, as an implementation detail.",
-							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.ClusterBackupSpec"),
+							Ref:         ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.ClusterBackupSpec"),
 						},
 					},
 					"globalLockserver": {
 						SchemaProps: spec.SchemaProps{
 							Description: "GlobalLockserver specifies either a deployed or external lockserver to be used as the Vitess global topology store. Default: Deploy an etcd cluster as the global lockserver.",
-							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.LockserverSpec"),
+							Ref:         ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.LockserverSpec"),
 						},
 					},
 					"vitessDashboard": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Dashboard deploys a set of Vitess Dashboard servers (vtctld) for the Vitess cluster.",
-							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessDashboardSpec"),
+							Ref:         ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessDashboardSpec"),
 						},
 					},
 					"cells": {
@@ -733,7 +762,7 @@ func schema_pkg_apis_planetscale_v2_VitessClusterSpec(ref common.ReferenceCallba
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Ref: ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessCellTemplate"),
+										Ref: ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessCellTemplate"),
 									},
 								},
 							},
@@ -752,7 +781,7 @@ func schema_pkg_apis_planetscale_v2_VitessClusterSpec(ref common.ReferenceCallba
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Ref: ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceTemplate"),
+										Ref: ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceTemplate"),
 									},
 								},
 							},
@@ -763,6 +792,7 @@ func schema_pkg_apis_planetscale_v2_VitessClusterSpec(ref common.ReferenceCallba
 							Description: "ExtraVitessFlags can optionally be used to pass flags to all Vitess components. WARNING: Any flags passed here must be flags that can be accepted by vtgate, vtctld and vttablet. An example use-case would be topo flags.\n\nAll entries must be key-value string pairs of the form \"flag\": \"value\". The flag name should not have any prefix (just \"flag\", not \"-flag\"). To set a boolean flag, set the string value to either \"true\" or \"false\".",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Type:   []string{"string"},
@@ -775,7 +805,7 @@ func schema_pkg_apis_planetscale_v2_VitessClusterSpec(ref common.ReferenceCallba
 					"topologyReconciliation": {
 						SchemaProps: spec.SchemaProps{
 							Description: "TopologyReconciliation can be used to enable or disable registration or pruning of various vitess components to and from topo records.",
-							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.TopoReconcileConfig"),
+							Ref:         ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.TopoReconcileConfig"),
 						},
 					},
 				},
@@ -783,7 +813,7 @@ func schema_pkg_apis_planetscale_v2_VitessClusterSpec(ref common.ReferenceCallba
 			},
 		},
 		Dependencies: []string{
-			"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.ClusterBackupSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.LockserverSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.TopoReconcileConfig", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessCellTemplate", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessDashboardSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImagePullPolicies", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImages", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceTemplate"},
+			"github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.ClusterBackupSpec", "github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.LockserverSpec", "github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.TopoReconcileConfig", "github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessCellTemplate", "github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessDashboardSpec", "github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessImagePullPolicies", "github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessImages", "github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceTemplate"},
 	}
 }
 
@@ -792,6 +822,7 @@ func schema_pkg_apis_planetscale_v2_VitessClusterStatus(ref common.ReferenceCall
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "VitessClusterStatus defines the observed state of VitessCluster",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"observedGeneration": {
 						SchemaProps: spec.SchemaProps{
@@ -803,7 +834,7 @@ func schema_pkg_apis_planetscale_v2_VitessClusterStatus(ref common.ReferenceCall
 					"globalLockserver": {
 						SchemaProps: spec.SchemaProps{
 							Description: "GlobalLockserver is the status of the global lockserver.",
-							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.LockserverStatus"),
+							Ref:         ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.LockserverStatus"),
 						},
 					},
 					"gatewayServiceName": {
@@ -816,7 +847,7 @@ func schema_pkg_apis_planetscale_v2_VitessClusterStatus(ref common.ReferenceCall
 					"vitessDashboard": {
 						SchemaProps: spec.SchemaProps{
 							Description: "VitessDashboard is a summary of the status of the vtctld deployment.",
-							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessDashboardStatus"),
+							Ref:         ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessDashboardStatus"),
 						},
 					},
 					"cells": {
@@ -824,9 +855,10 @@ func schema_pkg_apis_planetscale_v2_VitessClusterStatus(ref common.ReferenceCall
 							Description: "Cells is a summary of the status of desired cells.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Ref: ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessClusterCellStatus"),
+										Ref: ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessClusterCellStatus"),
 									},
 								},
 							},
@@ -837,9 +869,10 @@ func schema_pkg_apis_planetscale_v2_VitessClusterStatus(ref common.ReferenceCall
 							Description: "Keyspaces is a summary of the status of desired keyspaces.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Ref: ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessClusterKeyspaceStatus"),
+										Ref: ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessClusterKeyspaceStatus"),
 									},
 								},
 							},
@@ -850,9 +883,10 @@ func schema_pkg_apis_planetscale_v2_VitessClusterStatus(ref common.ReferenceCall
 							Description: "OrphanedCells is a list of unwanted cells that could not be turned down.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Ref: ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus"),
+										Ref: ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus"),
 									},
 								},
 							},
@@ -863,9 +897,10 @@ func schema_pkg_apis_planetscale_v2_VitessClusterStatus(ref common.ReferenceCall
 							Description: "OrphanedKeyspaces is a list of unwanted keyspaces that could not be turned down.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Ref: ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus"),
+										Ref: ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus"),
 									},
 								},
 							},
@@ -875,7 +910,7 @@ func schema_pkg_apis_planetscale_v2_VitessClusterStatus(ref common.ReferenceCall
 			},
 		},
 		Dependencies: []string{
-			"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.LockserverStatus", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessClusterCellStatus", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessClusterKeyspaceStatus", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessDashboardStatus"},
+			"github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.LockserverStatus", "github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus", "github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessClusterCellStatus", "github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessClusterKeyspaceStatus", "github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessDashboardStatus"},
 	}
 }
 
@@ -884,6 +919,7 @@ func schema_pkg_apis_planetscale_v2_VitessKeyspace(ref common.ReferenceCallback)
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "VitessKeyspace represents the deployment of a logical database in Vitess. Each keyspace consists of a number of shards, which then consist of tablets. The tablets belonging to one VitessKeyspace can ultimately be deployed across various VitessCells.",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"kind": {
 						SchemaProps: spec.SchemaProps{
@@ -906,19 +942,19 @@ func schema_pkg_apis_planetscale_v2_VitessKeyspace(ref common.ReferenceCallback)
 					},
 					"spec": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceSpec"),
+							Ref: ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceStatus"),
+							Ref: ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceStatus"},
+			"github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceSpec", "github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
@@ -927,6 +963,7 @@ func schema_pkg_apis_planetscale_v2_VitessKeyspaceSpec(ref common.ReferenceCallb
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "VitessKeyspaceSpec defines the desired state of a VitessKeyspace.",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"name": {
 						SchemaProps: spec.SchemaProps{
@@ -942,7 +979,7 @@ func schema_pkg_apis_planetscale_v2_VitessKeyspaceSpec(ref common.ReferenceCallb
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Ref: ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspacePartitioning"),
+										Ref: ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspacePartitioning"),
 									},
 								},
 							},
@@ -958,19 +995,19 @@ func schema_pkg_apis_planetscale_v2_VitessKeyspaceSpec(ref common.ReferenceCallb
 					"globalLockserver": {
 						SchemaProps: spec.SchemaProps{
 							Description: "GlobalLockserver are the params to connect to the global lockserver.",
-							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessLockserverParams"),
+							Ref:         ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessLockserverParams"),
 						},
 					},
 					"images": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Images are not customizable by users at the keyspace level because version skew across the cluster is discouraged except during rolling updates, in which case this field is automatically managed by the VitessCluster controller that owns this VitessKeyspace.",
-							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceImages"),
+							Ref:         ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceImages"),
 						},
 					},
 					"imagePullPolicies": {
 						SchemaProps: spec.SchemaProps{
 							Description: "ImagePullPolicies are inherited from the VitessCluster spec.",
-							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImagePullPolicies"),
+							Ref:         ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessImagePullPolicies"),
 						},
 					},
 					"zoneMap": {
@@ -978,6 +1015,7 @@ func schema_pkg_apis_planetscale_v2_VitessKeyspaceSpec(ref common.ReferenceCallb
 							Description: "ZoneMap is a map from Vitess cell name to zone (failure domain) name for all cells defined in the VitessCluster.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Type:   []string{"string"},
@@ -994,7 +1032,7 @@ func schema_pkg_apis_planetscale_v2_VitessKeyspaceSpec(ref common.ReferenceCallb
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Ref: ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessBackupLocation"),
+										Ref: ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessBackupLocation"),
 									},
 								},
 							},
@@ -1012,6 +1050,7 @@ func schema_pkg_apis_planetscale_v2_VitessKeyspaceSpec(ref common.ReferenceCallb
 							Description: "ExtraVitessFlags is inherited from the parent's VitessClusterSpec.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Type:   []string{"string"},
@@ -1024,7 +1063,7 @@ func schema_pkg_apis_planetscale_v2_VitessKeyspaceSpec(ref common.ReferenceCallb
 					"topologyReconciliation": {
 						SchemaProps: spec.SchemaProps{
 							Description: "TopologyReconciliation is inherited from the parent's VitessClusterSpec.",
-							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.TopoReconcileConfig"),
+							Ref:         ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.TopoReconcileConfig"),
 						},
 					},
 				},
@@ -1032,7 +1071,7 @@ func schema_pkg_apis_planetscale_v2_VitessKeyspaceSpec(ref common.ReferenceCallb
 			},
 		},
 		Dependencies: []string{
-			"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.TopoReconcileConfig", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessBackupLocation", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImagePullPolicies", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceImages", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspacePartitioning", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessLockserverParams"},
+			"github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.TopoReconcileConfig", "github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessBackupLocation", "github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessImagePullPolicies", "github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceImages", "github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspacePartitioning", "github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessLockserverParams"},
 	}
 }
 
@@ -1041,6 +1080,7 @@ func schema_pkg_apis_planetscale_v2_VitessKeyspaceStatus(ref common.ReferenceCal
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "VitessKeyspaceStatus defines the observed state of a VitessKeyspace.",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"observedGeneration": {
 						SchemaProps: spec.SchemaProps{
@@ -1054,9 +1094,10 @@ func schema_pkg_apis_planetscale_v2_VitessKeyspaceStatus(ref common.ReferenceCal
 							Description: "Shards is a summary of the status of all desired shards.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Ref: ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceShardStatus"),
+										Ref: ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceShardStatus"),
 									},
 								},
 							},
@@ -1067,9 +1108,10 @@ func schema_pkg_apis_planetscale_v2_VitessKeyspaceStatus(ref common.ReferenceCal
 							Description: "OrphanedShards is a list of unwanted shards that could not be turned down.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Ref: ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus"),
+										Ref: ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus"),
 									},
 								},
 							},
@@ -1086,7 +1128,7 @@ func schema_pkg_apis_planetscale_v2_VitessKeyspaceStatus(ref common.ReferenceCal
 			},
 		},
 		Dependencies: []string{
-			"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceShardStatus"},
+			"github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus", "github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceShardStatus"},
 	}
 }
 
@@ -1095,6 +1137,7 @@ func schema_pkg_apis_planetscale_v2_VitessShard(ref common.ReferenceCallback) co
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "VitessShard represents a group of Vitess instances (tablets) that store a subset of the data in a logical database (keyspace).\n\nThe tablets belonging to one VitessShard can ultimately be deployed across various VitessCells. All the tablets in a given shard, across all cells, use MySQL replication to stay eventually consistent with the MySQL master for that shard.",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"kind": {
 						SchemaProps: spec.SchemaProps{
@@ -1117,19 +1160,19 @@ func schema_pkg_apis_planetscale_v2_VitessShard(ref common.ReferenceCallback) co
 					},
 					"spec": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessShardSpec"),
+							Ref: ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessShardSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessShardStatus"),
+							Ref: ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessShardStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessShardSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessShardStatus"},
+			"github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessShardSpec", "github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessShardStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
@@ -1138,11 +1181,12 @@ func schema_pkg_apis_planetscale_v2_VitessShardSpec(ref common.ReferenceCallback
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "VitessShardSpec defines the desired state of a VitessShard.",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"tabletPools": {
 						VendorExtensible: spec.VendorExtensible{
 							Extensions: spec.Extensions{
-								"x-kubernetes-list-map-keys": []string{
+								"x-kubernetes-list-map-keys": []interface{}{
 									"type",
 									"cell",
 								},
@@ -1157,7 +1201,7 @@ func schema_pkg_apis_planetscale_v2_VitessShardSpec(ref common.ReferenceCallback
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Ref: ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessShardTabletPool"),
+										Ref: ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessShardTabletPool"),
 									},
 								},
 							},
@@ -1166,13 +1210,13 @@ func schema_pkg_apis_planetscale_v2_VitessShardSpec(ref common.ReferenceCallback
 					"databaseInitScriptSecret": {
 						SchemaProps: spec.SchemaProps{
 							Description: "DatabaseInitScriptSecret specifies the init_db.sql script file to use for this shard. This SQL script file is executed immediately after bootstrapping an empty database to set up initial tables and other MySQL-level entities needed by Vitess.",
-							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.SecretSource"),
+							Ref:         ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.SecretSource"),
 						},
 					},
 					"replication": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Replication configures Vitess replication settings for the shard.",
-							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessReplicationSpec"),
+							Ref:         ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessReplicationSpec"),
 						},
 					},
 					"annotations": {
@@ -1201,6 +1245,7 @@ func schema_pkg_apis_planetscale_v2_VitessShardSpec(ref common.ReferenceCallback
 							Description: "ZoneMap is a map from Vitess cell name to zone (failure domain) name for all cells defined in the VitessCluster.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Type:   []string{"string"},
@@ -1213,25 +1258,25 @@ func schema_pkg_apis_planetscale_v2_VitessShardSpec(ref common.ReferenceCallback
 					"images": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Images are not customizable by users at the shard level because version skew across the shard is discouraged except during rolling updates, in which case this field is automatically managed by the VitessKeyspace controller that owns this VitessShard.",
-							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceImages"),
+							Ref:         ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceImages"),
 						},
 					},
 					"imagePullPolicies": {
 						SchemaProps: spec.SchemaProps{
 							Description: "ImagePullPolicies are inherited from the VitessCluster spec.",
-							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImagePullPolicies"),
+							Ref:         ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessImagePullPolicies"),
 						},
 					},
 					"keyRange": {
 						SchemaProps: spec.SchemaProps{
 							Description: "KeyRange is the range of keyspace IDs served by this shard.",
-							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyRange"),
+							Ref:         ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessKeyRange"),
 						},
 					},
 					"globalLockserver": {
 						SchemaProps: spec.SchemaProps{
 							Description: "GlobalLockserver are the params to connect to the global lockserver.",
-							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessLockserverParams"),
+							Ref:         ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessLockserverParams"),
 						},
 					},
 					"backupLocations": {
@@ -1241,7 +1286,7 @@ func schema_pkg_apis_planetscale_v2_VitessShardSpec(ref common.ReferenceCallback
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Ref: ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessBackupLocation"),
+										Ref: ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessBackupLocation"),
 									},
 								},
 							},
@@ -1259,6 +1304,7 @@ func schema_pkg_apis_planetscale_v2_VitessShardSpec(ref common.ReferenceCallback
 							Description: "ExtraVitessFlags is inherited from the parent's VitessClusterSpec.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Type:   []string{"string"},
@@ -1271,7 +1317,7 @@ func schema_pkg_apis_planetscale_v2_VitessShardSpec(ref common.ReferenceCallback
 					"topologyReconciliation": {
 						SchemaProps: spec.SchemaProps{
 							Description: "TopologyReconciliation is inherited from the parent's VitessClusterSpec.",
-							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.TopoReconcileConfig"),
+							Ref:         ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.TopoReconcileConfig"),
 						},
 					},
 				},
@@ -1279,7 +1325,7 @@ func schema_pkg_apis_planetscale_v2_VitessShardSpec(ref common.ReferenceCallback
 			},
 		},
 		Dependencies: []string{
-			"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.SecretSource", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.TopoReconcileConfig", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessBackupLocation", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImagePullPolicies", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyRange", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceImages", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessLockserverParams", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessReplicationSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessShardTabletPool"},
+			"github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.SecretSource", "github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.TopoReconcileConfig", "github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessBackupLocation", "github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessImagePullPolicies", "github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessKeyRange", "github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceImages", "github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessLockserverParams", "github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessReplicationSpec", "github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessShardTabletPool"},
 	}
 }
 
@@ -1288,6 +1334,7 @@ func schema_pkg_apis_planetscale_v2_VitessShardStatus(ref common.ReferenceCallba
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "VitessShardStatus defines the observed state of a VitessShard.",
+				Type:        []string{"object"},
 				Properties: map[string]spec.Schema{
 					"observedGeneration": {
 						SchemaProps: spec.SchemaProps{
@@ -1301,9 +1348,10 @@ func schema_pkg_apis_planetscale_v2_VitessShardStatus(ref common.ReferenceCallba
 							Description: "Tablets is a summary of the status of all desired tablets in the shard.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Ref: ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessTabletStatus"),
+										Ref: ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessTabletStatus"),
 									},
 								},
 							},
@@ -1314,9 +1362,10 @@ func schema_pkg_apis_planetscale_v2_VitessShardStatus(ref common.ReferenceCallba
 							Description: "OrphanedTablets is a list of unwanted tablets that could not be turned down.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Ref: ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus"),
+										Ref: ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus"),
 									},
 								},
 							},
@@ -1362,9 +1411,10 @@ func schema_pkg_apis_planetscale_v2_VitessShardStatus(ref common.ReferenceCallba
 							Description: "Conditions is a map of all VitessShard specific conditions we want to set and monitor. It's ok for multiple controllers to add conditions here, and those conditions will be preserved.",
 							Type:        []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Ref: ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessShardCondition"),
+										Ref: ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessShardCondition"),
 									},
 								},
 							},
@@ -1384,7 +1434,7 @@ func schema_pkg_apis_planetscale_v2_VitessShardStatus(ref common.ReferenceCallba
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
-										Ref: ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.ShardBackupLocationStatus"),
+										Ref: ref("github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.ShardBackupLocationStatus"),
 									},
 								},
 							},
@@ -1394,6 +1444,6 @@ func schema_pkg_apis_planetscale_v2_VitessShardStatus(ref common.ReferenceCallba
 			},
 		},
 		Dependencies: []string{
-			"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.ShardBackupLocationStatus", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessShardCondition", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessTabletStatus"},
+			"github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus", "github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.ShardBackupLocationStatus", "github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessShardCondition", "github.com/planetscale/vitess-operator/pkg/apis/planetscale/v2.VitessTabletStatus"},
 	}
 }

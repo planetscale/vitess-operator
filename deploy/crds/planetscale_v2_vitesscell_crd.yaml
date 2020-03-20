@@ -269,6 +269,13 @@ spec:
                           type: object
                       type: object
                   type: object
+                userLabels:
+                  additionalProperties:
+                    type: string
+                  description: UserLabels can optionally be used to attach custom
+                    labels to Pods created for this component. These will be attached
+                    to the underlying pods that the vtgate deployment creates.
+                  type: object
               type: object
             globalLockserver:
               description: GlobalLockserver are the params to connect to the global
@@ -414,6 +421,12 @@ spec:
                     resources:
                       description: 'Resources specify the compute resources to allocate
                         for each etcd member. Default: Let the operator choose.'
+                      type: object
+                    userLabels:
+                      additionalProperties:
+                        type: string
+                      description: UserLabels can optionally be used to attach custom
+                        labels to Pods created for this component.
                       type: object
                   type: object
                 external:

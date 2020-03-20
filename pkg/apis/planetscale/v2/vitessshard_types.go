@@ -193,6 +193,10 @@ type VitessShardTabletPool struct {
 	// created for this component.
 	Annotations map[string]string `json:"annotations,omitempty"`
 
+	// UserLabels can optionally be used to attach custom labels to Pods
+	// created for this component.
+	UserLabels map[string]string `json:"userLabels,omitempty"`
+
 	// ExtraEnv can optionally be used to override default environment variables
 	// set by the operator, or pass additional environment variables.
 	// These values are applied to both the vttablet and mysqld containers.

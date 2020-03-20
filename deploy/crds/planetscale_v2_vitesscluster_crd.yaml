@@ -519,6 +519,14 @@ spec:
                                 type: object
                             type: object
                         type: object
+                      userLabels:
+                        additionalProperties:
+                          type: string
+                        description: UserLabels can optionally be used to attach custom
+                          labels to Pods created for this component. These will be
+                          attached to the underlying pods that the vtgate deployment
+                          creates.
+                        type: object
                     type: object
                   lockserver:
                     description: 'Lockserver specifies either a deployed or external
@@ -606,6 +614,12 @@ spec:
                             description: 'Resources specify the compute resources
                               to allocate for each etcd member. Default: Let the operator
                               choose.'
+                            type: object
+                          userLabels:
+                            additionalProperties:
+                              type: string
+                            description: UserLabels can optionally be used to attach
+                              custom labels to Pods created for this component.
                             type: object
                         type: object
                       external:
@@ -745,6 +759,12 @@ spec:
                     resources:
                       description: 'Resources specify the compute resources to allocate
                         for each etcd member. Default: Let the operator choose.'
+                      type: object
+                    userLabels:
+                      additionalProperties:
+                        type: string
+                      description: UserLabels can optionally be used to attach custom
+                        labels to Pods created for this component.
                       type: object
                   type: object
                 external:
@@ -1293,6 +1313,13 @@ spec:
                                           - externalreplica
                                           - externalrdonly
                                           type: string
+                                        userLabels:
+                                          additionalProperties:
+                                            type: string
+                                          description: UserLabels can optionally be
+                                            used to attach custom labels to Pods created
+                                            for this component.
+                                          type: object
                                         vttablet:
                                           description: Vttablet configures the vttablet
                                             server within each tablet.
@@ -1707,6 +1734,13 @@ spec:
                                         - externalreplica
                                         - externalrdonly
                                         type: string
+                                      userLabels:
+                                        additionalProperties:
+                                          type: string
+                                        description: UserLabels can optionally be
+                                          used to attach custom labels to Pods created
+                                          for this component.
+                                        type: object
                                       vttablet:
                                         description: Vttablet configures the vttablet
                                           server within each tablet.
@@ -1892,6 +1926,13 @@ spec:
                 resources:
                   description: Resources determines the compute resources reserved
                     for each vtctld replica.
+                  type: object
+                userLabels:
+                  additionalProperties:
+                    type: string
+                  description: UserLabels can optionally be used to attach custom
+                    labels to Pods created for this component. These will be attached
+                    to the underlying pods that the vtctld deployment creates.
                   type: object
               type: object
           required:

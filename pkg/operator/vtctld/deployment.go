@@ -66,6 +66,7 @@ type Spec struct {
 	ExtraVolumeMounts []corev1.VolumeMount
 	InitContainers    []corev1.Container
 	Annotations       map[string]string
+	UserLabels        map[string]string
 }
 
 // NewDeployment creates a new Deployment object for vtctld.
@@ -101,6 +102,9 @@ func UpdateDeploymentImmediate(obj *appsv1.Deployment, spec *Spec) {
 // that should be changed as part of a gradual, rolling update.
 func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 	UpdateDeploymentImmediate(obj, spec)
+
+	// Set user labels on the Deployment object.
+	update.Labels(&obj.Labels, spec.UserLabels)
 
 	// Tell Deployment to set the same labels on the Pods it creates.
 	update.Labels(&obj.Spec.Template.Labels, spec.Labels)

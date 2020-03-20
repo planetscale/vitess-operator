@@ -100,6 +100,12 @@ spec:
               description: 'Resources specify the compute resources to allocate for
                 each etcd member. Default: Let the operator choose.'
               type: object
+            userLabels:
+              additionalProperties:
+                type: string
+              description: UserLabels can optionally be used to attach custom labels
+                to Pods created for this component.
+              type: object
             zone:
               description: Zone is the name of the Availability Zone that this lockserver
                 should run in. This value should match the value of the "failure-domain.beta.kubernetes.io/zone"

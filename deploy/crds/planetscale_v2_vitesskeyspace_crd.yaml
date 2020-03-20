@@ -732,6 +732,13 @@ spec:
                                     - externalreplica
                                     - externalrdonly
                                     type: string
+                                  userLabels:
+                                    additionalProperties:
+                                      type: string
+                                    description: UserLabels can optionally be used
+                                      to attach custom labels to Pods created for
+                                      this component.
+                                    type: object
                                   vttablet:
                                     description: Vttablet configures the vttablet
                                       server within each tablet.
@@ -1110,6 +1117,13 @@ spec:
                                   - externalreplica
                                   - externalrdonly
                                   type: string
+                                userLabels:
+                                  additionalProperties:
+                                    type: string
+                                  description: UserLabels can optionally be used to
+                                    attach custom labels to Pods created for this
+                                    component.
+                                  type: object
                                 vttablet:
                                   description: Vttablet configures the vttablet server
                                     within each tablet.

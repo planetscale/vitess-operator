@@ -81,6 +81,7 @@ type Spec struct {
 	InitContainers    []corev1.Container
 	Affinity          *corev1.Affinity
 	Annotations       map[string]string
+	UserLabels        map[string]string
 }
 
 // NewPod creates a new etcd Pod.
@@ -110,6 +111,15 @@ func UpdatePodInPlace(obj *corev1.Pod, spec *Spec) {
 func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	// Update labels, but ignore existing ones we don't set.
 	update.Labels(&obj.Labels, spec.Labels)
+
+	// Update desired labels
+	update.Labels(&obj.Labels, spec.UserLabels)
+
+	// Record a hash of desired label keys to force the Pod
+	// to be recreated if a key disappears from the desired list.
+	update.Labels(&obj.Annotations, map[string]string{
+		"planetscale.com/labels-keys-hash": contenthash.StringMapKeys(spec.UserLabels),
+	})
 
 	// Update desired annotations.
 	update.Annotations(&obj.Annotations, spec.Annotations)
