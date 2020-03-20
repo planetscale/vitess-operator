@@ -47,7 +47,7 @@ type Spec struct {
 	DatabaseInitScriptSecret planetscalev2.SecretSource
 	EnableSemiSync           bool
 	Annotations              map[string]string
-	UserLabels               map[string]string
+	ExtraLabels              map[string]string
 	BackupLocation           *planetscalev2.VitessBackupLocation
 	BackupEngine             planetscalev2.VitessBackupEngine
 	Affinity                 *corev1.Affinity
