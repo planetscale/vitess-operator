@@ -1,11 +1,10 @@
-# PRE-RELEASE WARNING
+# PRE-ALPHA STAGE WARNING
 
-This project is not ready for the public yet. This code was only recently
-open-sourced and we are still working on making sure it's usable outside our own
-infrastructure.
+This project was only recently open-sourced and we are still working on making sure it's usable outside our own
+infrastructure, primarily in the scope of developing end-user documentation.  
 
-If you want to help find and fix bugs, you're welcome to give it a try and send
-issues or PRs. Otherwise, please check back later!
+If you want to help develop features or find/fix bugs, you're welcome to give it a try and send
+issues or PRs.
 
 # Vitess Operator
 
