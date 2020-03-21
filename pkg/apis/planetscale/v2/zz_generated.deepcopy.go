@@ -202,6 +202,31 @@ func (in *EtcdLockserverTemplate) DeepCopyInto(out *EtcdLockserverTemplate) {
 			(*out)[key] = val
 		}
 	}
+	if in.CreatePDB != nil {
+		in, out := &in.CreatePDB, &out.CreatePDB
+		*out = new(bool)
+		**out = **in
+	}
+	if in.CreateClientService != nil {
+		in, out := &in.CreateClientService, &out.CreateClientService
+		*out = new(bool)
+		**out = **in
+	}
+	if in.CreatePeerService != nil {
+		in, out := &in.CreatePeerService, &out.CreatePeerService
+		*out = new(bool)
+		**out = **in
+	}
+	if in.AdvertisePeerURLs != nil {
+		in, out := &in.AdvertisePeerURLs, &out.AdvertisePeerURLs
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
+	if in.LocalMemberIndex != nil {
+		in, out := &in.LocalMemberIndex, &out.LocalMemberIndex
+		*out = new(int32)
+		**out = **in
+	}
 	return
 }
 

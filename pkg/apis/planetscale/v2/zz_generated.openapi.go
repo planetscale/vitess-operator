@@ -210,6 +210,48 @@ func schema_pkg_apis_planetscale_v2_EtcdLockserverSpec(ref common.ReferenceCallb
 							},
 						},
 					},
+					"createPDB": {
+						SchemaProps: spec.SchemaProps{
+							Description: "CreatePDB sets whether to create a PodDisruptionBudget (PDB) for etcd member Pods.\n\nNote: Disabling this will NOT delete a PDB that was previously created.\n\nDefault: true",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
+					"createClientService": {
+						SchemaProps: spec.SchemaProps{
+							Description: "CreateClientService sets whether to create a Service for the client port of etcd member Pods.\n\nNote: Disabling this will NOT delete a Service that was previously created.\n\nDefault: true",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
+					"createPeerService": {
+						SchemaProps: spec.SchemaProps{
+							Description: "CreatePeerService sets whether to create a Service for the peer port of etcd member Pods.\n\nNote: Disabling this will NOT delete a Service that was previously created.\n\nDefault: true",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
+					"advertisePeerURLs": {
+						SchemaProps: spec.SchemaProps{
+							Description: "AdvertisePeerURLs can optionally be used to override the URLs that etcd members use to find each other for peer-to-peer connections.\n\nIf specified, the list must contain exactly 3 entries, one for each etcd member index (1,2,3) respectively.\n\nDefault: Build peer URLs automatically based on Kubernetes built-in DNS.",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Type:   []string{"string"},
+										Format: "",
+									},
+								},
+							},
+						},
+					},
+					"localMemberIndex": {
+						SchemaProps: spec.SchemaProps{
+							Description: "LocalMemberIndex can optionally be used to specify that only one etcd member should actually be deployed. This can be used to spread members across multiple Kubernetes clusters by configuring the EtcdLockserver CRD in each cluster to deploy a different member index. If specified, the index must be 1, 2, or 3.\n\nDefault: Deploy all etcd members locally.",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
 					"zone": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Zone is the name of the Availability Zone that this lockserver should run in. This value should match the value of the \"failure-domain.beta.kubernetes.io/zone\" label on the Kubernetes Nodes in that AZ. If the Kubernetes Nodes don't have such a label, leave this empty.",

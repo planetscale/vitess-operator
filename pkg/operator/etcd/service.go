@@ -26,11 +26,11 @@ import (
 )
 
 const (
-	clientPortName   = "client"
-	clientPortNumber = 2379
+	ClientPortName   = "client"
+	ClientPortNumber = 2379
 
-	peerPortName   = "peer"
-	peerPortNumber = 2380
+	PeerPortName   = "peer"
+	PeerPortNumber = 2380
 )
 
 // ClientServiceName returns the name of the etcd client Service.
@@ -65,10 +65,10 @@ func UpdateClientService(svc *corev1.Service, labels map[string]string) {
 	svc.Spec.Selector = labels
 	svc.Spec.Ports = []corev1.ServicePort{
 		{
-			Name:       clientPortName,
+			Name:       ClientPortName,
 			Protocol:   corev1.ProtocolTCP,
-			Port:       clientPortNumber,
-			TargetPort: intstr.FromString(clientPortName),
+			Port:       ClientPortNumber,
+			TargetPort: intstr.FromString(ClientPortName),
 		},
 	}
 }
@@ -104,10 +104,10 @@ func UpdatePeerService(svc *corev1.Service, labels map[string]string) {
 	svc.Spec.Selector = labels
 	svc.Spec.Ports = []corev1.ServicePort{
 		{
-			Name:       peerPortName,
+			Name:       PeerPortName,
 			Protocol:   corev1.ProtocolTCP,
-			Port:       peerPortNumber,
-			TargetPort: intstr.FromString(peerPortName),
+			Port:       PeerPortNumber,
+			TargetPort: intstr.FromString(PeerPortName),
 		},
 	}
 }

@@ -115,6 +115,13 @@ func (r *ReconcileVitessShard) pruneTablets(ctx context.Context, vts *planetscal
 
 	// Clean up tablets that exist but shouldn't.
 	for name, tabletInfo := range tablets {
+		if !vts.Spec.CellInCluster(tabletInfo.Alias.GetCell()) {
+			// Skip tablets whose cell is not defined in the VitessCluster.
+			// We should only operate on cells we've been told to manage,
+			// since others might be externally managed.
+			continue
+		}
+
 		if vts.Status.Tablets[name] == nil && vts.Status.OrphanedTablets[name] == nil {
 			// The tablet exists in topo, but not in the VitessShard spec.
 			// It's also not being kept around by a blocked turn-down.

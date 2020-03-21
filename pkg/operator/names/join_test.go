@@ -72,6 +72,23 @@ func TestJoin(t *testing.T) {
 	}
 }
 
+// TestJoinSalt checks that the salt affects the hash without appearing in the name.
+func TestJoinSalt(t *testing.T) {
+	salt := []string{"salt1", "salt2"}
+	parts := []string{"hello", "world"}
+	want := "hello-world-462f1b88"
+	if got := JoinSalt(salt, parts...); got != want {
+		t.Errorf("JoinSalt(%v, %v) = %q, want %q", salt, parts, got, want)
+	}
+
+	salt = []string{"salt1-salt2"}
+	parts = []string{"hello", "world"}
+	want = "hello-world-c65378ee"
+	if got := JoinSalt(salt, parts...); got != want {
+		t.Errorf("JoinSalt(%v, %v) = %q, want %q", salt, parts, got, want)
+	}
+}
+
 // TestJoinHash checks that nobody changed the hash function for Join.
 func TestJoinHash(t *testing.T) {
 	// DO NOT CHANGE THIS TEST!

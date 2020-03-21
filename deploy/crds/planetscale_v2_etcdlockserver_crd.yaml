@@ -31,6 +31,17 @@ spec:
           type: object
         spec:
           properties:
+            advertisePeerURLs:
+              description: 'AdvertisePeerURLs can optionally be used to override the
+                URLs that etcd members use to find each other for peer-to-peer connections.  If
+                specified, the list must contain exactly 3 entries, one for each etcd
+                member index (1,2,3) respectively.  Default: Build peer URLs automatically
+                based on Kubernetes built-in DNS.'
+              items:
+                type: string
+              maxItems: 3
+              minItems: 3
+              type: array
             affinity:
               description: 'Affinity allows you to set rules that constrain the scheduling
                 of your Etcd pods. WARNING: These affinity rules will override all
@@ -43,6 +54,21 @@ spec:
               description: Annotations can optionally be used to attach custom annotations
                 to Pods created for this component.
               type: object
+            createClientService:
+              description: 'CreateClientService sets whether to create a Service for
+                the client port of etcd member Pods.  Note: Disabling this will NOT
+                delete a Service that was previously created.  Default: true'
+              type: boolean
+            createPDB:
+              description: 'CreatePDB sets whether to create a PodDisruptionBudget
+                (PDB) for etcd member Pods.  Note: Disabling this will NOT delete
+                a PDB that was previously created.  Default: true'
+              type: boolean
+            createPeerService:
+              description: 'CreatePeerService sets whether to create a Service for
+                the peer port of etcd member Pods.  Note: Disabling this will NOT
+                delete a Service that was previously created.  Default: true'
+              type: boolean
             dataVolumeClaimTemplate:
               description: 'DataVolumeClaimTemplate configures the PersistentVolumeClaims
                 that will be created for each etcd instance to store its data files.
@@ -102,6 +128,17 @@ spec:
               items:
                 type: object
               type: array
+            localMemberIndex:
+              description: 'LocalMemberIndex can optionally be used to specify that
+                only one etcd member should actually be deployed. This can be used
+                to spread members across multiple Kubernetes clusters by configuring
+                the EtcdLockserver CRD in each cluster to deploy a different member
+                index. If specified, the index must be 1, 2, or 3.  Default: Deploy
+                all etcd members locally.'
+              format: int32
+              maximum: 3
+              minimum: 1
+              type: integer
             resources:
               description: 'Resources specify the compute resources to allocate for
                 each etcd member. Default: Let the operator choose.'

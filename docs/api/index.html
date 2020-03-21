@@ -862,6 +862,79 @@ map[string]string
 created for this component.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>createPDB</code></br>
+<em>
+bool
+</em>
+</td>
+<td>
+<p>CreatePDB sets whether to create a PodDisruptionBudget (PDB) for etcd
+member Pods.</p>
+<p>Note: Disabling this will NOT delete a PDB that was previously created.</p>
+<p>Default: true</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>createClientService</code></br>
+<em>
+bool
+</em>
+</td>
+<td>
+<p>CreateClientService sets whether to create a Service for the client port
+of etcd member Pods.</p>
+<p>Note: Disabling this will NOT delete a Service that was previously created.</p>
+<p>Default: true</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>createPeerService</code></br>
+<em>
+bool
+</em>
+</td>
+<td>
+<p>CreatePeerService sets whether to create a Service for the peer port
+of etcd member Pods.</p>
+<p>Note: Disabling this will NOT delete a Service that was previously created.</p>
+<p>Default: true</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>advertisePeerURLs</code></br>
+<em>
+[]string
+</em>
+</td>
+<td>
+<p>AdvertisePeerURLs can optionally be used to override the URLs that etcd
+members use to find each other for peer-to-peer connections.</p>
+<p>If specified, the list must contain exactly 3 entries, one for each etcd
+member index (1,2,3) respectively.</p>
+<p>Default: Build peer URLs automatically based on Kubernetes built-in DNS.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>localMemberIndex</code></br>
+<em>
+int32
+</em>
+</td>
+<td>
+<p>LocalMemberIndex can optionally be used to specify that only one etcd
+member should actually be deployed. This can be used to spread members
+across multiple Kubernetes clusters by configuring the EtcdLockserver CRD
+in each cluster to deploy a different member index. If specified, the
+index must be 1, 2, or 3.</p>
+<p>Default: Deploy all etcd members locally.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="planetscale.com/v2.ExternalDatastore">ExternalDatastore

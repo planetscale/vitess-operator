@@ -53,13 +53,34 @@ causing confusion if they happen to contain the separator.
 func Join(parts ...string) string {
 	all := make([]string, 0, len(parts)+1)
 	all = append(all, parts...)
-	all = append(all, hash(parts))
+	all = append(all, Hash(parts))
 	return strings.Join(all, "-")
 }
 
-// hash computes a hash for the given parts.
-// DO NOT CHANGE THIS!
-func hash(parts []string) string {
+// JoinSalt works like Join except the appended hash includes additional,
+// hidden salt values that don't get concatenated onto the name itself.
+//
+// Unlike regular name components, hidden salt values don't have to consist
+// solely of characters that are valid in an object name. This can be used to
+// ensure generation of deterministic, unique names when some of the determining
+// input values are not safe to use in names.
+func JoinSalt(salt []string, parts ...string) string {
+	// Include both the salt and name parts in the hash.
+	hashParts := make([]string, 0, len(salt)+len(parts))
+	hashParts = append(hashParts, salt...)
+	hashParts = append(hashParts, parts...)
+
+	// Exclude salt from the name itself.
+	nameParts := make([]string, 0, len(parts)+1)
+	nameParts = append(nameParts, parts...)
+	nameParts = append(nameParts, Hash(hashParts))
+	return strings.Join(nameParts, "-")
+}
+
+// Hash computes a hash suffix for the given name parts.
+func Hash(parts []string) string {
+	// DO NOT CHANGE THIS!
+
 	h := md5.New()
 	for _, part := range parts {
 		h.Write([]byte(part))

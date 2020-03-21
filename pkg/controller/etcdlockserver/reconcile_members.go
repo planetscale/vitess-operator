@@ -104,8 +104,16 @@ func (r *ReconcileEtcdLockserver) reconcileMembers(ctx context.Context, ls *plan
 	}
 
 	// Update status of the lockserver.
-	// We should be available for queries if the number of Ready replicas is a majority.
-	ls.Status.Available = k8s.ConditionStatus(numPodsReady >= etcd.QuorumSize)
+	if ls.Spec.LocalMemberIndex == nil {
+		// We're deploying all members locally, so we can see all of them.
+		// We should be available for queries if the number of Ready replicas is
+		// enough to reach quorum.
+		ls.Status.Available = k8s.ConditionStatus(numPodsReady >= etcd.QuorumSize)
+	} else {
+		// We're only deploying one member locally, so all we can report is
+		// whether our one Pod is ready.
+		ls.Status.Available = k8s.ConditionStatus(numPodsReady > 0)
+	}
 
 	return resultBuilder.Result()
 }
@@ -114,6 +122,11 @@ func (r *ReconcileEtcdLockserver) reconcileMembers(ctx context.Context, ls *plan
 func memberSpecs(ls *planetscalev2.EtcdLockserver, parentLabels map[string]string) []*etcd.Spec {
 	members := make([]*etcd.Spec, 0, etcd.NumReplicas)
 	for i := 1; i <= etcd.NumReplicas; i++ {
+		// If we're only deploying one member locally, skip the others.
+		if ls.Spec.LocalMemberIndex != nil && int32(i) != *ls.Spec.LocalMemberIndex {
+			continue
+		}
+
 		// Set member-specific labels and copy parent labels.
 		labels := map[string]string{
 			etcd.IndexLabel: strconv.FormatInt(int64(i), 10),
@@ -146,6 +159,7 @@ func memberSpecs(ls *planetscalev2.EtcdLockserver, parentLabels map[string]strin
 			InitContainers:    ls.Spec.InitContainers,
 			Affinity:          ls.Spec.Affinity,
 			Annotations:       ls.Spec.Annotations,
+			AdvertisePeerURLs: ls.Spec.AdvertisePeerURLs,
 		})
 	}
 	return members

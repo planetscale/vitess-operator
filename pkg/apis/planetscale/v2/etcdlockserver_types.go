@@ -126,6 +126,52 @@ type EtcdLockserverTemplate struct {
 	// ExtraLabels can optionally be used to attach custom labels to Pods
 	// created for this component.
 	ExtraLabels map[string]string `json:"extraLabels,omitempty"`
+
+	// CreatePDB sets whether to create a PodDisruptionBudget (PDB) for etcd
+	// member Pods.
+	//
+	// Note: Disabling this will NOT delete a PDB that was previously created.
+	//
+	// Default: true
+	CreatePDB *bool `json:"createPDB,omitempty"`
+
+	// CreateClientService sets whether to create a Service for the client port
+	// of etcd member Pods.
+	//
+	// Note: Disabling this will NOT delete a Service that was previously created.
+	//
+	// Default: true
+	CreateClientService *bool `json:"createClientService,omitempty"`
+
+	// CreatePeerService sets whether to create a Service for the peer port
+	// of etcd member Pods.
+	//
+	// Note: Disabling this will NOT delete a Service that was previously created.
+	//
+	// Default: true
+	CreatePeerService *bool `json:"createPeerService,omitempty"`
+
+	// AdvertisePeerURLs can optionally be used to override the URLs that etcd
+	// members use to find each other for peer-to-peer connections.
+	//
+	// If specified, the list must contain exactly 3 entries, one for each etcd
+	// member index (1,2,3) respectively.
+	//
+	// Default: Build peer URLs automatically based on Kubernetes built-in DNS.
+	// +kubebuilder:validation:MinItems=3
+	// +kubebuilder:validation:MaxItems=3
+	AdvertisePeerURLs []string `json:"advertisePeerURLs,omitempty"`
+
+	// LocalMemberIndex can optionally be used to specify that only one etcd
+	// member should actually be deployed. This can be used to spread members
+	// across multiple Kubernetes clusters by configuring the EtcdLockserver CRD
+	// in each cluster to deploy a different member index. If specified, the
+	// index must be 1, 2, or 3.
+	//
+	// Default: Deploy all etcd members locally.
+	// +kubebuilder:validation:Minimum=1
+	// +kubebuilder:validation:Maximum=3
+	LocalMemberIndex *int32 `json:"localMemberIndex,omitempty"`
 }
 
 // EtcdLockserverStatus defines the observed state of an EtcdLockserver.

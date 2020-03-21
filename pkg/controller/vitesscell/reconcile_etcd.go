@@ -30,7 +30,10 @@ import (
 func (r *ReconcileVitessCell) reconcileLocalEtcd(ctx context.Context, vtc *planetscalev2.VitessCell) error {
 	clusterName := vtc.Labels[planetscalev2.ClusterLabel]
 
-	key := client.ObjectKey{Namespace: vtc.Namespace, Name: lockserver.LocalEtcdName(clusterName, vtc.Spec.Name)}
+	key := client.ObjectKey{
+		Namespace: vtc.Namespace,
+		Name:      lockserver.LocalEtcdName(clusterName, vtc.Spec.Name),
+	}
 	labels := map[string]string{
 		planetscalev2.ClusterLabel:   clusterName,
 		planetscalev2.CellLabel:      vtc.Spec.Name,
