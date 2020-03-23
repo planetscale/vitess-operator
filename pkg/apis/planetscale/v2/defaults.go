@@ -60,6 +60,9 @@ const (
 	defaultEtcdStorageRequestBytes = 1 * Gi
 	defaultEtcdCPUMillis           = 100
 	defaultEtcdMemoryBytes         = 256 * Mi
+	defaultEtcdCreatePDB           = true
+	defaultEtcdCreateClientService = true
+	defaultEtcdCreatePeerService   = true
 
 	defaultVtctldReplicas    = 1
 	defaultVtctldCPUMillis   = 100

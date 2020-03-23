@@ -39,43 +39,47 @@ func (r *ReconcileEtcdLockserver) reconcileServices(ctx context.Context, ls *pla
 	}
 
 	// Reconcile the client Service.
-	clientSvcKey := client.ObjectKey{
-		Namespace: ls.Namespace,
-		Name:      etcd.ClientServiceName(lockserverName),
-	}
-	err := r.reconciler.ReconcileObject(ctx, ls, clientSvcKey, labels, true, reconciler.Strategy{
-		Kind: &corev1.Service{},
+	if *ls.Spec.CreateClientService {
+		clientSvcKey := client.ObjectKey{
+			Namespace: ls.Namespace,
+			Name:      etcd.ClientServiceName(lockserverName),
+		}
+		err := r.reconciler.ReconcileObject(ctx, ls, clientSvcKey, labels, true, reconciler.Strategy{
+			Kind: &corev1.Service{},
 
-		New: func(key client.ObjectKey) runtime.Object {
-			return etcd.NewClientService(key, labels)
-		},
-		UpdateInPlace: func(key client.ObjectKey, obj runtime.Object) {
-			curObj := obj.(*corev1.Service)
-			etcd.UpdateClientService(curObj, labels)
-		},
-	})
-	if err != nil {
-		resultBuilder.Error(err)
+			New: func(key client.ObjectKey) runtime.Object {
+				return etcd.NewClientService(key, labels)
+			},
+			UpdateInPlace: func(key client.ObjectKey, obj runtime.Object) {
+				curObj := obj.(*corev1.Service)
+				etcd.UpdateClientService(curObj, labels)
+			},
+		})
+		if err != nil {
+			resultBuilder.Error(err)
+		}
 	}
 
 	// Reconcile the peer Service.
-	peerSvcKey := client.ObjectKey{
-		Namespace: ls.Namespace,
-		Name:      etcd.PeerServiceName(lockserverName),
-	}
-	err = r.reconciler.ReconcileObject(ctx, ls, peerSvcKey, labels, true, reconciler.Strategy{
-		Kind: &corev1.Service{},
+	if *ls.Spec.CreatePeerService {
+		peerSvcKey := client.ObjectKey{
+			Namespace: ls.Namespace,
+			Name:      etcd.PeerServiceName(lockserverName),
+		}
+		err := r.reconciler.ReconcileObject(ctx, ls, peerSvcKey, labels, true, reconciler.Strategy{
+			Kind: &corev1.Service{},
 
-		New: func(key client.ObjectKey) runtime.Object {
-			return etcd.NewPeerService(key, labels)
-		},
-		UpdateInPlace: func(key client.ObjectKey, obj runtime.Object) {
-			curObj := obj.(*corev1.Service)
-			etcd.UpdatePeerService(curObj, labels)
-		},
-	})
-	if err != nil {
-		resultBuilder.Error(err)
+			New: func(key client.ObjectKey) runtime.Object {
+				return etcd.NewPeerService(key, labels)
+			},
+			UpdateInPlace: func(key client.ObjectKey, obj runtime.Object) {
+				curObj := obj.(*corev1.Service)
+				etcd.UpdatePeerService(curObj, labels)
+			},
+		})
+		if err != nil {
+			resultBuilder.Error(err)
+		}
 	}
 
 	return resultBuilder.Result()

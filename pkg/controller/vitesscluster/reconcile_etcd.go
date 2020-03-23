@@ -28,7 +28,10 @@ import (
 )
 
 func (r *ReconcileVitessCluster) reconcileGlobalEtcd(ctx context.Context, vt *planetscalev2.VitessCluster) error {
-	key := client.ObjectKey{Namespace: vt.Namespace, Name: lockserver.GlobalEtcdName(vt.Name)}
+	key := client.ObjectKey{
+		Namespace: vt.Namespace,
+		Name:      lockserver.GlobalEtcdName(vt.Name),
+	}
 	labels := map[string]string{
 		planetscalev2.ClusterLabel:   vt.Name,
 		planetscalev2.ComponentLabel: planetscalev2.EtcdComponentName,

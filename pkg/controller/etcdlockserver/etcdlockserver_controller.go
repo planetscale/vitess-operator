@@ -146,6 +146,9 @@ func (r *ReconcileEtcdLockserver) Reconcile(request reconcile.Request) (reconcil
 		return resultBuilder.Error(err)
 	}
 
+	// Materialize defaults.
+	planetscalev2.DefaultEtcdLockserver(ls)
+
 	// Reset status, since that's all out of date info that we will recompute now.
 	oldStatus := ls.Status
 	ls.Status = *planetscalev2.NewEtcdLockserverStatus()

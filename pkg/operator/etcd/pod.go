@@ -82,6 +82,7 @@ type Spec struct {
 	Affinity          *corev1.Affinity
 	Annotations       map[string]string
 	ExtraLabels       map[string]string
+	AdvertisePeerURLs []string
 }
 
 // NewPod creates a new etcd Pod.
@@ -168,14 +169,14 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 		Args:            spec.Args(),
 		Ports: []corev1.ContainerPort{
 			{
-				Name:          clientPortName,
+				Name:          ClientPortName,
 				Protocol:      corev1.ProtocolTCP,
-				ContainerPort: clientPortNumber,
+				ContainerPort: ClientPortNumber,
 			},
 			{
-				Name:          peerPortName,
+				Name:          PeerPortName,
 				Protocol:      corev1.ProtocolTCP,
-				ContainerPort: peerPortNumber,
+				ContainerPort: PeerPortNumber,
 			},
 		},
 		Resources: spec.Resources,
@@ -311,17 +312,33 @@ func (spec *Spec) Args() []string {
 	hostname := PodName(spec.LockserverName, spec.Index)
 	subdomain := PeerServiceName(spec.LockserverName)
 
-	listenPeerURLs := fmt.Sprintf("http://0.0.0.0:%d", peerPortNumber)
-	listenClientURLs := fmt.Sprintf("http://0.0.0.0:%d", clientPortNumber)
-	advertiseClientURLs := fmt.Sprintf("http://%s.%s:%d", hostname, subdomain, clientPortNumber)
+	listenPeerURLs := fmt.Sprintf("http://0.0.0.0:%d", PeerPortNumber)
+	listenClientURLs := fmt.Sprintf("http://0.0.0.0:%d", ClientPortNumber)
+	advertiseClientURLs := fmt.Sprintf("http://%s.%s:%d", hostname, subdomain, ClientPortNumber)
 
 	// Use static bootstrapping.
 	initialClusterToken := spec.LockserverName
-	initialAdvertisePeerURLs := fmt.Sprintf("http://%s.%s:%d", hostname, subdomain, peerPortNumber)
+	advertisePeerURLs := spec.AdvertisePeerURLs
+
+	// If peer URLs were not explicitly specified, generate them.
+	if len(advertisePeerURLs) != NumReplicas {
+		advertisePeerURLs = make([]string, 0, NumReplicas)
+		for i := 0; i < NumReplicas; i++ {
+			peerIndex := i + 1
+			peerName := PodName(spec.LockserverName, peerIndex)
+			advertisePeerURLs = append(advertisePeerURLs, fmt.Sprintf("http://%s.%s:%d", peerName, subdomain, PeerPortNumber))
+		}
+	}
+
+	// Set the address that this peer will advertise for itself.
+	initialAdvertisePeerURLs := advertisePeerURLs[spec.Index-1]
+
+	// Create list of peer addresses.
 	initialCluster := make([]string, 0, NumReplicas)
-	for i := 1; i <= NumReplicas; i++ {
-		name := PodName(spec.LockserverName, i)
-		initialCluster = append(initialCluster, fmt.Sprintf("%s=http://%s.%s:%d", name, name, subdomain, peerPortNumber))
+	for i := 0; i < NumReplicas; i++ {
+		peerIndex := i + 1
+		peerName := PodName(spec.LockserverName, peerIndex)
+		initialCluster = append(initialCluster, fmt.Sprintf("%s=%s", peerName, advertisePeerURLs[i]))
 	}
 
 	flags := vitess.Flags{

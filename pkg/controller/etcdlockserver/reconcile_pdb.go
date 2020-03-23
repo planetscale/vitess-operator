@@ -32,6 +32,11 @@ import (
 
 func (r *ReconcileEtcdLockserver) reconcilePodDisruptionBudget(ctx context.Context, ls *planetscalev2.EtcdLockserver) (reconcile.Result, error) {
 	resultBuilder := &results.Builder{}
+
+	if !*ls.Spec.CreatePDB {
+		return resultBuilder.Result()
+	}
+
 	lockserverName := ls.Name
 
 	labels := map[string]string{
