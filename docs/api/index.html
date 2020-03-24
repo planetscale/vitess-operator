@@ -420,17 +420,6 @@ TopoReconcileConfig
 <p>TopologyReconciliation can be used to enable or disable registration or pruning of various vitess components to and from topo records.</p>
 </td>
 </tr>
-<tr>
-<td>
-<code>initReplication</code></br>
-<em>
-bool
-</em>
-</td>
-<td>
-<p>InitReplication can be used to enable or disable the operator initializing replication on a new or restored Vitess Shard object.</p>
-</td>
-</tr>
 </table>
 </td>
 </tr>
@@ -3075,17 +3064,6 @@ TopoReconcileConfig
 <p>TopologyReconciliation can be used to enable or disable registration or pruning of various vitess components to and from topo records.</p>
 </td>
 </tr>
-<tr>
-<td>
-<code>initReplication</code></br>
-<em>
-bool
-</em>
-</td>
-<td>
-<p>InitReplication can be used to enable or disable the operator initializing replication on a new or restored Vitess Shard object.</p>
-</td>
-</tr>
 </tbody>
 </table>
 <h3 id="planetscale.com/v2.VitessClusterStatus">VitessClusterStatus
@@ -4810,6 +4788,18 @@ maintenance.</p>
 <p>Default: Semi-sync is not enforced.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>initializeMaster</code></br>
+<em>
+bool
+</em>
+</td>
+<td>
+<p>InitializeMaster can be used to enable or disable the operator initializing replication
+on a new or restored Vitess Shard object.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="planetscale.com/v2.VitessShard">VitessShard
@@ -5001,17 +4991,6 @@ TopoReconcileConfig
 </td>
 <td>
 <p>TopologyReconciliation is inherited from the parent&rsquo;s VitessClusterSpec.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>initReplication</code></br>
-<em>
-bool
-</em>
-</td>
-<td>
-<p>InitReplication is inherited from the parent&rsquo;s VitessClusterSpec.</p>
 </td>
 </tr>
 </table>
@@ -5265,17 +5244,6 @@ TopoReconcileConfig
 </td>
 <td>
 <p>TopologyReconciliation is inherited from the parent&rsquo;s VitessClusterSpec.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>initReplication</code></br>
-<em>
-bool
-</em>
-</td>
-<td>
-<p>InitReplication is inherited from the parent&rsquo;s VitessClusterSpec.</p>
 </td>
 </tr>
 </tbody>

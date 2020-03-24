@@ -954,10 +954,6 @@ spec:
                     tag) to use for Vitess Tablet instances.
                   type: string
               type: object
-            initReplication:
-              description: InitReplication can be used to enable or disable the operator
-                initializing replication on a new or restored Vitess Shard object.
-              type: boolean
             keyspaces:
               description: 'Keyspaces defines the logical databases to deploy.  A
                 VitessKeyspace can deploy to multiple VitessCells.  This field is
@@ -1120,6 +1116,12 @@ spec:
                                           may lead to master unavailability during
                                           routine maintenance.  Default: Semi-sync
                                           is not enforced.'
+                                        type: boolean
+                                      initializeMaster:
+                                        description: InitializeMaster can be used
+                                          to enable or disable the operator initializing
+                                          replication on a new or restored Vitess
+                                          Shard object.
                                         type: boolean
                                     type: object
                                   tabletPools:
@@ -1546,6 +1548,12 @@ spec:
                                         than 3 master-eligible replicas, as that may
                                         lead to master unavailability during routine
                                         maintenance.  Default: Semi-sync is not enforced.'
+                                      type: boolean
+                                    initializeMaster:
+                                      description: InitializeMaster can be used to
+                                        enable or disable the operator initializing
+                                        replication on a new or restored Vitess Shard
+                                        object.
                                       type: boolean
                                   type: object
                                 tabletPools:

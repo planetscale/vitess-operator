@@ -481,6 +481,11 @@ spec:
                                     routine maintenance.  Default: Semi-sync is not
                                     enforced.'
                                   type: boolean
+                                initializeMaster:
+                                  description: InitializeMaster can be used to enable
+                                    or disable the operator initializing replication
+                                    on a new or restored Vitess Shard object.
+                                  type: boolean
                               type: object
                             tabletPools:
                               description: TabletPools specify groups of tablets in
@@ -871,6 +876,11 @@ spec:
                                   as that may lead to master unavailability during
                                   routine maintenance.  Default: Semi-sync is not
                                   enforced.'
+                                type: boolean
+                              initializeMaster:
+                                description: InitializeMaster can be used to enable
+                                  or disable the operator initializing replication
+                                  on a new or restored Vitess Shard object.
                                 type: boolean
                             type: object
                           tabletPools:

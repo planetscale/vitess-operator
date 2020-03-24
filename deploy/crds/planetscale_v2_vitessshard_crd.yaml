@@ -371,9 +371,6 @@ spec:
                     tag) to use for Vitess Tablet instances.
                   type: string
               type: object
-            initReplication:
-              description: InitReplication is inherited from the parent's VitessClusterSpec.
-              type: boolean
             keyRange:
               description: KeyRange is the range of keyspace IDs served by this shard.
               properties:
@@ -414,6 +411,11 @@ spec:
                     as committed.  WARNING: Do not enable this if the shard has fewer
                     than 3 master-eligible replicas, as that may lead to master unavailability
                     during routine maintenance.  Default: Semi-sync is not enforced.'
+                  type: boolean
+                initializeMaster:
+                  description: InitializeMaster can be used to enable or disable the
+                    operator initializing replication on a new or restored Vitess
+                    Shard object.
                   type: boolean
               type: object
             tabletPools:
