@@ -86,9 +86,6 @@ type VitessShardSpec struct {
 
 	// TopologyReconciliation is inherited from the parent's VitessClusterSpec.
 	TopologyReconciliation *TopoReconcileConfig `json:"topologyReconciliation,omitempty"`
-
-	// InitReplication is inherited from the parent's VitessClusterSpec.
-	InitReplication *bool `json:"initReplication,omitempty"`
 }
 
 // VitessShardTemplate contains only the user-specified parts of a VitessShard object.
@@ -137,6 +134,10 @@ type VitessReplicationSpec struct {
 	//
 	// Default: Semi-sync is not enforced.
 	EnforceSemiSync bool `json:"enforceSemiSync,omitempty"`
+
+	// InitializeMaster can be used to enable or disable the operator initializing replication
+	// on a new or restored Vitess Shard object.
+	InitializeMaster bool `json:"initializeMaster,omitempty"`
 }
 
 // VitessShardTabletPool defines a pool of tablets with a similar purpose.

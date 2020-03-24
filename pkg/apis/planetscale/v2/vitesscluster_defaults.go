@@ -145,12 +145,3 @@ func DefaultTopoReconcileConfig(confPtr **TopoReconcileConfig) {
 		conf.PruneSrvKeyspaces = pointer.BoolPtr(true)
 	}
 }
-
-func DefaultInitReplication(enabled **bool) {
-	// Enable initialization of replication by default.
-	enableInitReplication := *enabled
-
-	if enableInitReplication == nil {
-		enableInitReplication = pointer.BoolPtr(true)
-	}
-}
