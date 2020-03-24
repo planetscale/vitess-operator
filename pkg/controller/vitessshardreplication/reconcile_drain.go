@@ -40,6 +40,13 @@ import (
 )
 
 const (
+	// reconcileDrainTimeout is the overall timeout for a single drain pass.
+	// It should be large enough to include other sub-timeouts below.
+	reconcileDrainTimeout = 60 * time.Second
+	// reconcileDrainReadTimeout is the timeout for reading state before we
+	// decide to do anything. These reads should be fast, so we keep this low to
+	// fail fast if topo is down rather than wait until the overall timeout.
+	reconcileDrainReadTimeout = 10 * time.Second
 	// plannedReparentTimeout is the timeout for executing PlannedReparentShard.
 	plannedReparentTimeout = 30 * time.Second
 	// candidateMasterTimeout is the timeout for contacting candidate masters to decide which one to choose.
@@ -92,6 +99,14 @@ func (r *ReconcileVitessShard) reconcileDrain(ctx context.Context, vts *planetsc
 	keyspaceName := vts.Labels[planetscalev2.KeyspaceLabel]
 	resultBuilder := &results.Builder{}
 
+	// Don't hold our slot in the reconcile work queue for too long.
+	ctx, cancel := context.WithTimeout(ctx, reconcileDrainTimeout)
+	defer cancel()
+
+	// Put a tighter limit on the initial read phase so we fail fast.
+	readCtx, readCancel := context.WithTimeout(ctx, reconcileDrainReadTimeout)
+	defer readCancel()
+
 	// Get a list of all our tablet Pods from the cache.
 	labels := map[string]string{
 		planetscalev2.ComponentLabel: planetscalev2.VttabletComponentName,
@@ -105,13 +120,13 @@ func (r *ReconcileVitessShard) reconcileDrain(ctx context.Context, vts *planetsc
 		Namespace:     vts.Namespace,
 		LabelSelector: apilabels.SelectorFromSet(apilabels.Set(labels)),
 	}
-	if err := r.client.List(ctx, listOpts, podList); err != nil {
+	if err := r.client.List(readCtx, listOpts, podList); err != nil {
 		r.recorder.Eventf(vts, corev1.EventTypeWarning, "ListFailed", "failed to list Pods: %v", err)
 		return resultBuilder.Error(err)
 	}
 
 	// Get the shard record to check who the master is.
-	shard, err := wr.TopoServer().GetShard(ctx, keyspaceName, vts.Spec.Name)
+	shard, err := wr.TopoServer().GetShard(readCtx, keyspaceName, vts.Spec.Name)
 	if err != nil {
 		r.recorder.Eventf(vts, corev1.EventTypeWarning, "TopoGetFailed", "failed to get shard record: %v", err)
 		return resultBuilder.RequeueAfter(replicationRequeueDelay)
@@ -120,7 +135,7 @@ func (r *ReconcileVitessShard) reconcileDrain(ctx context.Context, vts *planetsc
 	// Get all the tablet records for the shard, in cells to which we deploy.
 	// We ignore tablets in cells we don't deploy, since we assume there's
 	// a separate operator instance handling drains on those tablets.
-	tablets, err := wr.TopoServer().GetTabletMapForShardByCell(ctx, keyspaceName, vts.Spec.Name, vts.Spec.GetCells().UnsortedList())
+	tablets, err := wr.TopoServer().GetTabletMapForShardByCell(readCtx, keyspaceName, vts.Spec.Name, vts.Spec.GetCells().UnsortedList())
 	if err != nil {
 		r.recorder.Eventf(vts, corev1.EventTypeWarning, "TopoGetFailed", "failed to get tablet records: %v", err)
 		return resultBuilder.RequeueAfter(replicationRequeueDelay)
@@ -277,8 +292,8 @@ func (r *ReconcileVitessShard) reconcileDrain(ctx context.Context, vts *planetsc
 	}
 
 	// Perform a planned reparent.
-	reparentCtx, cancel := context.WithTimeout(ctx, plannedReparentTimeout)
-	defer cancel()
+	reparentCtx, reparentCancel := context.WithTimeout(ctx, plannedReparentTimeout)
+	defer reparentCancel()
 
 	var reparentErr error
 	if vts.Spec.UsingExternalDatastore() {
