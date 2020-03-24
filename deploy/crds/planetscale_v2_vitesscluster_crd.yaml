@@ -1118,10 +1118,10 @@ spec:
                                           is not enforced.'
                                         type: boolean
                                       initializeMaster:
-                                        description: InitializeMaster can be used
-                                          to enable or disable the operator initializing
-                                          replication on a new or restored Vitess
-                                          Shard object.
+                                        description: 'InitializeMaster specifies whether
+                                          to choose an initial master for a new or
+                                          restored shard that has no master yet.  Default:
+                                          true.'
                                         type: boolean
                                     type: object
                                   tabletPools:
@@ -1550,10 +1550,9 @@ spec:
                                         maintenance.  Default: Semi-sync is not enforced.'
                                       type: boolean
                                     initializeMaster:
-                                      description: InitializeMaster can be used to
-                                        enable or disable the operator initializing
-                                        replication on a new or restored Vitess Shard
-                                        object.
+                                      description: 'InitializeMaster specifies whether
+                                        to choose an initial master for a new or restored
+                                        shard that has no master yet.  Default: true.'
                                       type: boolean
                                   type: object
                                 tabletPools:
