@@ -170,6 +170,9 @@ func (r *ReconcileVitessShard) Reconcile(request reconcile.Request) (reconcile.R
 		return resultBuilder.Error(err)
 	}
 
+	// Materialize defaults
+	planetscalev2.DefaultVitessShard(vts)
+
 	// Wait for the main VitessShard controller to update status for the latest
 	// desired spec before reconciling replication.
 	if vts.Status.ObservedGeneration == 0 || vts.Status.ObservedGeneration != vts.Generation {
@@ -193,10 +196,9 @@ func (r *ReconcileVitessShard) Reconcile(request reconcile.Request) (reconcile.R
 	// multi-step Vitess cluster management workflows.
 	wr := wrangler.New(logutil.NewConsoleLogger(), ts.Server, tmc)
 
-	// If we specified the operator to handle the initialization of replication, make the appropriate checks.
-	if *vts.Spec.InitReplication {
-		r.initReplication(ctx, vts, wr, resultBuilder)
-	}
+	// Initialize replication if it has not already been started.
+	initReplicationResult, err := r.initReplication(ctx, vts, wr)
+	resultBuilder.Merge(initReplicationResult, err)
 
 	// Try to fix replication if it's broken.
 	repairResult, err := r.repairReplication(ctx, vts, wr)
@@ -215,21 +217,28 @@ func (r *ReconcileVitessShard) Reconcile(request reconcile.Request) (reconcile.R
 	return result, err
 }
 
-func (r *ReconcileVitessShard) initReplication(ctx context.Context, vts *planetscalev2.VitessShard, wr *wrangler.Wrangler, rb *results.Builder) {
+func (r *ReconcileVitessShard) initReplication(ctx context.Context, vts *planetscalev2.VitessShard, wr *wrangler.Wrangler) (reconcile.Result, error){
+	resultBuilder := &results.Builder{}
+
+	// If we have configured the operator to not initialize replication, bail.
+	if !*vts.Spec.InitReplication {
+		return resultBuilder.Result()
+	}
+
 	// Check if we need to initialize the shard.
 	// If it's already initialized, this will be a no-op.
 	// If we are using external MySQL we will bail out early.
 	ismResult, err := r.initShardMaster(ctx, vts, wr)
-	rb.Merge(ismResult, err)
+	resultBuilder.Merge(ismResult, err)
 
 	// Check if we need to externally reparent
 	// in the case of external MySQL.
 	// If we are not using external MySQL we will bail out early.
 	terResult, err := r.tabletExternallyReparent(ctx, vts, wr)
-	rb.Merge(terResult, err)
+	resultBuilder.Merge(terResult, err)
 
 	// Check if we need to start replication on a shard that's been restored
 	// from backup. If it's already initialized, this will be a no-op.
 	irsResult, err := r.initRestoredShard(ctx, vts, wr)
-	rb.Merge(irsResult, err)
+	return resultBuilder.Merge(irsResult, err)
 }
