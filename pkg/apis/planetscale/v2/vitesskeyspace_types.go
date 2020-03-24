@@ -77,9 +77,6 @@ type VitessKeyspaceSpec struct {
 
 	// TopologyReconciliation is inherited from the parent's VitessClusterSpec.
 	TopologyReconciliation *TopoReconcileConfig `json:"topologyReconciliation,omitempty"`
-
-	// InitReplication is inherited from the parent's VitessClusterSpec.
-	InitReplication *bool `json:"initReplication,omitempty"`
 }
 
 // VitessKeyspaceTemplate contains only the user-specified parts of a VitessKeyspace object.
