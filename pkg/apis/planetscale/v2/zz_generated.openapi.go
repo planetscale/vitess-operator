@@ -834,6 +834,13 @@ func schema_pkg_apis_planetscale_v2_VitessClusterSpec(ref common.ReferenceCallba
 							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.TopoReconcileConfig"),
 						},
 					},
+					"initReplication": {
+						SchemaProps: spec.SchemaProps{
+							Description: "InitReplication can be used to enable or disable the operator initializing replication on a new or restored Vitess Shard object.",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
 				},
 				Required: []string{"cells"},
 			},
@@ -1328,6 +1335,13 @@ func schema_pkg_apis_planetscale_v2_VitessShardSpec(ref common.ReferenceCallback
 						SchemaProps: spec.SchemaProps{
 							Description: "TopologyReconciliation is inherited from the parent's VitessClusterSpec.",
 							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.TopoReconcileConfig"),
+						},
+					},
+					"initReplication": {
+						SchemaProps: spec.SchemaProps{
+							Description: "InitReplication is inherited from the parent's VitessClusterSpec.",
+							Type:        []string{"boolean"},
+							Format:      "",
 						},
 					},
 				},

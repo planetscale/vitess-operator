@@ -371,6 +371,9 @@ spec:
                     tag) to use for Vitess Tablet instances.
                   type: string
               type: object
+            initReplication:
+              description: InitReplication is inherited from the parent's VitessClusterSpec.
+              type: boolean
             keyRange:
               description: KeyRange is the range of keyspace IDs served by this shard.
               properties:

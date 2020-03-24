@@ -1128,6 +1128,11 @@ func (in *VitessClusterSpec) DeepCopyInto(out *VitessClusterSpec) {
 		*out = new(TopoReconcileConfig)
 		(*in).DeepCopyInto(*out)
 	}
+	if in.InitReplication != nil {
+		in, out := &in.InitReplication, &out.InitReplication
+		*out = new(bool)
+		**out = **in
+	}
 	return
 }
 
@@ -1911,6 +1916,11 @@ func (in *VitessShardSpec) DeepCopyInto(out *VitessShardSpec) {
 		in, out := &in.TopologyReconciliation, &out.TopologyReconciliation
 		*out = new(TopoReconcileConfig)
 		(*in).DeepCopyInto(*out)
+	}
+	if in.InitReplication != nil {
+		in, out := &in.InitReplication, &out.InitReplication
+		*out = new(bool)
+		**out = **in
 	}
 	return
 }

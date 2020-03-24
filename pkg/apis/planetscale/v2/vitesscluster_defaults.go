@@ -30,6 +30,7 @@ func DefaultVitessCluster(vt *VitessCluster) {
 	DefaultVitessKeyspaceTemplates(vt.Spec.Keyspaces)
 	defaultClusterBackup(vt.Spec.Backup)
 	DefaultTopoReconcileConfig(&vt.Spec.TopologyReconciliation)
+	DefaultInitReplication(&vt.Spec.InitReplication)
 }
 
 func defaultGlobalLockserver(vt *VitessCluster) {
@@ -142,5 +143,14 @@ func DefaultTopoReconcileConfig(confPtr **TopoReconcileConfig) {
 	}
 	if conf.PruneSrvKeyspaces == nil {
 		conf.PruneSrvKeyspaces = pointer.BoolPtr(true)
+	}
+}
+
+func DefaultInitReplication(enabled **bool) {
+	// Enable initialization of replication by default.
+	enableInitReplication := *enabled
+
+	if enableInitReplication == nil {
+		enableInitReplication = pointer.BoolPtr(true)
 	}
 }

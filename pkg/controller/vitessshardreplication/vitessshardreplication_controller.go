@@ -193,22 +193,25 @@ func (r *ReconcileVitessShard) Reconcile(request reconcile.Request) (reconcile.R
 	// multi-step Vitess cluster management workflows.
 	wr := wrangler.New(logutil.NewConsoleLogger(), ts.Server, tmc)
 
-	// Check if we need to initialize the shard.
-	// If it's already initialized, this will be a no-op.
-	// If we are using external MySQL we will bail out early.
-	ismResult, err := r.initShardMaster(ctx, vts, wr)
-	resultBuilder.Merge(ismResult, err)
+	// If we specified the operator to handle the initialization of replication, make the appropriate checks.
+	if *vts.Spec.InitReplication {
+		// Check if we need to initialize the shard.
+		// If it's already initialized, this will be a no-op.
+		// If we are using external MySQL we will bail out early.
+		ismResult, err := r.initShardMaster(ctx, vts, wr)
+		resultBuilder.Merge(ismResult, err)
 
-	// Check if we need to externally reparent
-	// in the case of external MySQL.
-	// If we are not using external MySQL we will bail out early.
-	terResult, err := r.tabletExternallyReparent(ctx, vts, wr)
-	resultBuilder.Merge(terResult, err)
+		// Check if we need to externally reparent
+		// in the case of external MySQL.
+		// If we are not using external MySQL we will bail out early.
+		terResult, err := r.tabletExternallyReparent(ctx, vts, wr)
+		resultBuilder.Merge(terResult, err)
 
-	// Check if we need to start replication on a shard that's been restored
-	// from backup. If it's already initialized, this will be a no-op.
-	irsResult, err := r.initRestoredShard(ctx, vts, wr)
-	resultBuilder.Merge(irsResult, err)
+		// Check if we need to start replication on a shard that's been restored
+		// from backup. If it's already initialized, this will be a no-op.
+		irsResult, err := r.initRestoredShard(ctx, vts, wr)
+		resultBuilder.Merge(irsResult, err)
+	}
 
 	// Try to fix replication if it's broken.
 	repairResult, err := r.repairReplication(ctx, vts, wr)

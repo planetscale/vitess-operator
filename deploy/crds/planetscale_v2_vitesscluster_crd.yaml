@@ -954,6 +954,10 @@ spec:
                     tag) to use for Vitess Tablet instances.
                   type: string
               type: object
+            initReplication:
+              description: InitReplication can be used to enable or disable the operator
+                initializing replication on a new or restored Vitess Shard object.
+              type: boolean
             keyspaces:
               description: 'Keyspaces defines the logical databases to deploy.  A
                 VitessKeyspace can deploy to multiple VitessCells.  This field is

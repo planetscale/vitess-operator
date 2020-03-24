@@ -110,6 +110,9 @@ type VitessClusterSpec struct {
 
 	// TopologyReconciliation can be used to enable or disable registration or pruning of various vitess components to and from topo records.
 	TopologyReconciliation *TopoReconcileConfig `json:"topologyReconciliation,omitempty"`
+
+	// InitReplication can be used to enable or disable the operator initializing replication on a new or restored Vitess Shard object.
+	InitReplication *bool `json:"initReplication,omitempty"`
 }
 
 // TopoReconcileConfig can be used to turn on or off registration or pruning of specific vitess components from topo records.

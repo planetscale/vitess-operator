@@ -86,6 +86,9 @@ type VitessShardSpec struct {
 
 	// TopologyReconciliation is inherited from the parent's VitessClusterSpec.
 	TopologyReconciliation *TopoReconcileConfig `json:"topologyReconciliation,omitempty"`
+
+	// InitReplication is inherited from the parent's VitessClusterSpec.
+	InitReplication *bool `json:"initReplication,omitempty"`
 }
 
 // VitessShardTemplate contains only the user-specified parts of a VitessShard object.
