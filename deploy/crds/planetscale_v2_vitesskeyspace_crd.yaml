@@ -334,9 +334,6 @@ spec:
                     tag) to use for Vitess Tablet instances.
                   type: string
               type: object
-            initReplication:
-              description: InitReplication is inherited from the parent's VitessClusterSpec.
-              type: boolean
             name:
               description: 'Name is the keyspace name as it should be provided to
                 Vitess. Note that this is different from the VitessKeyspace object''s

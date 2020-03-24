@@ -1083,13 +1083,6 @@ func schema_pkg_apis_planetscale_v2_VitessKeyspaceSpec(ref common.ReferenceCallb
 							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.TopoReconcileConfig"),
 						},
 					},
-					"initReplication": {
-						SchemaProps: spec.SchemaProps{
-							Description: "InitReplication is inherited from the parent's VitessClusterSpec.",
-							Type:        []string{"boolean"},
-							Format:      "",
-						},
-					},
 				},
 				Required: []string{"name", "partitionings", "globalLockserver", "zoneMap"},
 			},
