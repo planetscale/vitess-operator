@@ -221,7 +221,7 @@ func (r *ReconcileVitessShard) initReplication(ctx context.Context, vts *planets
 	resultBuilder := &results.Builder{}
 
 	// If we have configured the operator to not initialize replication, bail.
-	if !*vts.Spec.VitessShardTemplate.Replication.InitializeMaster {
+	if !*vts.Spec.Replication.InitializeMaster {
 		return resultBuilder.Result()
 	}
 
