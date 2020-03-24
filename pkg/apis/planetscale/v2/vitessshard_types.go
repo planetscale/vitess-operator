@@ -135,8 +135,10 @@ type VitessReplicationSpec struct {
 	// Default: Semi-sync is not enforced.
 	EnforceSemiSync bool `json:"enforceSemiSync,omitempty"`
 
-	// InitializeMaster can be used to enable or disable the operator initializing replication
-	// on a new or restored Vitess Shard object.
+	// InitializeMaster specifies whether to choose an initial master for a
+	// new or restored shard that has no master yet.
+	//
+	// Default: true.
 	InitializeMaster bool `json:"initializeMaster,omitempty"`
 }
 
