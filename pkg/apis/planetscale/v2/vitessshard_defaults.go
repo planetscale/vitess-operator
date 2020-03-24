@@ -29,9 +29,9 @@ func DefaultVitessShard(dst *VitessShard) {
 	defaultInitializeMaster(&dst.Spec.VitessShardTemplate.Replication.InitializeMaster)
 }
 
-func defaultInitializeMaster(enabled *bool) {
+func defaultInitializeMaster(enabled **bool) {
 	// Enable initialization of replication by default.
-	enableInitMaster := enabled
+	enableInitMaster := *enabled
 
 	if enableInitMaster == nil {
 		enableInitMaster = pointer.BoolPtr(true)

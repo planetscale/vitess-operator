@@ -139,7 +139,7 @@ type VitessReplicationSpec struct {
 	// new or restored shard that has no master yet.
 	//
 	// Default: true.
-	InitializeMaster bool `json:"initializeMaster,omitempty"`
+	InitializeMaster *bool `json:"initializeMaster,omitempty"`
 }
 
 // VitessShardTabletPool defines a pool of tablets with a similar purpose.

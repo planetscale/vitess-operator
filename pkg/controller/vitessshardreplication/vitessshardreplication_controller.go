@@ -221,7 +221,7 @@ func (r *ReconcileVitessShard) initReplication(ctx context.Context, vts *planets
 	resultBuilder := &results.Builder{}
 
 	// If we have configured the operator to not initialize replication, bail.
-	if !vts.Spec.VitessShardTemplate.Replication.InitializeMaster {
+	if !*vts.Spec.VitessShardTemplate.Replication.InitializeMaster {
 		return resultBuilder.Result()
 	}
 
@@ -240,5 +240,7 @@ func (r *ReconcileVitessShard) initReplication(ctx context.Context, vts *planets
 	// Check if we need to start replication on a shard that's been restored
 	// from backup. If it's already initialized, this will be a no-op.
 	irsResult, err := r.initRestoredShard(ctx, vts, wr)
-	return resultBuilder.Merge(irsResult, err)
+	resultBuilder.Merge(irsResult, err)
+
+	return resultBuilder.Result()
 }
