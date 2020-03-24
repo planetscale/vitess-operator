@@ -142,6 +142,7 @@ func newVitessShard(key client.ObjectKey, vtk *planetscalev2.VitessKeyspace, par
 			BackupEngine:           vtk.Spec.BackupEngine,
 			ExtraVitessFlags:       vtk.Spec.ExtraVitessFlags,
 			TopologyReconciliation: vtk.Spec.TopologyReconciliation,
+			InitReplication:        vtk.Spec.InitReplication,
 		},
 	}
 }

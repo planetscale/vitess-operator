@@ -22,5 +22,4 @@ package v2
 // might not be safe to deref.
 func DefaultVitessShard(dst *VitessShard) {
 	DefaultTopoReconcileConfig(&dst.Spec.TopologyReconciliation)
-	DefaultInitReplication(&dst.Spec.InitReplication)
 }
