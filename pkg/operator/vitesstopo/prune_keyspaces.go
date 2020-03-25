@@ -5,6 +5,7 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"vitess.io/vitess/go/vt/logutil"
@@ -31,10 +32,9 @@ func PruneKeyspaces(ctx context.Context, p PruneKeyspacesParams) (reconcile.Resu
 	resultBuilder := &results.Builder{}
 
 	// Make a map from keyspace name (as Vitess calls them) back to the keyspace spec.
-	desiredKeyspaces := make(map[string]*planetscalev2.VitessKeyspaceTemplate, len(p.Keyspaces))
+	desiredKeyspaces := make(sets.String, len(p.Keyspaces))
 	for i := range p.Keyspaces {
-		keyspace := &p.Keyspaces[i]
-		desiredKeyspaces[keyspace.Name] = keyspace
+		desiredKeyspaces.Insert(p.Keyspaces[i].Name)
 	}
 
 	// Get list of keyspaces in topo.
@@ -53,11 +53,11 @@ func PruneKeyspaces(ctx context.Context, p PruneKeyspacesParams) (reconcile.Resu
 }
 
 // KeyspacesToPrune returns a list of keyspace candidates for pruning, based on a provided list of keyspaces to consider.
-func KeyspacesToPrune(keyspaceNames []string, desiredKeyspaces map[string]*planetscalev2.VitessKeyspaceTemplate, orphanedKeyspaces map[string]*planetscalev2.OrphanStatus) []string {
+func KeyspacesToPrune(keyspaceNames []string, desiredKeyspaces sets.String, orphanedKeyspaces map[string]*planetscalev2.OrphanStatus) []string {
 	var candidates []string
 
 	for _, name := range keyspaceNames {
-		if desiredKeyspaces[name] == nil && orphanedKeyspaces[name] == nil {
+		if !desiredKeyspaces.Has(name) && orphanedKeyspaces[name] == nil {
 			// The cell exists in topo, but not in the VT spec.
 			// It's also not being kept around by a blocked turn-down.
 			// We should add it to the list of candidates to prune.
