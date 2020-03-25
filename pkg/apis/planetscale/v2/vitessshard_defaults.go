@@ -16,10 +16,30 @@ limitations under the License.
 
 package v2
 
+import (
+	"k8s.io/utils/pointer"
+)
+
 // DefaultVitessShard fills in VitessShard defaults for unspecified fields.
 // Note: This should only be used for nillable fields passed down from a parent because controllers run in parallel,
 // and the defaulting code for a parent object may not have been run yet, meaning the values passed down from that parent
 // might not be safe to deref.
 func DefaultVitessShard(dst *VitessShard) {
 	DefaultTopoReconcileConfig(&dst.Spec.TopologyReconciliation)
+	DefaultVitessShardTemplate(&dst.Spec.VitessShardTemplate)
+}
+
+func DefaultVitessShardTemplate(shardTemplate *VitessShardTemplate) {
+	if shardTemplate == nil {
+		return
+	}
+
+	DefaultVitessReplicationSpec(&shardTemplate.Replication)
+}
+
+func DefaultVitessReplicationSpec(replicationSpec *VitessReplicationSpec) {
+	// Enable initialization of replication by default.
+	if replicationSpec.InitializeMaster == nil {
+		replicationSpec.InitializeMaster = pointer.BoolPtr(true)
+	}
 }

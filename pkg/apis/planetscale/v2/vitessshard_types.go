@@ -134,6 +134,12 @@ type VitessReplicationSpec struct {
 	//
 	// Default: Semi-sync is not enforced.
 	EnforceSemiSync bool `json:"enforceSemiSync,omitempty"`
+
+	// InitializeMaster specifies whether to choose an initial master for a
+	// new or restored shard that has no master yet.
+	//
+	// Default: true.
+	InitializeMaster *bool `json:"initializeMaster,omitempty"`
 }
 
 // VitessShardTabletPool defines a pool of tablets with a similar purpose.

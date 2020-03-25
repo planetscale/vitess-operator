@@ -99,6 +99,30 @@ func DefaultVitessKeyspaceTemplate(keyspace *VitessKeyspaceTemplate) {
 	if keyspace.TurndownPolicy == "" {
 		keyspace.TurndownPolicy = VitessKeyspaceTurndownPolicyRequireIdle
 	}
+
+	for i := range keyspace.Partitionings {
+		partition := &keyspace.Partitionings[i]
+		defaultCustomPartitioning(partition.Custom)
+		defaultEqualPartitioning(partition.Equal)
+	}
+}
+
+func defaultCustomPartitioning(customPartition *VitessKeyspaceCustomPartitioning) {
+	if customPartition == nil {
+		return
+	}
+
+	for i := range customPartition.Shards {
+		DefaultVitessShardTemplate(&customPartition.Shards[i].VitessShardTemplate)
+	}
+}
+
+func defaultEqualPartitioning(equalPartition *VitessKeyspaceEqualPartitioning) {
+	if equalPartition == nil {
+		return
+	}
+
+	DefaultVitessShardTemplate(&equalPartition.ShardTemplate)
 }
 
 func defaultClusterBackup(backup *ClusterBackupSpec) {

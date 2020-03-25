@@ -170,6 +170,9 @@ func (r *ReconcileVitessShard) Reconcile(request reconcile.Request) (reconcile.R
 		return resultBuilder.Error(err)
 	}
 
+	// Materialize defaults
+	planetscalev2.DefaultVitessShard(vts)
+
 	// Wait for the main VitessShard controller to update status for the latest
 	// desired spec before reconciling replication.
 	if vts.Status.ObservedGeneration == 0 || vts.Status.ObservedGeneration != vts.Generation {
@@ -193,6 +196,35 @@ func (r *ReconcileVitessShard) Reconcile(request reconcile.Request) (reconcile.R
 	// multi-step Vitess cluster management workflows.
 	wr := wrangler.New(logutil.NewConsoleLogger(), ts.Server, tmc)
 
+	// Initialize replication if it has not already been started.
+	initReplicationResult, err := r.initReplication(ctx, vts, wr)
+	resultBuilder.Merge(initReplicationResult, err)
+
+	// Try to fix replication if it's broken.
+	repairResult, err := r.repairReplication(ctx, vts, wr)
+	resultBuilder.Merge(repairResult, err)
+
+	// Check if we've been asked to do a planned reparent.
+	drainResult, err := r.reconcileDrain(ctx, vts, wr)
+	resultBuilder.Merge(drainResult, err)
+
+	// Request a periodic resync for the shard so we can recheck replication
+	// even if no Kubernetes events have occurred.
+	r.resync.Enqueue(request.NamespacedName)
+
+	result, err := resultBuilder.Result()
+	reconcileCount.WithLabelValues(metricLabels(vts, err)...).Inc()
+	return result, err
+}
+
+func (r *ReconcileVitessShard) initReplication(ctx context.Context, vts *planetscalev2.VitessShard, wr *wrangler.Wrangler) (reconcile.Result, error){
+	resultBuilder := &results.Builder{}
+
+	// If we have configured the operator to not initialize replication, bail.
+	if !*vts.Spec.Replication.InitializeMaster {
+		return resultBuilder.Result()
+	}
+
 	// Check if we need to initialize the shard.
 	// If it's already initialized, this will be a no-op.
 	// If we are using external MySQL we will bail out early.
@@ -210,19 +242,5 @@ func (r *ReconcileVitessShard) Reconcile(request reconcile.Request) (reconcile.R
 	irsResult, err := r.initRestoredShard(ctx, vts, wr)
 	resultBuilder.Merge(irsResult, err)
 
-	// Try to fix replication if it's broken.
-	repairResult, err := r.repairReplication(ctx, vts, wr)
-	resultBuilder.Merge(repairResult, err)
-
-	// Check if we've been asked to do a planned reparent.
-	drainResult, err := r.reconcileDrain(ctx, vts, wr)
-	resultBuilder.Merge(drainResult, err)
-
-	// Request a periodic resync for the shard so we can recheck replication
-	// even if no Kubernetes events have occurred.
-	r.resync.Enqueue(request.NamespacedName)
-
-	result, err := resultBuilder.Result()
-	reconcileCount.WithLabelValues(metricLabels(vts, err)...).Inc()
-	return result, err
+	return resultBuilder.Result()
 }

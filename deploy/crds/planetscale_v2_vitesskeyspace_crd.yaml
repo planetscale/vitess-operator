@@ -478,6 +478,11 @@ spec:
                                     routine maintenance.  Default: Semi-sync is not
                                     enforced.'
                                   type: boolean
+                                initializeMaster:
+                                  description: 'InitializeMaster specifies whether
+                                    to choose an initial master for a new or restored
+                                    shard that has no master yet.  Default: true.'
+                                  type: boolean
                               type: object
                             tabletPools:
                               description: TabletPools specify groups of tablets in
@@ -868,6 +873,11 @@ spec:
                                   as that may lead to master unavailability during
                                   routine maintenance.  Default: Semi-sync is not
                                   enforced.'
+                                type: boolean
+                              initializeMaster:
+                                description: 'InitializeMaster specifies whether to
+                                  choose an initial master for a new or restored shard
+                                  that has no master yet.  Default: true.'
                                 type: boolean
                             type: object
                           tabletPools:
