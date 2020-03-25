@@ -480,8 +480,10 @@ spec:
                                   type: boolean
                                 initializeBackup:
                                   description: 'InitializeBackup specifies whether
-                                    to take an initial placeholder backup before a
-                                    real one is created.  Default: true.'
+                                    to take an initial placeholder backup as part
+                                    of preparing tablets to begin replication. This
+                                    only takes effect if a backup location is defined
+                                    in the VitessCluster.  Default: true.'
                                   type: boolean
                                 initializeMaster:
                                   description: 'InitializeMaster specifies whether
@@ -881,8 +883,10 @@ spec:
                                 type: boolean
                               initializeBackup:
                                 description: 'InitializeBackup specifies whether to
-                                  take an initial placeholder backup before a real
-                                  one is created.  Default: true.'
+                                  take an initial placeholder backup as part of preparing
+                                  tablets to begin replication. This only takes effect
+                                  if a backup location is defined in the VitessCluster.  Default:
+                                  true.'
                                 type: boolean
                               initializeMaster:
                                 description: 'InitializeMaster specifies whether to
