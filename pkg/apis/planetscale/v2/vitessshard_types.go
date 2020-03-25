@@ -140,6 +140,13 @@ type VitessReplicationSpec struct {
 	//
 	// Default: true.
 	InitializeMaster *bool `json:"initializeMaster,omitempty"`
+
+	// InitializeBackup specifies whether to take an initial placeholder backup
+	// as part of preparing tablets to begin replication. This only takes effect
+	// if a backup location is defined in the VitessCluster.
+	//
+	// Default: true.
+	InitializeBackup *bool `json:"initializeBackup,omitempty"`
 }
 
 // VitessShardTabletPool defines a pool of tablets with a similar purpose.

@@ -1117,6 +1117,14 @@ spec:
                                           routine maintenance.  Default: Semi-sync
                                           is not enforced.'
                                         type: boolean
+                                      initializeBackup:
+                                        description: 'InitializeBackup specifies whether
+                                          to take an initial placeholder backup as
+                                          part of preparing tablets to begin replication.
+                                          This only takes effect if a backup location
+                                          is defined in the VitessCluster.  Default:
+                                          true.'
+                                        type: boolean
                                       initializeMaster:
                                         description: 'InitializeMaster specifies whether
                                           to choose an initial master for a new or
@@ -1548,6 +1556,14 @@ spec:
                                         than 3 master-eligible replicas, as that may
                                         lead to master unavailability during routine
                                         maintenance.  Default: Semi-sync is not enforced.'
+                                      type: boolean
+                                    initializeBackup:
+                                      description: 'InitializeBackup specifies whether
+                                        to take an initial placeholder backup as part
+                                        of preparing tablets to begin replication.
+                                        This only takes effect if a backup location
+                                        is defined in the VitessCluster.  Default:
+                                        true.'
                                       type: boolean
                                     initializeMaster:
                                       description: 'InitializeMaster specifies whether
