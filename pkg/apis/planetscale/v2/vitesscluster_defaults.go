@@ -114,7 +114,6 @@ func defaultCustomPartitioning(customPartition *VitessKeyspaceCustomPartitioning
 
 	for i := range customPartition.Shards {
 		DefaultVitessShardTemplate(&customPartition.Shards[i].VitessShardTemplate)
-		DefaultVitessShardTemplate(&shard.VitessShardTemplate)
 	}
 }
 
