@@ -26,14 +26,20 @@ import (
 // might not be safe to deref.
 func DefaultVitessShard(dst *VitessShard) {
 	DefaultTopoReconcileConfig(&dst.Spec.TopologyReconciliation)
-	defaultInitializeMaster(&dst.Spec.VitessShardTemplate.Replication.InitializeMaster)
+	DefaultVitessShardTemplate(&dst.Spec.VitessShardTemplate)
 }
 
-func defaultInitializeMaster(enabled **bool) {
-	// Enable initialization of replication by default.
-	enableInitMaster := *enabled
+func DefaultVitessShardTemplate(shardTemplate *VitessShardTemplate) {
+	if shardTemplate == nil {
+		return
+	}
 
-	if enableInitMaster == nil {
-		enableInitMaster = pointer.BoolPtr(true)
+	DefaultVitessReplicationSpec(&shardTemplate.Replication)
+}
+
+func DefaultVitessReplicationSpec(replicationSpec *VitessReplicationSpec) {
+	// Enable initialization of replication by default.
+	if replicationSpec.InitializeMaster == nil {
+		replicationSpec.InitializeMaster = pointer.BoolPtr(true)
 	}
 }
