@@ -93,7 +93,7 @@ func (r *ReconcileVitessShard) reconcileBackupJob(ctx context.Context, vts *plan
 		// "initial backup", which is a special imaginary backup created from
 		// scratch (not from any tablet). If we're wrong and a backup exists
 		// already, the idempotent vtbackup "initial backup" mode will just do
-		// nothing and return succcess.
+		// nothing and return success.
 		initSpec := vtbackupInitSpec(initPodKey, vts, labels)
 		if initSpec != nil {
 			keys = append(keys, initPodKey)
@@ -174,6 +174,11 @@ func (r *ReconcileVitessShard) reconcileBackupJob(ctx context.Context, vts *plan
 }
 
 func vtbackupInitSpec(key client.ObjectKey, vts *planetscalev2.VitessShard, parentLabels map[string]string) *vttablet.BackupSpec {
+	// If we specifically set our cluster to avoid initial backups, bail early.
+	if !*vts.Spec.Replication.InitializeBackup {
+		return nil
+	}
+
 	if len(vts.Spec.TabletPools) == 0 {
 		// No tablet pools are defined for this shard.
 		// We don't know enough to make a vtbackup spec.

@@ -478,6 +478,11 @@ spec:
                                     routine maintenance.  Default: Semi-sync is not
                                     enforced.'
                                   type: boolean
+                                initializeBackup:
+                                  description: 'InitializeBackup specifies whether
+                                    to take an initial placeholder backup before a
+                                    real one is created.  Default: true.'
+                                  type: boolean
                                 initializeMaster:
                                   description: 'InitializeMaster specifies whether
                                     to choose an initial master for a new or restored
@@ -873,6 +878,11 @@ spec:
                                   as that may lead to master unavailability during
                                   routine maintenance.  Default: Semi-sync is not
                                   enforced.'
+                                type: boolean
+                              initializeBackup:
+                                description: 'InitializeBackup specifies whether to
+                                  take an initial placeholder backup before a real
+                                  one is created.  Default: true.'
                                 type: boolean
                               initializeMaster:
                                 description: 'InitializeMaster specifies whether to

@@ -42,4 +42,9 @@ func DefaultVitessReplicationSpec(replicationSpec *VitessReplicationSpec) {
 	if replicationSpec.InitializeMaster == nil {
 		replicationSpec.InitializeMaster = pointer.BoolPtr(true)
 	}
+
+	// Enable initialization of backup by default.
+	if replicationSpec.InitializeBackup == nil {
+		replicationSpec.InitializeBackup = pointer.BoolPtr(true)
+	}
 }

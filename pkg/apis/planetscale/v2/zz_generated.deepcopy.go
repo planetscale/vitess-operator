@@ -1789,6 +1789,11 @@ func (in *VitessReplicationSpec) DeepCopyInto(out *VitessReplicationSpec) {
 		*out = new(bool)
 		**out = **in
 	}
+	if in.InitializeBackup != nil {
+		in, out := &in.InitializeBackup, &out.InitializeBackup
+		*out = new(bool)
+		**out = **in
+	}
 	return
 }
 
