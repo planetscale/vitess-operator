@@ -58,7 +58,7 @@ func KeyspacesToPrune(keyspaceNames []string, desiredKeyspaces sets.String, orph
 
 	for _, name := range keyspaceNames {
 		if !desiredKeyspaces.Has(name) && orphanedKeyspaces[name] == nil {
-			// The cell exists in topo, but not in the VT spec.
+			// The keyspace exists in topo, but not in the VT spec.
 			// It's also not being kept around by a blocked turn-down.
 			// We should add it to the list of candidates to prune.
 			candidates = append(candidates, name)
