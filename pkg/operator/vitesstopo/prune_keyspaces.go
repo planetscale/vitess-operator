@@ -73,8 +73,6 @@ func DeleteKeyspaces(ctx context.Context, ts *topo.Server, recorder record.Event
 	resultBuilder := &results.Builder{}
 
 	for _, name := range keyspaceNames {
-		// The keyspace exists in topo, but not in the VT spec.
-		// It's also not being kept around by a blocked turn-down.
 		// We use the Vitess wrangler (multi-step command executor) to recursively delete the keyspace.
 		// This is equivalent to `vtctl DeleteKeyspace -recursive`.
 		wr := wrangler.New(logutil.NewConsoleLogger(), ts, nil)
