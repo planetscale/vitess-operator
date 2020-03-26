@@ -20,13 +20,10 @@ import (
 	"context"
 	"time"
 
-	"vitess.io/vitess/go/vt/logutil"
-	topodatapb "vitess.io/vitess/go/vt/proto/topodata"
-	"vitess.io/vitess/go/vt/topo"
-	"vitess.io/vitess/go/vt/wrangler"
-
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	topodatapb "vitess.io/vitess/go/vt/proto/topodata"
+	"vitess.io/vitess/go/vt/topo"
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 	"planetscale.dev/vitess-operator/pkg/operator/lockserver"
@@ -165,45 +162,15 @@ func (r *ReconcileVitessCluster) reconcileKeyspaceTopology(ctx context.Context, 
 	resultBuilder := &results.Builder{}
 
 	if *vt.Spec.TopologyReconciliation.PruneKeyspaces {
-		result, err := r.pruneKeyspaces(ctx, vt, ts)
+		result, err := vitesstopo.PruneKeyspaces(ctx, vitesstopo.PruneKeyspacesParams{
+			EventObj:          vt,
+			TopoServer:        ts,
+			Recorder:          r.recorder,
+			Keyspaces:         vt.Spec.Keyspaces,
+			OrphanedKeyspaces: vt.Status.OrphanedKeyspaces,
+		})
 		resultBuilder.Merge(result, err)
 	}
 
-	return resultBuilder.Result()
-}
-
-func (r *ReconcileVitessCluster) pruneKeyspaces(ctx context.Context, vt *planetscalev2.VitessCluster, ts *topo.Server) (reconcile.Result, error) {
-	resultBuilder := &results.Builder{}
-
-	// Make a map from keyspace name (as Vitess calls them) back to the keyspace spec.
-	desiredKeyspaces := make(map[string]*planetscalev2.VitessKeyspaceTemplate, len(vt.Spec.Keyspaces))
-	for i := range vt.Spec.Keyspaces {
-		keyspace := &vt.Spec.Keyspaces[i]
-		desiredKeyspaces[keyspace.Name] = keyspace
-	}
-
-	// Get list of keyspaces in topo.
-	keyspaceNames, err := ts.GetKeyspaces(ctx)
-	if err != nil {
-		r.recorder.Eventf(vt, corev1.EventTypeWarning, "TopoListFailed", "failed to list keyspaces in topology: %v", err)
-		return resultBuilder.RequeueAfter(topoRequeueDelay)
-	}
-
-	// Clean up keyspaces that exist but shouldn't.
-	for _, name := range keyspaceNames {
-		if desiredKeyspaces[name] == nil && vt.Status.OrphanedKeyspaces[name] == nil {
-			// The keyspace exists in topo, but not in the VT spec.
-			// It's also not being kept around by a blocked turn-down.
-			// We use the Vitess wrangler (multi-step command executor) to recursively delete the keyspace.
-			// This is equivalent to `vtctl DeleteKeyspace -recursive`.
-			wr := wrangler.New(logutil.NewConsoleLogger(), ts, nil)
-			if err := wr.DeleteKeyspace(ctx, name, true); err != nil {
-				r.recorder.Eventf(vt, corev1.EventTypeWarning, "TopoCleanupFailed", "unable to remove keyspace %s from topology: %v", name, err)
-				resultBuilder.RequeueAfter(topoRequeueDelay)
-			} else {
-				r.recorder.Eventf(vt, corev1.EventTypeNormal, "TopoCleanup", "removed unwanted keyspace %s from topology", name)
-			}
-		}
-	}
 	return resultBuilder.Result()
 }
