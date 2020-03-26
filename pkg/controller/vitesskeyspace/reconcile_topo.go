@@ -21,14 +21,13 @@ import (
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/sets"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-
-	"vitess.io/vitess/go/vt/logutil"
-	"vitess.io/vitess/go/vt/wrangler"
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 	"planetscale.dev/vitess-operator/pkg/operator/results"
 	"planetscale.dev/vitess-operator/pkg/operator/toposerver"
+	"planetscale.dev/vitess-operator/pkg/operator/vitesstopo"
 )
 
 const (
@@ -56,38 +55,21 @@ func (r *ReconcileVitessKeyspace) reconcileTopology(ctx context.Context, vtk *pl
 	defer ts.Close()
 
 	if *vtk.Spec.TopologyReconciliation.PruneShards {
-		result, err := r.pruneShards(ctx, vtk, ts)
+		desiredShards := make(sets.String, len(vtk.Status.Shards))
+		for k := range vtk.Status.Shards {
+			desiredShards.Insert(k)
+		}
+
+		result, err := vitesstopo.PruneShards(ctx, vitesstopo.PruneShardsParams{
+			EventObj:       vtk,
+			TopoServer:     ts.Server,
+			Recorder:       r.recorder,
+			KeyspaceName:   vtk.Spec.Name,
+			DesiredShards:  desiredShards,
+			OrphanedShards: vtk.Status.OrphanedShards,
+		})
 		resultBuilder.Merge(result, err)
 	}
 
-	return resultBuilder.Result()
-}
-
-func (r *ReconcileVitessKeyspace) pruneShards(ctx context.Context, vtk *planetscalev2.VitessKeyspace, ts *toposerver.Conn) (reconcile.Result, error) {
-	resultBuilder := &results.Builder{}
-
-	// Get list of shards in topo.
-	shardNames, err := ts.GetShardNames(ctx, vtk.Spec.Name)
-	if err != nil {
-		r.recorder.Eventf(vtk, corev1.EventTypeWarning, "TopoListFailed", "failed to list shards in topology: %v", err)
-		return resultBuilder.RequeueAfter(topoRequeueDelay)
-	}
-
-	// Clean up shards that exist but shouldn't.
-	for _, name := range shardNames {
-		if vtk.Status.Shards[name] == nil && vtk.Status.OrphanedShards[name] == nil {
-			// The shard exists in topo, but not in the VitessKeyspace spec.
-			// It's also not being kept around by a blocked turn-down.
-			// We use the Vitess wrangler (multi-step command executor) to recursively delete the shard.
-			// This is equivalent to `vtctl DeleteShard -recursive`.
-			wr := wrangler.New(logutil.NewConsoleLogger(), ts.Server, nil)
-			if err := wr.DeleteShard(ctx, vtk.Spec.Name, name, true /*recursive*/, false /* evenIfServing */); err != nil {
-				r.recorder.Eventf(vtk, corev1.EventTypeWarning, "TopoCleanupFailed", "unable to remove shard %s from topology: %v", name, err)
-				resultBuilder.RequeueAfter(topoRequeueDelay)
-			} else {
-				r.recorder.Eventf(vtk, corev1.EventTypeNormal, "TopoCleanup", "removed unwanted shard %s from topology", name)
-			}
-		}
-	}
 	return resultBuilder.Result()
 }
