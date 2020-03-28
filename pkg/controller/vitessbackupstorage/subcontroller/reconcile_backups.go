@@ -42,10 +42,6 @@ import (
 	"planetscale.dev/vitess-operator/pkg/operator/vitessbackup"
 )
 
-const (
-	readFileTimeout = 1 * time.Second
-)
-
 func (r *ReconcileVitessBackupStorage) reconcileBackups(ctx context.Context, vbs *planetscalev2.VitessBackupStorage) (reconcile.Result, error) {
 	resultBuilder := results.Builder{}
 	clusterName := vbs.Labels[planetscalev2.ClusterLabel]
@@ -131,7 +127,7 @@ func (r *ReconcileVitessBackupStorage) reconcileBackups(ctx context.Context, vbs
 					Labels: labels,
 				},
 				Status: planetscalev2.VitessBackupStatus{
-					StartTime:        metav1.NewTime(backupTime),
+					StartTime:        metav1.Time{Time: backupTime},
 					StorageDirectory: backup.Directory(),
 					StorageName:      backup.Name(),
 				},
@@ -180,11 +176,12 @@ func (r *ReconcileVitessBackupStorage) reconcileBackups(ctx context.Context, vbs
 func updateBackupStatus(ctx context.Context, vb *planetscalev2.VitessBackup, backup backupstorage.BackupHandle) {
 	// Check if it's complete by looking for the MANIFEST file.
 	// If any errors are encountered, we assume it's not complete yet.
-	readCtx, cancel := context.WithTimeout(ctx, readFileTimeout)
+	readCtx, cancel := context.WithTimeout(ctx, *requestTimeout)
 	defer cancel()
 
 	manifest, err := mysqlctl.GetBackupManifest(readCtx, backup)
 	if err != nil {
+		log.Warningf("Can't get MANIFEST for %v: %v", backup.Name(), err)
 		return
 	}
 
@@ -194,7 +191,7 @@ func updateBackupStatus(ctx context.Context, vb *planetscalev2.VitessBackup, bac
 	vb.Status.Position = manifest.Position.String()
 	vb.Status.Engine = manifest.BackupMethod
 	if finishedTime, err := time.Parse(time.RFC3339, manifest.FinishedTime); err == nil {
-		vb.Status.FinishedTime.Time = finishedTime
+		vb.Status.FinishedTime = &metav1.Time{Time: finishedTime}
 	} else {
 		log.Warningf("Can't parse FinishedTime from MANIFEST of backup %v/%v: %v", backup.Directory(), backup.Name(), err)
 	}

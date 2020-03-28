@@ -609,7 +609,10 @@ func (in *VitessBackupSpec) DeepCopy() *VitessBackupSpec {
 func (in *VitessBackupStatus) DeepCopyInto(out *VitessBackupStatus) {
 	*out = *in
 	in.StartTime.DeepCopyInto(&out.StartTime)
-	in.FinishedTime.DeepCopyInto(&out.FinishedTime)
+	if in.FinishedTime != nil {
+		in, out := &in.FinishedTime, &out.FinishedTime
+		*out = (*in).DeepCopy()
+	}
 	return
 }
 
