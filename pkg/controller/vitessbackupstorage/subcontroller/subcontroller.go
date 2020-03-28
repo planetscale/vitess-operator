@@ -68,7 +68,8 @@ const (
 
 var (
 	resyncPeriod     = flag.Duration("vitessbackupstorage_subcontroller_resync_period", 60*time.Second, "reconcile each vitessbackupstorage with this period even if no Kubernetes events occur")
-	reconcileTimeout = flag.Duration("vitessbackupstorage_subcontroller_reconcile_timeout", 60*time.Second, "timeout for a single reconcile pass of the vitessbackupstorage subcontroller")
+	reconcileTimeout = flag.Duration("vitessbackupstorage_subcontroller_reconcile_timeout", 10*time.Minute, "timeout for a single reconcile pass of the vitessbackupstorage subcontroller")
+	requestTimeout   = flag.Duration("vitessbackupstorage_subcontroller_request_timeout", 10*time.Second, "timeout for a single request by the vitessbackupstorage subcontroller to read the status of a backup")
 )
 
 var log = logrus.WithField("subcontroller", "VitessBackupStorage")

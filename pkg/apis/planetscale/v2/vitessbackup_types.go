@@ -53,7 +53,7 @@ type VitessBackupStatus struct {
 	// StartTime is the time when the backup started.
 	StartTime metav1.Time `json:"startTime,omitempty"`
 	// FinishedTime is the time when the backup finished.
-	FinishedTime metav1.Time `json:"finishedTime,omitempty"`
+	FinishedTime *metav1.Time `json:"finishedTime,omitempty"`
 	// Complete indicates whether the backup ever completed.
 	Complete bool `json:"complete,omitempty"`
 	// Position is the replication position of the snapshot that was backed up.
