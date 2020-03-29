@@ -143,6 +143,12 @@ spec:
               description: 'Resources specify the compute resources to allocate for
                 each etcd member. Default: Let the operator choose.'
               type: object
+            sidecarContainers:
+              description: SidecarContainers can optionally be used to supply extra
+                containers that run alongside the main containers.
+              items:
+                type: object
+              type: array
             zone:
               description: Zone is the name of the Availability Zone that this lockserver
                 should run in. This value should match the value of the "failure-domain.beta.kubernetes.io/zone"

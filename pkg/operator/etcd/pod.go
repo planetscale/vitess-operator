@@ -79,6 +79,7 @@ type Spec struct {
 	ExtraVolumes      []corev1.Volume
 	ExtraVolumeMounts []corev1.VolumeMount
 	InitContainers    []corev1.Container
+	SidecarContainers []corev1.Container
 	Affinity          *corev1.Affinity
 	Annotations       map[string]string
 	ExtraLabels       map[string]string
@@ -301,10 +302,13 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	// Inject init containers from spec.
 	update.PodContainers(&obj.Spec.InitContainers, spec.InitContainers)
 
+	// Update sidecar containers we care about in the Pod template,
+	// ignoring other containers that may have been injected.
+	update.PodContainers(&obj.Spec.Containers, spec.SidecarContainers)
+
 	// Update the containers we care about in the Pod template,
 	// ignoring other containers that may have been injected.
 	update.PodContainers(&obj.Spec.Containers, containers)
-
 }
 
 // Args returns the etcd args.

@@ -240,6 +240,9 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	initContainers = append(initContainers, tabletInitContainers.Get(spec)...)
 	initContainers = append(initContainers, spec.InitContainers...)
 
+	sidecarContainers := []corev1.Container{}
+	sidecarContainers = append(sidecarContainers, spec.SidecarContainers...)
+
 	containers := []corev1.Container{
 		*vttabletContainer,
 	}
@@ -264,6 +267,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	// Update the containers we care about in the Pod template,
 	// ignoring other containers that may have been injected.
 	update.PodContainers(&obj.Spec.InitContainers, initContainers)
+	update.PodContainers(&obj.Spec.Containers, sidecarContainers)
 	update.PodContainers(&obj.Spec.Containers, containers)
 
 	// Update other parts of the Pod.

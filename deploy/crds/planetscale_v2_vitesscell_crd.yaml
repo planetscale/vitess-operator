@@ -276,6 +276,12 @@ spec:
                           type: object
                       type: object
                   type: object
+                sidecarContainers:
+                  description: SidecarContainers can optionally be used to supply
+                    extra containers that run alongside the main containers.
+                  items:
+                    type: object
+                  type: array
               type: object
             globalLockserver:
               description: GlobalLockserver are the params to connect to the global
@@ -468,6 +474,12 @@ spec:
                       description: 'Resources specify the compute resources to allocate
                         for each etcd member. Default: Let the operator choose.'
                       type: object
+                    sidecarContainers:
+                      description: SidecarContainers can optionally be used to supply
+                        extra containers that run alongside the main containers.
+                      items:
+                        type: object
+                      type: array
                   type: object
                 external:
                   description: External specifies that we should connect to an existing

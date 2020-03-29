@@ -176,6 +176,19 @@ func schema_pkg_apis_planetscale_v2_EtcdLockserverSpec(ref common.ReferenceCallb
 							},
 						},
 					},
+					"sidecarContainers": {
+						SchemaProps: spec.SchemaProps{
+							Description: "SidecarContainers can optionally be used to supply extra containers that run alongside the main containers.",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Ref: ref("k8s.io/api/core/v1.Container"),
+									},
+								},
+							},
+						},
+					},
 					"affinity": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Affinity allows you to set rules that constrain the scheduling of your Etcd pods. WARNING: These affinity rules will override all default affinities that we set; in turn, we can't guarantee optimal scheduling of your pods if you choose to set this field.",

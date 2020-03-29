@@ -161,5 +161,6 @@ func NewBackupPod(key client.ObjectKey, backupSpec *BackupSpec) *corev1.Pod {
 	}
 
 	update.PodContainers(&pod.Spec.InitContainers, backupSpec.TabletSpec.InitContainers)
+	update.PodContainers(&pod.Spec.Containers, backupSpec.TabletSpec.SidecarContainers)
 	return pod
 }
