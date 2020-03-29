@@ -78,6 +78,7 @@ type Spec struct {
 	ExtraVolumes      []corev1.Volume
 	ExtraVolumeMounts []corev1.VolumeMount
 	InitContainers    []corev1.Container
+	SidecarContainers []corev1.Container
 	Annotations       map[string]string
 	ExtraLabels       map[string]string
 }
@@ -218,6 +219,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 	vtgateContainer.Args = flags.FormatArgs()
 
 	update.PodTemplateContainers(&obj.Spec.Template.Spec.InitContainers, spec.InitContainers)
+	update.PodTemplateContainers(&obj.Spec.Template.Spec.Containers, spec.SidecarContainers)
 
 	// Update the container we care about in the Pod template,
 	// ignoring other containers that may have been injected.

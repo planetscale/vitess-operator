@@ -232,6 +232,9 @@ type VitessShardTabletPool struct {
 	// InitContainers can optionally be used to supply extra init containers
 	// that will be run to completion one after another before any app containers are started.
 	InitContainers []corev1.Container `json:"initContainers,omitempty"`
+
+	// SidecarContainers can optionally be used to supply extra sidecar containers
+	SidecarContainers []corev1.Container `json:"sidecarContainers,omitempty"`
 }
 
 // VttabletSpec configures the vttablet server within a tablet.

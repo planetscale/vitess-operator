@@ -634,6 +634,12 @@ spec:
                     format: int32
                     minimum: 0
                     type: integer
+                  sidecarContainers:
+                    description: SidecarContainers can optionally be used to supply
+                      extra sidecar containers
+                    items:
+                      type: object
+                    type: array
                   type:
                     description: Type is the type of tablet contained in this tablet
                       pool. The allowed types are "replica" for master-eligible replicas

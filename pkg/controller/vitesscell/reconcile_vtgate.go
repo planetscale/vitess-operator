@@ -135,6 +135,7 @@ func (r *ReconcileVitessCell) reconcileVtgate(ctx context.Context, vtc *planetsc
 		ExtraVolumes:      vtc.Spec.Gateway.ExtraVolumes,
 		ExtraVolumeMounts: vtc.Spec.Gateway.ExtraVolumeMounts,
 		InitContainers:    vtc.Spec.Gateway.InitContainers,
+		SidecarContainers: vtc.Spec.Gateway.SidecarContainers,
 		Annotations:       annotations,
 		ExtraLabels:       vtc.Spec.Gateway.ExtraLabels,
 	}

@@ -113,6 +113,9 @@ type EtcdLockserverTemplate struct {
 	// that will be run to completion one after another before any app containers are started.
 	InitContainers []corev1.Container `json:"initContainers,omitempty"`
 
+	// SidecarContainers can optionally be used to supply extra sidecar containers
+	SidecarContainers []corev1.Container `json:"sidecarContainers,omitempty"`
+
 	// Affinity allows you to set rules that constrain the scheduling of
 	// your Etcd pods. WARNING: These affinity rules will override all default affinities
 	// that we set; in turn, we can't guarantee optimal scheduling of your pods if you
