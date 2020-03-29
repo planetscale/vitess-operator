@@ -145,7 +145,7 @@ spec:
               type: object
             sidecarContainers:
               description: SidecarContainers can optionally be used to supply extra
-                sidecar containers
+                containers that run alongside the main containers.
               items:
                 type: object
               type: array

@@ -178,7 +178,7 @@ func schema_pkg_apis_planetscale_v2_EtcdLockserverSpec(ref common.ReferenceCallb
 					},
 					"sidecarContainers": {
 						SchemaProps: spec.SchemaProps{
-							Description: "SidecarContainers can optionally be used to supply extra sidecar containers",
+							Description: "SidecarContainers can optionally be used to supply extra containers that run alongside the main containers.",
 							Type:        []string{"array"},
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{

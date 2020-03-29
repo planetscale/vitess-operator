@@ -529,7 +529,7 @@ spec:
                         type: object
                       sidecarContainers:
                         description: SidecarContainers can optionally be used to supply
-                          extra sidecar containers
+                          extra containers that run alongside the main containers.
                         items:
                           type: object
                         type: array
@@ -671,7 +671,8 @@ spec:
                             type: object
                           sidecarContainers:
                             description: SidecarContainers can optionally be used
-                              to supply extra sidecar containers
+                              to supply extra containers that run alongside the main
+                              containers.
                             items:
                               type: object
                             type: array
@@ -862,7 +863,7 @@ spec:
                       type: object
                     sidecarContainers:
                       description: SidecarContainers can optionally be used to supply
-                        extra sidecar containers
+                        extra containers that run alongside the main containers.
                       items:
                         type: object
                       type: array
@@ -1421,7 +1422,8 @@ spec:
                                           type: integer
                                         sidecarContainers:
                                           description: SidecarContainers can optionally
-                                            be used to supply extra sidecar containers
+                                            be used to supply extra containers that
+                                            run alongside the main containers.
                                           items:
                                             type: object
                                           type: array
@@ -1861,7 +1863,8 @@ spec:
                                         type: integer
                                       sidecarContainers:
                                         description: SidecarContainers can optionally
-                                          be used to supply extra sidecar containers
+                                          be used to supply extra containers that
+                                          run alongside the main containers.
                                         items:
                                           type: object
                                         type: array
@@ -2075,7 +2078,7 @@ spec:
                   type: object
                 sidecarContainers:
                   description: SidecarContainers can optionally be used to supply
-                    extra sidecar containers
+                    extra containers that run alongside the main containers.
                   items:
                     type: object
                   type: array
