@@ -95,7 +95,7 @@ func DeleteKeyspaces(ctx context.Context, ts *topo.Server, recorder record.Event
 	for _, name := range keyspaceNames {
 		// Before we delete a keyspace, we must delete vschema for this operation to be idempotent.
 		if err := ts.DeleteVSchema(ctx, name); err != nil && !topo.IsErrType(err, topo.NoNode) {
-			recorder.Eventf(eventObj, corev1.EventTypeWarning, "TopoCleanupFailed", "unable to remove keyspace's vschema %s from topology: %v", name, err)
+			recorder.Eventf(eventObj, corev1.EventTypeWarning, "TopoCleanupFailed", "unable to remove keyspace %s vschema from topology: %v", name, err)
 			resultBuilder.RequeueAfter(topoRequeueDelay)
 			// If we can't delete the vschema for this keyspace, then we shouldn't try to delete the keyspace.
 			// We'll retry later.
