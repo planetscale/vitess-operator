@@ -9,12 +9,17 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 
 	"github.com/operator-framework/operator-sdk/pkg/log/zap"
+
+	"planetscale.dev/vitess-operator/pkg/operator/environment"
 )
 
 func InitFlags() {
 	// Add the zap logger flag set to the CLI. The flag set must
 	// be added before calling pflag.Parse().
 	pflag.CommandLine.AddFlagSet(zap.FlagSet())
+
+	// Add the operator flag set to the CLI.
+	pflag.CommandLine.AddFlagSet(environment.FlagSet())
 
 	// Add flags registered by imported packages (e.g. glog and
 	// controller-runtime)
