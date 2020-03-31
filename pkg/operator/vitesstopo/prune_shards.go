@@ -82,11 +82,11 @@ func ShardsToPrune(currentShards []string, desiredShards sets.String, orphanedSh
 func DeleteShards(ctx context.Context, ts *topo.Server, recorder record.EventRecorder, eventObj runtime.Object, keyspaceName string, shardNames []string) (reconcile.Result, error) {
 	resultBuilder := &results.Builder{}
 
-	for _, name := range shardNames {
-		// We use the Vitess wrangler (multi-step command executor) to recursively delete the shard.
-		// This is equivalent to `vtctl DeleteShard -recursive`.
-		wr := wrangler.New(logutil.NewConsoleLogger(), ts, nil)
+	// We use the Vitess wrangler (multi-step command executor) to recursively delete the shard.
+	// This is equivalent to `vtctl DeleteShard -recursive`.
+	wr := wrangler.New(logutil.NewConsoleLogger(), ts, nil)
 
+	for _, name := range shardNames {
 		// topo.NoNode is the error type returned if we can't find the shard when deleting. This ensures that this operation is idempotent.
 		if err := wr.DeleteShard(ctx, keyspaceName, name, true, false); err != nil && !topo.IsErrType(err, topo.NoNode) {
 			recorder.Eventf(eventObj, corev1.EventTypeWarning, "TopoCleanupFailed", "unable to remove shard %s from topology: %v", name, err)

@@ -88,10 +88,20 @@ func KeyspacesToPrune(keyspaceNames []string, desiredKeyspaces sets.String, orph
 func DeleteKeyspaces(ctx context.Context, ts *topo.Server, recorder record.EventRecorder, eventObj runtime.Object, keyspaceNames []string) (reconcile.Result, error) {
 	resultBuilder := &results.Builder{}
 
+	// We use the Vitess wrangler (multi-step command executor) to recursively delete the keyspace.
+	// This is equivalent to `vtctl DeleteKeyspace -recursive`.
+	wr := wrangler.New(logutil.NewConsoleLogger(), ts, nil)
+
 	for _, name := range keyspaceNames {
-		// We use the Vitess wrangler (multi-step command executor) to recursively delete the keyspace.
-		// This is equivalent to `vtctl DeleteKeyspace -recursive`.
-		wr := wrangler.New(logutil.NewConsoleLogger(), ts, nil)
+		// Before we delete a keyspace, we must delete vschema for this operation to be idempotent.
+		if err := ts.DeleteVSchema(ctx, name); err != nil && !topo.IsErrType(err, topo.NoNode) {
+			recorder.Eventf(eventObj, corev1.EventTypeWarning, "TopoCleanupFailed", "unable to remove keyspace %s vschema from topology: %v", name, err)
+			resultBuilder.RequeueAfter(topoRequeueDelay)
+			// If we can't delete the vschema for this keyspace, then we shouldn't try to delete the keyspace.
+			// We'll retry later.
+			continue
+		}
+		recorder.Eventf(eventObj, corev1.EventTypeNormal, "TopoCleanup", "removed unwanted keyspace %s vschema from topology", name)
 
 		// topo.NoNode is the error type returned if we can't find the keyspace when deleting. This ensures that this operation is idempotent.
 		if err := wr.DeleteKeyspace(ctx, name, true); err != nil && !topo.IsErrType(err, topo.NoNode) {
