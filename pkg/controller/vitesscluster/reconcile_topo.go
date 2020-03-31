@@ -34,7 +34,7 @@ import (
 )
 
 const (
-	topoReconcileTimeout = 5 * time.Second
+	topoReconcileTimeout = 10 * time.Second
 	// topoRequeueDelay is how long to wait before retrying when a topology
 	// server call failed. We typically return success with a requeue delay
 	// instead of returning an error, because it's unlikely that retrying
@@ -44,10 +44,6 @@ const (
 
 func (r *ReconcileVitessCluster) reconcileTopology(ctx context.Context, vt *planetscalev2.VitessCluster) (reconcile.Result, error) {
 	resultBuilder := &results.Builder{}
-
-	// Don't hold our slot in the reconcile work queue for too long.
-	ctx, cancel := context.WithTimeout(ctx, topoReconcileTimeout)
-	defer cancel()
 
 	// Connect to the global lockserver.
 	globalParams := lockserver.GlobalConnectionParams(&vt.Spec.GlobalLockserver, vt.Name)
@@ -98,6 +94,10 @@ func (r *ReconcileVitessCluster) reconcileCellTopology(ctx context.Context, vt *
 	}
 
 	if *vt.Spec.TopologyReconciliation.RegisterCells {
+		// Don't hold our slot in the reconcile work queue for too long.
+		ctx, cancel := context.WithTimeout(ctx, topoReconcileTimeout)
+		defer cancel()
+
 		result, err := vitesstopo.RegisterCells(ctx, vitesstopo.RegisterCellsParams{
 			EventObj:         vt,
 			TopoServer:       ts,
@@ -111,6 +111,10 @@ func (r *ReconcileVitessCluster) reconcileCellTopology(ctx context.Context, vt *
 	}
 
 	if *vt.Spec.TopologyReconciliation.PruneCells {
+		// Don't hold our slot in the reconcile work queue for too long.
+		ctx, cancel := context.WithTimeout(ctx, topoReconcileTimeout)
+		defer cancel()
+
 		result, err := vitesstopo.PruneCells(ctx, vitesstopo.PruneCellsParams{
 			EventObj:      vt,
 			TopoServer:    ts,
@@ -125,6 +129,10 @@ func (r *ReconcileVitessCluster) reconcileCellTopology(ctx context.Context, vt *
 }
 
 func (r *ReconcileVitessCluster) registerCellsAliases(ctx context.Context, vt *planetscalev2.VitessCluster, ts *topo.Server, desiredCells map[string]*planetscalev2.LockserverSpec) error {
+	// Don't hold our slot in the reconcile work queue for too long.
+	ctx, cancel := context.WithTimeout(ctx, topoReconcileTimeout)
+	defer cancel()
+
 	desiredCellsAliases := buildCellsAliases(desiredCells)
 	currentCellsAliases, err := ts.GetCellsAliases(ctx, true)
 	if err != nil {
@@ -162,6 +170,10 @@ func (r *ReconcileVitessCluster) reconcileKeyspaceTopology(ctx context.Context, 
 	resultBuilder := &results.Builder{}
 
 	if *vt.Spec.TopologyReconciliation.PruneKeyspaces {
+		// Don't hold our slot in the reconcile work queue for too long.
+		ctx, cancel := context.WithTimeout(ctx, topoReconcileTimeout)
+		defer cancel()
+
 		result, err := vitesstopo.PruneKeyspaces(ctx, vitesstopo.PruneKeyspacesParams{
 			EventObj:          vt,
 			TopoServer:        ts,

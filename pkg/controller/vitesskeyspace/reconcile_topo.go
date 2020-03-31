@@ -31,7 +31,7 @@ import (
 )
 
 const (
-	topoReconcileTimeout = 5 * time.Second
+	topoReconcileTimeout = 10 * time.Second
 	// topoRequeueDelay is how long to wait before retrying when a topology
 	// server call failed. We typically return success with a requeue delay
 	// instead of returning an error, because it's unlikely that retrying
@@ -42,10 +42,6 @@ const (
 func (r *ReconcileVitessKeyspace) reconcileTopology(ctx context.Context, vtk *planetscalev2.VitessKeyspace) (reconcile.Result, error) {
 	resultBuilder := &results.Builder{}
 
-	// Don't hold our slot in the reconcile work queue for too long.
-	ctx, cancel := context.WithTimeout(ctx, topoReconcileTimeout)
-	defer cancel()
-
 	ts, err := toposerver.Open(ctx, vtk.Spec.GlobalLockserver)
 	if err != nil {
 		r.recorder.Eventf(vtk, corev1.EventTypeWarning, "TopoConnectFailed", "failed to connect to global lockserver: %v", err)
@@ -55,6 +51,10 @@ func (r *ReconcileVitessKeyspace) reconcileTopology(ctx context.Context, vtk *pl
 	defer ts.Close()
 
 	if *vtk.Spec.TopologyReconciliation.PruneShards {
+		// Don't hold our slot in the reconcile work queue for too long.
+		ctx, cancel := context.WithTimeout(ctx, topoReconcileTimeout)
+		defer cancel()
+
 		desiredShards := make(sets.String, len(vtk.Status.Shards))
 		for k := range vtk.Status.Shards {
 			desiredShards.Insert(k)

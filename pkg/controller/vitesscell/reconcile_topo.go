@@ -29,7 +29,7 @@ import (
 )
 
 const (
-	topoReconcileTimeout = 5 * time.Second
+	topoReconcileTimeout = 10 * time.Second
 	// topoRequeueDelay is how long to wait before retrying when a topology
 	// server call failed. We typically return success with a requeue delay
 	// instead of returning an error, because it's unlikely that retrying
@@ -39,10 +39,6 @@ const (
 
 func (r *ReconcileVitessCell) reconcileTopology(ctx context.Context, vtc *planetscalev2.VitessCell, ts *toposerver.Conn, keyspaces []*planetscalev2.VitessKeyspace) (reconcile.Result, error) {
 	resultBuilder := &results.Builder{}
-
-	// Don't hold our slot in the reconcile work queue for too long.
-	ctx, cancel := context.WithTimeout(ctx, topoReconcileTimeout)
-	defer cancel()
 
 	if *vtc.Spec.TopologyReconciliation.PruneSrvKeyspaces {
 		result, err := r.pruneSrvKeyspaces(ctx, vtc, keyspaces, ts)
@@ -54,6 +50,10 @@ func (r *ReconcileVitessCell) reconcileTopology(ctx context.Context, vtc *planet
 
 func (r *ReconcileVitessCell) pruneSrvKeyspaces(ctx context.Context, vtc *planetscalev2.VitessCell, keyspaces []*planetscalev2.VitessKeyspace, ts *toposerver.Conn) (reconcile.Result, error) {
 	resultBuilder := &results.Builder{}
+
+	// Don't hold our slot in the reconcile work queue for too long.
+	ctx, cancel := context.WithTimeout(ctx, topoReconcileTimeout)
+	defer cancel()
 
 	// Get the list of keyspaces deployed (served) in this cell.
 	srvKeyspaceNames, err := ts.GetSrvKeyspaceNames(ctx, vtc.Spec.Name)
