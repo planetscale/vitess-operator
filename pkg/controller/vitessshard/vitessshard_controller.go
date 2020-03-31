@@ -36,6 +36,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
+	"planetscale.dev/vitess-operator/pkg/operator/environment"
 	"planetscale.dev/vitess-operator/pkg/operator/reconciler"
 	"planetscale.dev/vitess-operator/pkg/operator/results"
 	"planetscale.dev/vitess-operator/pkg/operator/resync"
@@ -142,7 +143,9 @@ type ReconcileVitessShard struct {
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
 func (r *ReconcileVitessShard) Reconcile(request reconcile.Request) (reconcile.Result, error) {
-	ctx := context.TODO()
+	ctx, cancel := context.WithTimeout(context.TODO(), environment.ReconcileTimeout())
+	defer cancel()
+
 	resultBuilder := &results.Builder{}
 
 	log := log.WithFields(logrus.Fields{
