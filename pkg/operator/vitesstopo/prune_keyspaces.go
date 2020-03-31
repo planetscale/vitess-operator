@@ -101,7 +101,7 @@ func DeleteKeyspaces(ctx context.Context, ts *topo.Server, recorder record.Event
 			// We'll retry later.
 			continue
 		}
-		recorder.Eventf(eventObj, corev1.EventTypeNormal, "TopoCleanup", "removed unwanted keyspace %s from topology", name)
+		recorder.Eventf(eventObj, corev1.EventTypeNormal, "TopoCleanup", "removed unwanted keyspace %s vschema from topology", name)
 
 		// topo.NoNode is the error type returned if we can't find the keyspace when deleting. This ensures that this operation is idempotent.
 		if err := wr.DeleteKeyspace(ctx, name, true); err != nil && !topo.IsErrType(err, topo.NoNode) {
