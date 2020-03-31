@@ -193,6 +193,10 @@ func (r *ReconcileVitessShard) reconcileTablets(ctx context.Context, vts *planet
 			deployedCells[tabletAlias.Cell] = struct{}{}
 		},
 		PrepareForTurndown: func(key client.ObjectKey, obj runtime.Object) *planetscalev2.OrphanStatus {
+			// Don't hold our slot in the reconcile work queue for too long.
+			ctx, cancel := context.WithTimeout(ctx, topoReconcileTimeout)
+			defer cancel()
+
 			curObj := obj.(*corev1.Pod)
 			tabletAlias := vttablet.AliasFromPod(curObj)
 
