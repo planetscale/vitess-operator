@@ -123,6 +123,10 @@ func (r *ReconcileVitessCell) reconcileKeyspaces(ctx context.Context, vtc *plane
 	result, err := r.reconcileTopology(ctx, vtc, ts, keyspaces)
 	resultBuilder.Merge(result, err)
 
+	// Don't hold our slot in the reconcile work queue for too long.
+	ctx, cancel := context.WithTimeout(ctx, topoReconcileTimeout)
+	defer cancel()
+
 	// Get the list of keyspaces deployed (served) in this cell.
 	srvKeyspaceNames, err := ts.GetSrvKeyspaceNames(ctx, vtc.Spec.Name)
 	if err != nil {
