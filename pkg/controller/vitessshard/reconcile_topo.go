@@ -37,7 +37,7 @@ import (
 )
 
 const (
-	topoReconcileTimeout = 5 * time.Second
+	topoReconcileTimeout = 20 * time.Second
 
 	// topoRequeueDelay is how long to wait before retrying when a topology
 	// server call failed. We typically return success with a requeue delay
