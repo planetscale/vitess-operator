@@ -28,10 +28,15 @@ const (
 mkdir -p /mnt/vt/bin
 cp --no-clobber /vt/bin/mysqlctld /mnt/vt/bin/
 mkdir -p /mnt/vt/config
-cp --no-clobber -R /vt/config/mycnf /mnt/vt/config/
+if [[ -d /vt/config/mycnf ]]; then
+  cp --no-clobber -R /vt/config/mycnf /mnt/vt/config/
+else
+  mkdir -p /mnt/vt/config/mycnf
+fi
 mkdir -p /mnt/vt/vtdataroot
 ln -sf /dev/stderr /mnt/vt/config/stderr.symlink
-echo "log-error = /vt/config/stderr.symlink" > /mnt/vt/config/mycnf/log-error.cnf`
+echo "log-error = /vt/config/stderr.symlink" > /mnt/vt/config/mycnf/log-error.cnf
+echo "binlog_format=row" > /mnt/vt/config/mycnf/rbr.cnf`
 )
 
 func init() {
