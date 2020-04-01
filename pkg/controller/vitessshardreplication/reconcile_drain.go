@@ -331,25 +331,35 @@ func (r *ReconcileVitessShard) handleExternalReparent(ctx context.Context, vts *
 }
 
 func (r *ReconcileVitessShard) updateDrainStatus(ctx context.Context, pod *corev1.Pod, drainStatus drain.State) error {
+	hasUpdated := false
+
 	switch drainStatus {
 	case drain.FinishedState:
 		if !drain.Finished(pod) {
 			drain.Finish(pod)
+			hasUpdated = true
 		}
 	case drain.AcknowledgedState:
 		if !drain.Acknowledged(pod) {
 			drain.Acknowledge(pod)
+			hasUpdated = true
 		}
 	case drain.NotDrainingState:
 		if drain.Finished(pod) {
 			drain.Unfinish(pod)
+			hasUpdated = true
 		}
 		if drain.Acknowledged(pod) {
 			drain.Unacknowledge(pod)
+			hasUpdated = true
 		}
 	case drain.DrainingState:
 		// This is set by the drainer
 		panic("Programming error, the controller should never set a pod as Draining")
+	}
+
+	if !hasUpdated {
+		return nil
 	}
 	return r.client.Update(ctx, pod)
 }
