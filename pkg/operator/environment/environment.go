@@ -17,7 +17,7 @@ limitations under the License.
 /*
 Package environment defines global environment variables to call throughout the operator codebase. These variables
 have sane defaults and aren't required to be set as flags unless explicitly stated.
- */
+*/
 
 package environment
 
@@ -28,16 +28,17 @@ import (
 )
 
 var (
-	reconcileTimeoutSeconds int
+	reconcileTimeout time.Duration
 )
 
 // FlagSet returns the FlagSet for the operator.
 func FlagSet() *pflag.FlagSet {
 	operatorFlagSet := pflag.NewFlagSet("operator", pflag.ExitOnError)
-	operatorFlagSet.IntVar(&reconcileTimeoutSeconds, "reconcileTimeoutSeconds", 600, "Time in seconds after which all controllers will timeout their reconciliation.")
+	operatorFlagSet.DurationVar(&reconcileTimeout, "reconcile_timeout", 10*time.Minute, "Maximum time that any controller will spend trying to reconcile a single object before giving up.")
 	return operatorFlagSet
 }
 
+// ReconcileTimeout returns the global maximum reconcile timeout for all controllers.
 func ReconcileTimeout() time.Duration {
-	return time.Duration(reconcileTimeoutSeconds) * time.Second
+	return reconcileTimeout
 }
