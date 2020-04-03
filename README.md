@@ -1,4 +1,4 @@
-# PRE-ALPHA STAGE WARNING
+# ALPHA STAGE
 
 This project was only recently open-sourced and we are still working on making sure it's usable outside our own
 infrastructure, primarily in the scope of developing end-user documentation.  
