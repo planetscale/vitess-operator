@@ -1,4 +1,4 @@
-# ALPHA STAGE
+# PREVIEW STAGE
 
 This project was recently open-sourced; we are still working on developing end-user documentation!  
 
