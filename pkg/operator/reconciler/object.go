@@ -96,8 +96,8 @@ func (r *Reconciler) ReconcileObject(ctx context.Context, owner runtime.Object, 
 			// anyone who cares about the Pod to create a new one. Since we use stable
 			// Pod names like StatefulSet does, we need to delete the Failed Pod to make
 			// room for us to reuse the name, just like StatefulSet does.
-			p := &metav1.Preconditions{UID: &pod.UID}
-			err = r.client.Delete(ctx, curObj, client.PropagationPolicy(metav1.DeletePropagationBackground), client.Preconditions(p))
+			p := &client.Preconditions{UID: &pod.UID}
+			err = r.client.Delete(ctx, curObj, client.PropagationPolicy(metav1.DeletePropagationBackground), p)
 			deleteCount.With(metricLabels(gvk, ownerGVK, err)).Inc()
 			if err != nil {
 				r.recorder.Eventf(owner, corev1.EventTypeWarning, "DeleteFailed", "failed to delete evicted Pod %v: %v", pod.Name, err)
@@ -150,8 +150,8 @@ func (r *Reconciler) ReconcileObject(ctx context.Context, owner runtime.Object, 
 		}
 		// Prepare succeeded. Try to delete the object.
 		uid := curObjMeta.GetUID()
-		p := &metav1.Preconditions{UID: &uid}
-		err = r.client.Delete(ctx, curObj, client.PropagationPolicy(metav1.DeletePropagationBackground), client.Preconditions(p))
+		p := &client.Preconditions{UID: &uid}
+		err = r.client.Delete(ctx, curObj, client.PropagationPolicy(metav1.DeletePropagationBackground), p)
 		deleteCount.With(metricLabels(gvk, ownerGVK, err)).Inc()
 		if err != nil {
 			r.recorder.Eventf(owner, corev1.EventTypeWarning, "DeleteFailed", "failed to delete %v: %v", curObjDesc, err)
@@ -361,8 +361,8 @@ func (r *Reconciler) delete(ctx context.Context, owner runtime.Object, key clien
 	curObjDesc := fmt.Sprintf("%v %v", gvk.Kind, curObjMeta.GetName())
 
 	uid := curObjMeta.GetUID()
-	p := &metav1.Preconditions{UID: &uid}
-	err = r.client.Delete(ctx, curObj, client.PropagationPolicy(metav1.DeletePropagationBackground), client.Preconditions(p))
+	p := &client.Preconditions{UID: &uid}
+	err = r.client.Delete(ctx, curObj, client.PropagationPolicy(metav1.DeletePropagationBackground), p)
 	deleteCount.With(metricLabels(gvk, ownerGVK, err)).Inc()
 	if err != nil {
 		r.recorder.Eventf(owner, corev1.EventTypeWarning, "DeleteFailed", "failed to delete %v: %v", curObjDesc, err)

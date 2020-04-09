@@ -230,7 +230,7 @@ type ClusterBackupSpec struct {
 	// from one tablet in each shard. Otherwise, new tablets trying to restore
 	// will find that the latest backup was created with the wrong engine.
 	// Default: builtin
-	// +kubebuilder:validation:Enum=builtin,xtrabackup
+	// +kubebuilder:validation:Enum=builtin;xtrabackup
 	Engine VitessBackupEngine `json:"engine,omitempty"`
 }
 

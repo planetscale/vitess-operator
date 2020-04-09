@@ -68,7 +68,7 @@ func (r *ReconcileVitessCell) reconcileKeyspaces(ctx context.Context, vtc *plane
 		LabelSelector: apilabels.SelectorFromSet(apilabels.Set(labels)),
 	}
 	list := &planetscalev2.VitessKeyspaceList{}
-	if err := r.client.List(ctx, opts, list); err != nil {
+	if err := r.client.List(ctx, list, opts); err != nil {
 		r.recorder.Eventf(vtc, corev1.EventTypeWarning, "ListFailed", "failed to list VitessKeyspace objects: %v", err)
 		return resultBuilder.Error(err)
 	}

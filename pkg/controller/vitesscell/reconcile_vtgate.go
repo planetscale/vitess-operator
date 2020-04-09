@@ -48,9 +48,9 @@ func (m *secretCellsMapper) Map(obj handler.MapObject) []reconcile.Request {
 
 	cellList := &planetscalev2.VitessCellList{}
 	ctx := context.TODO()
-	err := m.client.List(ctx, &client.ListOptions{
+	err := m.client.List(ctx, cellList, &client.ListOptions{
 		Namespace: secret.Namespace,
-	}, cellList)
+	})
 	if err != nil {
 		log.WithError(err).Error("failed to list VitessCells; unable to map Secrets to matching VitessCells")
 		return nil

@@ -76,7 +76,7 @@ func Add(mgr manager.Manager) error {
 func newReconciler(mgr manager.Manager) *ReconcileVitessCluster {
 	c := mgr.GetClient()
 	scheme := mgr.GetScheme()
-	recorder := mgr.GetRecorder(controllerName)
+	recorder := mgr.GetEventRecorderFor(controllerName)
 
 	return &ReconcileVitessCluster{
 		client:     c,

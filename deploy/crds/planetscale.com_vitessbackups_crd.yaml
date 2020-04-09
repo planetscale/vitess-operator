@@ -14,22 +14,28 @@ spec:
   scope: Namespaced
   validation:
     openAPIV3Schema:
+      description: VitessBackup is a one-way mirror of metadata for a Vitess backup.
+        These objects are created automatically by the VitessBackupStorage controller
+        to provide access to backup metadata from Kubernetes. Each backup found in
+        the storage location will be represented by its own VitessBackup object.
       properties:
         apiVersion:
           description: 'APIVersion defines the versioned schema of this representation
             of an object. Servers should convert recognized schemas to the latest
-            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#resources'
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
           type: string
         kind:
           description: 'Kind is a string value representing the REST resource this
             object represents. Servers may infer this from the endpoint the client
-            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#types-kinds'
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
           type: string
         metadata:
           type: object
         spec:
+          description: VitessBackupSpec defines the desired state of the backup.
           type: object
         status:
+          description: VitessBackupStatus describes the observed state of the backup.
           properties:
             complete:
               description: Complete indicates whether the backup ever completed.
@@ -62,6 +68,7 @@ spec:
                 metadata about the actual backup in storage.
               type: string
           type: object
+      type: object
   version: v2
   versions:
   - name: v2

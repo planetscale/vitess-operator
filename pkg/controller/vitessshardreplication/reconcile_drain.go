@@ -120,7 +120,7 @@ func (r *ReconcileVitessShard) reconcileDrain(ctx context.Context, vts *planetsc
 		Namespace:     vts.Namespace,
 		LabelSelector: apilabels.SelectorFromSet(apilabels.Set(labels)),
 	}
-	if err := r.client.List(readCtx, listOpts, podList); err != nil {
+	if err := r.client.List(readCtx, podList, listOpts); err != nil {
 		r.recorder.Eventf(vts, corev1.EventTypeWarning, "ListFailed", "failed to list Pods: %v", err)
 		return resultBuilder.Error(err)
 	}

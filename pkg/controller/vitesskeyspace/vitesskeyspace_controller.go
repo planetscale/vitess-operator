@@ -70,7 +70,7 @@ func Add(mgr manager.Manager) error {
 func newReconciler(mgr manager.Manager) *ReconcileVitessKeyspace {
 	c := mgr.GetClient()
 	scheme := mgr.GetScheme()
-	recorder := mgr.GetRecorder(controllerName)
+	recorder := mgr.GetEventRecorderFor(controllerName)
 
 	return &ReconcileVitessKeyspace{
 		client:     c,

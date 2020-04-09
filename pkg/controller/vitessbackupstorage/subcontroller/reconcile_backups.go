@@ -68,7 +68,7 @@ func (r *ReconcileVitessBackupStorage) reconcileBackups(ctx context.Context, vbs
 		Namespace:     vbs.Namespace,
 		LabelSelector: apilabels.SelectorFromSet(clusterLabels),
 	}
-	err := r.client.List(ctx, listOpts, shardList)
+	err := r.client.List(ctx, shardList, listOpts)
 	if err != nil {
 		r.recorder.Eventf(vbs, corev1.EventTypeWarning, "ListFailed", "failed to list shards: %v", err)
 		return resultBuilder.Error(err)

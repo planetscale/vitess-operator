@@ -68,7 +68,7 @@ func (r *ReconcileVitessShard) reconcileBackupJob(ctx context.Context, vts *plan
 			planetscalev2.ShardLabel:    shardSafeName,
 		}),
 	}
-	if err := r.client.List(ctx, listOpts, allBackups); err != nil {
+	if err := r.client.List(ctx, allBackups, listOpts); err != nil {
 		return resultBuilder.Error(err)
 	}
 	updateBackupStatus(vts, allBackups.Items)

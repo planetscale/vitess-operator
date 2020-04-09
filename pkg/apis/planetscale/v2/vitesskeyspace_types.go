@@ -144,7 +144,7 @@ type VitessKeyspaceTemplate struct {
 	// you can set the policy to Immediate to skip these checks.
 	//
 	// Default: RequireIdle
-	// +kubebuilder:validation:Enum=RequireIdle,Immediate
+	// +kubebuilder:validation:Enum=RequireIdle;Immediate
 	TurndownPolicy VitessKeyspaceTurndownPolicy `json:"turndownPolicy,omitempty"`
 }
 

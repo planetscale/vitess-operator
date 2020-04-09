@@ -160,7 +160,7 @@ type VitessShardTabletPool struct {
 	// The allowed types are "replica" for master-eligible replicas that serve
 	// transactional (OLTP) workloads; and "rdonly" for master-ineligible replicas
 	// (can never be promoted to master) that serve batch/analytical (OLAP) workloads.
-	// +kubebuilder:validation:Enum=replica,rdonly,externalmaster,externalreplica,externalrdonly
+	// +kubebuilder:validation:Enum=replica;rdonly;externalmaster;externalreplica;externalrdonly
 	Type VitessTabletPoolType `json:"type"`
 
 	// Replicas is the number of tablets to deploy in this pool.
@@ -366,7 +366,7 @@ type VitessShardConditionType string
 type VitessShardCondition struct {
 	// Status is the status of the condition.
 	// Can be True, False, Unknown.
-	// +kubebuilder:validation:Enum=True,False,Unknown
+	// +kubebuilder:validation:Enum=True;False;Unknown
 	Status corev1.ConditionStatus `json:"status"`
 	// Last time the condition transitioned from one status to another.
 	// Optional.

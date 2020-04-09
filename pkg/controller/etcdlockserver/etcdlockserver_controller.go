@@ -67,7 +67,7 @@ func Add(mgr manager.Manager) error {
 func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 	c := mgr.GetClient()
 	scheme := mgr.GetScheme()
-	recorder := mgr.GetRecorder("etcdlockserver-controller")
+	recorder := mgr.GetEventRecorderFor("etcdlockserver-controller")
 
 	return &ReconcileEtcdLockserver{
 		client:     c,

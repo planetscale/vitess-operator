@@ -7,7 +7,7 @@ IMAGE:=planetscale/vitess-operator
 
 IMAGE_NAME:=$(IMAGE_REGISTRY)/$(IMAGE)
 
-OPERATOR_SDK_VERSION:=v0.10.0
+OPERATOR_SDK_VERSION:=v0.16.0
 
 # Enable Go modules
 export GO111MODULE=on
@@ -34,7 +34,7 @@ integration-test:
 
 generate:
 	operator-sdk-$(OPERATOR_SDK_VERSION) generate k8s
-	operator-sdk-$(OPERATOR_SDK_VERSION) generate openapi
+	operator-sdk-$(OPERATOR_SDK_VERSION) generate crds
 	go run github.com/ahmetb/gen-crd-api-reference-docs -api-dir ./pkg/apis -config docs/api/config.json -template-dir docs/api/template -out-file docs/api/index.html
 
 push-only: DATE=$(shell date -I)
