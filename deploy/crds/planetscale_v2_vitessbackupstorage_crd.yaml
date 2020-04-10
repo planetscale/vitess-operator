@@ -198,6 +198,11 @@ spec:
                       description: Bucket is the name of the S3 bucket to use.
                       minLength: 1
                       type: string
+                    endpoint:
+                      description: 'Endpoint is the url endpoint for the S3 bucket.
+                        Default: User the endpoint associated with `Region` by the
+                        driver.'
+                      type: string
                     keyPrefix:
                       description: KeyPrefix is an optional prefix added to all object
                         keys created by Vitess. This is only needed if the same bucket
