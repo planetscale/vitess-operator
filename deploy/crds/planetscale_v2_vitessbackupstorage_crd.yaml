@@ -199,9 +199,9 @@ spec:
                       minLength: 1
                       type: string
                     endpoint:
-                      description: 'Endpoint is the url endpoint for the S3 bucket.
-                        Default: User the endpoint associated with `Region` by the
-                        driver.'
+                      description: 'Endpoint is the `host:port` (port is required)
+                        for the S3 backend. Default: Use the endpoint associated with
+                        `region` by the driver.'
                       type: string
                     keyPrefix:
                       description: KeyPrefix is an optional prefix added to all object
