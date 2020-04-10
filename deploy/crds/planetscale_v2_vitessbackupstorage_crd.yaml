@@ -198,6 +198,11 @@ spec:
                       description: Bucket is the name of the S3 bucket to use.
                       minLength: 1
                       type: string
+                    endpoint:
+                      description: 'Endpoint is the `host:port` (port is required)
+                        for the S3 backend. Default: Use the endpoint associated with
+                        `region` by the driver.'
+                      type: string
                     keyPrefix:
                       description: KeyPrefix is an optional prefix added to all object
                         keys created by Vitess. This is only needed if the same bucket
