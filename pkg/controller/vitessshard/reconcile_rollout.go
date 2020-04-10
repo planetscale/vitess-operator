@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"sort"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -25,19 +26,9 @@ import (
 func (r *ReconcileVitessShard) reconcileRollout(ctx context.Context, vts *planetscalev2.VitessShard) (reconcile.Result, error) {
 	resultBuilder := &results.Builder{}
 
-	if !rollout.Scheduled(vts) {
+	if !rollout.Cascaded(vts) {
 		// If the shard is not scheduled for a rolling update, silently bail out and do nothing.
 		return resultBuilder.Result()
-	}
-
-	for _, tablet := range vts.Status.Tablets {
-		if tablet.Ready != corev1.ConditionTrue {
-			if tablet.Ready != corev1.ConditionTrue {
-				// If all tablets aren't healthy, we should bail and not perform a rolling restart.
-				r.recorder.Eventf(vts, corev1.EventTypeWarning, "RollingRestartFailed", "all tablets are not healthy")
-				return resultBuilder.Result()
-			}
-		}
 	}
 
 	podList := &corev1.PodList{}
@@ -52,6 +43,27 @@ func (r *ReconcileVitessShard) reconcileRollout(ctx context.Context, vts *planet
 	}
 	if err := r.client.List(ctx, listOpts, podList); err != nil {
 		return resultBuilder.Error(err)
+	}
+
+	podKeys := make([]int, 0, len(podList.Items))
+	for podKey := range podList.Items {
+		podKeys = append(podKeys, podKey)
+	}
+	sort.Ints(podKeys)
+
+	tabletKeys := make([]string, 0, len(vts.Status.Tablets))
+	for tabletKey := range vts.Status.Tablets {
+		tabletKeys = append(tabletKeys, tabletKey)
+	}
+	sort.Strings(tabletKeys)
+
+	for _, tabletKey := range tabletKeys {
+		tablet := vts.Status.Tablets[tabletKey]
+		if tablet.Available != corev1.ConditionTrue {
+				// If all tablets aren't healthy, we should bail and not perform a rolling restart.
+				r.recorder.Eventf(vts, corev1.EventTypeNormal, "RolloutPaused", "Waiting for tablet %v to be Available.", tabletKey)
+				return resultBuilder.Result()
+		}
 	}
 
 	scheduledTablets := false
