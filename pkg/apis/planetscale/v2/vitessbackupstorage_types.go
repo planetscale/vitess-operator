@@ -103,6 +103,9 @@ type S3BackupLocation struct {
 	// Bucket is the name of the S3 bucket to use.
 	// +kubebuilder:validation:MinLength=1
 	Bucket string `json:"bucket"`
+	// Endpoint is the url endpoint for the S3 bucket.
+	// Default: User the endpoint associated with `Region` by the driver.
+	Endpoint string `json:"endpoint,omitempty"`
 	// KeyPrefix is an optional prefix added to all object keys created by Vitess.
 	// This is only needed if the same bucket is also used for something other
 	// than backups for VitessClusters. Backups from different clusters,
