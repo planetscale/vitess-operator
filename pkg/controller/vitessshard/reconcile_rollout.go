@@ -35,7 +35,7 @@ func (r *ReconcileVitessShard) reconcileRollout(ctx context.Context, vts *planet
 		}).AsSelector(),
 	}
 
-	if err := r.client.List(ctx, podList, listOpts); err != nil {
+	if err := r.client.List(ctx, listOpts, podList); err != nil {
 		return resultBuilder.Error(err)
 	}
 
