@@ -135,8 +135,6 @@ type ReconcileVitessShard struct {
 	resync     *resync.Periodic
 	recorder   record.EventRecorder
 	reconciler *reconciler.Reconciler
-
-	// This client is required
 }
 
 // Reconcile reads that state of the cluster for a VitessShard object and makes changes based on the state read
@@ -187,6 +185,7 @@ func (r *ReconcileVitessShard) Reconcile(request reconcile.Request) (reconcile.R
 	resultBuilder.Merge(tabletResult, err)
 
 	// Perform rolling updates on tablets if needed.
+	// NOTE: This must always be done after reconcileTablets, so Status.Tablets is populated.
 	rolloutResult, err := r.reconcileRollout(ctx, vts)
 	resultBuilder.Merge(rolloutResult, err)
 

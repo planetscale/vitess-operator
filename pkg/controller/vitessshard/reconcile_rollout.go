@@ -2,25 +2,18 @@ package vitessshard
 
 import (
 	"context"
-	"fmt"
-	"reflect"
 	"sort"
-	"time"
 
-	"github.com/sirupsen/logrus"
-	corev1 "k8s.io/api/core/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/api/meta"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/api/core/v1"
 	apilabels "k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/client-go/util/retry"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"vitess.io/vitess/go/vt/topo/topoproto"
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 	"planetscale.dev/vitess-operator/pkg/operator/results"
 	"planetscale.dev/vitess-operator/pkg/operator/rollout"
+	"planetscale.dev/vitess-operator/pkg/operator/vttablet"
 )
 
 func (r *ReconcileVitessShard) reconcileRollout(ctx context.Context, vts *planetscalev2.VitessShard) (reconcile.Result, error) {
@@ -31,7 +24,7 @@ func (r *ReconcileVitessShard) reconcileRollout(ctx context.Context, vts *planet
 		return resultBuilder.Result()
 	}
 
-	podList := &corev1.PodList{}
+	podList := &v1.PodList{}
 	listOpts := &client.ListOptions{
 		Namespace: vts.Namespace,
 		LabelSelector: apilabels.Set(map[string]string{
@@ -41,186 +34,106 @@ func (r *ReconcileVitessShard) reconcileRollout(ctx context.Context, vts *planet
 			planetscalev2.ShardLabel:     vts.Spec.KeyRange.SafeName(),
 		}).AsSelector(),
 	}
+
 	if err := r.client.List(ctx, listOpts, podList); err != nil {
 		return resultBuilder.Error(err)
 	}
 
-	podKeys := make([]int, 0, len(podList.Items))
-	for podKey := range podList.Items {
-		podKeys = append(podKeys, podKey)
+	// Safety checks and rolling updates must be deterministically ordered, so we access and sort pods by tablet alias.
+	tabletPods := make(map[string]v1.Pod)
+	for i := range podList.Items {
+		pod := podList.Items[i]
+		tabletAlias := vttablet.AliasFromPod(&pod)
+		tabletKey := topoproto.TabletAliasString(&tabletAlias)
+		tabletPods[tabletKey] = pod
 	}
-	sort.Ints(podKeys)
 
-	tabletKeys := make([]string, 0, len(vts.Status.Tablets))
-	for tabletKey := range vts.Status.Tablets {
-		tabletKeys = append(tabletKeys, tabletKey)
+	tabletKeys := make([]string, 0, len(tabletPods))
+	for key := range tabletPods {
+		tabletKeys = append(tabletKeys, key)
 	}
 	sort.Strings(tabletKeys)
 
 	for _, tabletKey := range tabletKeys {
 		tablet := vts.Status.Tablets[tabletKey]
-		if tablet.Available != corev1.ConditionTrue {
-				// If all tablets aren't healthy, we should bail and not perform a rolling restart.
-				r.recorder.Eventf(vts, corev1.EventTypeNormal, "RolloutPaused", "Waiting for tablet %v to be Available.", tabletKey)
-				return resultBuilder.Result()
+		if tablet.Available != v1.ConditionTrue {
+			// If all tablets aren't healthy, we should bail and not perform a rolling restart.
+			r.recorder.Eventf(vts, v1.EventTypeNormal, "RolloutPaused", "Waiting for tablet %v to be Available.", tabletKey)
+			return resultBuilder.Result()
+		}
+
+		pod := tabletPods[tabletKey]
+		if rollout.Released(&pod) {
+			// If any tablet has already been released, we should wait until it is finished to release another one.
+			r.recorder.Eventf(vts, v1.EventTypeNormal, "RolloutPaused", "Waiting for tablet %v to finish release.", tabletKey)
 		}
 	}
 
 	scheduledTablets := false
-	for i := range podList.Items {
-		pod := &podList.Items[i]
-		if !rollout.Scheduled(pod) {
+	masterEligibleTablets := vts.Spec.MasterEligibleTabletCount()
+
+	for _, tabletKey := range tabletKeys {
+		pod := tabletPods[tabletKey]
+		if !rollout.Scheduled(&pod) {
 			continue
 		}
 
 		scheduledTablets = true
-		if err := r.releaseTabletPod(ctx, log, pod); err != nil {
-			r.recorder.Eventf(vts, corev1.EventTypeWarning, "RollingRestartFailed", "tablet deletion failed")
-			return resultBuilder.Error(err)
+		deletePod := false
+		tabletType := pod.Labels[planetscalev2.TabletTypeLabel]
+		// These two conditions guarantee that the tablet is a lone master.
+		if masterEligibleTablets == 1 && tabletType == string(planetscalev2.ReplicaPoolType) {
+			// If we have a lone master, we must delete it since reparenting is impossible.
+			deletePod = true
 		}
+
+		if err := r.releaseTabletPod(ctx, &pod, deletePod); err != nil {
+			r.recorder.Eventf(vts, v1.EventTypeWarning, "RollingRestartFailed", "deletion of pod %v with tablet %v failed", pod.Name, tabletKey)
+			return resultBuilder.Error(err)
+		} else {
+			// We must only release at most one tablet per reconcile loop, so exit if we do.
+			return resultBuilder.Result()
+		}
+
 	}
 
-	// If we have no more scheduled tablets, unschedule the shard.
+	// If we have no more scheduled tablets, uncascade the shard.
 	if !scheduledTablets {
-		if err := r.unscheduleObject(ctx, vts); err != nil {
-			return resultBuilder.Error(err)
-		}
+		r.uncascadeShard(vts)
 	}
 
 	return resultBuilder.Result()
 }
 
-func (r *ReconcileVitessShard) releaseTabletPod(ctx context.Context, log *logrus.Entry, pod *corev1.Pod) error {
-	// Release the pod to be recreated with updates.
-	if err := r.releaseObject(ctx,pod); err != nil {
-		return err
-	}
-
-	// TODO: Evict pods before deleting them.
-	if err := r.client.Delete(ctx, pod); err != nil {
-		return err
-	}
-	if err := r.waitObjectUpdated(ctx, pod); err != nil {
-		return err
-	}
-	if err := r.waitPodReady(ctx, pod); err != nil {
-		return err
+func (r *ReconcileVitessShard) releaseTabletPod(ctx context.Context, pod *v1.Pod, deletePod bool) error {
+	if deletePod {
+		// TODO: Evict pods instead of deleting them directly, to respect PDBs.
+		if err := r.client.Delete(ctx, pod); err != nil {
+			return err
+		}
+	} else {
+		// Release the pod to be recreated with updates.
+		releasePod(pod)
 	}
 
 	return nil
 }
 
-func (r *ReconcileVitessShard) waitObjectUpdated(ctx context.Context, obj runtime.Object) error {
-	// Wait for obj to have no scheduled updates.
-	for {
-		if err := regetObject(ctx, r.client, obj); err != nil {
-			// A NotFound error is ok. We wait for it to be recreated.
-			if apierrors.IsNotFound(err) {
-				time.Sleep(1 * time.Second)
-				continue
-			} else {
-				return err
-			}
-		}
-
-		if !rollout.Scheduled(objectMeta(obj)) {
-			// This is what we're waiting for.
-			return nil
-		}
-
-		// Keep waiting.
-		time.Sleep(1 * time.Second)
-	}
-}
-
-func (r *ReconcileVitessShard) waitPodReady(ctx context.Context, pod *corev1.Pod) error {
-	for {
-		if err := regetObject(ctx, r.client, pod); err != nil {
-			return err
-		}
-
-		if podIsReady(pod) {
-			// This is what we're waiting for.
-			return nil
-		}
-
-		// Keep waiting.
-		time.Sleep(1 * time.Second)
-	}
-}
-
-func (r *ReconcileVitessShard) releaseObject(ctx context.Context, obj runtime.Object) error {
-	return retry.RetryOnConflict(retry.DefaultBackoff, func() error {
-		if err := regetObject(ctx, r.client, obj); err != nil {
-			return err
-		}
-		objMeta := objectMeta(obj)
-		if !rollout.Scheduled(objMeta) || rollout.Released(objMeta) {
+func releasePod(pod *v1.Pod) {
+	if !rollout.Scheduled(pod) || rollout.Released(pod) {
 			// If there's nothing scheduled, or already released, we're done.
-			return nil
-		}
-		rollout.Release(objMeta)
-		return r.client.Update(ctx, obj)
-	})
-}
-
-func (r *ReconcileVitessShard) unscheduleObject(ctx context.Context, obj runtime.Object) error {
-	return retry.RetryOnConflict(retry.DefaultBackoff, func() error {
-		if err := regetObject(ctx, r.client, obj); err != nil {
-			return err
-		}
-		objMeta := objectMeta(obj)
-		if !rollout.Scheduled(objMeta) || rollout.Released(objMeta) {
-			// If there's nothing scheduled, or already released, we're done.
-			return nil
-		}
-		rollout.Unschedule(objMeta)
-		return r.client.Update(ctx, obj)
-	})
-}
-
-// regetObject does a fresh Get from the server to update the contents of an
-// existing object.
-func regetObject(ctx context.Context, kubeClient client.Client, obj runtime.Object) error {
-	// Save the name/namespace.
-	objMeta := objectMeta(obj)
-	key := client.ObjectKey{
-		Namespace: objMeta.GetNamespace(),
-		Name:      objMeta.GetName(),
+			return
 	}
 
-	// Reset all fields in the object.
-	resetObject(obj)
-
-	// Restore the name/namespace.
-	objMeta = objectMeta(obj)
-	objMeta.SetNamespace(key.Namespace)
-	objMeta.SetName(key.Name)
-
-	return kubeClient.Get(ctx, key, obj)
+	rollout.Release(pod)
+	return
 }
 
-// resetObject resets an Object to its zero value.
-func resetObject(obj runtime.Object) {
-	objValue := reflect.Indirect(reflect.ValueOf(obj))
-	objValue.Set(reflect.Zero(objValue.Type()))
-}
-
-func objectMeta(obj runtime.Object) metav1.Object {
-	objMeta, err := meta.Accessor(obj)
-	if err != nil {
-		// This should never happen.
-		panic(fmt.Sprintf("can't get metav1.Object: %v", err))
+func (r *ReconcileVitessShard) uncascadeShard(vts *planetscalev2.VitessShard) {
+	if !rollout.Scheduled(vts) || rollout.Released(vts) {
+		// If there's nothing scheduled, or already released, we're done.
+		return
 	}
-	return objMeta
-}
 
-func podIsReady(pod *corev1.Pod) bool {
-	for i := range pod.Status.Conditions {
-		cond := &pod.Status.Conditions[i]
-		if cond.Type == corev1.PodReady {
-			return cond.Status == corev1.ConditionTrue
-		}
-	}
-	return false
+	rollout.Uncascade(vts)
 }
