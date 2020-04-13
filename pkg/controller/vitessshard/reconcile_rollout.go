@@ -20,7 +20,7 @@ func (r *ReconcileVitessShard) reconcileRollout(ctx context.Context, vts *planet
 	resultBuilder := &results.Builder{}
 
 	if !rollout.Cascaded(vts) {
-		// If the shard is not scheduled for a rolling update, silently bail out and do nothing.
+		// If the shard is not scheduled for a cascading update, silently bail out and do nothing.
 		return resultBuilder.Result()
 	}
 
