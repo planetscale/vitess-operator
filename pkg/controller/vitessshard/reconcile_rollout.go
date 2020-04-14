@@ -40,10 +40,10 @@ func (r *ReconcileVitessShard) reconcileRollout(ctx context.Context, vts *planet
 	}
 
 	// Safety checks and rolling updates must be deterministically ordered, so we access and sort pods by tablet alias.
-	tabletPods := make(map[string]v1.Pod)
+	tabletPods := make(map[string]*v1.Pod)
 	for i := range podList.Items {
-		pod := podList.Items[i]
-		tabletAlias := vttablet.AliasFromPod(&pod)
+		pod := &podList.Items[i]
+		tabletAlias := vttablet.AliasFromPod(pod)
 		tabletKey := topoproto.TabletAliasString(&tabletAlias)
 		tabletPods[tabletKey] = pod
 	}
@@ -63,7 +63,7 @@ func (r *ReconcileVitessShard) reconcileRollout(ctx context.Context, vts *planet
 		}
 
 		pod := tabletPods[tabletKey]
-		if rollout.Released(&pod) {
+		if rollout.Released(pod) {
 			// If any tablet has already been released, we should wait until it is finished to release another one.
 			r.recorder.Eventf(vts, v1.EventTypeNormal, "RolloutPaused", "Waiting for tablet %v to finish release.", tabletKey)
 		}
@@ -74,7 +74,7 @@ func (r *ReconcileVitessShard) reconcileRollout(ctx context.Context, vts *planet
 
 	for _, tabletKey := range tabletKeys {
 		pod := tabletPods[tabletKey]
-		if !rollout.Scheduled(&pod) {
+		if !rollout.Scheduled(pod) {
 			continue
 		}
 
@@ -87,7 +87,7 @@ func (r *ReconcileVitessShard) reconcileRollout(ctx context.Context, vts *planet
 			deletePod = true
 		}
 
-		if err := r.releaseTabletPod(ctx, &pod, deletePod); err != nil {
+		if err := r.releaseTabletPod(ctx, pod, deletePod); err != nil {
 			r.recorder.Eventf(vts, v1.EventTypeWarning, "RollingRestartFailed", "deletion of pod %v with tablet %v failed", pod.Name, tabletKey)
 			return resultBuilder.Error(err)
 		} else {
