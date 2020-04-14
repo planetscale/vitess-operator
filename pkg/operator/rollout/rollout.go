@@ -55,7 +55,8 @@ const (
 	ReleasedAnnotation = AnnotationPrefix + "/" + "released"
 
 	// CascadeAnnotation is the annotation whose presence indicates that the
-	// object's controller may now propagate cascading changes to its children.
+	// object's controller should now release any scheduled changes to its children.
+	// The controller will remove the annotation when all children are updated.
 	CascadeAnnotation = AnnotationPrefix + "/" + "cascade"
 )
 
@@ -77,7 +78,8 @@ func Released(obj metav1.Object) bool {
 	return present
 }
 
-func Cascaded(obj metav1.Object) bool {
+// Cascading returns whether scheduled changes are being applied to an object's children.
+func Cascading(obj metav1.Object) bool {
 	ann := obj.GetAnnotations()
 	// We only care that the annotation key is present.
 	// An empty annotation value still indicates that cascading
@@ -161,10 +163,10 @@ func Unrelease(obj metav1.Object) {
 }
 
 /*
-Cascade annotates an object as being ready to have cascading changes
-applied to its children.
+Cascade annotates an object to tell its controller to release
+any scheduled changes to its children.
 
-If the object has already been marked as cascaded, this has no effect.
+If the object has already been marked as cascading, this has no effect.
 
 Note that this only mutates the provided, in-memory object to add the
 annotation; the caller is responsible for sending the updated object to
@@ -173,7 +175,7 @@ the server.
 func Cascade(obj metav1.Object) {
 	ann := obj.GetAnnotations()
 	if _, present := ann[CascadeAnnotation]; present {
-		// The object has already been released.
+		// The object has already been marked as cascading.
 		return
 	}
 	if ann == nil {
@@ -182,7 +184,6 @@ func Cascade(obj metav1.Object) {
 	ann[CascadeAnnotation] = ""
 	obj.SetAnnotations(ann)
 }
-
 
 /*
 Uncascade removes the "cascade" annotation added by Cascade.

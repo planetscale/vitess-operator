@@ -19,7 +19,7 @@ import (
 func (r *ReconcileVitessShard) reconcileRollout(ctx context.Context, vts *planetscalev2.VitessShard) (reconcile.Result, error) {
 	resultBuilder := &results.Builder{}
 
-	if !rollout.Cascaded(vts) {
+	if !rollout.Cascading(vts) {
 		// If the shard is not scheduled for a cascading update, silently bail out and do nothing.
 		return resultBuilder.Result()
 	}
@@ -48,8 +48,8 @@ func (r *ReconcileVitessShard) reconcileRollout(ctx context.Context, vts *planet
 		tabletPods[tabletKey] = pod
 	}
 
-	tabletKeys := make([]string, 0, len(tabletPods))
-	for key := range tabletPods {
+	tabletKeys := make([]string, 0, len(vts.Status.Tablets))
+	for key := range vts.Status.Tablets {
 		tabletKeys = append(tabletKeys, key)
 	}
 	sort.Strings(tabletKeys)
@@ -57,49 +57,49 @@ func (r *ReconcileVitessShard) reconcileRollout(ctx context.Context, vts *planet
 	for _, tabletKey := range tabletKeys {
 		tablet := vts.Status.Tablets[tabletKey]
 		if tablet.Available != v1.ConditionTrue {
-			// If all tablets aren't healthy, we should bail and not perform a rolling restart.
+			// If any tablets are unhealthy, we should bail and not perform a rolling restart.
 			r.recorder.Eventf(vts, v1.EventTypeNormal, "RolloutPaused", "Waiting for tablet %v to be Available.", tabletKey)
 			return resultBuilder.Result()
 		}
 
-		pod := tabletPods[tabletKey]
-		if rollout.Released(pod) {
-			// If any tablet has already been released, we should wait until it is finished to release another one.
-			r.recorder.Eventf(vts, v1.EventTypeNormal, "RolloutPaused", "Waiting for tablet %v to finish release.", tabletKey)
-		}
-	}
-
-	scheduledTablets := false
-	masterEligibleTablets := vts.Spec.MasterEligibleTabletCount()
-
-	for _, tabletKey := range tabletKeys {
-		pod := tabletPods[tabletKey]
-		if !rollout.Scheduled(pod) {
-			continue
-		}
-
-		scheduledTablets = true
-		deletePod := false
-		tabletType := pod.Labels[planetscalev2.TabletTypeLabel]
-		// These two conditions guarantee that the tablet is a lone master.
-		if masterEligibleTablets == 1 && tabletType == string(planetscalev2.ReplicaPoolType) {
-			// If we have a lone master, we must delete it since reparenting is impossible.
-			deletePod = true
-		}
-
-		if err := r.releaseTabletPod(ctx, pod, deletePod); err != nil {
-			r.recorder.Eventf(vts, v1.EventTypeWarning, "RollingRestartFailed", "deletion of pod %v with tablet %v failed", pod.Name, tabletKey)
-			return resultBuilder.Error(err)
-		} else {
-			// We must only release at most one tablet per reconcile loop, so exit if we do.
+		pod, ok := tabletPods[tabletKey]
+		if !ok {
+			r.recorder.Eventf(vts, v1.EventTypeNormal, "RolloutPaused", "Waiting for desired tablet %v to be created.", tabletKey)
 			return resultBuilder.Result()
 		}
 
+		if rollout.Released(pod) {
+			// If any tablet has already been released, we should wait until it is finished to release another one.
+			r.recorder.Eventf(vts, v1.EventTypeNormal, "RolloutPaused", "Waiting for tablet %v to finish release.", tabletKey)
+			return resultBuilder.Result()
+		}
 	}
 
-	// If we have no more scheduled tablets, uncascade the shard.
-	if !scheduledTablets {
-		r.uncascadeShard(vts)
+	// Retrieve tablet pod to be released during this reconcile.
+	tabletKey, pod := getNextScheduledTablet(tabletKeys, tabletPods)
+	if tabletKey == "" {
+		// If we have no more scheduled tablets, uncascade the shard.
+		if err := r.uncascadeShard(ctx, vts); err != nil {
+			r.recorder.Eventf(vts, v1.EventTypeWarning, "UncascadeFailed", "Client failed to mark shard as uncascading.")
+			return resultBuilder.Error(err)
+		}
+
+		r.recorder.Eventf(vts, v1.EventTypeNormal, "CascadeComplete", "Cascading changes have been successfully applied to shard.")
+		return resultBuilder.Result()
+	}
+
+	masterEligibleTablets := vts.Spec.MasterEligibleTabletCount()
+	deletePod := false
+	tabletType := pod.Labels[planetscalev2.TabletTypeLabel]
+	// These two conditions guarantee that the tablet is a lone master.
+	if masterEligibleTablets == 1 && tabletType == string(planetscalev2.ReplicaPoolType) {
+		// If we have a lone master, we must delete it since reparenting is impossible.
+		deletePod = true
+	}
+
+	if err := r.releaseTabletPod(ctx, pod, deletePod); err != nil {
+		r.recorder.Eventf(vts, v1.EventTypeWarning, "RollingRestartBlocked", "release of Pod %v (tablet %v) failed: %v", pod.Name, tabletKey, err)
+		return resultBuilder.Error(err)
 	}
 
 	return resultBuilder.Result()
@@ -108,32 +108,30 @@ func (r *ReconcileVitessShard) reconcileRollout(ctx context.Context, vts *planet
 func (r *ReconcileVitessShard) releaseTabletPod(ctx context.Context, pod *v1.Pod, deletePod bool) error {
 	if deletePod {
 		// TODO: Evict pods instead of deleting them directly, to respect PDBs.
-		if err := r.client.Delete(ctx, pod); err != nil {
-			return err
-		}
-	} else {
-		// Release the pod to be recreated with updates.
-		releasePod(pod)
+		return r.client.Delete(ctx, pod)
 	}
 
-	return nil
-}
-
-func releasePod(pod *v1.Pod) {
-	if !rollout.Scheduled(pod) || rollout.Released(pod) {
-			// If there's nothing scheduled, or already released, we're done.
-			return
-	}
-
+	// Release the pod to be recreated with updates.
 	rollout.Release(pod)
-	return
+	return r.client.Update(ctx, pod)
 }
 
-func (r *ReconcileVitessShard) uncascadeShard(vts *planetscalev2.VitessShard) {
-	if !rollout.Scheduled(vts) || rollout.Released(vts) {
-		// If there's nothing scheduled, or already released, we're done.
-		return
+func (r *ReconcileVitessShard) uncascadeShard(ctx context.Context, vts *planetscalev2.VitessShard) error {
+	rollout.Uncascade(vts)
+	return r.client.Update(ctx, vts)
+}
+
+func getNextScheduledTablet(tabletKeys []string, tabletPods map[string]*v1.Pod) (string, *v1.Pod){
+	nextTabletKey := ""
+	for _, tabletKey := range tabletKeys {
+		pod := tabletPods[tabletKey]
+		if !rollout.Scheduled(pod) {
+			continue
+		}
+
+		nextTabletKey = tabletKey
+		return nextTabletKey, pod
 	}
 
-	rollout.Uncascade(vts)
+	return nextTabletKey, nil
 }
