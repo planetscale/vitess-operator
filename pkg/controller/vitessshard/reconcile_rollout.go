@@ -80,11 +80,11 @@ func (r *ReconcileVitessShard) reconcileRollout(ctx context.Context, vts *planet
 	if tabletKey == "" {
 		// If we have no more scheduled tablets, uncascade the shard.
 		if err := r.uncascadeShard(ctx, vts); err != nil {
-			r.recorder.Eventf(vts, v1.EventTypeWarning, "UncascadeFailed", "Client failed to mark shard as uncascading.")
+			r.recorder.Eventf(vts, v1.EventTypeWarning, "UncascadeFailed", "Failed to mark cascading shard rollout as complete: %v", err)
 			return resultBuilder.Error(err)
 		}
 
-		r.recorder.Eventf(vts, v1.EventTypeNormal, "CascadeComplete", "Cascading changes have been successfully applied to shard.")
+		r.recorder.Eventf(vts, v1.EventTypeNormal, "RollingRestartComplete", "Cascading rollout of tablets is complete.")
 		return resultBuilder.Result()
 	}
 
@@ -99,7 +99,7 @@ func (r *ReconcileVitessShard) reconcileRollout(ctx context.Context, vts *planet
 
 	if err := r.releaseTabletPod(ctx, pod, deletePod); err != nil {
 		r.recorder.Eventf(vts, v1.EventTypeWarning, "RollingRestartBlocked", "release of Pod %v (tablet %v) failed: %v", pod.Name, tabletKey, err)
-		return resultBuilder.Error(err)
+		resultBuilder.Error(err)
 	}
 
 	return resultBuilder.Result()
@@ -122,16 +122,14 @@ func (r *ReconcileVitessShard) uncascadeShard(ctx context.Context, vts *planetsc
 }
 
 func getNextScheduledTablet(tabletKeys []string, tabletPods map[string]*v1.Pod) (string, *v1.Pod){
-	nextTabletKey := ""
 	for _, tabletKey := range tabletKeys {
 		pod := tabletPods[tabletKey]
 		if !rollout.Scheduled(pod) {
 			continue
 		}
 
-		nextTabletKey = tabletKey
-		return nextTabletKey, pod
+		return tabletKey, pod
 	}
 
-	return nextTabletKey, nil
+	return "", nil
 }
