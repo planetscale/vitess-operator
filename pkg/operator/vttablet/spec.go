@@ -93,11 +93,6 @@ func (spec *Spec) myCnfFilePath() string {
 	return spec.tabletDir() + "/my.cnf"
 }
 
-// mysqldUnixSocketPath returns the path to the mysqld socket file.
-func (spec *Spec) mysqldUnixSocketPath() string {
-	return spec.tabletDir() + "/mysql.sock"
-}
-
 // dbConfigCharset returns the charset for vttablet's mysql connection pools.
 func (spec *Spec) dbConfigCharset() string {
 	// For flavors that we know are 8.0-compatible, use the new default charset
