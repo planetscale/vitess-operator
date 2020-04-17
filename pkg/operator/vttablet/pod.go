@@ -204,7 +204,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 			Env: []corev1.EnvVar{
 				{
 					Name:  "DATA_SOURCE_NAME",
-					Value: fmt.Sprintf("%s@unix(%s)/", mysqldExporterUser, spec.mysqldUnixSocketPath()),
+					Value: fmt.Sprintf("%s@unix(%s)/", mysqldExporterUser, mysqlSocketPath),
 				},
 			},
 			Ports: []corev1.ContainerPort{

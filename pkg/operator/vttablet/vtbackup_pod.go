@@ -44,7 +44,9 @@ ln -sf /dev/stderr /mnt/vt/config/stderr.symlink
 echo "log-error = /vt/config/stderr.symlink" > /mnt/vt/config/mycnf/log-error.cnf
 echo "binlog_format=row" > /mnt/vt/config/mycnf/rbr.cnf
 mkdir -p /mnt/vt/certs
-cp --no-clobber /etc/ssl/certs/ca-certificates.crt /mnt/vt/certs/`
+cp --no-clobber /etc/ssl/certs/ca-certificates.crt /mnt/vt/certs/
+echo "socket = ` + mysqlSocketPath + `" > /mnt/vt/config/mycnf/socket.cnf
+`
 )
 
 // BackupSpec is the spec for a Backup Pod.
