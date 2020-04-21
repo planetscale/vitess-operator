@@ -23,6 +23,7 @@ import (
 )
 
 func KeyspaceDiskSize(dst *planetscalev2.VitessKeyspaceTemplate, src planetscalev2.VitessKeyspaceTemplate) {
+	// Check that the keyspace definitions line up.
 	if !validateKeyspacePartitionings(*dst,src) {
 		return
 	}
@@ -52,6 +53,7 @@ func updatePartitioningDiskSize(dst *planetscalev2.VitessKeyspaceEqualPartitioni
 					requestedTablet = &srcTablet
 				}
 
+				// If we can't find a match, continue and try to find matches for other tablet pools.
 				if requestedTablet == nil {
 					continue srcLoop
 				}
