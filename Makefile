@@ -36,6 +36,11 @@ generate:
 	operator-sdk-$(OPERATOR_SDK_VERSION) generate k8s
 	operator-sdk-$(OPERATOR_SDK_VERSION) generate crds
 	go run github.com/ahmetb/gen-crd-api-reference-docs -api-dir ./pkg/apis -config docs/api/config.json -template-dir docs/api/template -out-file docs/api/index.html
+	controller-gen crd:trivialVersions=true,maxDescLen=0 paths="./pkg/apis/planetscale/v2" output:crd:artifacts:config=./deploy/crds
+	# TODO: controller-gen rewrites *_crd.yaml files to *.yaml
+	#   delete the superfluous ones
+	rm -f deploy/crds/*_crd.yaml
+
 
 push-only: DATE=$(shell date -I)
 push-only: GITHASH=$(shell git rev-parse HEAD)
