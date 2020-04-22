@@ -68,9 +68,11 @@ const (
 	vtConfigPath       = vtRootPath + "/config"
 	vtMycnfPath        = vtConfigPath + "/mycnf"
 	vtDataRootPath     = vtRootPath + "/vtdataroot"
+	vtSocketPath       = vtRootPath + "/socket"
 	vtMysqlRootPath    = "/usr"
 	vtRootVolumeName   = "vt-root"
-	mysqlctlSocketPath = vtDataRootPath + "/mysqlctl.sock"
+	mysqlctlSocketPath = vtSocketPath + "/mysqlctl.sock"
+	mysqlSocketPath    = vtSocketPath + "/mysql.sock"
 	sslCertsPath       = "/etc/ssl/certs"
 
 	pvcVolumeName = "persistent-volume-claim"

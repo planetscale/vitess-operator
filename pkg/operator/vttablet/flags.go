@@ -87,6 +87,7 @@ func init() {
 			"logtostderr":         true,
 			"tablet_uid":          spec.Alias.Uid,
 			"socket_file":         mysqlctlSocketPath,
+			"mysql_socket":        mysqlSocketPath,
 			"db-config-dba-uname": dbConfigDbaUname,
 			"db_charset":          spec.dbConfigCharset(),
 			"init_db_sql_file":    dbInitScript.FilePath(),
@@ -123,6 +124,8 @@ func init() {
 			"db_charset":          spec.dbConfigCharset(),
 
 			"init_db_sql_file": dbInitScript.FilePath(),
+
+			"mysql_socket": mysqlSocketPath,
 		}
 	})
 }

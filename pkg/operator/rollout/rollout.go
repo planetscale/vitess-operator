@@ -53,6 +53,11 @@ const (
 	// ReleasedAnnotation is the annotation whose presence indicates that the
 	// object's controller may now apply any pending changes to the object.
 	ReleasedAnnotation = AnnotationPrefix + "/" + "released"
+
+	// CascadeAnnotation is the annotation whose presence indicates that the
+	// object's controller should now release any scheduled changes to its children.
+	// The controller will remove the annotation when all children are updated.
+	CascadeAnnotation = AnnotationPrefix + "/" + "cascade"
 )
 
 // Scheduled returns whether the object has pending changes.
@@ -70,6 +75,16 @@ func Released(obj metav1.Object) bool {
 	// We only care that the annotation key is present.
 	// An empty annotation value still triggers a drain.
 	_, present := ann[ReleasedAnnotation]
+	return present
+}
+
+// Cascading returns whether scheduled changes are being applied to an object's children.
+func Cascading(obj metav1.Object) bool {
+	ann := obj.GetAnnotations()
+	// We only care that the annotation key is present.
+	// An empty annotation value still indicates that cascading
+	// changes will be propagated to the object's children.
+	_, present := ann[CascadeAnnotation]
 	return present
 }
 
@@ -144,5 +159,43 @@ the server.
 func Unrelease(obj metav1.Object) {
 	ann := obj.GetAnnotations()
 	delete(ann, ReleasedAnnotation)
+	obj.SetAnnotations(ann)
+}
+
+/*
+Cascade annotates an object to tell its controller to release
+any scheduled changes to its children.
+
+If the object has already been marked as cascading, this has no effect.
+
+Note that this only mutates the provided, in-memory object to add the
+annotation; the caller is responsible for sending the updated object to
+the server.
+*/
+func Cascade(obj metav1.Object) {
+	ann := obj.GetAnnotations()
+	if _, present := ann[CascadeAnnotation]; present {
+		// The object has already been marked as cascading.
+		return
+	}
+	if ann == nil {
+		ann = make(map[string]string, 1)
+	}
+	ann[CascadeAnnotation] = ""
+	obj.SetAnnotations(ann)
+}
+
+/*
+Uncascade removes the "cascade" annotation added by Cascade.
+
+If the object does not have the annotation, this has no effect.
+
+Note that this only mutates the provided, in-memory object to add the
+annotation; the caller is responsible for sending the updated object to
+the server.
+ */
+func Uncascade(obj metav1.Object) {
+	ann := obj.GetAnnotations()
+	delete(ann, CascadeAnnotation)
 	obj.SetAnnotations(ann)
 }

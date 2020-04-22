@@ -90,8 +90,9 @@ func localDatastoreFlags(spec *Spec) vitess.Flags {
 		// TODO: Should this be configurable?
 		"enable_replication_reporter": true,
 
-		"enable_semi_sync": spec.EnableSemiSync,
-		"mysqlctl_socket":  mysqlctlSocketPath,
+		"enable_semi_sync":  spec.EnableSemiSync,
+		"mysqlctl_socket":   mysqlctlSocketPath,
+		"mycnf_socket_file": mysqlSocketPath,
 	}
 }
 

@@ -36,7 +36,16 @@ fi
 mkdir -p /mnt/vt/vtdataroot
 ln -sf /dev/stderr /mnt/vt/config/stderr.symlink
 echo "log-error = /vt/config/stderr.symlink" > /mnt/vt/config/mycnf/log-error.cnf
-echo "binlog_format=row" > /mnt/vt/config/mycnf/rbr.cnf`
+echo "binlog_format=row" > /mnt/vt/config/mycnf/rbr.cnf
+echo "socket = ` + mysqlSocketPath + `" > /mnt/vt/config/mycnf/socket.cnf
+`
+
+	mysqlSocketInitScript = `set -ex
+cd ` + vtDataRootPath + `
+for mycnf in $(find . -mindepth 2 -maxdepth 2 -path './vt_*/my.cnf'); do
+  sed -i -e 's,^socket[ \t]*=.*$,socket = ` + mysqlSocketPath + `,' "${mycnf}"
+done
+`
 )
 
 func init() {
@@ -52,11 +61,12 @@ func init() {
 			},
 		}
 	})
-	// Use an init container to copy only the files we need from the Vitess image.
-	// Note specifically that we don't even copy init_db.sql to avoid accidentally using it.
 	tabletInitContainers.Add(func(s lazy.Spec) []corev1.Container {
 		spec := s.(*Spec)
-		return []corev1.Container{
+
+		// Use an init container to copy only the files we need from the Vitess image.
+		// Note specifically that we don't even copy init_db.sql to avoid accidentally using it.
+		initContainers := []corev1.Container{
 			{
 				Name: "init-vt-root",
 				SecurityContext: &corev1.SecurityContext{
@@ -74,6 +84,32 @@ func init() {
 				Args:    []string{vtRootInitScript},
 			},
 		}
+
+		// If we're using a PVC, add an init container to migrate the mysql UNIX
+		// socket location before vttablet and mysqlctld start up. This is
+		// needed to safely update tablet Pods with persistent volumes that were
+		// deployed before we started customizing the UNIX socket location.
+		if spec.DataVolumePVCSpec != nil {
+			initContainers = append(initContainers, corev1.Container{
+				Name: "init-mysql-socket",
+				SecurityContext: &corev1.SecurityContext{
+					RunAsUser: pointer.Int64Ptr(runAsUser),
+				},
+				Image:           spec.Images.Vttablet,
+				ImagePullPolicy: spec.ImagePullPolicies.Vttablet,
+				VolumeMounts: []corev1.VolumeMount{
+					{
+						Name:      pvcVolumeName,
+						MountPath: vtDataRootPath,
+						SubPath:   "vtdataroot",
+					},
+				},
+				Command: []string{"bash", "-c"},
+				Args:    []string{mysqlSocketInitScript},
+			})
+		}
+
+		return initContainers
 	})
 	// Add mysqld-specific volume mounts.
 	mysqldVolumeMounts.Add(func(s lazy.Spec) []corev1.VolumeMount {
@@ -96,12 +132,21 @@ func init() {
 				MountPath: vtConfigPath,
 				SubPath:   "config",
 			},
+			{
+				Name:      vtRootVolumeName,
+				ReadOnly:  false,
+				MountPath: vtSocketPath,
+				SubPath:   "socket",
+			},
 		}
 	})
 	// Tell mysqld to log to stderr instead of a file, so we can rely on
-	// automatic rotation of container logs. This config file is written out
-	// by the vtRootInitScript.
+	// automatic rotation of container logs. Also configure the location of the
+	// UNIX socket file. These config files are written out by vtRootInitScript.
 	extraMyCnf.Add(func(s lazy.Spec) []string {
-		return []string{"/vt/config/mycnf/log-error.cnf"}
+		return []string{
+			vtMycnfPath + "/log-error.cnf",
+			vtMycnfPath + "/socket.cnf",
+		}
 	})
 }

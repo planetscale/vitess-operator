@@ -184,6 +184,11 @@ func (r *ReconcileVitessShard) Reconcile(request reconcile.Request) (reconcile.R
 	tabletResult, err := r.reconcileTablets(ctx, vts)
 	resultBuilder.Merge(tabletResult, err)
 
+	// Perform rolling updates on tablets if needed.
+	// NOTE: This must always be done after reconcileTablets, so Status.Tablets is populated.
+	rolloutResult, err := r.reconcileRollout(ctx, vts)
+	resultBuilder.Merge(rolloutResult, err)
+
 	// Check latest Vitess topology state and update as needed.
 	// NOTE: This must always be done after reconcileTablets, so Status.Tablets is populated.
 	topoResult, err := r.reconcileTopology(ctx, vts)
