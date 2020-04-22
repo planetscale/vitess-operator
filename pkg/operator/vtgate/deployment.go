@@ -40,7 +40,7 @@ const (
 
 	command    = "/vt/bin/vtgate"
 	serviceMap = "grpc-vtgateservice"
-	runAsUser  = 999
+	runAsUser  = 1001
 
 	tabletTypesToWait     = "MASTER,REPLICA"
 	gatewayImplementation = "discoverygateway"

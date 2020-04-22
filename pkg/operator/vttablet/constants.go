@@ -43,8 +43,8 @@ const (
 	mysqldExporterMemoryLimitBytes   = 128 * (1 << 20) // 128 MiB
 
 	serviceMap          = "grpc-queryservice,grpc-tabletmanager,grpc-updatestream"
-	runAsUser           = 999
-	fsGroup             = 999
+	runAsUser           = 1001
+	fsGroup             = 1001
 	healthCheckInterval = 5 * time.Second
 
 	// terminationGracePeriodSeconds is how long Kubernetes will wait for the

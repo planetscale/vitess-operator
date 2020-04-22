@@ -41,7 +41,7 @@ const (
 	webDir     = "/vt/src/vitess.io/vitess/web/vtctld"
 	webDir2    = "/vt/src/vitess.io/vitess/web/vtctld2/app"
 	serviceMap = "grpc-vtctl"
-	runAsUser  = 999
+	runAsUser  = 1001
 )
 
 // DeploymentName returns the name of the vtctld Deployment for a given cell.
