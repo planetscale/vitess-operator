@@ -22,63 +22,91 @@ import (
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 )
 
-func KeyspaceDiskSize(dst *planetscalev2.VitessKeyspaceTemplate, src planetscalev2.VitessKeyspaceTemplate) {
+// KeyspaceDiskSize updates values in 'dst' based on values in 'src'.
+// It leaves extra entries (found in 'dst' but not in 'src') untouched,
+// since those might be set by mutating admission webhooks or other controllers.
+// FIXME (Before merging): Add unit test to check that various buried disk sizes get updated and
+// check that invalid cases (not matching) are left untouched. We can also check
+// that nothing besides the disk sizes is touched.
+func KeyspaceDiskSize(dst, src *planetscalev2.VitessKeyspaceTemplate) {
 	// Check that the keyspace definitions line up.
-	if !validateKeyspacePartitionings(*dst,src) {
+	if !validateKeyspacePartitionings(dst.Partitionings, src.Partitionings) {
 		return
 	}
 
 	updateDiskSize(dst, src)
 }
 
-func updateDiskSize(dst *planetscalev2.VitessKeyspaceTemplate, src planetscalev2.VitessKeyspaceTemplate) {
+func updateDiskSize(dst, src *planetscalev2.VitessKeyspaceTemplate) {
 	for i := range dst.Partitionings {
-		dstPartitioning := dst.Partitionings[i]
+		dstPartitioning := &dst.Partitionings[i]
 		if dstPartitioning.Equal != nil {
-			updatePartitioningDiskSize(dstPartitioning.Equal, *src.Partitionings[i].Equal)
+			updateEqualPartitioningDiskSize(dstPartitioning.Equal, src.Partitionings[i].Equal)
+		} else {
+			updateCustomPartitioningDiskSize(dstPartitioning.Custom, src.Partitionings[i].Custom)
 		}
 	}
 }
 
-func updatePartitioningDiskSize(dst *planetscalev2.VitessKeyspaceEqualPartitioning, src planetscalev2.VitessKeyspaceEqualPartitioning) {
-	srcLoop:
-		for i := range dst.ShardTemplate.TabletPools {
-			dstTablet := dst.ShardTemplate.TabletPools[i]
-			var requestedTablet *planetscalev2.VitessShardTabletPool
+func updateEqualPartitioningDiskSize(dst, src *planetscalev2.VitessKeyspaceEqualPartitioning) {
+	for i := range dst.ShardTemplate.TabletPools {
+		dstTablet := &dst.ShardTemplate.TabletPools[i]
 
-			for j := range src.ShardTemplate.TabletPools {
-				srcTablet := src.ShardTemplate.TabletPools[j]
-				// Match each dst tablet pool with its unique Type, Cell tuple in src.
-				if srcTablet.Type == dstTablet.Type && srcTablet.Cell == dstTablet.Cell {
-					requestedTablet = &srcTablet
-				}
-
-				// If we can't find a match, continue and try to find matches for other tablet pools.
-				if requestedTablet == nil {
-					continue srcLoop
-				}
-
-				if requestedTablet.DataVolumeClaimTemplate == nil {
-					continue srcLoop
-				}
-			}
-
-			srcRequests := &requestedTablet.DataVolumeClaimTemplate.Resources.Requests
-			dstRequests := &dstTablet.DataVolumeClaimTemplate.Resources.Requests
-
-			DiskResource(dstRequests, srcRequests)
+		requestedTablet := matchingTabletPool(dstTablet, src.ShardTemplate.TabletPools)
+		if requestedTablet == nil || requestedTablet.DataVolumeClaimTemplate == nil {
+			continue
 		}
+
+		dstRequests := &dstTablet.DataVolumeClaimTemplate.Resources.Requests
+		srcRequests := &requestedTablet.DataVolumeClaimTemplate.Resources.Requests
+
+		// Apply the disk resource changes.
+		StorageResource(dstRequests, srcRequests)
+	}
 }
 
-func validateKeyspacePartitionings(dst planetscalev2.VitessKeyspaceTemplate, src planetscalev2.VitessKeyspaceTemplate) bool {
+func updateCustomPartitioningDiskSize(dst, src *planetscalev2.VitessKeyspaceCustomPartitioning) {
+	for i := range dst.Shards {
+		dstShard := &dst.Shards[i]
+		srcShard := &src.Shards[i]
+
+		for j := range dstShard.TabletPools {
+			dstTablet := &dstShard.TabletPools[j]
+
+			requestedTablet := matchingTabletPool(dstTablet, srcShard.TabletPools)
+			if requestedTablet == nil || requestedTablet.DataVolumeClaimTemplate == nil {
+				continue
+			}
+
+			dstRequests := &dstTablet.DataVolumeClaimTemplate.Resources.Requests
+			srcRequests := &requestedTablet.DataVolumeClaimTemplate.Resources.Requests
+
+			// Apply the disk resource changes.
+			StorageResource(dstRequests, srcRequests)
+		}
+	}
+}
+
+func matchingTabletPool(dst *planetscalev2.VitessShardTabletPool, src []planetscalev2.VitessShardTabletPool) *planetscalev2.VitessShardTabletPool{
+	for i := range src {
+		srcTablet := &src[i]
+		if srcTablet.IsMatch(dst) {
+			return srcTablet
+		}
+	}
+
+	return nil
+}
+
+func validateKeyspacePartitionings(dst, src []planetscalev2.VitessKeyspacePartitioning) bool {
 	// Check that the list of partitionings are the same length.
-	if len(dst.Partitionings) != len(src.Partitionings) {
+	if len(dst) != len(src) {
 		return false
 	}
 
-	for i := range dst.Partitionings {
+	for i := range dst {
 		// Validate that partitionings have the same type and shard count.
-		if !validatePartitionings(&dst.Partitionings[i], &src.Partitionings[i]) {
+		if !validatePartitionings(&dst[i], &src[i]) {
 			return false
 		}
 	}
@@ -91,20 +119,25 @@ func validatePartitionings(dst *planetscalev2.VitessKeyspacePartitioning, src *p
 		return false
 	}
 
-	valid := false
 	if dst.Equal != nil {
-		valid = validateEqualPartitioning(dst.Equal, src.Equal)
-	} else {
-		valid = validateCustomPartitioning(dst.Custom, src.Custom)
+		return validateEqualPartitioning(dst.Equal, src.Equal)
 	}
-
-	return valid
+	if dst.Custom != nil {
+		return validateCustomPartitioning(dst.Custom, src.Custom)
+	}
+	return false
 }
 
 func validatePartitioningTypes(dst *planetscalev2.VitessKeyspacePartitioning, src *planetscalev2.VitessKeyspacePartitioning) bool {
 	if dst.Equal != nil && src.Equal == nil {
 		return false
 	} else if dst.Equal == nil && src.Equal != nil {
+		return false
+	}
+
+	if dst.Custom != nil && src.Custom == nil {
+		return false
+	} else if dst.Custom == nil && src.Custom != nil  {
 		return false
 	}
 
@@ -136,18 +169,14 @@ func validateCustomPartitioning(dst *planetscalev2.VitessKeyspaceCustomPartition
 	return true
 }
 
-// DiskResource updates disk size entries in 'dst' based on the values in 'src'.
-func DiskResource(dst, src *corev1.ResourceList) {
-	if *dst == nil {
-		if len(*src) > 0 {
-			*dst = *src
-		}
+// StorageResource updates disk size entries in 'dst' based on the values in 'src'.
+func StorageResource(dst *corev1.ResourceList, src corev1.ResourceList) {
+	srcVal, ok := src[corev1.ResourceStorage]
+	if !ok {
 		return
 	}
-	for srcKey, srcVal := range *src {
-		if srcKey != corev1.ResourceStorage {
-			continue
-		}
-		(*dst)[srcKey] = srcVal
+	if *dst == nil {
+		*dst = make(corev1.ResourceList)
 	}
+	(*dst)[corev1.ResourceStorage] = srcVal
 }
