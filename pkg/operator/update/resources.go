@@ -58,7 +58,7 @@ func updateEqualPartitioningDiskSize(dst, src *planetscalev2.VitessKeyspaceEqual
 		}
 
 		dstRequests := &dstTablet.DataVolumeClaimTemplate.Resources.Requests
-		srcRequests := &requestedTablet.DataVolumeClaimTemplate.Resources.Requests
+		srcRequests := requestedTablet.DataVolumeClaimTemplate.Resources.Requests
 
 		// Apply the disk resource changes.
 		StorageResource(dstRequests, srcRequests)
@@ -79,7 +79,7 @@ func updateCustomPartitioningDiskSize(dst, src *planetscalev2.VitessKeyspaceCust
 			}
 
 			dstRequests := &dstTablet.DataVolumeClaimTemplate.Resources.Requests
-			srcRequests := &requestedTablet.DataVolumeClaimTemplate.Resources.Requests
+			srcRequests := requestedTablet.DataVolumeClaimTemplate.Resources.Requests
 
 			// Apply the disk resource changes.
 			StorageResource(dstRequests, srcRequests)
