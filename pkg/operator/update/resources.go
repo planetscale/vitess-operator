@@ -24,10 +24,6 @@ import (
 
 func ShardDiskSize(dst []planetscalev2.VitessShardTabletPool, src []planetscalev2.VitessShardTabletPool) {
 	for i := range dst {
-		if src[i].DataVolumeClaimTemplate == nil {
-			continue
-		}
-
 		srcTabletDiskSize := src[i].DataVolumeClaimTemplate.Resources.Requests[corev1.ResourceStorage]
 		dst[i].DataVolumeClaimTemplate.Resources.Requests[corev1.ResourceStorage] = srcTabletDiskSize
 	}
