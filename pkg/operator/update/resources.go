@@ -22,10 +22,21 @@ import (
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 )
 
+func ShardDiskSize(dst []planetscalev2.VitessShardTabletPool, src []planetscalev2.VitessShardTabletPool) {
+	for i := range dst {
+		if src[i].DataVolumeClaimTemplate == nil {
+			continue
+		}
+
+		srcTabletDiskSize := src[i].DataVolumeClaimTemplate.Resources.Requests[corev1.ResourceStorage]
+		dst[i].DataVolumeClaimTemplate.Resources.Requests[corev1.ResourceStorage] = srcTabletDiskSize
+	}
+}
+
 // KeyspaceDiskSize updates values in 'dst' based on values in 'src'.
 // It leaves extra entries (found in 'dst' but not in 'src') untouched,
 // since those might be set by mutating admission webhooks or other controllers.
-// FIXME (Before merging): Add unit test to check that various buried disk sizes get updated and
+// TODO: Add unit test to check that various buried disk sizes get updated and
 // check that invalid cases (not matching) are left untouched. We can also check
 // that nothing besides the disk sizes is touched.
 func KeyspaceDiskSize(dst, src *planetscalev2.VitessKeyspaceTemplate) {
