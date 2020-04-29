@@ -76,9 +76,10 @@ func (r *ReconcileVitessShard) reconcileBackupJob(ctx context.Context, vts *plan
 	// Here we only care about complete backups.
 	completeBackups := vitessbackup.CompleteBackups(allBackups.Items)
 
-	// Generate keys (object names) for all desired backup jobs.
+	// Generate keys (object names) for all desired backup Pods and PVCs.
 	// Keep a map back from generated names to the backup specs.
-	keys := []client.ObjectKey{}
+	podKeys := []client.ObjectKey{}
+	pvcKeys := []client.ObjectKey{}
 	specMap := map[client.ObjectKey]*vttablet.BackupSpec{}
 
 	// The object name for the initial backup Pod, if we end up needing one.
@@ -96,7 +97,10 @@ func (r *ReconcileVitessShard) reconcileBackupJob(ctx context.Context, vts *plan
 		// nothing and return success.
 		initSpec := vtbackupInitSpec(initPodKey, vts, labels)
 		if initSpec != nil {
-			keys = append(keys, initPodKey)
+			podKeys = append(podKeys, initPodKey)
+			if initSpec.TabletSpec.DataVolumePVCSpec != nil {
+				pvcKeys = append(pvcKeys, initPodKey)
+			}
 			specMap[initPodKey] = initSpec
 		}
 	} else {
@@ -106,7 +110,7 @@ func (r *ReconcileVitessShard) reconcileBackupJob(ctx context.Context, vts *plan
 
 	// Reconcile vtbackup Pods.
 	orphanPods := map[client.ObjectKey]*corev1.Pod{}
-	err := r.reconciler.ReconcileObjectSet(ctx, vts, keys, labels, reconciler.Strategy{
+	err := r.reconciler.ReconcileObjectSet(ctx, vts, podKeys, labels, reconciler.Strategy{
 		Kind: &corev1.Pod{},
 
 		New: func(key client.ObjectKey) runtime.Object {
@@ -148,8 +152,9 @@ func (r *ReconcileVitessShard) reconcileBackupJob(ctx context.Context, vts *plan
 		resultBuilder.Error(err)
 	}
 
-	// Reconcile vtbackup PVCs. Use the same key as the corresponding Pod.
-	err = r.reconciler.ReconcileObjectSet(ctx, vts, keys, labels, reconciler.Strategy{
+	// Reconcile vtbackup PVCs. Use the same key as the corresponding Pod,
+	// but only if the Pod expects a PVC.
+	err = r.reconciler.ReconcileObjectSet(ctx, vts, pvcKeys, labels, reconciler.Strategy{
 		Kind: &corev1.PersistentVolumeClaim{},
 
 		New: func(key client.ObjectKey) runtime.Object {
