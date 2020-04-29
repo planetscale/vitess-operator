@@ -420,6 +420,20 @@ TopoReconcileConfig
 <p>TopologyReconciliation can be used to enable or disable registration or pruning of various vitess components to and from topo records.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>updateStrategy</code></br>
+<em>
+<a href="#planetscale.com/v2.VitessClusterUpdateStrategy">
+VitessClusterUpdateStrategy
+</a>
+</em>
+</td>
+<td>
+<p>UpdateStrategy indicates the VitessClusterUpdateStrategy that will be employed to update
+the Vitess cluster when a revision is made to the VitessClusterSpec.</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -3104,6 +3118,20 @@ TopoReconcileConfig
 <p>TopologyReconciliation can be used to enable or disable registration or pruning of various vitess components to and from topo records.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>updateStrategy</code></br>
+<em>
+<a href="#planetscale.com/v2.VitessClusterUpdateStrategy">
+VitessClusterUpdateStrategy
+</a>
+</em>
+</td>
+<td>
+<p>UpdateStrategy indicates the VitessClusterUpdateStrategy that will be employed to update
+the Vitess cluster when a revision is made to the VitessClusterSpec.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="planetscale.com/v2.VitessClusterStatus">VitessClusterStatus
@@ -3225,6 +3253,51 @@ map[string]*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus
 </tr>
 </tbody>
 </table>
+<h3 id="planetscale.com/v2.VitessClusterUpdateStrategy">VitessClusterUpdateStrategy
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#planetscale.com/v2.VitessClusterSpec">VitessClusterSpec</a>)
+</p>
+<p>
+<p>VitessClusterUpdateStrategy indicates the strategy that the operator
+will use to perform updates. It includes any additional parameters
+necessary to perform the update for the indicated strategy.</p>
+</p>
+<table class="table table-striped">
+<thead class="thead-dark">
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>type</code></br>
+<em>
+<a href="#planetscale.com/v2.VitessClusterUpdateStrategyType">
+VitessClusterUpdateStrategyType
+</a>
+</em>
+</td>
+<td>
+<p>Type indicates the type of the VitessClusterUpdateStrategy
+Default: External</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="planetscale.com/v2.VitessClusterUpdateStrategyType">VitessClusterUpdateStrategyType
+(<code>string</code> alias)</p></h3>
+<p>
+(<em>Appears on:</em>
+<a href="#planetscale.com/v2.VitessClusterUpdateStrategy">VitessClusterUpdateStrategy</a>)
+</p>
+<p>
+<p>VitessClusterUpdateStrategyType is a string enumeration type that enumerates
+all possible update strategies for the VitessCluster.</p>
+</p>
 <h3 id="planetscale.com/v2.VitessDashboardSpec">VitessDashboardSpec
 </h3>
 <p>

@@ -110,7 +110,31 @@ type VitessClusterSpec struct {
 
 	// TopologyReconciliation can be used to enable or disable registration or pruning of various vitess components to and from topo records.
 	TopologyReconciliation *TopoReconcileConfig `json:"topologyReconciliation,omitempty"`
+
+	// UpdateStrategy indicates the VitessClusterUpdateStrategy that will be employed to update
+	// the Vitess cluster when a revision is made to the VitessClusterSpec.
+	UpdateStrategy *VitessClusterUpdateStrategy `json:"updateStrategy,omitempty"`
 }
+
+// VitessClusterUpdateStrategy indicates the strategy that the operator
+// will use to perform updates. It includes any additional parameters
+// necessary to perform the update for the indicated strategy.
+type VitessClusterUpdateStrategy struct {
+	// Type indicates the type of the VitessClusterUpdateStrategy
+	// Default: External
+	Type *VitessClusterUpdateStrategyType `json:"type,omitempty"`
+}
+
+// VitessClusterUpdateStrategyType is a string enumeration type that enumerates
+// all possible update strategies for the VitessCluster.
+type VitessClusterUpdateStrategyType string
+
+const (
+	// ExternalVitessClusterUpdateStrategyType relies on an external actor to release pending updates.
+	ExternalVitessClusterUpdateStrategyType VitessClusterUpdateStrategyType = "External"
+	// ImmediateVitessClusterUpdateStrategyType will immediately release pending updates.
+	ImmediateVitessClusterUpdateStrategyType VitessClusterUpdateStrategyType = "Immediate"
+)
 
 // TopoReconcileConfig can be used to turn on or off registration or pruning of specific vitess components from topo records.
 // This should only be necessary if you need to override defaults, and shouldn't be required for the vast majority of use cases.

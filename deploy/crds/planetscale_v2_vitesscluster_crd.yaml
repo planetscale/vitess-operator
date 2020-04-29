@@ -1999,6 +1999,16 @@ spec:
                     registering cells aliases into topo records. Default: true'
                   type: boolean
               type: object
+            updateStrategy:
+              description: UpdateStrategy indicates the VitessClusterUpdateStrategy
+                that will be employed to update the Vitess cluster when a revision
+                is made to the VitessClusterSpec.
+              properties:
+                type:
+                  description: 'Type indicates the type of the VitessClusterUpdateStrategy
+                    Default: External'
+                  type: string
+              type: object
             vitessDashboard:
               description: Dashboard deploys a set of Vitess Dashboard servers (vtctld)
                 for the Vitess cluster.
