@@ -1733,6 +1733,11 @@ func (in *VitessKeyspaceSpec) DeepCopyInto(out *VitessKeyspaceSpec) {
 		*out = new(TopoReconcileConfig)
 		(*in).DeepCopyInto(*out)
 	}
+	if in.UpdateStrategy != nil {
+		in, out := &in.UpdateStrategy, &out.UpdateStrategy
+		*out = new(VitessClusterUpdateStrategy)
+		(*in).DeepCopyInto(*out)
+	}
 	return
 }
 

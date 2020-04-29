@@ -1266,6 +1266,14 @@ spec:
               - RequireIdle
               - Immediate
               type: string
+            updateStrategy:
+              description: UpdateStrategy is inherited from the parent's VitessClusterSpec.
+              properties:
+                type:
+                  description: 'Type indicates the type of the VitessClusterUpdateStrategy
+                    Default: External'
+                  type: string
+              type: object
             zoneMap:
               additionalProperties:
                 type: string
