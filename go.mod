@@ -3,7 +3,6 @@ module planetscale.dev/vitess-operator
 go 1.13
 
 require (
-	github.com/Azure/go-autorest v14.0.0+incompatible // indirect
 	github.com/Azure/go-autorest/autorest v0.9.2 // indirect
 	github.com/ahmetb/gen-crd-api-reference-docs v0.1.5-0.20190629210212-52e137b8d003
 	github.com/coreos/etcd v3.3.12+incompatible // indirect
@@ -17,17 +16,19 @@ require (
 	github.com/klauspost/compress v1.7.5 // indirect
 	github.com/klauspost/cpuid v1.2.1 // indirect
 	github.com/klauspost/pgzip v1.2.1 // indirect
+	github.com/mailru/easyjson v0.7.0 // indirect
 	github.com/operator-framework/operator-sdk v0.10.0
 	github.com/prometheus/client_golang v1.4.1
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.4.0
+	golang.org/x/net v0.0.0-20191004110552-13f9640d40b9 // indirect
 	gopkg.in/yaml.v2 v2.2.8
 	k8s.io/api v0.0.0-20190612125737-db0771252981
 	k8s.io/apimachinery v0.0.0-20190612125636-6a5db36e93ad
 	k8s.io/apiserver v0.0.0-20190228174905-79427f02047f // indirect
 	k8s.io/client-go v11.0.0+incompatible
-	k8s.io/code-generator v0.17.3 // indirect
+	k8s.io/gengo v0.0.0-20190822140433-26a664648505 // indirect
 	k8s.io/klog v1.0.0
 	k8s.io/kube-openapi v0.0.0-20191107075043-30be4d16710a
 	k8s.io/kubernetes v1.13.4
