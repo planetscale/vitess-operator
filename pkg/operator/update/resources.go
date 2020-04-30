@@ -22,17 +22,20 @@ import (
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 )
 
+// ShardDiskSize updates values in 'dst' based on values in 'src'.
+// It does not update any other values besides disk sizes.
+// It leaves extra entries (found in 'dst' but not in 'src') untouched.
 func ShardDiskSize(dst []planetscalev2.VitessShardTabletPool, src []planetscalev2.VitessShardTabletPool) {
 	updateTabletPoolDiskSize(dst, src)
 }
 
-// TODO: Add unit test to check that various buried disk sizes get updated and
+// TODO: Add unit test to check that various buried disk sizes get updateds and
 // check that invalid cases (not matching) are left untouched. We can also check
 // that nothing besides the disk sizes is touched.
 
-// KeyspaceDiskSize updates values in 'dst' based on values in 'src'.
-// It leaves extra entries (found in 'dst' but not in 'src') untouched,
-// since those might be set by mutating admission webhooks or other controllers.
+// KeyspaceDiskSize updates disk sizes in 'dst' based on values in 'src'.
+// It does not update any other values besides disk sizes.
+// It leaves extra entries (found in 'dst' but not in 'src') untouched.
 func KeyspaceDiskSize(dst, src *planetscalev2.VitessKeyspaceTemplate) {
 	// Check that the keyspace definitions line up.
 	if !keyspacePartitioningsAreValid(dst.Partitionings, src.Partitionings) {
@@ -48,7 +51,7 @@ func updateDiskSize(dst, src *planetscalev2.VitessKeyspaceTemplate) {
 		srcPartitioning := &src.Partitionings[i]
 
 		if dstPartitioning.Equal != nil {
-			updateTabletPoolDiskSize(dstPartitioning.Equal.ShardTemplate.TabletPools, src.Partitionings[i].Equal.ShardTemplate.TabletPools)
+			updateTabletPoolDiskSize(dstPartitioning.Equal.ShardTemplate.TabletPools, srcPartitioning.Equal.ShardTemplate.TabletPools)
 		}
 		if dstPartitioning.Custom != nil {
 			for j := range dstPartitioning.Custom.Shards {
