@@ -190,7 +190,7 @@ func updateVitessKeyspaceInPlace(key client.ObjectKey, vtk *planetscalev2.Vitess
 	update.Labels(&vtk.Labels, newKeyspace.Labels)
 
 	// Update disk size.
-	update.KeyspaceDiskSize(keyspace, &vtk.Spec.VitessKeyspaceTemplate)
+	update.KeyspaceDiskSize(&vtk.Spec.VitessKeyspaceTemplate, keyspace)
 
 	// Only update things that are safe to roll out immediately.
 	vtk.Spec.TurndownPolicy = newKeyspace.Spec.TurndownPolicy
