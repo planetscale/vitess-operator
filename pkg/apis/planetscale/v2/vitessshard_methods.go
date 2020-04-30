@@ -59,11 +59,7 @@ func (t *VitessTabletPoolType) InitTabletType() string {
 
 // IsMatch indicates whether a tablet pool matches another tablet pool's type and cell.
 func (t *VitessShardTabletPool) IsMatch(inputPool *VitessShardTabletPool) bool {
-	if t.Type == inputPool.Type && t.Cell == inputPool.Cell {
-		return true
-	}
-
-	return false
+	return t.Type == inputPool.Type && t.Cell == inputPool.Cell
 }
 
 // UsingExternalDatastore indicates whether the VitessShard Spec is using

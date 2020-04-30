@@ -23,21 +23,19 @@ import (
 )
 
 func ShardDiskSize(dst []planetscalev2.VitessShardTabletPool, src []planetscalev2.VitessShardTabletPool) {
-	for i := range dst {
-		srcTabletDiskSize := src[i].DataVolumeClaimTemplate.Resources.Requests[corev1.ResourceStorage]
-		dst[i].DataVolumeClaimTemplate.Resources.Requests[corev1.ResourceStorage] = srcTabletDiskSize
-	}
+	updateTabletPoolDiskSize(dst, src)
 }
+
+// TODO: Add unit test to check that various buried disk sizes get updated and
+// check that invalid cases (not matching) are left untouched. We can also check
+// that nothing besides the disk sizes is touched.
 
 // KeyspaceDiskSize updates values in 'dst' based on values in 'src'.
 // It leaves extra entries (found in 'dst' but not in 'src') untouched,
 // since those might be set by mutating admission webhooks or other controllers.
-// TODO: Add unit test to check that various buried disk sizes get updated and
-// check that invalid cases (not matching) are left untouched. We can also check
-// that nothing besides the disk sizes is touched.
 func KeyspaceDiskSize(dst, src *planetscalev2.VitessKeyspaceTemplate) {
 	// Check that the keyspace definitions line up.
-	if !validateKeyspacePartitionings(dst.Partitionings, src.Partitionings) {
+	if !keyspacePartitioningsAreValid(dst.Partitionings, src.Partitionings) {
 		return
 	}
 
@@ -47,19 +45,27 @@ func KeyspaceDiskSize(dst, src *planetscalev2.VitessKeyspaceTemplate) {
 func updateDiskSize(dst, src *planetscalev2.VitessKeyspaceTemplate) {
 	for i := range dst.Partitionings {
 		dstPartitioning := &dst.Partitionings[i]
+		srcPartitioning := &src.Partitionings[i]
+
 		if dstPartitioning.Equal != nil {
-			updateEqualPartitioningDiskSize(dstPartitioning.Equal, src.Partitionings[i].Equal)
-		} else {
-			updateCustomPartitioningDiskSize(dstPartitioning.Custom, src.Partitionings[i].Custom)
+			updateTabletPoolDiskSize(dstPartitioning.Equal.ShardTemplate.TabletPools, src.Partitionings[i].Equal.ShardTemplate.TabletPools)
+		}
+		if dstPartitioning.Custom != nil {
+			for j := range dstPartitioning.Custom.Shards {
+				dstShard := dstPartitioning.Custom.Shards[j]
+				srcShard := srcPartitioning.Custom.Shards[j]
+
+				updateTabletPoolDiskSize(dstShard.TabletPools, srcShard.TabletPools)
+			}
 		}
 	}
 }
 
-func updateEqualPartitioningDiskSize(dst, src *planetscalev2.VitessKeyspaceEqualPartitioning) {
-	for i := range dst.ShardTemplate.TabletPools {
-		dstTablet := &dst.ShardTemplate.TabletPools[i]
+func updateTabletPoolDiskSize(dst, src []planetscalev2.VitessShardTabletPool) {
+	for i := range dst {
+		dstTablet := &dst[i]
 
-		requestedTablet := matchingTabletPool(dstTablet, src.ShardTemplate.TabletPools)
+		requestedTablet := matchingTabletPool(dstTablet, src)
 		if requestedTablet == nil || requestedTablet.DataVolumeClaimTemplate == nil {
 			continue
 		}
@@ -69,28 +75,6 @@ func updateEqualPartitioningDiskSize(dst, src *planetscalev2.VitessKeyspaceEqual
 
 		// Apply the disk resource changes.
 		StorageResource(dstRequests, srcRequests)
-	}
-}
-
-func updateCustomPartitioningDiskSize(dst, src *planetscalev2.VitessKeyspaceCustomPartitioning) {
-	for i := range dst.Shards {
-		dstShard := &dst.Shards[i]
-		srcShard := &src.Shards[i]
-
-		for j := range dstShard.TabletPools {
-			dstTablet := &dstShard.TabletPools[j]
-
-			requestedTablet := matchingTabletPool(dstTablet, srcShard.TabletPools)
-			if requestedTablet == nil || requestedTablet.DataVolumeClaimTemplate == nil {
-				continue
-			}
-
-			dstRequests := &dstTablet.DataVolumeClaimTemplate.Resources.Requests
-			srcRequests := requestedTablet.DataVolumeClaimTemplate.Resources.Requests
-
-			// Apply the disk resource changes.
-			StorageResource(dstRequests, srcRequests)
-		}
 	}
 }
 
@@ -105,7 +89,7 @@ func matchingTabletPool(dst *planetscalev2.VitessShardTabletPool, src []planetsc
 	return nil
 }
 
-func validateKeyspacePartitionings(dst, src []planetscalev2.VitessKeyspacePartitioning) bool {
+func keyspacePartitioningsAreValid(dst, src []planetscalev2.VitessKeyspacePartitioning) bool {
 	// Check that the list of partitionings are the same length.
 	if len(dst) != len(src) {
 		return false
@@ -113,7 +97,7 @@ func validateKeyspacePartitionings(dst, src []planetscalev2.VitessKeyspacePartit
 
 	for i := range dst {
 		// Validate that partitionings have the same type and shard count.
-		if !validatePartitionings(&dst[i], &src[i]) {
+		if !partitioningsMatch(&dst[i], &src[i]) {
 			return false
 		}
 	}
@@ -121,21 +105,21 @@ func validateKeyspacePartitionings(dst, src []planetscalev2.VitessKeyspacePartit
 	return true
 }
 
-func validatePartitionings(dst *planetscalev2.VitessKeyspacePartitioning, src *planetscalev2.VitessKeyspacePartitioning) bool {
-	if !validatePartitioningTypes(dst, src) {
+func partitioningsMatch(dst *planetscalev2.VitessKeyspacePartitioning, src *planetscalev2.VitessKeyspacePartitioning) bool {
+	if !partitioningTypesMatch(dst, src) {
 		return false
 	}
 
 	if dst.Equal != nil {
-		return validateEqualPartitioning(dst.Equal, src.Equal)
+		return equalPartitioningsMatch(dst.Equal, src.Equal)
 	}
 	if dst.Custom != nil {
-		return validateCustomPartitioning(dst.Custom, src.Custom)
+		return customPartitioningsMatch(dst.Custom, src.Custom)
 	}
 	return false
 }
 
-func validatePartitioningTypes(dst *planetscalev2.VitessKeyspacePartitioning, src *planetscalev2.VitessKeyspacePartitioning) bool {
+func partitioningTypesMatch(dst *planetscalev2.VitessKeyspacePartitioning, src *planetscalev2.VitessKeyspacePartitioning) bool {
 	if dst.Equal != nil && src.Equal == nil {
 		return false
 	} else if dst.Equal == nil && src.Equal != nil {
@@ -151,7 +135,7 @@ func validatePartitioningTypes(dst *planetscalev2.VitessKeyspacePartitioning, sr
 	return true
 }
 
-func validateEqualPartitioning(dst *planetscalev2.VitessKeyspaceEqualPartitioning, src *planetscalev2.VitessKeyspaceEqualPartitioning) bool {
+func equalPartitioningsMatch(dst *planetscalev2.VitessKeyspaceEqualPartitioning, src *planetscalev2.VitessKeyspaceEqualPartitioning) bool {
 	// Validate that the number of shards is the same.
 	if dst.Parts != src.Parts {
 		return false
@@ -160,7 +144,7 @@ func validateEqualPartitioning(dst *planetscalev2.VitessKeyspaceEqualPartitionin
 	return true
  }
 
-func validateCustomPartitioning(dst *planetscalev2.VitessKeyspaceCustomPartitioning, src *planetscalev2.VitessKeyspaceCustomPartitioning) bool {
+func customPartitioningsMatch(dst *planetscalev2.VitessKeyspaceCustomPartitioning, src *planetscalev2.VitessKeyspaceCustomPartitioning) bool {
 	// Validate that the number of shards is the same.
 	if len(dst.Shards) != len(src.Shards) {
 		return false
