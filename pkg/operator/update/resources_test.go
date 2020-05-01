@@ -226,7 +226,53 @@ partitionings:
               resources:
                 requests:
                   storage: 2Gi
-`)
+`
+	vitessKeyspaceOtherChanges = `
+name: keyspace1
+partitionings:
+  - equal:
+        parts: 2
+        shardTemplate:
+          databaseInitScriptSecret:
+            key: init_db.sql
+            name: init-script-secret
+          tabletPools:
+          - cell: cell1
+            type: replica
+            replicas: 5
+            mysqld: {}
+            dataVolumeClaimTemplate:
+              accessModes: [ReadWriteMany]
+              resources:
+                requests:
+                  storage: 2Gi
+          - cell: cell2
+            type: rdonly
+            replicas: 7
+            mysqld: {}
+            dataVolumeClaimTemplate:
+              accessModes: [ReadWriteMany]
+              resources:
+                requests:
+                  storage: 300Gi
+  - equal:
+        parts: 1
+        shardTemplate:
+          databaseInitScriptSecret:
+            key: init_db.sql
+            name: init-script-secret
+          tabletPools:
+          - cell: cell3
+            type: replica
+            replicas: 8
+            mysqld: {}
+            dataVolumeClaimTemplate:
+              accessModes: [ReadWriteMany]
+              resources:
+                requests:
+                  storage: 2Gi
+`
+	)
 
 // TestKeyspaceDiskSizeNoChanges tests that applying the same keyspace template to a keyspace
 // template using KeyspaceDiskSize results in no updates.
@@ -286,6 +332,19 @@ func TestKeyspaceDiskSizeCustom(t *testing.T) {
 	KeyspaceDiskSize(keyspace, expectedKeyspaceCustom)
 	if !reflect.DeepEqual(*keyspace, *expectedKeyspaceCustom) {
 		t.Errorf("want: disk size updates, got: no disk size updates")
+	}
+}
+
+// TestKeyspaceDiskSizeOtherChanges tests that applying updates other than disk size to a keyspace
+// template results in only disk size being updated.
+func TestKeyspaceDiskSizeOtherChanges(t *testing.T) {
+	keyspace := vitessKeyspaceFromYAML(vitessKeyspaceBase)
+	keyspaceOtherChanges := vitessKeyspaceFromYAML(vitessKeyspaceOtherChanges)
+	expectedKeyspaceOtherChanges := vitessKeyspaceFromYAML(vitessKeyspaceUpdateAllPools)
+
+	KeyspaceDiskSize(keyspace, keyspaceOtherChanges)
+	if !reflect.DeepEqual(*keyspace, *expectedKeyspaceOtherChanges) {
+		t.Errorf("want: only disk size updates, got: other updates and/or no disk size updates")
 	}
 }
 

@@ -29,10 +29,6 @@ func ShardDiskSize(dst []planetscalev2.VitessShardTabletPool, src []planetscalev
 	updateTabletPoolDiskSize(dst, src)
 }
 
-// TODO: Add unit test to check that various buried disk sizes get updateds and
-// check that invalid cases (not matching) are left untouched. We can also check
-// that nothing besides the disk sizes is touched.
-
 // KeyspaceDiskSize updates disk sizes in 'dst' based on values in 'src'.
 // It does not update any other values besides disk sizes.
 // It leaves extra entries (found in 'dst' but not in 'src') untouched.
