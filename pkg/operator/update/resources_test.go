@@ -184,8 +184,9 @@ partitionings:
                   storage: 2Gi
 `)
 
-func TestKeyspaceDiskSize(t *testing.T) {
-	// Applying no changes to a keyspace template should function idempotently.
+// TestKeyspaceDiskSizeNoChanges tests that applying the same keyspace template to a keyspace
+// template using KeyspaceDiskSize results in no updates.
+func TestKeyspaceDiskSizeNoChanges(t *testing.T) {
 	keyspaceNoChanges := vitessKeyspaceFromYAML(vitessKeyspaceBase)
 	expectedKeyspaceNoChanges := vitessKeyspaceFromYAML(vitessKeyspaceBase)
 
@@ -193,7 +194,11 @@ func TestKeyspaceDiskSize(t *testing.T) {
 	if !reflect.DeepEqual(*keyspaceNoChanges, *expectedKeyspaceNoChanges) {
 		t.Errorf("want: no disk size updates, got: disk size updates")
 	}
+}
 
+// TestKeyspaceDiskSizeAllPools tests that applying updates to all tablet pools in a keyspace
+// template using KeyspaceDiskSize results in all the required updates.
+func TestKeyspaceDiskSizeAllPools(t *testing.T) {
 	// Applying changes to all tablet pools should work as expected.
 	keyspaceUpdateAllPools := vitessKeyspaceFromYAML(vitessKeyspaceBase)
 	expectedKeyspaceUpdateAllPools := vitessKeyspaceFromYAML(vitessKeyspaceUpdateAllPools)
@@ -202,7 +207,11 @@ func TestKeyspaceDiskSize(t *testing.T) {
 	if !reflect.DeepEqual(*keyspaceUpdateAllPools, *expectedKeyspaceUpdateAllPools) {
 		t.Errorf("want: all disk size updates, got: none or some disk size updates")
 	}
+}
 
+// TestKeyspaceDiskSizeSomePools tests that applying updates to some (but not all) tablet pools in a keyspace
+// template using KeyspaceDiskSize results in only the requested tablet pools being updated.
+func TestKeyspaceDiskSizeSomePools(t *testing.T) {
 	// Applying changes to some tablet pools should work as expected.
 	keyspaceUpdateSomePools := vitessKeyspaceFromYAML(vitessKeyspaceBase)
 	expectedKeyspaceUpdateSomePools := vitessKeyspaceFromYAML(vitessKeyspaceUpdateSomePools)
@@ -211,7 +220,11 @@ func TestKeyspaceDiskSize(t *testing.T) {
 	if !reflect.DeepEqual(*keyspaceUpdateSomePools, *expectedKeyspaceUpdateSomePools) {
 		t.Errorf("want: some disk size updates, got: none or all disk size updates")
 	}
+}
 
+// TestKeyspaceDiskSizeMatch tests that using a non-isometric keyspace to apply updates to a keyspace
+// template using KeyspaceDiskSize results in no updates.
+func TestKeyspaceDiskSizeNoMatch(t *testing.T) {
 	// Applying changes to keyspaces that aren't defined defined the same shouldn't work.
 	keyspaceBase := vitessKeyspaceFromYAML(vitessKeyspaceBase)
 	keyspaceNoMatch := vitessKeyspaceFromYAML(vitessKeyspaceNotMatchingBase)
