@@ -57,7 +57,7 @@ partitionings:
                 requests:
                   storage: 1Gi
 `
-	vitessKeyspaceUpdateAllPools = `
+	vitessKeyspaceUpdateDiskSizeAllPools = `
 name: keyspace1
 partitionings:
   - equal:
@@ -102,7 +102,7 @@ partitionings:
                 requests:
                   storage: 2Gi
 `
-	vitessKeyspaceUpdateSomePools = `
+	vitessKeyspaceUpdateDiskSizeSomePools = `
 name: keyspace1
 partitionings:
   - equal:
@@ -205,7 +205,7 @@ partitionings:
                 requests:
                   storage: 1Gi
 `
-	vitessKeyspaceCustomUpdates = `
+	vitessKeyspaceUpdateDiskSizeCustom = `
 name: keyspace1
 partitionings:
   - custom:
@@ -227,7 +227,7 @@ partitionings:
                 requests:
                   storage: 2Gi
 `
-	vitessKeyspaceOtherChanges = `
+	vitessKeyspaceOtherUpdates = `
 name: keyspace1
 partitionings:
   - equal:
@@ -274,14 +274,14 @@ partitionings:
 `
 	)
 
-// TestKeyspaceDiskSizeNoChanges tests that applying the same keyspace template to a keyspace
+// TestKeyspaceDiskSizeNoUpdates tests that applying the same keyspace template to a keyspace
 // template using KeyspaceDiskSize results in no updates.
-func TestKeyspaceDiskSizeNoChanges(t *testing.T) {
+func TestKeyspaceDiskSizeNoUpdates(t *testing.T) {
 	keyspace := vitessKeyspaceFromYAML(vitessKeyspaceBase)
-	expectedKeyspaceNoChanges := vitessKeyspaceFromYAML(vitessKeyspaceBase)
+	expectedKeyspaceNoUpdates := vitessKeyspaceFromYAML(vitessKeyspaceBase)
 
-	KeyspaceDiskSize(keyspace, expectedKeyspaceNoChanges)
-	if !reflect.DeepEqual(*keyspace, *expectedKeyspaceNoChanges) {
+	KeyspaceDiskSize(keyspace, expectedKeyspaceNoUpdates)
+	if !reflect.DeepEqual(*keyspace, *expectedKeyspaceNoUpdates) {
 		t.Errorf("want: no disk size updates, got: disk size updates")
 	}
 }
@@ -290,7 +290,7 @@ func TestKeyspaceDiskSizeNoChanges(t *testing.T) {
 // template using KeyspaceDiskSize results in all the required updates.
 func TestKeyspaceDiskSizeAllPools(t *testing.T) {
 	keyspace := vitessKeyspaceFromYAML(vitessKeyspaceBase)
-	expectedKeyspaceUpdateAllPools := vitessKeyspaceFromYAML(vitessKeyspaceUpdateAllPools)
+	expectedKeyspaceUpdateAllPools := vitessKeyspaceFromYAML(vitessKeyspaceUpdateDiskSizeAllPools)
 
 	KeyspaceDiskSize(keyspace, expectedKeyspaceUpdateAllPools)
 	if !reflect.DeepEqual(*keyspace, *expectedKeyspaceUpdateAllPools) {
@@ -302,7 +302,7 @@ func TestKeyspaceDiskSizeAllPools(t *testing.T) {
 // template using KeyspaceDiskSize results in only the requested tablet pools being updated.
 func TestKeyspaceDiskSizeSomePools(t *testing.T) {
 	keyspace := vitessKeyspaceFromYAML(vitessKeyspaceBase)
-	expectedKeyspaceUpdateSomePools := vitessKeyspaceFromYAML(vitessKeyspaceUpdateSomePools)
+	expectedKeyspaceUpdateSomePools := vitessKeyspaceFromYAML(vitessKeyspaceUpdateDiskSizeSomePools)
 
 	KeyspaceDiskSize(keyspace, expectedKeyspaceUpdateSomePools)
 	if !reflect.DeepEqual(*keyspace, *expectedKeyspaceUpdateSomePools) {
@@ -327,7 +327,7 @@ func TestKeyspaceDiskSizeNonIsometric(t *testing.T) {
 // template with custom partitionings results in all the required updates.
 func TestKeyspaceDiskSizeCustom(t *testing.T) {
 	keyspace := vitessKeyspaceFromYAML(vitessKeyspaceCustomBase)
-	expectedKeyspaceCustom := vitessKeyspaceFromYAML(vitessKeyspaceCustomUpdates)
+	expectedKeyspaceCustom := vitessKeyspaceFromYAML(vitessKeyspaceUpdateDiskSizeCustom)
 
 	KeyspaceDiskSize(keyspace, expectedKeyspaceCustom)
 	if !reflect.DeepEqual(*keyspace, *expectedKeyspaceCustom) {
@@ -339,8 +339,8 @@ func TestKeyspaceDiskSizeCustom(t *testing.T) {
 // template results in only disk size being updated.
 func TestKeyspaceDiskSizeOtherChanges(t *testing.T) {
 	keyspace := vitessKeyspaceFromYAML(vitessKeyspaceBase)
-	keyspaceOtherChanges := vitessKeyspaceFromYAML(vitessKeyspaceOtherChanges)
-	expectedKeyspaceOtherChanges := vitessKeyspaceFromYAML(vitessKeyspaceUpdateAllPools)
+	keyspaceOtherChanges := vitessKeyspaceFromYAML(vitessKeyspaceOtherUpdates)
+	expectedKeyspaceOtherChanges := vitessKeyspaceFromYAML(vitessKeyspaceUpdateDiskSizeAllPools)
 
 	KeyspaceDiskSize(keyspace, keyspaceOtherChanges)
 	if !reflect.DeepEqual(*keyspace, *expectedKeyspaceOtherChanges) {
