@@ -186,8 +186,8 @@ partitionings:
 
 func TestKeyspaceDiskSize(t *testing.T) {
 	// Applying no changes to a keyspace template should function idempotently.
-	keyspaceNoChanges := createVitessKeyspaceYAML(vitessKeyspaceBase)
-	expectedKeyspaceNoChanges := createVitessKeyspaceYAML(vitessKeyspaceBase)
+	keyspaceNoChanges := vitessKeyspaceFromYAML(vitessKeyspaceBase)
+	expectedKeyspaceNoChanges := vitessKeyspaceFromYAML(vitessKeyspaceBase)
 
 	KeyspaceDiskSize(keyspaceNoChanges, expectedKeyspaceNoChanges)
 	if !reflect.DeepEqual(*keyspaceNoChanges, *expectedKeyspaceNoChanges) {
@@ -195,8 +195,8 @@ func TestKeyspaceDiskSize(t *testing.T) {
 	}
 
 	// Applying changes to all tablet pools should work as expected.
-	keyspaceUpdateAllPools := createVitessKeyspaceYAML(vitessKeyspaceBase)
-	expectedKeyspaceUpdateAllPools := createVitessKeyspaceYAML(vitessKeyspaceUpdateAllPools)
+	keyspaceUpdateAllPools := vitessKeyspaceFromYAML(vitessKeyspaceBase)
+	expectedKeyspaceUpdateAllPools := vitessKeyspaceFromYAML(vitessKeyspaceUpdateAllPools)
 
 	KeyspaceDiskSize(keyspaceUpdateAllPools, expectedKeyspaceUpdateAllPools)
 	if !reflect.DeepEqual(*keyspaceUpdateAllPools, *expectedKeyspaceUpdateAllPools) {
@@ -204,8 +204,8 @@ func TestKeyspaceDiskSize(t *testing.T) {
 	}
 
 	// Applying changes to some tablet pools should work as expected.
-	keyspaceUpdateSomePools := createVitessKeyspaceYAML(vitessKeyspaceBase)
-	expectedKeyspaceUpdateSomePools := createVitessKeyspaceYAML(vitessKeyspaceUpdateSomePools)
+	keyspaceUpdateSomePools := vitessKeyspaceFromYAML(vitessKeyspaceBase)
+	expectedKeyspaceUpdateSomePools := vitessKeyspaceFromYAML(vitessKeyspaceUpdateSomePools)
 
 	KeyspaceDiskSize(keyspaceUpdateSomePools, expectedKeyspaceUpdateSomePools)
 	if !reflect.DeepEqual(*keyspaceUpdateSomePools, *expectedKeyspaceUpdateSomePools) {
@@ -213,9 +213,9 @@ func TestKeyspaceDiskSize(t *testing.T) {
 	}
 
 	// Applying changes to keyspaces that aren't defined defined the same shouldn't work.
-	keyspaceBase := createVitessKeyspaceYAML(vitessKeyspaceBase)
-	keyspaceNoMatch := createVitessKeyspaceYAML(vitessKeyspaceNotMatchingBase)
-	expectedKeyspaceNoMatch := createVitessKeyspaceYAML(vitessKeyspaceBase)
+	keyspaceBase := vitessKeyspaceFromYAML(vitessKeyspaceBase)
+	keyspaceNoMatch := vitessKeyspaceFromYAML(vitessKeyspaceNotMatchingBase)
+	expectedKeyspaceNoMatch := vitessKeyspaceFromYAML(vitessKeyspaceBase)
 
 	KeyspaceDiskSize(keyspaceBase, keyspaceNoMatch)
 	if !reflect.DeepEqual(*keyspaceBase, *expectedKeyspaceNoMatch) {
@@ -223,7 +223,7 @@ func TestKeyspaceDiskSize(t *testing.T) {
 	}
 }
 
-func createVitessKeyspaceYAML(vtkYAML string) *planetscalev2.VitessKeyspaceTemplate{
+func vitessKeyspaceFromYAML(vtkYAML string) *planetscalev2.VitessKeyspaceTemplate{
 	vtk := &planetscalev2.VitessKeyspaceTemplate{}
 	mustDecodeYAML(vtkYAML, vtk)
 	return vtk
