@@ -182,6 +182,50 @@ partitionings:
               resources:
                 requests:
                   storage: 2Gi
+`
+	vitessKeyspaceCustomBase = `
+name: keyspace1
+partitionings:
+  - custom:
+        shards:
+        - keyRange:
+            start: -80
+            end: 80-
+          databaseInitScriptSecret:
+            key: init_db.sql
+            name: init-script-secret
+          tabletPools:
+          - cell: cell3
+            type: replica
+            replicas: 3
+            mysqld: {}
+            dataVolumeClaimTemplate:
+              accessModes: [ReadWriteOnce]
+              resources:
+                requests:
+                  storage: 1Gi
+`
+	vitessKeyspaceCustomUpdates = `
+name: keyspace1
+partitionings:
+  - custom:
+        shards:
+        - keyRange:
+            start: -80
+            end: 80-
+          databaseInitScriptSecret:
+            key: init_db.sql
+            name: init-script-secret
+          tabletPools:
+          - cell: cell3
+            type: replica
+            replicas: 3
+            mysqld: {}
+            dataVolumeClaimTemplate:
+              accessModes: [ReadWriteOnce]
+              resources:
+                requests:
+                  storage: 2Gi
 `)
 
 // TestKeyspaceDiskSizeNoChanges tests that applying the same keyspace template to a keyspace
@@ -199,7 +243,6 @@ func TestKeyspaceDiskSizeNoChanges(t *testing.T) {
 // TestKeyspaceDiskSizeAllPools tests that applying updates to all tablet pools in a keyspace
 // template using KeyspaceDiskSize results in all the required updates.
 func TestKeyspaceDiskSizeAllPools(t *testing.T) {
-	// Applying changes to all tablet pools should work as expected.
 	keyspace := vitessKeyspaceFromYAML(vitessKeyspaceBase)
 	expectedKeyspaceUpdateAllPools := vitessKeyspaceFromYAML(vitessKeyspaceUpdateAllPools)
 
@@ -212,7 +255,6 @@ func TestKeyspaceDiskSizeAllPools(t *testing.T) {
 // TestKeyspaceDiskSizeSomePools tests that applying updates to some (but not all) tablet pools in a keyspace
 // template using KeyspaceDiskSize results in only the requested tablet pools being updated.
 func TestKeyspaceDiskSizeSomePools(t *testing.T) {
-	// Applying changes to some tablet pools should work as expected.
 	keyspace := vitessKeyspaceFromYAML(vitessKeyspaceBase)
 	expectedKeyspaceUpdateSomePools := vitessKeyspaceFromYAML(vitessKeyspaceUpdateSomePools)
 
@@ -225,7 +267,6 @@ func TestKeyspaceDiskSizeSomePools(t *testing.T) {
 // TestKeyspaceDiskSizeMatch tests that using a non-isometric keyspace to apply updates to a keyspace
 // template using KeyspaceDiskSize results in no updates.
 func TestKeyspaceDiskSizeNonIsometric(t *testing.T) {
-	// Applying changes to keyspaces that aren't defined defined the same shouldn't work.
 	keyspace := vitessKeyspaceFromYAML(vitessKeyspaceBase)
 	keyspaceNonIsometric := vitessKeyspaceFromYAML(vitessKeyspaceNonIsometric)
 	expectedKeyspaceNonIsometric := vitessKeyspaceFromYAML(vitessKeyspaceBase)
@@ -233,6 +274,18 @@ func TestKeyspaceDiskSizeNonIsometric(t *testing.T) {
 	KeyspaceDiskSize(keyspace, keyspaceNonIsometric)
 	if !reflect.DeepEqual(*keyspace, *expectedKeyspaceNonIsometric) {
 		t.Errorf("want: no disk size updates, got: disk size updates")
+	}
+}
+
+// TestKeyspaceDiskSizeCustom tests that applying updates to a keyspace
+// template with custom partitionings results in all the required updates.
+func TestKeyspaceDiskSizeCustom(t *testing.T) {
+	keyspace := vitessKeyspaceFromYAML(vitessKeyspaceCustomBase)
+	expectedKeyspaceCustom := vitessKeyspaceFromYAML(vitessKeyspaceCustomUpdates)
+
+	KeyspaceDiskSize(keyspace, expectedKeyspaceCustom)
+	if !reflect.DeepEqual(*keyspace, *expectedKeyspaceCustom) {
+		t.Errorf("want: disk size updates, got: no disk size updates")
 	}
 }
 
