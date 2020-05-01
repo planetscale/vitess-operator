@@ -191,7 +191,7 @@ func TestKeyspaceDiskSize(t *testing.T) {
 
 	KeyspaceDiskSize(keyspaceNoChanges, expectedKeyspaceNoChanges)
 	if !reflect.DeepEqual(*keyspaceNoChanges, *expectedKeyspaceNoChanges) {
-		t.Errorf("want: %v, got: %v", *expectedKeyspaceNoChanges, *keyspaceNoChanges)
+		t.Errorf("want: no disk size updates, got: disk size updates")
 	}
 
 	// Applying changes to all tablet pools should work as expected.
@@ -200,7 +200,7 @@ func TestKeyspaceDiskSize(t *testing.T) {
 
 	KeyspaceDiskSize(keyspaceUpdateAllPools, expectedKeyspaceUpdateAllPools)
 	if !reflect.DeepEqual(*keyspaceUpdateAllPools, *expectedKeyspaceUpdateAllPools) {
-		t.Errorf("want: %v, got: %v", *expectedKeyspaceUpdateAllPools, *keyspaceUpdateAllPools)
+		t.Errorf("want: all disk size updates, got: none or some disk size updates")
 	}
 
 	// Applying changes to some tablet pools should work as expected.
@@ -209,7 +209,7 @@ func TestKeyspaceDiskSize(t *testing.T) {
 
 	KeyspaceDiskSize(keyspaceUpdateSomePools, expectedKeyspaceUpdateSomePools)
 	if !reflect.DeepEqual(*keyspaceUpdateSomePools, *expectedKeyspaceUpdateSomePools) {
-		t.Errorf("want: %v, got: %v", *expectedKeyspaceUpdateSomePools, *keyspaceUpdateSomePools)
+		t.Errorf("want: some disk size updates, got: none or all disk size updates")
 	}
 
 	// Applying changes to keyspaces that aren't defined defined the same shouldn't work.
@@ -219,7 +219,7 @@ func TestKeyspaceDiskSize(t *testing.T) {
 
 	KeyspaceDiskSize(keyspaceBase, keyspaceNoMatch)
 	if !reflect.DeepEqual(*keyspaceBase, *expectedKeyspaceNoMatch) {
-		t.Errorf("want: %v, got: %v", *expectedKeyspaceNoMatch, *keyspaceBase)
+		t.Errorf("want: no disk size updates, got: disk size updates")
 	}
 }
 
