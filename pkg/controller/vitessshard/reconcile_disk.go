@@ -28,7 +28,8 @@ func (r *ReconcileVitessShard) reconcileDisk(ctx context.Context, vts *planetsca
 
 	for i  := range vts.Spec.TabletPools {
 		tabletPool := &vts.Spec.TabletPools[i]
-		requestedDisk := tabletPool.DataVolumeClaimTemplate.Resources.Requests[v1.ResourceStorage].String()
+		requestedDiskQuantity := tabletPool.DataVolumeClaimTemplate.Resources.Requests[v1.ResourceStorage]
+		requestedDisk := requestedDiskQuantity.String()
 		poolTablets := tabletsForPool(vts, tabletKeys, tabletPool.Cell, string(tabletPool.Type))
 
 		for _, tabletKey := range poolTablets {
@@ -58,7 +59,8 @@ func (r *ReconcileVitessShard) reconcileDisk(ctx context.Context, vts *planetsca
 			}
 
 			// Make sure that the tablet's PVC has the updated disk size before proceeding.
-			if pvc.Spec.Resources.Requests[v1.ResourceStorage].String() != requestedDisk {
+			currentPVCDisk := pvc.Spec.Resources.Requests[v1.ResourceStorage]
+			if currentPVCDisk.String() != requestedDisk {
 				r.recorder.Eventf(vts, v1.EventTypeNormal, "RolloutCheckPaused", "Waiting for pvc %v to reflect updated disk.", pvc.Name)
 				return resultBuilder.Result()
 			}
