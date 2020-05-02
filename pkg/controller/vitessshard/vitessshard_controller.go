@@ -184,6 +184,11 @@ func (r *ReconcileVitessShard) Reconcile(request reconcile.Request) (reconcile.R
 	tabletResult, err := r.reconcileTablets(ctx, vts)
 	resultBuilder.Merge(tabletResult, err)
 
+	// Mark tablet pods for disk size updates if needed.
+	// NOTE: This must always be done after reconcileTablets, so Status.Tablets is populated
+	diskUpdateResult, err := r.reconcileDisk(ctx, vts)
+	resultBuilder.Merge(diskUpdateResult, err)
+
 	// Perform rolling updates on tablets if needed.
 	// NOTE: This must always be done after reconcileTablets, so Status.Tablets is populated.
 	rolloutResult, err := r.reconcileRollout(ctx, vts)
