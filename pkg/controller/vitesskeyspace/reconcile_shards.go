@@ -64,10 +64,20 @@ func (r *ReconcileVitessKeyspace) reconcileShards(ctx context.Context, vtk *plan
 		},
 		UpdateInPlace: func(key client.ObjectKey, obj runtime.Object) {
 			newObj := obj.(*planetscalev2.VitessShard)
-			updateVitessShardInPlace(key, newObj, vtk, labels, shardMap[key])
+			if vtk.Spec.UpdateStrategy != nil || vtk.Spec.UpdateStrategy.Type != nil {
+				if *vtk.Spec.UpdateStrategy.Type == planetscalev2.ImmediateVitessClusterUpdateStrategyType {
+					updateVitessShard(key, newObj, vtk, labels, shardMap[key])
+				}
+			}
 		},
 		UpdateRollingInPlace: func(key client.ObjectKey, obj runtime.Object) {
 			newObj := obj.(*planetscalev2.VitessShard)
+			if vtk.Spec.UpdateStrategy != nil && vtk.Spec.UpdateStrategy.Type != nil {
+				if *vtk.Spec.UpdateStrategy.Type == planetscalev2.ImmediateVitessClusterUpdateStrategyType {
+					// In this case we should use UpdateInPlace for all updates.
+					return
+				}
+			}
 			updateVitessShard(key, newObj, vtk, labels, shardMap[key])
 		},
 		Status: func(key client.ObjectKey, obj runtime.Object) {
