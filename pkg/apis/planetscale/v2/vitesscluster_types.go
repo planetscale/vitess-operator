@@ -111,8 +111,8 @@ type VitessClusterSpec struct {
 	// TopologyReconciliation can be used to enable or disable registration or pruning of various vitess components to and from topo records.
 	TopologyReconciliation *TopoReconcileConfig `json:"topologyReconciliation,omitempty"`
 
-	// UpdateStrategy indicates the VitessClusterUpdateStrategy that will be employed to update
-	// the Vitess cluster when a revision is made to the VitessClusterSpec.
+	// UpdateStrategy specifies how components in the Vitess cluster will be updated
+	// when a revision is made to the VitessCluster spec.
 	UpdateStrategy *VitessClusterUpdateStrategy `json:"updateStrategy,omitempty"`
 }
 
@@ -120,8 +120,20 @@ type VitessClusterSpec struct {
 // will use to perform updates. It includes any additional parameters
 // necessary to perform the update for the indicated strategy.
 type VitessClusterUpdateStrategy struct {
-	// Type indicates the type of the VitessClusterUpdateStrategy
+	// Type selects the overall update strategy.
+	//
+	// Supported options are:
+	//
+	// - External: Schedule updates on objects that should be updated,
+	//   but wait for an external tool to release them by adding the
+	//   'rollout.planetscale.com/released' annotation.
+	// - Immediate: Release updates to all cells, keyspaces, and shards
+	//   as soon as the VitessCluster spec is changed. Perform rolling
+	//   restart of one tablet Pod per shard at a time, with automatic
+	//   planned reparents whenever possible to avoid master downtime.
+	//
 	// Default: External
+	// +kubebuilder:validation:Enum=External,Immediate
 	Type *VitessClusterUpdateStrategyType `json:"type,omitempty"`
 }
 
