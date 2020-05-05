@@ -430,8 +430,8 @@ VitessClusterUpdateStrategy
 </em>
 </td>
 <td>
-<p>UpdateStrategy indicates the VitessClusterUpdateStrategy that will be employed to update
-the Vitess cluster when a revision is made to the VitessClusterSpec.</p>
+<p>UpdateStrategy specifies how components in the Vitess cluster will be updated
+when a revision is made to the VitessCluster spec.</p>
 </td>
 </tr>
 </table>
@@ -3128,8 +3128,8 @@ VitessClusterUpdateStrategy
 </em>
 </td>
 <td>
-<p>UpdateStrategy indicates the VitessClusterUpdateStrategy that will be employed to update
-the Vitess cluster when a revision is made to the VitessClusterSpec.</p>
+<p>UpdateStrategy specifies how components in the Vitess cluster will be updated
+when a revision is made to the VitessCluster spec.</p>
 </td>
 </tr>
 </tbody>
@@ -3283,8 +3283,18 @@ VitessClusterUpdateStrategyType
 </em>
 </td>
 <td>
-<p>Type indicates the type of the VitessClusterUpdateStrategy
-Default: External</p>
+<p>Type selects the overall update strategy.</p>
+<p>Supported options are:</p>
+<ul>
+<li>External: Schedule updates on objects that should be updated,
+but wait for an external tool to release them by adding the
+&lsquo;rollout.planetscale.com/released&rsquo; annotation.</li>
+<li>Immediate: Release updates to all cells, keyspaces, and shards
+as soon as the VitessCluster spec is changed. Perform rolling
+restart of one tablet Pod per shard at a time, with automatic
+planned reparents whenever possible to avoid master downtime.</li>
+</ul>
+<p>Default: External</p>
 </td>
 </tr>
 </tbody>
@@ -5544,6 +5554,18 @@ condition whenever the distinction is important.</p>
 <td>
 <p>BackupLocations reports information about the backups for this shard in
 each backup location.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>lowestPodGeneration</code></br>
+<em>
+int64
+</em>
+</td>
+<td>
+<p>LowestPodGeneration holds the lowest shard generation that has propagated down
+to pods during an UpdateInPlace handler call.</p>
 </td>
 </tr>
 </tbody>

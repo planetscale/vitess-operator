@@ -2000,13 +2000,22 @@ spec:
                   type: boolean
               type: object
             updateStrategy:
-              description: UpdateStrategy indicates the VitessClusterUpdateStrategy
-                that will be employed to update the Vitess cluster when a revision
-                is made to the VitessClusterSpec.
+              description: UpdateStrategy specifies how components in the Vitess cluster
+                will be updated when a revision is made to the VitessCluster spec.
               properties:
                 type:
-                  description: 'Type indicates the type of the VitessClusterUpdateStrategy
-                    Default: External'
+                  description: 'Type selects the overall update strategy.  Supported
+                    options are:  - External: Schedule updates on objects that should
+                    be updated,   but wait for an external tool to release them by
+                    adding the   ''rollout.planetscale.com/released'' annotation.
+                    - Immediate: Release updates to all cells, keyspaces, and shards   as
+                    soon as the VitessCluster spec is changed. Perform rolling   restart
+                    of one tablet Pod per shard at a time, with automatic   planned
+                    reparents whenever possible to avoid master downtime.  Default:
+                    External'
+                  enum:
+                  - External
+                  - Immediate
                   type: string
               type: object
             vitessDashboard:

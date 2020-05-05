@@ -849,7 +849,7 @@ func schema_pkg_apis_planetscale_v2_VitessClusterSpec(ref common.ReferenceCallba
 					},
 					"updateStrategy": {
 						SchemaProps: spec.SchemaProps{
-							Description: "UpdateStrategy indicates the VitessClusterUpdateStrategy that will be employed to update the Vitess cluster when a revision is made to the VitessClusterSpec.",
+							Description: "UpdateStrategy specifies how components in the Vitess cluster will be updated when a revision is made to the VitessCluster spec.",
 							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessClusterUpdateStrategy"),
 						},
 					},
@@ -1469,6 +1469,13 @@ func schema_pkg_apis_planetscale_v2_VitessShardStatus(ref common.ReferenceCallba
 									},
 								},
 							},
+						},
+					},
+					"lowestPodGeneration": {
+						SchemaProps: spec.SchemaProps{
+							Description: "LowestPodGeneration holds the lowest shard generation that has propagated down to pods during an UpdateInPlace handler call.",
+							Type:        []string{"integer"},
+							Format:      "int64",
 						},
 					},
 				},

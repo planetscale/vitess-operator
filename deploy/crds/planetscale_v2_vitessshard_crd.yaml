@@ -819,6 +819,11 @@ spec:
                 shard set (partitioning) for any tablet type in any cell, so it should
                 be safe to turn down the shard.
               type: string
+            lowestPodGeneration:
+              description: LowestPodGeneration holds the lowest shard generation that
+                has propagated down to pods during an UpdateInPlace handler call.
+              format: int64
+              type: integer
             masterAlias:
               description: MasterAlias is the tablet alias of the master according
                 to the global shard record. This could be empty either because there
