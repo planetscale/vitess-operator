@@ -61,6 +61,8 @@ func NewPod(key client.ObjectKey, spec *Spec) *corev1.Pod {
 func UpdatePodInPlace(obj *corev1.Pod, spec *Spec) {
 	// Update labels and annotations, but ignore existing ones we don't set.
 	update.Labels(&obj.Labels, spec.Labels)
+
+	updatePodAnnotations(obj, spec)
 }
 
 // UpdatePod updates all parts of a vttablet Pod to match the desired state,
@@ -73,15 +75,8 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 
 	// Update desired user labels.
 	update.Labels(&obj.Labels, spec.ExtraLabels)
-	// Update desired annotations.
-	update.Annotations(&obj.Annotations, spec.Annotations)
 
-	// Record hashes of desired label and annotation keys to force the Pod
-	// to be recreated if a key disappears from the desired list.
-	update.Annotations(&obj.Annotations, map[string]string{
-		"planetscale.com/labels-keys-hash":      contenthash.StringMapKeys(spec.ExtraLabels),
-		"planetscale.com/annotations-keys-hash": contenthash.StringMapKeys(spec.Annotations),
-	})
+	updatePodAnnotations(obj, spec)
 
 	// Collect some common values that will be shared across containers.
 	volumeMounts := tabletVolumeMounts.Get(spec)
@@ -336,6 +331,18 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 
 	// Use the PriorityClass we defined for vttablets in deploy/priority.yaml.
 	obj.Spec.PriorityClassName = vttabletPriorityClassName
+}
+
+func updatePodAnnotations(obj *corev1.Pod, spec *Spec) {
+	// Update desired annotations.
+	update.Annotations(&obj.Annotations, spec.Annotations)
+
+	// Record hashes of desired label and annotation keys to force the Pod
+	// to be recreated if a key disappears from the desired list.
+	update.Annotations(&obj.Annotations, map[string]string{
+		"planetscale.com/labels-keys-hash":      contenthash.StringMapKeys(spec.ExtraLabels),
+		"planetscale.com/annotations-keys-hash": contenthash.StringMapKeys(spec.Annotations),
+	})
 }
 
 // AliasFromPod returns a TabletAlias corresponding to a vttablet Pod.
