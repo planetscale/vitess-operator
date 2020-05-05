@@ -168,6 +168,9 @@ func (r *ReconcileVitessShard) reconcileTablets(ctx context.Context, vts *planet
 			newObj := obj.(*corev1.Pod)
 			tablet := tabletMap[key]
 			vttablet.UpdatePodInPlace(newObj, tablet)
+			if newObj.Annotations == nil {
+				newObj.Annotations = make(map[string]string)
+			}
 			newObj.Annotations[observedShardGenerationAnnotationKey] = strconv.FormatInt(vts.Generation, 10)
 		},
 		UpdateRollingRecreate: func(key client.ObjectKey, obj runtime.Object) {
