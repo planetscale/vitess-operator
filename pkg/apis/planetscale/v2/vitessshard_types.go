@@ -357,8 +357,10 @@ type VitessShardStatus struct {
 	// each backup location.
 	BackupLocations []*ShardBackupLocationStatus `json:"backupLocations,omitempty"`
 
-	// LowestPodGeneration holds the lowest shard generation that has propagated down
-	// to pods during an UpdateInPlace handler call.
+	// LowestPodGeneration is the oldest VitessShard object generation seen across
+	// all child Pods. The tablet information in VitessShard status is guaranteed to be
+	// at least as up-to-date as this VitessShard generation. Changes made in
+	// subsequent generations that affect tablets may not be reflected in status yet.
 	LowestPodGeneration int64 `json:"lowestPodGeneration,omitempty"`
 }
 
