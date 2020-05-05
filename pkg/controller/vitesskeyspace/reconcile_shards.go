@@ -72,7 +72,7 @@ func (r *ReconcileVitessKeyspace) reconcileShards(ctx context.Context, vtk *plan
 				}
 
 				// If any tablets have pending changes, and lowest shard generation observed by pods matches
-				// Our current shard generation, then we should cascade changes.
+				// our current shard generation, then we should cascade changes.
 				for _, tabletStatus := range newObj.Status.Tablets {
 					if tabletStatus.PendingChanges != "" {
 						rollout.Cascade(newObj)
