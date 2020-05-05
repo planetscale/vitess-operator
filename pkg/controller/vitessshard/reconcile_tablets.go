@@ -252,8 +252,6 @@ func (r *ReconcileVitessShard) reconcileTablets(ctx context.Context, vts *planet
 	})
 	if err != nil {
 		resultBuilder.Error(err)
-	} else {
-
 	}
 
 	return resultBuilder.Result()
