@@ -1473,7 +1473,7 @@ func schema_pkg_apis_planetscale_v2_VitessShardStatus(ref common.ReferenceCallba
 					},
 					"lowestPodGeneration": {
 						SchemaProps: spec.SchemaProps{
-							Description: "LowestPodGeneration holds the lowest shard generation that has propagated down to pods during an UpdateInPlace handler call.",
+							Description: "LowestPodGeneration is the oldest VitessShard object generation seen across all child Pods. The tablet information in VitessShard status is guaranteed to be at least as up-to-date as this VitessShard generation. Changes made in subsequent generations that affect tablets may not be reflected in status yet.",
 							Type:        []string{"integer"},
 							Format:      "int64",
 						},
