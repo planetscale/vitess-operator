@@ -64,26 +64,28 @@ func (r *ReconcileVitessKeyspace) reconcileShards(ctx context.Context, vtk *plan
 		},
 		UpdateInPlace: func(key client.ObjectKey, obj runtime.Object) {
 			newObj := obj.(*planetscalev2.VitessShard)
-			if vtk.Spec.UpdateStrategy == nil || vtk.Spec.UpdateStrategy.Type == nil {
-				return
-			}
-
-			if *vtk.Spec.UpdateStrategy.Type == planetscalev2.ImmediateVitessClusterUpdateStrategyType {
-				updateVitessShard(key, newObj, vtk, labels, shardMap[key])
-				if newObj.Status.LowestPodGeneration != newObj.Generation {
-					// Nothing to do here yet - need to wait until generations match before we cascade.
-					return
-				}
-
-				// If any tablets have pending changes, and lowest shard generation observed by pods matches
-				// Our current shard generation, then we should cascade changes.
-				for _, tabletStatus := range newObj.Status.Tablets {
-					if tabletStatus.PendingChanges != "" {
-						rollout.Cascade(newObj)
+			if vtk.Spec.UpdateStrategy != nil && vtk.Spec.UpdateStrategy.Type != nil {
+				if *vtk.Spec.UpdateStrategy.Type == planetscalev2.ImmediateVitessClusterUpdateStrategyType {
+					updateVitessShard(key, newObj, vtk, labels, shardMap[key])
+					if newObj.Status.LowestPodGeneration != newObj.Generation {
+						// Nothing to do here yet - need to wait until generations match before we cascade.
 						return
 					}
+
+					// If any tablets have pending changes, and lowest shard generation observed by pods matches
+					// Our current shard generation, then we should cascade changes.
+					for _, tabletStatus := range newObj.Status.Tablets {
+						if tabletStatus.PendingChanges != "" {
+							rollout.Cascade(newObj)
+							return
+						}
+					}
+
+					return
 				}
 			}
+
+			updateVitessShardInPlace(key, newObj, vtk, labels, shardMap[key])
 		},
 		UpdateRollingInPlace: func(key client.ObjectKey, obj runtime.Object) {
 			newObj := obj.(*planetscalev2.VitessShard)
