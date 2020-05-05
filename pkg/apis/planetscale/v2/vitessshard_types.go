@@ -356,17 +356,15 @@ type VitessShardStatus struct {
 	// BackupLocations reports information about the backups for this shard in
 	// each backup location.
 	BackupLocations []*ShardBackupLocationStatus `json:"backupLocations,omitempty"`
+
+	// LowestPodGeneration holds the lowest shard generation that has propagated down
+	// to pods during an UpdateInPlace handler call.
+	LowestPodGeneration int64 `json:"lowestPodGeneration,omitempty"`
 }
 
 // VitessShardConditionType is a valid value for the key of a VitessShardCondition map where the key is a
 // VitessShardConditionType and the value is a VitessShardCondition.
 type VitessShardConditionType string
-
-// These are valid conditions of VitessShard.
-const (
-	// VitessShardChildUpdatesScheduled indicates that updates for direct children of the shard have been scheduled.
-	VitessShardChildUpdatesScheduled VitessShardConditionType = "ChildUpdatesScheduled"
-)
 
 // VitessShardCondition contains details for the current condition of this VitessShard.
 type VitessShardCondition struct {
