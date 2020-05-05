@@ -85,6 +85,10 @@ func (r *ReconcileVitessCluster) reconcileVtctld(ctx context.Context, vt *planet
 		},
 		UpdateInPlace: func(key client.ObjectKey, obj runtime.Object) {
 			newObj := obj.(*appsv1.Deployment)
+			if *vt.Spec.UpdateStrategy.Type == planetscalev2.ImmediateVitessClusterUpdateStrategyType {
+				vtctld.UpdateDeployment(newObj, specMap[key])
+				return
+			}
 			vtctld.UpdateDeploymentImmediate(newObj, specMap[key])
 		},
 		UpdateRollingInPlace: func(key client.ObjectKey, obj runtime.Object) {
