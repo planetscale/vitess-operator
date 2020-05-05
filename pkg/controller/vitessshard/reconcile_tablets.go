@@ -50,6 +50,10 @@ const (
 	// tables. If a tablet is Ready but vtgates don't know it yet, then it isn't
 	// actually available for serving queries yet.
 	tabletAvailableTime = 30 * time.Second
+
+	// observedShardGenerationAnnotationKey is used to set the shard generation
+	// that is observed at the time an UpdateInPlace is called for a pod.
+	observedShardGenerationAnnotationKey = "planetscale.com/observed-shard-generation"
 )
 
 func (r *ReconcileVitessShard) reconcileTablets(ctx context.Context, vts *planetscalev2.VitessShard) (reconcile.Result, error) {
@@ -164,6 +168,7 @@ func (r *ReconcileVitessShard) reconcileTablets(ctx context.Context, vts *planet
 			newObj := obj.(*corev1.Pod)
 			tablet := tabletMap[key]
 			vttablet.UpdatePodInPlace(newObj, tablet)
+			newObj.Annotations[observedShardGenerationAnnotationKey] = strconv.FormatInt(vts.Generation, 10)
 		},
 		UpdateRollingRecreate: func(key client.ObjectKey, obj runtime.Object) {
 			newObj := obj.(*corev1.Pod)
@@ -181,6 +186,19 @@ func (r *ReconcileVitessShard) reconcileTablets(ctx context.Context, vts *planet
 				tabletStatus.Available = tabletAvailableStatus(resultBuilder, pod, cond)
 			}
 			tabletStatus.PendingChanges = pod.Annotations[rollout.ScheduledAnnotation]
+
+			observedShardGenerationVal := pod.Annotations[observedShardGenerationAnnotationKey]
+			if observedShardGenerationVal == "" {
+				return
+			}
+			observedShardGeneration, err := strconv.ParseInt(observedShardGenerationVal, 10, 64)
+			if err != nil {
+				return
+			}
+
+			if vts.Status.LowestPodGeneration == 0 || observedShardGeneration < vts.Status.LowestPodGeneration {
+				vts.Status.LowestPodGeneration = observedShardGeneration
+			}
 		},
 		OrphanStatus: func(key client.ObjectKey, obj runtime.Object, orphanStatus *planetscalev2.OrphanStatus) {
 			curObj := obj.(*corev1.Pod)
@@ -231,6 +249,8 @@ func (r *ReconcileVitessShard) reconcileTablets(ctx context.Context, vts *planet
 	})
 	if err != nil {
 		resultBuilder.Error(err)
+	} else {
+
 	}
 
 	return resultBuilder.Result()
