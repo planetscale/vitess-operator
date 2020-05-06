@@ -182,6 +182,8 @@ func updateVitessShardAnnotations(vts *planetscalev2.VitessShard, newShard *plan
 
 	// Update annotations we set.
 	update.Annotations(&vts.Annotations, newShard.Annotations)
+
+	vts.Spec.Annotations = newShard.Spec.Annotations
 }
 
 // differentKeys returns keys from an older map instance that are no longer in a newer map instance.
