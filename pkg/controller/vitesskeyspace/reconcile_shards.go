@@ -162,6 +162,15 @@ func updateVitessShard(key client.ObjectKey, vts *planetscalev2.VitessShard, vtk
 	vts.Spec = newShard.Spec
 }
 
+func updateVitessShardInPlace(key client.ObjectKey, vts *planetscalev2.VitessShard, vtk *planetscalev2.VitessKeyspace, parentLabels map[string]string, shard *planetscalev2.VitessKeyspaceKeyRangeShard) {
+	newShard := newVitessShard(key, vtk, parentLabels, shard)
+
+	// For now, only disk size & annotations are safe to update in place.
+	update.ShardDiskSize(vts.Spec.TabletPools, newShard.Spec.TabletPools)
+
+	updateVitessShardAnnotations(vts, newShard)
+}
+
 func updateVitessShardAnnotations(vts *planetscalev2.VitessShard, newShard *planetscalev2.VitessShard) {
 	// Remove old annotations that shouldn't be there that we injected previously.
 	// This must be done before we update vts.Spec.
@@ -172,15 +181,6 @@ func updateVitessShardAnnotations(vts *planetscalev2.VitessShard, newShard *plan
 
 	// Update annotations we set.
 	update.Annotations(&vts.Annotations, newShard.Annotations)
-}
-
-func updateVitessShardInPlace(key client.ObjectKey, vts *planetscalev2.VitessShard, vtk *planetscalev2.VitessKeyspace, parentLabels map[string]string, shard *planetscalev2.VitessKeyspaceKeyRangeShard) {
-	newShard := newVitessShard(key, vtk, parentLabels, shard)
-
-	// For now, only disk size & annotations are safe to update in place.
-	update.ShardDiskSize(vts.Spec.TabletPools, newShard.Spec.TabletPools)
-
-	updateVitessShardAnnotations(vts, newShard)
 }
 
 // differentKeys returns keys from an older map instance that are no longer in a newer map instance.
