@@ -156,6 +156,8 @@ func updateVitessShard(key client.ObjectKey, vts *planetscalev2.VitessShard, vtk
 	// Update labels, but ignore existing ones we don't set.
 	update.Labels(&vts.Labels, newShard.Labels)
 
+	// Remove old annotations that shouldn't be there that we injected previously.
+	// This must be done before we update vts.Spec.
 	updateVitessShardAnnotations(vts, newShard)
 
 	// For now, everything in Spec is safe to update.
@@ -168,12 +170,11 @@ func updateVitessShardInPlace(key client.ObjectKey, vts *planetscalev2.VitessSha
 	// For now, only disk size & annotations are safe to update in place.
 	update.ShardDiskSize(vts.Spec.TabletPools, newShard.Spec.TabletPools)
 
+	// Remove old annotations that shouldn't be there that we injected previously.
 	updateVitessShardAnnotations(vts, newShard)
 }
 
 func updateVitessShardAnnotations(vts *planetscalev2.VitessShard, newShard *planetscalev2.VitessShard) {
-	// Remove old annotations that shouldn't be there that we injected previously.
-	// This must be done before we update vts.Spec.
 	differentAnnotations := differentKeys(vts.Spec.Annotations, newShard.Spec.Annotations)
 	for _, annotation := range differentAnnotations {
 		delete(vts.Annotations, annotation)
