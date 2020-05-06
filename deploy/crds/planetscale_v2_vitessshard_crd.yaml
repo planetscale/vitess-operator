@@ -819,6 +819,14 @@ spec:
                 shard set (partitioning) for any tablet type in any cell, so it should
                 be safe to turn down the shard.
               type: string
+            lowestPodGeneration:
+              description: LowestPodGeneration is the oldest VitessShard object generation
+                seen across all child Pods. The tablet information in VitessShard
+                status is guaranteed to be at least as up-to-date as this VitessShard
+                generation. Changes made in subsequent generations that affect tablets
+                may not be reflected in status yet.
+              format: int64
+              type: integer
             masterAlias:
               description: MasterAlias is the tablet alias of the master according
                 to the global shard record. This could be empty either because there

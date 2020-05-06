@@ -62,10 +62,18 @@ func (r *ReconcileVitessCluster) reconcileKeyspaces(ctx context.Context, vt *pla
 		},
 		UpdateInPlace: func(key client.ObjectKey, obj runtime.Object) {
 			newObj := obj.(*planetscalev2.VitessKeyspace)
+			if *vt.Spec.UpdateStrategy.Type == planetscalev2.ImmediateVitessClusterUpdateStrategyType {
+				updateVitessKeyspace(key, newObj, vt, labels, keyspaceMap[key])
+				return
+			}
 			updateVitessKeyspaceInPlace(key, newObj, vt, labels, keyspaceMap[key])
 		},
 		UpdateRollingInPlace: func(key client.ObjectKey, obj runtime.Object) {
 			newObj := obj.(*planetscalev2.VitessKeyspace)
+			if *vt.Spec.UpdateStrategy.Type == planetscalev2.ImmediateVitessClusterUpdateStrategyType {
+				// In this case we should use UpdateInPlace for all updates.
+				return
+			}
 			updateVitessKeyspace(key, newObj, vt, labels, keyspaceMap[key])
 		},
 		Status: func(key client.ObjectKey, obj runtime.Object) {
@@ -169,6 +177,7 @@ func newVitessKeyspace(key client.ObjectKey, vt *planetscalev2.VitessCluster, pa
 			BackupEngine:           backupEngine,
 			ExtraVitessFlags:       vt.Spec.ExtraVitessFlags,
 			TopologyReconciliation: vt.Spec.TopologyReconciliation,
+			UpdateStrategy:         vt.Spec.UpdateStrategy,
 		},
 	}
 }

@@ -847,12 +847,18 @@ func schema_pkg_apis_planetscale_v2_VitessClusterSpec(ref common.ReferenceCallba
 							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.TopoReconcileConfig"),
 						},
 					},
+					"updateStrategy": {
+						SchemaProps: spec.SchemaProps{
+							Description: "UpdateStrategy specifies how components in the Vitess cluster will be updated when a revision is made to the VitessCluster spec.",
+							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessClusterUpdateStrategy"),
+						},
+					},
 				},
 				Required: []string{"cells"},
 			},
 		},
 		Dependencies: []string{
-			"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.ClusterBackupSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.LockserverSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.TopoReconcileConfig", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessCellTemplate", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessDashboardSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImagePullPolicies", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImages", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceTemplate"},
+			"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.ClusterBackupSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.LockserverSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.TopoReconcileConfig", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessCellTemplate", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessClusterUpdateStrategy", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessDashboardSpec", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImagePullPolicies", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImages", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceTemplate"},
 	}
 }
 
@@ -1096,12 +1102,18 @@ func schema_pkg_apis_planetscale_v2_VitessKeyspaceSpec(ref common.ReferenceCallb
 							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.TopoReconcileConfig"),
 						},
 					},
+					"updateStrategy": {
+						SchemaProps: spec.SchemaProps{
+							Description: "UpdateStrategy is inherited from the parent's VitessClusterSpec.",
+							Ref:         ref("planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessClusterUpdateStrategy"),
+						},
+					},
 				},
 				Required: []string{"name", "partitionings", "globalLockserver", "zoneMap"},
 			},
 		},
 		Dependencies: []string{
-			"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.TopoReconcileConfig", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessBackupLocation", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImagePullPolicies", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceImages", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspacePartitioning", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessLockserverParams"},
+			"planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.TopoReconcileConfig", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessBackupLocation", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessClusterUpdateStrategy", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessImagePullPolicies", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceImages", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspacePartitioning", "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessLockserverParams"},
 	}
 }
 
@@ -1457,6 +1469,13 @@ func schema_pkg_apis_planetscale_v2_VitessShardStatus(ref common.ReferenceCallba
 									},
 								},
 							},
+						},
+					},
+					"lowestPodGeneration": {
+						SchemaProps: spec.SchemaProps{
+							Description: "LowestPodGeneration is the oldest VitessShard object generation seen across all child Pods. The tablet information in VitessShard status is guaranteed to be at least as up-to-date as this VitessShard generation. Changes made in subsequent generations that affect tablets may not be reflected in status yet.",
+							Type:        []string{"integer"},
+							Format:      "int64",
 						},
 					},
 				},

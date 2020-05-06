@@ -22,6 +22,7 @@ package v2
 // might not be safe to deref.
 func DefaultVitessKeyspace(dst *VitessKeyspace) {
 	DefaultTopoReconcileConfig(&dst.Spec.TopologyReconciliation)
+	defaultUpdateStrategy(&dst.Spec.UpdateStrategy)
 }
 
 // DefaultVitessKeyspaceImages fills in unspecified keyspace-level images from cluster-level defaults.

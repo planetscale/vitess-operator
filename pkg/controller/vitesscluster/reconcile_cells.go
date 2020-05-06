@@ -60,10 +60,18 @@ func (r *ReconcileVitessCluster) reconcileCells(ctx context.Context, vt *planets
 		},
 		UpdateInPlace: func(key client.ObjectKey, obj runtime.Object) {
 			newObj := obj.(*planetscalev2.VitessCell)
+			if *vt.Spec.UpdateStrategy.Type == planetscalev2.ImmediateVitessClusterUpdateStrategyType {
+				updateVitessCell(key, newObj, vt, labels, cellMap[key])
+				return
+			}
 			updateVitessCellInPlace(key, newObj, vt, labels, cellMap[key])
 		},
 		UpdateRollingInPlace: func(key client.ObjectKey, obj runtime.Object) {
 			newObj := obj.(*planetscalev2.VitessCell)
+			if *vt.Spec.UpdateStrategy.Type == planetscalev2.ImmediateVitessClusterUpdateStrategyType {
+				// In this case we should use UpdateInPlace for all updates.
+				return
+			}
 			updateVitessCell(key, newObj, vt, labels, cellMap[key])
 		},
 		Status: func(key client.ObjectKey, obj runtime.Object) {

@@ -420,6 +420,20 @@ TopoReconcileConfig
 <p>TopologyReconciliation can be used to enable or disable registration or pruning of various vitess components to and from topo records.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>updateStrategy</code></br>
+<em>
+<a href="#planetscale.com/v2.VitessClusterUpdateStrategy">
+VitessClusterUpdateStrategy
+</a>
+</em>
+</td>
+<td>
+<p>UpdateStrategy specifies how components in the Vitess cluster will be updated
+when a revision is made to the VitessCluster spec.</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -3104,6 +3118,20 @@ TopoReconcileConfig
 <p>TopologyReconciliation can be used to enable or disable registration or pruning of various vitess components to and from topo records.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>updateStrategy</code></br>
+<em>
+<a href="#planetscale.com/v2.VitessClusterUpdateStrategy">
+VitessClusterUpdateStrategy
+</a>
+</em>
+</td>
+<td>
+<p>UpdateStrategy specifies how components in the Vitess cluster will be updated
+when a revision is made to the VitessCluster spec.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="planetscale.com/v2.VitessClusterStatus">VitessClusterStatus
@@ -3225,6 +3253,62 @@ map[string]*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus
 </tr>
 </tbody>
 </table>
+<h3 id="planetscale.com/v2.VitessClusterUpdateStrategy">VitessClusterUpdateStrategy
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#planetscale.com/v2.VitessClusterSpec">VitessClusterSpec</a>, 
+<a href="#planetscale.com/v2.VitessKeyspaceSpec">VitessKeyspaceSpec</a>)
+</p>
+<p>
+<p>VitessClusterUpdateStrategy indicates the strategy that the operator
+will use to perform updates. It includes any additional parameters
+necessary to perform the update for the indicated strategy.</p>
+</p>
+<table class="table table-striped">
+<thead class="thead-dark">
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>type</code></br>
+<em>
+<a href="#planetscale.com/v2.VitessClusterUpdateStrategyType">
+VitessClusterUpdateStrategyType
+</a>
+</em>
+</td>
+<td>
+<p>Type selects the overall update strategy.</p>
+<p>Supported options are:</p>
+<ul>
+<li>External: Schedule updates on objects that should be updated,
+but wait for an external tool to release them by adding the
+&lsquo;rollout.planetscale.com/released&rsquo; annotation.</li>
+<li>Immediate: Release updates to all cells, keyspaces, and shards
+as soon as the VitessCluster spec is changed. Perform rolling
+restart of one tablet Pod per shard at a time, with automatic
+planned reparents whenever possible to avoid master downtime.</li>
+</ul>
+<p>Default: External</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="planetscale.com/v2.VitessClusterUpdateStrategyType">VitessClusterUpdateStrategyType
+(<code>string</code> alias)</p></h3>
+<p>
+(<em>Appears on:</em>
+<a href="#planetscale.com/v2.VitessClusterUpdateStrategy">VitessClusterUpdateStrategy</a>)
+</p>
+<p>
+<p>VitessClusterUpdateStrategyType is a string enumeration type that enumerates
+all possible update strategies for the VitessCluster.</p>
+</p>
 <h3 id="planetscale.com/v2.VitessDashboardSpec">VitessDashboardSpec
 </h3>
 <p>
@@ -4027,6 +4111,19 @@ TopoReconcileConfig
 <p>TopologyReconciliation is inherited from the parent&rsquo;s VitessClusterSpec.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>updateStrategy</code></br>
+<em>
+<a href="#planetscale.com/v2.VitessClusterUpdateStrategy">
+VitessClusterUpdateStrategy
+</a>
+</em>
+</td>
+<td>
+<p>UpdateStrategy is inherited from the parent&rsquo;s VitessClusterSpec.</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -4539,6 +4636,19 @@ TopoReconcileConfig
 </td>
 <td>
 <p>TopologyReconciliation is inherited from the parent&rsquo;s VitessClusterSpec.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>updateStrategy</code></br>
+<em>
+<a href="#planetscale.com/v2.VitessClusterUpdateStrategy">
+VitessClusterUpdateStrategy
+</a>
+</em>
+</td>
+<td>
+<p>UpdateStrategy is inherited from the parent&rsquo;s VitessClusterSpec.</p>
 </td>
 </tr>
 </tbody>
@@ -5444,6 +5554,20 @@ condition whenever the distinction is important.</p>
 <td>
 <p>BackupLocations reports information about the backups for this shard in
 each backup location.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>lowestPodGeneration</code></br>
+<em>
+int64
+</em>
+</td>
+<td>
+<p>LowestPodGeneration is the oldest VitessShard object generation seen across
+all child Pods. The tablet information in VitessShard status is guaranteed to be
+at least as up-to-date as this VitessShard generation. Changes made in
+subsequent generations that affect tablets may not be reflected in status yet.</p>
 </td>
 </tr>
 </tbody>
