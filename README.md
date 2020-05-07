@@ -9,6 +9,7 @@ issues or PRs.
 
 ## Docs
 
+- [Vitess Operator user guides](https://docs.planetscale.com/vitess-operator/overview)
 - [VitessCluster CRD API Reference](https://vitess-operator.planetscale.dev/api/)
 
 ## Build
