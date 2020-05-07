@@ -276,6 +276,11 @@ spec:
               required:
               - key
               type: object
+            databaseName:
+              description: DatabaseName is the name to use for the underlying MySQL
+                database. It is inherited from the parent keyspace, so it can only
+                be configured at the keyspace level.
+              type: string
             extraVitessFlags:
               additionalProperties:
                 type: string
@@ -397,7 +402,7 @@ spec:
                   type: string
               type: object
             name:
-              description: Name is the shard name as its known to Vitess.
+              description: Name is the shard name as it's known to Vitess.
               type: string
             replication:
               description: Replication configures Vitess replication settings for

@@ -96,6 +96,22 @@ type VitessKeyspaceTemplate struct {
 	// +kubebuilder:validation:Pattern=^[a-z0-9]([a-z0-9]*[a-z0-9])?$
 	Name string `json:"name"`
 
+	// DatabaseName is the name to use for the underlying, physical MySQL
+	// database created to hold data for the keyspace.
+	//
+	// This name is mostly hidden from Vitess clients, which should see and use
+	// only the keyspace name as a logical database. However, you may want to
+	// set this to control the name used by clients that bypass Vitess and
+	// connect directly to the underlying MySQL, such as certain DBA tools.
+	//
+	// The default, when the field is either left unset or set to empty string,
+	// is to add a "vt_" prefix to the keyspace name since that has historically
+	// been the default in Vitess itself. However, it's often preferable to set
+	// this to be the same as the keyspace name to reduce confusion.
+	//
+	// Default: Add a "vt_" prefix to the keyspace name.
+	DatabaseName string `json:"databaseName,omitempty"`
+
 	// Partitionings specify how to divide the keyspace up into shards by
 	// defining the range of keyspace IDs that each shard contains.
 	// For example, you might divide the keyspace into N equal-sized key ranges.

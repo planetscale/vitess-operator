@@ -38,6 +38,7 @@ type Spec struct {
 	Index                    int32
 	KeyRange                 planetscalev2.VitessKeyRange
 	KeyspaceName             string
+	DatabaseName             string
 	Vttablet                 *planetscalev2.VttabletSpec
 	Mysqld                   *planetscalev2.MysqldSpec
 	ExternalDatastore        *planetscalev2.ExternalDatastore
@@ -60,6 +61,9 @@ type Spec struct {
 
 // localDatabaseName returns the MySQL database name for a tablet Spec in the case of locally managed MySQL.
 func (spec *Spec) localDatabaseName() string {
+	if spec.DatabaseName != "" {
+		return spec.DatabaseName
+	}
 	return "vt_" + spec.KeyspaceName
 }
 

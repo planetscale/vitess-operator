@@ -4760,6 +4760,27 @@ instruction to delete the old keyspace and create a new one.</p>
 </tr>
 <tr>
 <td>
+<code>databaseName</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>DatabaseName is the name to use for the underlying, physical MySQL
+database created to hold data for the keyspace.</p>
+<p>This name is mostly hidden from Vitess clients, which should see and use
+only the keyspace name as a logical database. However, you may want to
+set this to control the name used by clients that bypass Vitess and
+connect directly to the underlying MySQL, such as certain DBA tools.</p>
+<p>The default, when the field is either left unset or set to empty string,
+is to add a &ldquo;vt_&rdquo; prefix to the keyspace name since that has historically
+been the default in Vitess itself. However, it&rsquo;s often preferable to set
+this to be the same as the keyspace name to reduce confusion.</p>
+<p>Default: Add a &ldquo;vt_&rdquo; prefix to the keyspace name.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>partitionings</code></br>
 <em>
 <a href="#planetscale.com/v2.VitessKeyspacePartitioning">
@@ -5030,7 +5051,20 @@ string
 </em>
 </td>
 <td>
-<p>Name is the shard name as its known to Vitess.</p>
+<p>Name is the shard name as it&rsquo;s known to Vitess.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>databaseName</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>DatabaseName is the name to use for the underlying MySQL database.
+It is inherited from the parent keyspace, so it can only be configured at
+the keyspace level.</p>
 </td>
 </tr>
 <tr>
@@ -5283,7 +5317,20 @@ string
 </em>
 </td>
 <td>
-<p>Name is the shard name as its known to Vitess.</p>
+<p>Name is the shard name as it&rsquo;s known to Vitess.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>databaseName</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>DatabaseName is the name to use for the underlying MySQL database.
+It is inherited from the parent keyspace, so it can only be configured at
+the keyspace level.</p>
 </td>
 </tr>
 <tr>

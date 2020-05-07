@@ -53,8 +53,13 @@ type VitessShardSpec struct {
 	// The rest of the fields below are filled in by the parent controller.
 	VitessShardTemplate `json:",inline"`
 
-	// Name is the shard name as its known to Vitess.
+	// Name is the shard name as it's known to Vitess.
 	Name string `json:"name"`
+
+	// DatabaseName is the name to use for the underlying MySQL database.
+	// It is inherited from the parent keyspace, so it can only be configured at
+	// the keyspace level.
+	DatabaseName string `json:"databaseName,omitempty"`
 
 	// ZoneMap is a map from Vitess cell name to zone (failure domain) name
 	// for all cells defined in the VitessCluster.
