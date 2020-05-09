@@ -2,7 +2,6 @@ package vitessshard
 
 import (
 	"context"
-	"sort"
 
 	"k8s.io/api/core/v1"
 	apilabels "k8s.io/apimachinery/pkg/labels"
@@ -29,7 +28,7 @@ func (r *ReconcileVitessShard) reconcileRollout(ctx context.Context, vts *planet
 		return resultBuilder.Error(err)
 	}
 
-	tabletKeys := tabletKeysFromShard(vts)
+	tabletKeys := vts.Status.TabletAliases()
 
 	for _, tabletKey := range tabletKeys {
 		tablet := vts.Status.Tablets[tabletKey]
@@ -138,14 +137,4 @@ func getNextScheduledTablet(tabletKeys []string, tabletPods map[string]*v1.Pod) 
 	}
 
 	return "", nil
-}
-
-func tabletKeysFromShard(vts *planetscalev2.VitessShard) []string {
-	tabletKeys := make([]string, 0, len(vts.Status.Tablets))
-	for key := range vts.Status.Tablets {
-		tabletKeys = append(tabletKeys, key)
-	}
-	sort.Strings(tabletKeys)
-
-	return tabletKeys
 }
