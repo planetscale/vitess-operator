@@ -316,6 +316,7 @@ func vttabletSpecs(vts *planetscalev2.VitessShard, parentLabels map[string]strin
 				Type:                     pool.Type,
 				DataVolumePVCSpec:        pool.DataVolumeClaimTemplate,
 				KeyspaceName:             keyspaceName,
+				DatabaseName:             vts.Spec.DatabaseName,
 				DatabaseInitScriptSecret: vts.Spec.DatabaseInitScriptSecret,
 				EnableSemiSync:           vts.Spec.Replication.EnforceSemiSync,
 				Annotations:              annotations,

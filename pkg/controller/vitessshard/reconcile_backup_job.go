@@ -236,6 +236,7 @@ func vtbackupSpec(key client.ObjectKey, vts *planetscalev2.VitessShard, parentLa
 			DataVolumePVCName:        key.Name,
 			DataVolumePVCSpec:        pool.DataVolumeClaimTemplate,
 			KeyspaceName:             keyspaceName,
+			DatabaseName:             vts.Spec.DatabaseName,
 			DatabaseInitScriptSecret: vts.Spec.DatabaseInitScriptSecret,
 			BackupLocation:           backupLocation,
 			BackupEngine:             vts.Spec.BackupEngine,

@@ -1010,6 +1010,13 @@ func schema_pkg_apis_planetscale_v2_VitessKeyspaceSpec(ref common.ReferenceCallb
 							Format:      "",
 						},
 					},
+					"databaseName": {
+						SchemaProps: spec.SchemaProps{
+							Description: "DatabaseName is the name to use for the underlying, physical MySQL database created to hold data for the keyspace.\n\nThis name is mostly hidden from Vitess clients, which should see and use only the keyspace name as a logical database. However, you may want to set this to control the name used by clients that bypass Vitess and connect directly to the underlying MySQL, such as certain DBA tools.\n\nThe default, when the field is either left unset or set to empty string, is to add a \"vt_\" prefix to the keyspace name since that has historically been the default in Vitess itself. However, it's often preferable to set this to be the same as the keyspace name to reduce confusion.\n\nDefault: Add a \"vt_\" prefix to the keyspace name.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
 					"partitionings": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Partitionings specify how to divide the keyspace up into shards by defining the range of keyspace IDs that each shard contains. For example, you might divide the keyspace into N equal-sized key ranges.\n\nNote that this is distinct from defining how each row maps to a keyspace ID, which is done in the VSchema. Partitioning is purely an operational concern (scaling the infrastructure), while VSchema is an application-level concern (modeling relationships between data). This separation of concerns allows resharding to occur generically at the infrastructure level without any knowledge of the data model.\n\nEach partitioning must define a set of shards that fully covers the space of all possible keyspace IDs; there can be no gaps between ranges. There's usually only one partitioning present at a time, but during resharding, it's necessary to launch the destination shards alongside the source shards. When the resharding is complete, the old partitioning can be removed, which will turn down (undeploy) any unneeded shards.\n\nIf only some shards are being split or joined during resharding, the shards that aren't changing must be specified in both partitionings, although the common shards will be shared (only deployed once). If the per-shard configuration differs, the configuration in the latter partitioning (in the order listed in this field) will be used. For this reason, it's recommended to add new partitionings at the end, and only remove partitionings from the beginning.\n\nThis field is required. An unsharded keyspace may be specified as a partitioning into 1 part.",
@@ -1272,7 +1279,14 @@ func schema_pkg_apis_planetscale_v2_VitessShardSpec(ref common.ReferenceCallback
 					},
 					"name": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Name is the shard name as its known to Vitess.",
+							Description: "Name is the shard name as it's known to Vitess.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"databaseName": {
+						SchemaProps: spec.SchemaProps{
+							Description: "DatabaseName is the name to use for the underlying MySQL database. It is inherited from the parent keyspace, so it can only be configured at the keyspace level.",
 							Type:        []string{"string"},
 							Format:      "",
 						},
