@@ -370,14 +370,26 @@ func (r *ReconcileVitessShard) checkPVCDiskUpdates(ctx context.Context, tabletSp
 	}
 
 	pvc := &corev1.PersistentVolumeClaim{}
-	namespacedClaim := apitypes.NamespacedName{
+	pvcKey := client.ObjectKey{
 		Namespace: pod.Namespace,
 		Name:      tabletSpec.DataVolumePVCName,
 	}
 
 	// If a matching PVC doesn't exist for this tablet pod, bail out.
-	err := r.client.Get(ctx, namespacedClaim, pvc)
+	err := r.client.Get(ctx, pvcKey, pvc)
 	if err != nil {
+		return
+	}
+
+	// Check that the ResourceStorage entry is there in the tablet spec.
+	requestedDiskQuantity, ok := tabletSpec.DataVolumePVCSpec.Resources.Requests[corev1.ResourceStorage]
+	if !ok {
+		return
+	}
+
+	// If the PVC's spec has not been updated to equal the desired size, bail.
+	currentDiskQuantity := pvc.Spec.Resources.Requests[corev1.ResourceStorage]
+	if currentDiskQuantity.Value() != requestedDiskQuantity.Value() {
 		return
 	}
 
@@ -387,8 +399,7 @@ func (r *ReconcileVitessShard) checkPVCDiskUpdates(ctx context.Context, tabletSp
 	}
 
 	// If all checks pass, set the resize annotation.
-	requestedDiskQuantity := tabletSpec.DataVolumePVCSpec.Resources.Requests[corev1.ResourceStorage]
-	tabletSpec.Annotations[pvcDiskSizeAnnotation] = requestedDiskQuantity.String()
+	tabletSpec.Annotations[pvcFilesystemResizeAnnotation] = requestedDiskQuantity.String()
 }
 
 func checkPVCFileSystemResizeCondition (pvc *corev1.PersistentVolumeClaim) bool {
@@ -397,9 +408,7 @@ func checkPVCFileSystemResizeCondition (pvc *corev1.PersistentVolumeClaim) bool 
 			continue
 		}
 
-		if condition.Status == corev1.ConditionTrue {
-			return true
-		}
+		return condition.Status == corev1.ConditionTrue
 	}
 
 	return false

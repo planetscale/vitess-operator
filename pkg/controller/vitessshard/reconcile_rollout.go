@@ -87,12 +87,12 @@ func (r *ReconcileVitessShard) tabletPodsFromShard(ctx context.Context, vts *pla
 	podList := &v1.PodList{}
 	listOpts := &client.ListOptions{
 		Namespace: vts.Namespace,
-		LabelSelector: apilabels.Set(map[string]string{
+		LabelSelector: apilabels.Set{
 			planetscalev2.ComponentLabel: planetscalev2.VttabletComponentName,
 			planetscalev2.ClusterLabel:   vts.Labels[planetscalev2.ClusterLabel],
 			planetscalev2.KeyspaceLabel:  vts.Labels[planetscalev2.KeyspaceLabel],
 			planetscalev2.ShardLabel:     vts.Spec.KeyRange.SafeName(),
-		}).AsSelector(),
+		}.AsSelector(),
 	}
 
 	if err := r.client.List(ctx, listOpts, podList); err != nil {

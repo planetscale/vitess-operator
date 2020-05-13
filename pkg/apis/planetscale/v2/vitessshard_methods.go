@@ -218,6 +218,7 @@ func (s *VitessShardStatus) DeepCopyConditions() map[VitessShardConditionType]*V
 	return out
 }
 
+// TabletAliases returns a sorted list of desired tablet aliases for the shard.
 func (s *VitessShardStatus) TabletAliases() []string {
 	tabletKeys := make([]string, 0, len(s.Tablets))
 	for key := range s.Tablets {

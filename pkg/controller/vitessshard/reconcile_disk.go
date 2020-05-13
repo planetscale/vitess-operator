@@ -4,7 +4,8 @@ import (
 	"context"
 
 	v1 "k8s.io/api/core/v1"
-	apitypes "k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/api/errors"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"vitess.io/vitess/go/vt/topo/topoproto"
 
@@ -14,11 +15,17 @@ import (
 )
 
 const (
-	pvcDiskSizeAnnotation = "planetscale.com/pvc-filesystem-resize"
+	pvcFilesystemResizeAnnotation = "planetscale.com/pvc-filesystem-resize"
 )
 
 func (r *ReconcileVitessShard) reconcileDisk(ctx context.Context, vts *planetscalev2.VitessShard) (reconcile.Result, error) {
 	resultBuilder := &results.Builder{}
+
+	// If we're already cascading a disk size update, we don't need to look further.
+	if rollout.Cascading(vts) {
+		return resultBuilder.Result()
+	}
+
 	anythingChanged := false
 	tabletPods, err := r.tabletPodsFromShard(ctx, vts)
 	if err != nil {
@@ -27,9 +34,16 @@ func (r *ReconcileVitessShard) reconcileDisk(ctx context.Context, vts *planetsca
 
 	for i  := range vts.Spec.TabletPools {
 		tabletPool := &vts.Spec.TabletPools[i]
-		requestedDiskQuantity := tabletPool.DataVolumeClaimTemplate.Resources.Requests[v1.ResourceStorage]
-		requestedDisk := requestedDiskQuantity.String()
-		poolTablets, err := tabletsForPool(vts, tabletPool.Cell, string(tabletPool.Type))
+		if tabletPool.DataVolumeClaimTemplate == nil {
+			continue
+		}
+
+		requestedDiskQuantity, ok := tabletPool.DataVolumeClaimTemplate.Resources.Requests[v1.ResourceStorage]
+		if !ok {
+			continue
+		}
+
+		poolTablets, err := tabletKeysForPool(vts, tabletPool.Cell, string(tabletPool.Type))
 		if err != nil {
 			return resultBuilder.Error(err)
 		}
@@ -41,13 +55,16 @@ func (r *ReconcileVitessShard) reconcileDisk(ctx context.Context, vts *planetsca
 			}
 
 			pvc, err := r.claimForTabletPod(ctx, pod)
-			if err != nil {
+			if errors.IsNotFound(err) {
+				continue
+			} else if err != nil {
 				return resultBuilder.Error(err)
 			}
 
-			// If the PVC does not have the FileSystemResizeCondition, bail out.
-			if !checkPVCFileSystemResizeCondition(pvc) {
-				return resultBuilder.Result()
+			// If the PVC's current size is the same as the requested size, continue.
+			currentDisk := pvc.Status.Capacity[v1.ResourceStorage]
+			if currentDisk.Value() == requestedDiskQuantity.Value() {
+				continue
 			}
 
 			// If we have reached this point in the loop, it indicates that there are disk size changes, so we
@@ -55,15 +72,22 @@ func (r *ReconcileVitessShard) reconcileDisk(ctx context.Context, vts *planetsca
 			// we can be certain that we have disk size changes and that all required changes have been set.
 			anythingChanged = true
 
-			// If the pod does not have updates scheduled, bail out and wait until the scheduled annotation is applied.
-			if !rollout.Scheduled(pod) {
+			// If the PVC's disk spec does not equal the new requested disk, bail out.
+			pvcDisk := pvc.Spec.Resources.Requests[v1.ResourceStorage]
+			if pvcDisk.Value() != requestedDiskQuantity.Value() {
+				r.recorder.Eventf(vts, v1.EventTypeNormal, "PVCResizeWaiting", "Waiting for PVC %v spec to reflect desired disk size %v.", pvc.Name, requestedDiskQuantity.String())
 				return resultBuilder.Result()
 			}
 
-			// Finally, if the PVC's disk spec does not equal the new requested disk, bail out.
-			pvcDisk := pvc.Spec.Resources.Requests[v1.ResourceStorage]
-			if pvcDisk.String() != requestedDisk {
-				r.recorder.Eventf(vts, v1.EventTypeNormal, "RolloutCheckPaused", "Waiting for pvc %v to reflect updated disk.", pvc.Name)
+			// If the PVC does not have the FileSystemResizeCondition, bail out.
+			if !checkPVCFileSystemResizeCondition(pvc) {
+				r.recorder.Eventf(vts, v1.EventTypeNormal, "PVCResizeWaiting", "Waiting for pvc %v to reflect the filesystem resize condition.", pvc.Name)
+				return resultBuilder.Result()
+			}
+
+			// If the pod does not have updates scheduled, bail out and wait until the scheduled annotation is applied.
+			if !rollout.Scheduled(pod) {
+				r.recorder.Eventf(vts, v1.EventTypeNormal, "PVCResizeWaiting", "Waiting for pod %v to be scheduled for restart.", pod.Name)
 				return resultBuilder.Result()
 			}
 		}
@@ -82,21 +106,12 @@ func (r *ReconcileVitessShard) reconcileDisk(ctx context.Context, vts *planetsca
 }
 
 func (r *ReconcileVitessShard) claimForTabletPod(ctx context.Context, pod *v1.Pod) (*v1.PersistentVolumeClaim, error) {
-	var claimName string
-	for i := range pod.Spec.Volumes {
-		volume := &pod.Spec.Volumes[i]
-		if volume.PersistentVolumeClaim != nil && volume.Name == pod.Name {
-			claimName = volume.Name
-			break
-		}
-	}
-
 	pvc := &v1.PersistentVolumeClaim{}
-	namespacedClaim := apitypes.NamespacedName{
+	pvcKey := client.ObjectKey{
 		Namespace: pod.Namespace,
-		Name:      claimName,
+		Name:      pod.Name,
 	}
-	err := r.client.Get(ctx, namespacedClaim, pvc)
+	err := r.client.Get(ctx, pvcKey, pvc)
 	if err != nil {
 		return nil, err
 	}
@@ -104,18 +119,15 @@ func (r *ReconcileVitessShard) claimForTabletPod(ctx context.Context, pod *v1.Po
 	return pvc, nil
 }
 
-func tabletsForPool(vts *planetscalev2.VitessShard, poolCell string, poolType string) ([]string, error) {
-	tabletKeys := make([]string, 0, len(vts.Status.Tablets))
-	for key := range vts.Status.Tablets {
-		tabletKeys = append(tabletKeys, key)
-	}
+func tabletKeysForPool(vts *planetscalev2.VitessShard, poolCell string, poolType string) ([]string, error) {
+	tabletKeys := vts.Status.TabletAliases()
 
 	tabletsInCell := make([]string, 0, len(tabletKeys))
 	for _, tabletKey := range tabletKeys {
 		tablet := vts.Status.Tablets[tabletKey]
 		tabletAlias, err := topoproto.ParseTabletAlias(tabletKey)
 		if err != nil {
-			return tabletKeys, err
+			return nil, err
 		}
 
 		if tablet.PoolType != poolType || tabletAlias.Cell != poolCell{
