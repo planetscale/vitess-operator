@@ -16,13 +16,12 @@ spec:
       serviceAccountName: vitess-operator
       containers:
       - name: vitess-operator
-        image: planetscale/vitess-operator
+        image: planetscale/vitess-operator:v2.0.0
         command:
         - vitess-operator
         args:
         - --logtostderr
         - -v=4
-        imagePullPolicy: IfNotPresent
         env:
         - name: WATCH_NAMESPACE
           valueFrom:
