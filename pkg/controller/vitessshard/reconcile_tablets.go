@@ -22,7 +22,6 @@ import (
 	"strconv"
 	"time"
 
-	apitypes "k8s.io/apimachinery/pkg/types"
 	topodatapb "vitess.io/vitess/go/vt/proto/topodata"
 	"vitess.io/vitess/go/vt/topo/topoproto"
 
