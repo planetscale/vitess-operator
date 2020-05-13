@@ -43,7 +43,7 @@ func (r *ReconcileVitessShard) reconcileDisk(ctx context.Context, vts *planetsca
 			continue
 		}
 
-		poolTablets, err := tabletKeysForPool(vts, tabletPool.Cell, string(tabletPool.Type))
+		poolTablets, err := tabletKeysForPool(vts, tabletPool.Cell, tabletPool.Type)
 		if err != nil {
 			return resultBuilder.Error(err)
 		}
@@ -119,7 +119,7 @@ func (r *ReconcileVitessShard) claimForTabletPod(ctx context.Context, pod *v1.Po
 	return pvc, nil
 }
 
-func tabletKeysForPool(vts *planetscalev2.VitessShard, poolCell string, poolType string) ([]string, error) {
+func tabletKeysForPool(vts *planetscalev2.VitessShard, poolCell string, poolType planetscalev2.VitessTabletPoolType) ([]string, error) {
 	tabletKeys := vts.Status.TabletAliases()
 
 	tabletsInCell := make([]string, 0, len(tabletKeys))
@@ -130,7 +130,7 @@ func tabletKeysForPool(vts *planetscalev2.VitessShard, poolCell string, poolType
 			return nil, err
 		}
 
-		if tablet.PoolType != poolType || tabletAlias.Cell != poolCell{
+		if tablet.PoolType != string(poolType) || tabletAlias.Cell != poolCell{
 			continue
 		}
 

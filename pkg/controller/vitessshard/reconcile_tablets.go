@@ -168,7 +168,7 @@ func (r *ReconcileVitessShard) reconcileTablets(ctx context.Context, vts *planet
 		UpdateRollingRecreate: func(key client.ObjectKey, obj runtime.Object) {
 			newObj := obj.(*corev1.Pod)
 			tablet := tabletMap[key]
-			r.checkPVCDiskUpdates(ctx, tablet, newObj)
+			r.updatePVCFilesystemResizeAnnotation(ctx, tablet, newObj)
 			vttablet.UpdatePod(newObj, tablet)
 		},
 		Status: func(key client.ObjectKey, obj runtime.Object) {
@@ -362,7 +362,7 @@ func tabletAvailableStatus(resultBuilder *results.Builder, pod *corev1.Pod, read
 	return corev1.ConditionFalse
 }
 
-func (r *ReconcileVitessShard) checkPVCDiskUpdates(ctx context.Context, tabletSpec *vttablet.Spec, pod *corev1.Pod) {
+func (r *ReconcileVitessShard) updatePVCFilesystemResizeAnnotation(ctx context.Context, tabletSpec *vttablet.Spec, pod *corev1.Pod) {
 	// If no PVC is configured for this tablet pod, bail out.
 	if tabletSpec.DataVolumePVCSpec == nil {
 		return
