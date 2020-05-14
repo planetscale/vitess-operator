@@ -176,6 +176,7 @@ func (r *ReconcileVitessShard) reconcileTablets(ctx context.Context, vts *planet
 		UpdateRollingRecreate: func(key client.ObjectKey, obj runtime.Object) {
 			newObj := obj.(*corev1.Pod)
 			tablet := tabletMap[key]
+			r.updatePVCFilesystemResizeAnnotation(ctx, tablet, newObj)
 			vttablet.UpdatePod(newObj, tablet)
 		},
 		Status: func(key client.ObjectKey, obj runtime.Object) {
@@ -381,4 +382,55 @@ func tabletAvailableStatus(resultBuilder *results.Builder, pod *corev1.Pod, read
 	// anything in the Pod status to change and trigger a watch event.
 	resultBuilder.RequeueAfter(tabletAvailableTime - readyDuration)
 	return corev1.ConditionFalse
+}
+
+func (r *ReconcileVitessShard) updatePVCFilesystemResizeAnnotation(ctx context.Context, tabletSpec *vttablet.Spec, pod *corev1.Pod) {
+	// If no PVC is configured for this tablet pod, bail out.
+	if tabletSpec.DataVolumePVCSpec == nil {
+		return
+	}
+
+	pvc := &corev1.PersistentVolumeClaim{}
+	pvcKey := client.ObjectKey{
+		Namespace: pod.Namespace,
+		Name:      tabletSpec.DataVolumePVCName,
+	}
+
+	// If a matching PVC doesn't exist for this tablet pod, bail out.
+	err := r.client.Get(ctx, pvcKey, pvc)
+	if err != nil {
+		return
+	}
+
+	// Check that the ResourceStorage entry is there in the tablet spec.
+	requestedDiskQuantity, ok := tabletSpec.DataVolumePVCSpec.Resources.Requests[corev1.ResourceStorage]
+	if !ok {
+		return
+	}
+
+	// If the PVC's spec has not been updated to equal the desired size, bail.
+	currentDiskQuantity := pvc.Spec.Resources.Requests[corev1.ResourceStorage]
+	if currentDiskQuantity.Value() != requestedDiskQuantity.Value() {
+		return
+	}
+
+	// If the matching PVC does not have the FileSystemResizePending condition, bail out.
+	if !checkPVCFileSystemResizeCondition(pvc) {
+		return
+	}
+
+	// If all checks pass, set the resize annotation.
+	tabletSpec.Annotations[pvcFilesystemResizeAnnotation] = requestedDiskQuantity.String()
+}
+
+func checkPVCFileSystemResizeCondition (pvc *corev1.PersistentVolumeClaim) bool {
+	for _, condition := range pvc.Status.Conditions {
+		if condition.Type != corev1.PersistentVolumeClaimFileSystemResizePending {
+			continue
+		}
+
+		return condition.Status == corev1.ConditionTrue
+	}
+
+	return false
 }

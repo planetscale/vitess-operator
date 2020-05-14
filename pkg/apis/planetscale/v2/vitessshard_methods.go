@@ -17,6 +17,7 @@ limitations under the License.
 package v2
 
 import (
+	"sort"
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
@@ -220,4 +221,15 @@ func (s *VitessShardStatus) DeepCopyConditions() map[VitessShardConditionType]*V
 	}
 
 	return out
+}
+
+// TabletAliases returns a sorted list of desired tablet aliases for the shard.
+func (s *VitessShardStatus) TabletAliases() []string {
+	tabletKeys := make([]string, 0, len(s.Tablets))
+	for key := range s.Tablets {
+		tabletKeys = append(tabletKeys, key)
+	}
+	sort.Strings(tabletKeys)
+
+	return tabletKeys
 }

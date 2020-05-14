@@ -2,7 +2,6 @@ package vitessshard
 
 import (
 	"context"
-	"sort"
 
 	"k8s.io/api/core/v1"
 	apilabels "k8s.io/apimachinery/pkg/labels"
@@ -24,35 +23,12 @@ func (r *ReconcileVitessShard) reconcileRollout(ctx context.Context, vts *planet
 		return resultBuilder.Result()
 	}
 
-	podList := &v1.PodList{}
-	listOpts := &client.ListOptions{
-		Namespace: vts.Namespace,
-		LabelSelector: apilabels.Set(map[string]string{
-			planetscalev2.ComponentLabel: planetscalev2.VttabletComponentName,
-			planetscalev2.ClusterLabel:   vts.Labels[planetscalev2.ClusterLabel],
-			planetscalev2.KeyspaceLabel:  vts.Labels[planetscalev2.KeyspaceLabel],
-			planetscalev2.ShardLabel:     vts.Spec.KeyRange.SafeName(),
-		}).AsSelector(),
-	}
-
-	if err := r.client.List(ctx, listOpts, podList); err != nil {
+	tabletPods, err := r.tabletPodsFromShard(ctx, vts)
+	if err != nil {
 		return resultBuilder.Error(err)
 	}
 
-	// Safety checks and rolling updates must be deterministically ordered, so we access and sort pods by tablet alias.
-	tabletPods := make(map[string]*v1.Pod)
-	for i := range podList.Items {
-		pod := &podList.Items[i]
-		tabletAlias := vttablet.AliasFromPod(pod)
-		tabletKey := topoproto.TabletAliasString(&tabletAlias)
-		tabletPods[tabletKey] = pod
-	}
-
-	tabletKeys := make([]string, 0, len(vts.Status.Tablets))
-	for key := range vts.Status.Tablets {
-		tabletKeys = append(tabletKeys, key)
-	}
-	sort.Strings(tabletKeys)
+	tabletKeys := vts.Status.TabletAliases()
 
 	for _, tabletKey := range tabletKeys {
 		tablet := vts.Status.Tablets[tabletKey]
@@ -103,6 +79,35 @@ func (r *ReconcileVitessShard) reconcileRollout(ctx context.Context, vts *planet
 	}
 
 	return resultBuilder.Result()
+}
+
+func (r *ReconcileVitessShard) tabletPodsFromShard(ctx context.Context, vts *planetscalev2.VitessShard) (map[string]*v1.Pod, error) {
+	tabletPods := make(map[string]*v1.Pod)
+
+	podList := &v1.PodList{}
+	listOpts := &client.ListOptions{
+		Namespace: vts.Namespace,
+		LabelSelector: apilabels.Set{
+			planetscalev2.ComponentLabel: planetscalev2.VttabletComponentName,
+			planetscalev2.ClusterLabel:   vts.Labels[planetscalev2.ClusterLabel],
+			planetscalev2.KeyspaceLabel:  vts.Labels[planetscalev2.KeyspaceLabel],
+			planetscalev2.ShardLabel:     vts.Spec.KeyRange.SafeName(),
+		}.AsSelector(),
+	}
+
+	if err := r.client.List(ctx, listOpts, podList); err != nil {
+		return tabletPods, err
+	}
+
+	// Safety checks and rolling updates must be deterministically ordered, so we access and sort pods by tablet alias.
+	for i := range podList.Items {
+		pod := &podList.Items[i]
+		tabletAlias := vttablet.AliasFromPod(pod)
+		tabletKey := topoproto.TabletAliasString(&tabletAlias)
+		tabletPods[tabletKey] = pod
+	}
+
+	return tabletPods, nil
 }
 
 func (r *ReconcileVitessShard) releaseTabletPod(ctx context.Context, pod *v1.Pod, deletePod bool) error {
