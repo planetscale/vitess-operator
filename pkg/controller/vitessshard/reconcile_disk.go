@@ -4,7 +4,7 @@ import (
 	"context"
 
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"vitess.io/vitess/go/vt/topo/topoproto"
@@ -55,7 +55,7 @@ func (r *ReconcileVitessShard) reconcileDisk(ctx context.Context, vts *planetsca
 			}
 
 			pvc, err := r.claimForTabletPod(ctx, pod)
-			if errors.IsNotFound(err) {
+			if apierrors.IsNotFound(err) {
 				continue
 			} else if err != nil {
 				return resultBuilder.Error(err)
@@ -81,7 +81,7 @@ func (r *ReconcileVitessShard) reconcileDisk(ctx context.Context, vts *planetsca
 
 			// If the PVC does not have the FileSystemResizeCondition, bail out.
 			if !checkPVCFileSystemResizeCondition(pvc) {
-				r.recorder.Eventf(vts, v1.EventTypeNormal, "PVCResizeWaiting", "Waiting for pvc %v to reflect the filesystem resize condition.", pvc.Name)
+				r.recorder.Eventf(vts, v1.EventTypeNormal, "PVCResizeWaiting", "Waiting for PVC %v to be ready for filesystem resize.", pvc.Name)
 				return resultBuilder.Result()
 			}
 
