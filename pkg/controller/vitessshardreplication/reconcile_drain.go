@@ -297,7 +297,7 @@ func (r *ReconcileVitessShard) reconcileDrain(ctx context.Context, vts *planetsc
 
 	var reparentErr error
 	if vts.Spec.UsingExternalDatastore() {
-		reparentErr = r.handleExternalReparent(ctx, vts, wr, newMaster.Tablet, shard.MasterAlias)
+		reparentErr = r.handleExternalReparent(ctx, vts, wr, newMaster.Alias, shard.MasterAlias)
 	} else {
 		reparentErr = wr.PlannedReparentShard(reparentCtx, keyspaceName, vts.Spec.Name, newMaster.Alias, nil, plannedReparentTimeout)
 	}
@@ -313,17 +313,12 @@ func (r *ReconcileVitessShard) reconcileDrain(ctx context.Context, vts *planetsc
 	return resultBuilder.Result()
 }
 
-func (r *ReconcileVitessShard) handleExternalReparent(ctx context.Context, vts *planetscalev2.VitessShard, wr *wrangler.Wrangler, newMasterTablet *topodatapb.Tablet, oldMasterAlias *topodatapb.TabletAlias) error {
-	err := wr.TabletManagerClient().TabletExternallyReparented(ctx, newMasterTablet, "")
+func (r *ReconcileVitessShard) handleExternalReparent(ctx context.Context, vts *planetscalev2.VitessShard, wr *wrangler.Wrangler, newMasterAlias, oldMasterAlias *topodatapb.TabletAlias) error {
+	err := wr.TabletExternallyReparented(ctx, newMasterAlias)
 
 	if err == nil {
-
-		// TODO: Create a specialized function to take the place of TER, that sets the old master as spare, rather than
-		// replica.  Currently TER sets the old master as type replica, and it does so asyncronously.  This may cause
-		// a race where we are left with the old master being of type replica, even though we try to explicitely set it to
-		// be of type spare.
-		// TODO: Related to above todo - we need a more robust way to make sure old masters definitely get set to spare.
-		// A retry may never reach this point.
+		// TODO: Remove this after all externalmaster tablets have been updated
+		// to set the -demote_master_type=SPARE flag.
 		err = wr.ChangeSlaveType(ctx, oldMasterAlias, topodatapb.TabletType_SPARE)
 	}
 
