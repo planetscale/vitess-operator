@@ -90,21 +90,13 @@ func (r *ReconcileVitessShard) tabletExternallyReparent(ctx context.Context, vts
 		return resultBuilder.Result()
 	}
 
-	// Get the tablet record from topology.
-	ti, err := wr.TopoServer().GetTablet(ctx, masterCandidateAlias)
-	if err != nil {
-		r.recorder.Eventf(vts, corev1.EventTypeWarning, "ExternalMasterShardBlocked", "can't externally reparent shard: %v", err)
-		return resultBuilder.RequeueAfter(replicationRequeueDelay)
-	}
-
-	masterCandidate := ti.Tablet
-
 	// All checks passed. Do TabletExternallyReparented.
-	if err := wr.TabletManagerClient().TabletExternallyReparented(ctx, masterCandidate, ""); err != nil {
+
+	if err := wr.TabletExternallyReparented(ctx, masterCandidateAlias); err != nil {
 		r.recorder.Eventf(vts, corev1.EventTypeWarning, "TabletExternallyReparentedFailed", "failed to externally reparent shard: %v", err)
 		return resultBuilder.RequeueAfter(replicationRequeueDelay)
 	}
 
-	r.recorder.Eventf(vts, corev1.EventTypeNormal, "TabletExternallyReparented", "Externally reparented tablet %v", topoproto.TabletAliasString(masterCandidate.Alias))
+	r.recorder.Eventf(vts, corev1.EventTypeNormal, "TabletExternallyReparented", "Externally reparented tablet %v", topoproto.TabletAliasString(masterCandidateAlias))
 	return resultBuilder.Result()
 }
