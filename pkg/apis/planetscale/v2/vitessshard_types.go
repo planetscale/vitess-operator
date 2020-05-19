@@ -91,6 +91,9 @@ type VitessShardSpec struct {
 
 	// TopologyReconciliation is inherited from the parent's VitessClusterSpec.
 	TopologyReconciliation *TopoReconcileConfig `json:"topologyReconciliation,omitempty"`
+
+	// UpdateStrategy is inherited from the parent's VitessClusterSpec.
+	UpdateStrategy *VitessClusterUpdateStrategy `json:"updateStrategy,omitempty"`
 }
 
 // VitessShardTemplate contains only the user-specified parts of a VitessShard object.

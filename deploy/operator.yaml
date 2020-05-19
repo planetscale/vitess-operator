@@ -16,7 +16,8 @@ spec:
       serviceAccountName: vitess-operator
       containers:
       - name: vitess-operator
-        image: planetscale/vitess-operator:v2.0.0
+        image: planetscale/vitess-operator:pvcparty
+        imagePullPolicy: Never
         command:
         - vitess-operator
         args:
