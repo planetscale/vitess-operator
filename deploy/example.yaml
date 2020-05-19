@@ -3,6 +3,14 @@ kind: VitessCluster
 metadata:
   name: example
 spec:
+  backup:
+    locations:
+    # If you are not enisoc, you'll need to customize this section.
+    - gcs:
+        bucket: planetscale-enisoc-dev
+        authSecret:
+          name: enisoc-dev-vitess
+          key: key.json
   cells:
   - name: gcpuswest1b
     gateway:
