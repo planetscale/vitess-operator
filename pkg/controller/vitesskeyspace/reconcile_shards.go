@@ -192,7 +192,10 @@ func updateVitessShardInPlace(key client.ObjectKey, vts *planetscalev2.VitessSha
 	newShard := newVitessShard(key, vtk, parentLabels, shard)
 
 	// For now, only disk size & annotations are safe to update in place.
-	update.ShardDiskSize(vts.Spec.TabletPools, newShard.Spec.TabletPools)
+	// However, only update disk size immediately if specified to.
+	if *vts.Spec.UpdateStrategy.DataVolumeClaimResize == planetscalev2.ImmediateDataVolumeClaimResizeType {
+		update.ShardDiskSize(vts.Spec.TabletPools, newShard.Spec.TabletPools)
+	}
 
 	// Add or remove annotations requested in vts.Spec.Annotations.
 	updateVitessShardAnnotations(vts, newShard)
