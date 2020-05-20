@@ -191,6 +191,9 @@ func updateVitessShard(key client.ObjectKey, vts *planetscalev2.VitessShard, vtk
 func updateVitessShardInPlace(key client.ObjectKey, vts *planetscalev2.VitessShard, vtk *planetscalev2.VitessKeyspace, parentLabels map[string]string, shard *planetscalev2.VitessKeyspaceKeyRangeShard) {
 	newShard := newVitessShard(key, vtk, parentLabels, shard)
 
+	// Switching update strategies should always take effect immediately.
+	vts.Spec.UpdateStrategy = newShard.Spec.UpdateStrategy
+
 	// For now, only disk size & annotations are safe to update in place.
 	// However, only update disk size immediately if specified to.
 	if *vts.Spec.UpdateStrategy.DataVolumeClaimResize == planetscalev2.ImmediateDataVolumeClaimResizeType {

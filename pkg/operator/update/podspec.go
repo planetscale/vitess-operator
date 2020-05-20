@@ -18,6 +18,8 @@ package update
 
 import (
 	corev1 "k8s.io/api/core/v1"
+
+	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 )
 
 // Volumes updates entries in 'dst' based on the values in 'src'.
@@ -247,4 +249,8 @@ srcLoop:
 		// Otherwise, append it.
 		*dst = append(*dst, *srcObj)
 	}
+}
+
+func UpdateStrategy(dst, src *planetscalev2.VitessClusterUpdateStrategy) {
+	*dst = *src
 }
