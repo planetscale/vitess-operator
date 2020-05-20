@@ -21,9 +21,12 @@ const (
 func (r *ReconcileVitessShard) reconcileDisk(ctx context.Context, vts *planetscalev2.VitessShard) (reconcile.Result, error) {
 	resultBuilder := &results.Builder{}
 
-	// If the user has specified their disk resizes to be handled externally, wait for a manual rollout to apply changes.
-	if *vts.Spec.UpdateStrategy.DataVolumeClaimResize == planetscalev2.ExternalDataVolumeClaimResizeType {
-		return resultBuilder.Result()
+	// If the UpdateStrategy type is immediate, skip checking the DataVolumeClaimResizeType.
+	if *vts.Spec.UpdateStrategy.Type != planetscalev2.ImmediateVitessClusterUpdateStrategyType {
+		// If the user has specified their disk resizes to be handled externally, wait for a manual rollout to apply changes.
+		if *vts.Spec.UpdateStrategy.DataVolumeClaimResize != planetscalev2.ImmediateDataVolumeClaimResizeType {
+			return resultBuilder.Result()
+		}
 	}
 
 	// If we're already cascading a disk size update, we don't need to look further.
