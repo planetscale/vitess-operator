@@ -136,22 +136,9 @@ type VitessClusterUpdateStrategy struct {
 	// +kubebuilder:validation:Enum=External,Immediate
 	Type *VitessClusterUpdateStrategyType `json:"type,omitempty"`
 
-	// DataVolumeClaimResize selects the strategy chosen when updating the underlying storage
-	// value in the DataVolumeClaimTemplate for a tablet pool's persistent volumes.
-	//
-	// Supported options are:
-	//
-	// - External: Schedule disk size updates on tablet pools and persistent
-	//   volume claims but wait for an external tool to release them by adding
-	//   the 'rollout.planetscale.com/released' annotation.
-	// - Immediate: Release updates to all tablet pools and persistent volume
-	//   claims as soon as the VitessCluster spec is changed. Perform rolling
-	//   restart of one tablet Pod per shard at a time, with automatic planned
-	//   reparents whenever possible to avoid master downtime.
-	//
-	// Default: External
-	// +kubebuilder:validation:Enum=External,Immediate
-	DataVolumeClaimResize *DataVolumeClaimResizeType `json:"dataVolumeClaimResize,omitempty"`
+	// ExternalOptions can optionally be used to enable the user to customize their external update strategy
+	// to allow certain updates to pass through immediately without using an external tool.
+	ExternalOptions *ExternalVitessClusterUpdateStrategyOptions `json:"external,omitempty"`
 }
 
 // VitessClusterUpdateStrategyType is a string enumeration type that enumerates
@@ -165,14 +152,16 @@ const (
 	ImmediateVitessClusterUpdateStrategyType VitessClusterUpdateStrategyType = "Immediate"
 )
 
-type DataVolumeClaimResizeType string
-
-const (
-	// ExternalDataVolumeClaimResizeType relies on an external actor to release pending updates.
-	ExternalDataVolumeClaimResizeType DataVolumeClaimResizeType = "External"
-	// ImmediateDataVolumeClaimResizeType will immediately release pending updates.
-	ImmediateDataVolumeClaimResizeType DataVolumeClaimResizeType = "Immediate"
-)
+type ExternalVitessClusterUpdateStrategyOptions struct {
+	// AllowResourceChanges can be used to allow certain resource updates to the DataVolumeClaimTemplate
+	// to be updated immediately without using an external tool.
+	//
+	// Supported options:
+	// - storage
+	//
+	// Default: Update no fields immediately.
+	AllowResourceChanges []string
+}
 
 // TopoReconcileConfig can be used to turn on or off registration or pruning of specific vitess components from topo records.
 // This should only be necessary if you need to override defaults, and shouldn't be required for the vast majority of use cases.

@@ -177,13 +177,8 @@ func DefaultUpdateStrategy(updateStratPtr **VitessClusterUpdateStrategy) {
 	updateStrat := *updateStratPtr
 
 	defaultUpdateStrategyType := ExternalVitessClusterUpdateStrategyType
-	defaultDataVolumeClaimResizeType := ExternalDataVolumeClaimResizeType
 
 	if updateStrat.Type == nil {
 		updateStrat.Type = &defaultUpdateStrategyType
-	}
-
-	if updateStrat.DataVolumeClaimResize == nil {
-		updateStrat.DataVolumeClaimResize = &defaultDataVolumeClaimResizeType
 	}
 }

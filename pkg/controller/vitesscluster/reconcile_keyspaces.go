@@ -202,8 +202,12 @@ func updateVitessKeyspaceInPlace(key client.ObjectKey, vtk *planetscalev2.Vitess
 	vtk.Spec.UpdateStrategy = newKeyspace.Spec.UpdateStrategy
 
 	// Update disk size immediately if specified to.
-	if *vtk.Spec.UpdateStrategy.DataVolumeClaimResize == planetscalev2.ImmediateDataVolumeClaimResizeType {
-		update.KeyspaceDiskSize(&vtk.Spec.VitessKeyspaceTemplate, &newKeyspace.Spec.VitessKeyspaceTemplate)
+	if *vtk.Spec.UpdateStrategy.Type == planetscalev2.ExternalVitessClusterUpdateStrategyType {
+		if vtk.Spec.UpdateStrategy.ExternalOptions != nil {
+			if vtk.Spec.UpdateStrategy.ExternalOptions.Storage() {
+				update.KeyspaceDiskSize(&vtk.Spec.VitessKeyspaceTemplate, &newKeyspace.Spec.VitessKeyspaceTemplate)
+			}
+		}
 	}
 
 	// Only update things that are safe to roll out immediately.

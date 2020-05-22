@@ -2017,6 +2017,12 @@ spec:
               description: UpdateStrategy specifies how components in the Vitess cluster
                 will be updated when a revision is made to the VitessCluster spec.
               properties:
+                external:
+                  description: ExternalOptions can optionally be used to enable the
+                    user to customize their external update strategy to allow certain
+                    updates to pass through immediately without using an external
+                    tool.
+                  type: object
                 type:
                   description: 'Type selects the overall update strategy.  Supported
                     options are:  - External: Schedule updates on objects that should

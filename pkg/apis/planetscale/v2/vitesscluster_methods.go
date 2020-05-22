@@ -69,3 +69,13 @@ func (image *MysqldImage) Flavor() string {
 		return ""
 	}
 }
+
+func (externalOptions *ExternalVitessClusterUpdateStrategyOptions) Storage() bool {
+	for _, resource := range externalOptions.AllowResourceChanges {
+		if resource == "storage" {
+			return true
+			}
+	 }
+
+	return false
+}
