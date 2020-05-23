@@ -47,4 +47,9 @@ func DefaultVitessReplicationSpec(replicationSpec *VitessReplicationSpec) {
 	if replicationSpec.InitializeBackup == nil {
 		replicationSpec.InitializeBackup = pointer.BoolPtr(true)
 	}
+
+	// Enable replication repair by default.
+	if replicationSpec.ReplicationRepair == nil {
+		replicationSpec.ReplicationRepair = pointer.BoolPtr(true)
+	}
 }

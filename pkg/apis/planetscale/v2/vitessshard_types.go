@@ -152,6 +152,12 @@ type VitessReplicationSpec struct {
 	//
 	// Default: true.
 	InitializeBackup *bool `json:"initializeBackup,omitempty"`
+
+	// ReplicationRepair specifies whether the replication repair should be executed
+	// when replica tablets have broken replication.
+	//
+	// Default: true.
+	ReplicationRepair *bool `json:"replicationRepair,omitempty"`
 }
 
 // VitessShardTabletPool defines a pool of tablets with a similar purpose.

@@ -81,6 +81,12 @@ func (r *ReconcileVitessShard) repairReplication(ctx context.Context, vts *plane
 
 	// If using external datastore then replication is handled for us.
 	if vts.Spec.UsingExternalDatastore() {
+	 	return resultBuilder.Result()
+	}
+
+	// If we have configured the operator to ignore replication repair, bail.
+	if !*vts.Spec.Replication.ReplicationRepair {
+		log.Warningf("skip replication repair for master tablet %v", vts.Status.MasterAlias)
 		return resultBuilder.Result()
 	}
 

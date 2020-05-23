@@ -1169,6 +1169,12 @@ spec:
                                           restored shard that has no master yet.  Default:
                                           true.'
                                         type: boolean
+                                      replicationRepair:
+                                        description: 'ReplicationRepair specifies
+                                          whether the replication repair should be
+                                          executed when replica tablets have broken
+                                          replication.  Default: true.'
+                                        type: boolean
                                     type: object
                                   tabletPools:
                                     description: TabletPools specify groups of tablets
@@ -1614,6 +1620,12 @@ spec:
                                       description: 'InitializeMaster specifies whether
                                         to choose an initial master for a new or restored
                                         shard that has no master yet.  Default: true.'
+                                      type: boolean
+                                    replicationRepair:
+                                      description: 'ReplicationRepair specifies whether
+                                        the replication repair should be executed
+                                        when replica tablets have broken replication.  Default:
+                                        true.'
                                       type: boolean
                                   type: object
                                 tabletPools:
