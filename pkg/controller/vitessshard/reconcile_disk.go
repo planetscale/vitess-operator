@@ -24,9 +24,9 @@ func (r *ReconcileVitessShard) reconcileDisk(ctx context.Context, vts *planetsca
 	// If the UpdateStrategy type is not immediate, check if the user has specified storage to be updated immediately.
 	if *vts.Spec.UpdateStrategy.Type != planetscalev2.ImmediateVitessClusterUpdateStrategyType {
 		// If the user has specified their disk resizes to be handled externally, wait for a manual rollout to apply changes.
-		if vts.Spec.UpdateStrategy.ExternalOptions == nil {
+		if vts.Spec.UpdateStrategy.External == nil {
 			return resultBuilder.Result()
-		} else if !vts.Spec.UpdateStrategy.ExternalOptions.Storage() {
+		} else if !vts.Spec.UpdateStrategy.External.ResourceChangesAllowed(v1.ResourceStorage) {
 			return resultBuilder.Result()
 		}
 	}
@@ -42,7 +42,7 @@ func (r *ReconcileVitessShard) reconcileDisk(ctx context.Context, vts *planetsca
 		return resultBuilder.Error(err)
 	}
 
-	for i  := range vts.Spec.TabletPools {
+	for i := range vts.Spec.TabletPools {
 		tabletPool := &vts.Spec.TabletPools[i]
 		if tabletPool.DataVolumeClaimTemplate == nil {
 			continue
@@ -108,7 +108,7 @@ func (r *ReconcileVitessShard) reconcileDisk(ctx context.Context, vts *planetsca
 		rollout.Cascade(vts)
 		err := r.client.Update(ctx, vts)
 		if err != nil {
-			 return resultBuilder.Error(err)
+			return resultBuilder.Error(err)
 		}
 	}
 
@@ -140,7 +140,7 @@ func tabletKeysForPool(vts *planetscalev2.VitessShard, poolCell string, poolType
 			return nil, err
 		}
 
-		if tablet.PoolType != string(poolType) || tabletAlias.Cell != poolCell{
+		if tablet.PoolType != string(poolType) || tabletAlias.Cell != poolCell {
 			continue
 		}
 

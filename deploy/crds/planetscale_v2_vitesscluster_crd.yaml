@@ -64,7 +64,7 @@ spec:
                     properties:
                       azblob:
                         description: Azblob specifies a backup location in Azure Blob
-                          Storage.
+                          ResourceChangesAllowed.
                         properties:
                           account:
                             description: Account is the name of the Azure storage
@@ -127,7 +127,7 @@ spec:
                         type: object
                       gcs:
                         description: GCS specifies a backup location in Google Cloud
-                          Storage.
+                          ResourceChangesAllowed.
                         properties:
                           authSecret:
                             description: 'AuthSecret is a reference to the Secret
@@ -2018,10 +2018,21 @@ spec:
                 will be updated when a revision is made to the VitessCluster spec.
               properties:
                 external:
-                  description: ExternalOptions can optionally be used to enable the
-                    user to customize their external update strategy to allow certain
-                    updates to pass through immediately without using an external
-                    tool.
+                  description: External can optionally be used to enable the user
+                    to customize their external update strategy to allow certain updates
+                    to pass through immediately without using an external tool.
+                  properties:
+                    allowResourceChanges:
+                      description: 'AllowResourceChanges can be used to allow changes
+                        to certain resource requests and limits to propagate immediately,
+                        bypassing the external rollout tool.  Supported options: -
+                        storage  Default: All resource changes wait to be released
+                        by the external rollout tool.'
+                      items:
+                        enum:
+                        - storage
+                        type: string
+                      type: array
                   type: object
                 type:
                   description: 'Type selects the overall update strategy.  Supported

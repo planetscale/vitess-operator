@@ -274,7 +274,7 @@ func (in *ExternalVitessClusterUpdateStrategyOptions) DeepCopyInto(out *External
 	*out = *in
 	if in.AllowResourceChanges != nil {
 		in, out := &in.AllowResourceChanges, &out.AllowResourceChanges
-		*out = make([]string, len(*in))
+		*out = make([]v1.ResourceName, len(*in))
 		copy(*out, *in)
 	}
 	return
@@ -1270,8 +1270,8 @@ func (in *VitessClusterUpdateStrategy) DeepCopyInto(out *VitessClusterUpdateStra
 		*out = new(VitessClusterUpdateStrategyType)
 		**out = **in
 	}
-	if in.ExternalOptions != nil {
-		in, out := &in.ExternalOptions, &out.ExternalOptions
+	if in.External != nil {
+		in, out := &in.External, &out.External
 		*out = new(ExternalVitessClusterUpdateStrategyOptions)
 		(*in).DeepCopyInto(*out)
 	}

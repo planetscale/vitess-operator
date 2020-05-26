@@ -458,7 +458,7 @@ VitessClusterStatus
 <a href="#planetscale.com/v2.VitessBackupLocation">VitessBackupLocation</a>)
 </p>
 <p>
-<p>AzblobBackupLocation specifies a backup location in Azure Blob Storage.</p>
+<p>AzblobBackupLocation specifies a backup location in Azure Blob ResourceChangesAllowed.</p>
 </p>
 <table class="table table-striped">
 <thead class="thead-dark">
@@ -1081,17 +1081,19 @@ SecretSource
 <tbody>
 <tr>
 <td>
-<code>AllowResourceChanges</code></br>
+<code>allowResourceChanges</code></br>
 <em>
-[]string
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#resourcename-v1-core">
+[]Kubernetes core/v1.ResourceName
+</a>
 </em>
 </td>
 <td>
-<p>AllowResourceChanges can be used to allow certain resource updates to the DataVolumeClaimTemplate
-to be updated immediately without using an external tool.</p>
+<p>AllowResourceChanges can be used to allow changes to certain resource
+requests and limits to propagate immediately, bypassing the external rollout tool.</p>
 <p>Supported options:
 - storage</p>
-<p>Default: Update no fields immediately.</p>
+<p>Default: All resource changes wait to be released by the external rollout tool.</p>
 </td>
 </tr>
 </tbody>
@@ -1103,7 +1105,7 @@ to be updated immediately without using an external tool.</p>
 <a href="#planetscale.com/v2.VitessBackupLocation">VitessBackupLocation</a>)
 </p>
 <p>
-<p>GCSBackupLocation specifies a backup location in Google Cloud Storage.</p>
+<p>GCSBackupLocation specifies a backup location in Google Cloud ResourceChangesAllowed.</p>
 </p>
 <table class="table table-striped">
 <thead class="thead-dark">
@@ -1785,7 +1787,7 @@ GCSBackupLocation
 </em>
 </td>
 <td>
-<p>GCS specifies a backup location in Google Cloud Storage.</p>
+<p>GCS specifies a backup location in Google Cloud ResourceChangesAllowed.</p>
 </td>
 </tr>
 <tr>
@@ -1811,7 +1813,7 @@ AzblobBackupLocation
 </em>
 </td>
 <td>
-<p>Azblob specifies a backup location in Azure Blob Storage.</p>
+<p>Azblob specifies a backup location in Azure Blob ResourceChangesAllowed.</p>
 </td>
 </tr>
 <tr>
@@ -3341,7 +3343,7 @@ ExternalVitessClusterUpdateStrategyOptions
 </em>
 </td>
 <td>
-<p>ExternalOptions can optionally be used to enable the user to customize their external update strategy
+<p>External can optionally be used to enable the user to customize their external update strategy
 to allow certain updates to pass through immediately without using an external tool.</p>
 </td>
 </tr>
