@@ -1063,6 +1063,41 @@ SecretSource
 </tr>
 </tbody>
 </table>
+<h3 id="planetscale.com/v2.ExternalVitessClusterUpdateStrategyOptions">ExternalVitessClusterUpdateStrategyOptions
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#planetscale.com/v2.VitessClusterUpdateStrategy">VitessClusterUpdateStrategy</a>)
+</p>
+<p>
+</p>
+<table class="table table-striped">
+<thead class="thead-dark">
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>allowResourceChanges</code></br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#resourcename-v1-core">
+[]Kubernetes core/v1.ResourceName
+</a>
+</em>
+</td>
+<td>
+<p>AllowResourceChanges can be used to allow changes to certain resource
+requests and limits to propagate immediately, bypassing the external rollout tool.</p>
+<p>Supported options:
+- storage</p>
+<p>Default: All resource changes wait to be released by the external rollout tool.</p>
+</td>
+</tr>
+</tbody>
+</table>
 <h3 id="planetscale.com/v2.GCSBackupLocation">GCSBackupLocation
 </h3>
 <p>
@@ -3258,7 +3293,8 @@ map[string]*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus
 <p>
 (<em>Appears on:</em>
 <a href="#planetscale.com/v2.VitessClusterSpec">VitessClusterSpec</a>, 
-<a href="#planetscale.com/v2.VitessKeyspaceSpec">VitessKeyspaceSpec</a>)
+<a href="#planetscale.com/v2.VitessKeyspaceSpec">VitessKeyspaceSpec</a>, 
+<a href="#planetscale.com/v2.VitessShardSpec">VitessShardSpec</a>)
 </p>
 <p>
 <p>VitessClusterUpdateStrategy indicates the strategy that the operator
@@ -3295,6 +3331,20 @@ restart of one tablet Pod per shard at a time, with automatic
 planned reparents whenever possible to avoid master downtime.</li>
 </ul>
 <p>Default: External</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>external</code></br>
+<em>
+<a href="#planetscale.com/v2.ExternalVitessClusterUpdateStrategyOptions">
+ExternalVitessClusterUpdateStrategyOptions
+</a>
+</em>
+</td>
+<td>
+<p>External can optionally be used to enable the user to customize their external update strategy
+to allow certain updates to pass through immediately without using an external tool.</p>
 </td>
 </tr>
 </tbody>
@@ -5184,6 +5234,19 @@ TopoReconcileConfig
 <p>TopologyReconciliation is inherited from the parent&rsquo;s VitessClusterSpec.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>updateStrategy</code></br>
+<em>
+<a href="#planetscale.com/v2.VitessClusterUpdateStrategy">
+VitessClusterUpdateStrategy
+</a>
+</em>
+</td>
+<td>
+<p>UpdateStrategy is inherited from the parent&rsquo;s VitessClusterSpec.</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -5448,6 +5511,19 @@ TopoReconcileConfig
 </td>
 <td>
 <p>TopologyReconciliation is inherited from the parent&rsquo;s VitessClusterSpec.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>updateStrategy</code></br>
+<em>
+<a href="#planetscale.com/v2.VitessClusterUpdateStrategy">
+VitessClusterUpdateStrategy
+</a>
+</em>
+</td>
+<td>
+<p>UpdateStrategy is inherited from the parent&rsquo;s VitessClusterSpec.</p>
 </td>
 </tr>
 </tbody>

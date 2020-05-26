@@ -729,6 +729,41 @@ spec:
                     registering cells aliases into topo records. Default: true'
                   type: boolean
               type: object
+            updateStrategy:
+              description: UpdateStrategy is inherited from the parent's VitessClusterSpec.
+              properties:
+                external:
+                  description: External can optionally be used to enable the user
+                    to customize their external update strategy to allow certain updates
+                    to pass through immediately without using an external tool.
+                  properties:
+                    allowResourceChanges:
+                      description: 'AllowResourceChanges can be used to allow changes
+                        to certain resource requests and limits to propagate immediately,
+                        bypassing the external rollout tool.  Supported options: -
+                        storage  Default: All resource changes wait to be released
+                        by the external rollout tool.'
+                      items:
+                        enum:
+                        - storage
+                        type: string
+                      type: array
+                  type: object
+                type:
+                  description: 'Type selects the overall update strategy.  Supported
+                    options are:  - External: Schedule updates on objects that should
+                    be updated,   but wait for an external tool to release them by
+                    adding the   ''rollout.planetscale.com/released'' annotation.
+                    - Immediate: Release updates to all cells, keyspaces, and shards   as
+                    soon as the VitessCluster spec is changed. Perform rolling   restart
+                    of one tablet Pod per shard at a time, with automatic   planned
+                    reparents whenever possible to avoid master downtime.  Default:
+                    External'
+                  enum:
+                  - External
+                  - Immediate
+                  type: string
+              type: object
             zoneMap:
               additionalProperties:
                 type: string

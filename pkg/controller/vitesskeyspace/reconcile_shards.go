@@ -169,6 +169,7 @@ func newVitessShard(key client.ObjectKey, vtk *planetscalev2.VitessKeyspace, par
 			BackupEngine:           vtk.Spec.BackupEngine,
 			ExtraVitessFlags:       vtk.Spec.ExtraVitessFlags,
 			TopologyReconciliation: vtk.Spec.TopologyReconciliation,
+			UpdateStrategy:         vtk.Spec.UpdateStrategy,
 		},
 	}
 }
@@ -190,8 +191,16 @@ func updateVitessShard(key client.ObjectKey, vts *planetscalev2.VitessShard, vtk
 func updateVitessShardInPlace(key client.ObjectKey, vts *planetscalev2.VitessShard, vtk *planetscalev2.VitessKeyspace, parentLabels map[string]string, shard *planetscalev2.VitessKeyspaceKeyRangeShard) {
 	newShard := newVitessShard(key, vtk, parentLabels, shard)
 
+	// Switching update strategies should always take effect immediately.
+	vts.Spec.UpdateStrategy = newShard.Spec.UpdateStrategy
+
 	// For now, only disk size & annotations are safe to update in place.
-	update.ShardDiskSize(vts.Spec.TabletPools, newShard.Spec.TabletPools)
+	// However, only update disk size immediately if specified to.
+	if *vts.Spec.UpdateStrategy.Type == planetscalev2.ExternalVitessClusterUpdateStrategyType {
+		if vts.Spec.UpdateStrategy.External.ResourceChangesAllowed(corev1.ResourceStorage) {
+			update.ShardDiskSize(vts.Spec.TabletPools, newShard.Spec.TabletPools)
+		}
+	}
 
 	// Add or remove annotations requested in vts.Spec.Annotations.
 	updateVitessShardAnnotations(vts, newShard)

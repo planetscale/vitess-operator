@@ -16,6 +16,10 @@ limitations under the License.
 
 package v2
 
+import (
+	corev1 "k8s.io/api/core/v1"
+)
+
 // Cell looks up an item in the Cells list by name.
 // It returns a pointer to the item, or nil if the specified cell doesn't exist.
 func (s *VitessClusterSpec) Cell(cellName string) *VitessCellTemplate {
@@ -68,4 +72,14 @@ func (image *MysqldImage) Flavor() string {
 	default:
 		return ""
 	}
+}
+
+func (externalOptions *ExternalVitessClusterUpdateStrategyOptions) ResourceChangesAllowed(resource corev1.ResourceName) bool {
+	for _, resourceOption := range externalOptions.AllowResourceChanges {
+		if resourceOption == resource {
+			return true
+		}
+	}
+
+	return false
 }

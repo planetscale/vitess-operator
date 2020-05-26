@@ -174,11 +174,16 @@ func DefaultUpdateStrategy(updateStratPtr **VitessClusterUpdateStrategy) {
 	if *updateStratPtr == nil {
 		*updateStratPtr = &VitessClusterUpdateStrategy{}
 	}
+
 	updateStrat := *updateStratPtr
 
 	defaultUpdateStrategyType := ExternalVitessClusterUpdateStrategyType
 
 	if updateStrat.Type == nil {
 		updateStrat.Type = &defaultUpdateStrategyType
+	}
+
+	if *updateStrat.Type == ExternalVitessClusterUpdateStrategyType {
+		updateStrat.External = &ExternalVitessClusterUpdateStrategyOptions{}
 	}
 }

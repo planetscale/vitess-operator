@@ -135,6 +135,10 @@ type VitessClusterUpdateStrategy struct {
 	// Default: External
 	// +kubebuilder:validation:Enum=External,Immediate
 	Type *VitessClusterUpdateStrategyType `json:"type,omitempty"`
+
+	// External can optionally be used to enable the user to customize their external update strategy
+	// to allow certain updates to pass through immediately without using an external tool.
+	External *ExternalVitessClusterUpdateStrategyOptions `json:"external,omitempty"`
 }
 
 // VitessClusterUpdateStrategyType is a string enumeration type that enumerates
@@ -147,6 +151,18 @@ const (
 	// ImmediateVitessClusterUpdateStrategyType will immediately release pending updates.
 	ImmediateVitessClusterUpdateStrategyType VitessClusterUpdateStrategyType = "Immediate"
 )
+
+type ExternalVitessClusterUpdateStrategyOptions struct {
+	// AllowResourceChanges can be used to allow changes to certain resource
+	// requests and limits to propagate immediately, bypassing the external rollout tool.
+	//
+	// Supported options:
+	// - storage
+	//
+	// Default: All resource changes wait to be released by the external rollout tool.
+	// +kubebuilder:validation:Enum=storage
+	AllowResourceChanges []corev1.ResourceName `json:"allowResourceChanges,omitempty"`
+}
 
 // TopoReconcileConfig can be used to turn on or off registration or pruning of specific vitess components from topo records.
 // This should only be necessary if you need to override defaults, and shouldn't be required for the vast majority of use cases.
