@@ -197,10 +197,8 @@ func updateVitessShardInPlace(key client.ObjectKey, vts *planetscalev2.VitessSha
 	// For now, only disk size & annotations are safe to update in place.
 	// However, only update disk size immediately if specified to.
 	if *vts.Spec.UpdateStrategy.Type == planetscalev2.ExternalVitessClusterUpdateStrategyType {
-		if vts.Spec.UpdateStrategy.External != nil {
-			if vts.Spec.UpdateStrategy.External.ResourceChangesAllowed(corev1.ResourceStorage) {
-				update.ShardDiskSize(vts.Spec.TabletPools, newShard.Spec.TabletPools)
-			}
+		if vts.Spec.UpdateStrategy.External.ResourceChangesAllowed(corev1.ResourceStorage) {
+			update.ShardDiskSize(vts.Spec.TabletPools, newShard.Spec.TabletPools)
 		}
 	}
 
