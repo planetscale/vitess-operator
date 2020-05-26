@@ -36,7 +36,7 @@ spec:
                 to the backup storage location.
               properties:
                 azblob:
-                  description: Azblob specifies a backup location in Azure Blob ResourceChangesAllowed.
+                  description: Azblob specifies a backup location in Azure Blob Storage.
                   properties:
                     account:
                       description: Account is the name of the Azure storage account
@@ -95,7 +95,7 @@ spec:
                   - authSecret
                   type: object
                 gcs:
-                  description: GCS specifies a backup location in Google Cloud ResourceChangesAllowed.
+                  description: GCS specifies a backup location in Google Cloud Storage.
                   properties:
                     authSecret:
                       description: 'AuthSecret is a reference to the Secret to use

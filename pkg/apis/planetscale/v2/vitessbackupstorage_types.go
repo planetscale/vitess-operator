@@ -63,11 +63,11 @@ type VitessBackupLocation struct {
 	// +kubebuilder:validation:MaxLength=25
 	// +kubebuilder:validation:Pattern=^[a-z0-9]([a-z0-9]*[a-z0-9])?$
 	Name string `json:"name,omitempty"`
-	// GCS specifies a backup location in Google Cloud ResourceChangesAllowed.
+	// GCS specifies a backup location in Google Cloud Storage.
 	GCS *GCSBackupLocation `json:"gcs,omitempty"`
 	// S3 specifies a backup location in Amazon S3.
 	S3 *S3BackupLocation `json:"s3,omitempty"`
-	// Azblob specifies a backup location in Azure Blob ResourceChangesAllowed.
+	// Azblob specifies a backup location in Azure Blob Storage.
 	Azblob *AzblobBackupLocation `json:"azblob,omitempty"`
 	// Volume specifies a backup location as a Kubernetes Volume Source to mount.
 	// This can be used, for example, to store backups on an NFS mount, or on
@@ -75,7 +75,7 @@ type VitessBackupLocation struct {
 	Volume *corev1.VolumeSource `json:"volume,omitempty"`
 }
 
-// GCSBackupLocation specifies a backup location in Google Cloud ResourceChangesAllowed.
+// GCSBackupLocation specifies a backup location in Google Cloud Storage.
 type GCSBackupLocation struct {
 	// Bucket is the name of the GCS bucket to use.
 	// +kubebuilder:validation:MinLength=1
@@ -121,7 +121,7 @@ type S3BackupLocation struct {
 	AuthSecret *SecretSource `json:"authSecret,omitempty"`
 }
 
-// AzblobBackupLocation specifies a backup location in Azure Blob ResourceChangesAllowed.
+// AzblobBackupLocation specifies a backup location in Azure Blob Storage.
 type AzblobBackupLocation struct {
 	// Account is the name of the Azure storage account to use.
 	// +kubebuilder:validation:MinLength=1
