@@ -85,8 +85,7 @@ func (r *ReconcileVitessShard) repairReplication(ctx context.Context, vts *plane
 	}
 
 	// If we have configured the operator to ignore replication repair, bail.
-	if !*vts.Spec.Replication.ReplicationRepair {
-		log.Warningf("skip replication repair for master tablet %v", vts.Status.MasterAlias)
+	if !*vts.Spec.Replication.RecoverRestartedMaster {
 		return resultBuilder.Result()
 	}
 

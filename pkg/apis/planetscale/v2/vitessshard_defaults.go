@@ -49,7 +49,7 @@ func DefaultVitessReplicationSpec(replicationSpec *VitessReplicationSpec) {
 	}
 
 	// Enable replication repair by default.
-	if replicationSpec.ReplicationRepair == nil {
-		replicationSpec.ReplicationRepair = pointer.BoolPtr(true)
+	if replicationSpec.RecoverRestartedMaster == nil {
+		replicationSpec.RecoverRestartedMaster = pointer.BoolPtr(true)
 	}
 }
