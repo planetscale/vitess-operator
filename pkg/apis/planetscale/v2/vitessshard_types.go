@@ -155,6 +155,13 @@ type VitessReplicationSpec struct {
 	//
 	// Default: true.
 	InitializeBackup *bool `json:"initializeBackup,omitempty"`
+
+	// RecoverRestartedMaster specifies whether the operator attempts to repair
+	// replication when the master MySQL restarts in-place (due to a crash) or
+	// its Pod gets deleted and recreated, causing the Pod IP to change.
+	//
+	// Default: true.
+	RecoverRestartedMaster *bool `json:"recoverRestartedMaster,omitempty"`
 }
 
 // VitessShardTabletPool defines a pool of tablets with a similar purpose.

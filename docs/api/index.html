@@ -5028,6 +5028,20 @@ if a backup location is defined in the VitessCluster.</p>
 <p>Default: true.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>recoverRestartedMaster</code></br>
+<em>
+bool
+</em>
+</td>
+<td>
+<p>RecoverRestartedMaster specifies whether the operator attempts to repair
+replication when the master MySQL restarts in-place (due to a crash) or
+its Pod gets deleted and recreated, causing the Pod IP to change.</p>
+<p>Default: true.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="planetscale.com/v2.VitessShard">VitessShard

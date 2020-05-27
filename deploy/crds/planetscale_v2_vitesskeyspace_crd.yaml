@@ -508,6 +508,13 @@ spec:
                                     to choose an initial master for a new or restored
                                     shard that has no master yet.  Default: true.'
                                   type: boolean
+                                recoverRestartedMaster:
+                                  description: 'RecoverRestartedMaster specifies whether
+                                    the operator attempts to repair replication when
+                                    the master MySQL restarts in-place (due to a crash)
+                                    or its Pod gets deleted and recreated, causing
+                                    the Pod IP to change.  Default: true.'
+                                  type: boolean
                               type: object
                             tabletPools:
                               description: TabletPools specify groups of tablets in
@@ -917,6 +924,13 @@ spec:
                                 description: 'InitializeMaster specifies whether to
                                   choose an initial master for a new or restored shard
                                   that has no master yet.  Default: true.'
+                                type: boolean
+                              recoverRestartedMaster:
+                                description: 'RecoverRestartedMaster specifies whether
+                                  the operator attempts to repair replication when
+                                  the master MySQL restarts in-place (due to a crash)
+                                  or its Pod gets deleted and recreated, causing the
+                                  Pod IP to change.  Default: true.'
                                 type: boolean
                             type: object
                           tabletPools:

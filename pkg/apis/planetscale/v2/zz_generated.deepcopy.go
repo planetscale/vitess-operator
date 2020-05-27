@@ -1875,6 +1875,11 @@ func (in *VitessReplicationSpec) DeepCopyInto(out *VitessReplicationSpec) {
 		*out = new(bool)
 		**out = **in
 	}
+	if in.RecoverRestartedMaster != nil {
+		in, out := &in.RecoverRestartedMaster, &out.RecoverRestartedMaster
+		*out = new(bool)
+		**out = **in
+	}
 	return
 }
 
