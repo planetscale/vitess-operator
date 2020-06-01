@@ -6,11 +6,7 @@ require (
 	github.com/Azure/go-autorest v14.0.0+incompatible // indirect
 	github.com/Azure/go-autorest/autorest v0.9.2 // indirect
 	github.com/ahmetb/gen-crd-api-reference-docs v0.1.5-0.20190629210212-52e137b8d003
-	github.com/docker/distribution v2.7.1+incompatible // indirect
-	github.com/elazarl/go-bindata-assetfs v1.0.0 // indirect
 	github.com/go-openapi/spec v0.19.4
-	github.com/golang/snappy v0.0.1 // indirect
-	github.com/gregjones/httpcache v0.0.0-20190212212710-3befbb6ad0cc // indirect
 	github.com/hashicorp/serf v0.8.3 // indirect
 	github.com/klauspost/compress v1.7.5 // indirect
 	github.com/klauspost/cpuid v1.2.1 // indirect
@@ -24,7 +20,6 @@ require (
 	k8s.io/api v0.0.0
 	k8s.io/apimachinery v0.0.0
 	k8s.io/client-go v12.0.0+incompatible
-	k8s.io/code-generator v0.17.3 // indirect
 	k8s.io/klog v1.0.0
 	k8s.io/kube-openapi v0.0.0-20191107075043-30be4d16710a
 	k8s.io/kubernetes v1.16.2
