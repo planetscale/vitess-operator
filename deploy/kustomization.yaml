@@ -4,10 +4,10 @@ resources:
 - role.yaml
 - service_account.yaml
 - priority.yaml
-- crds/planetscale.com_vitessclusters_crd.yaml
-- crds/planetscale.com_vitesscells_crd.yaml
-- crds/planetscale.com_vitesskeyspaces_crd.yaml
-- crds/planetscale.com_vitessshards_crd.yaml
-- crds/planetscale.com_vitessbackups_crd.yaml
-- crds/planetscale.com_vitessbackupstorages_crd.yaml
-- crds/planetscale.com_etcdlockservers_crd.yaml
+- crds/planetscale.com_vitessclusters.yaml
+- crds/planetscale.com_vitesscells.yaml
+- crds/planetscale.com_vitesskeyspaces.yaml
+- crds/planetscale.com_vitessshards.yaml
+- crds/planetscale.com_vitessbackups.yaml
+- crds/planetscale.com_vitessbackupstorages.yaml
+- crds/planetscale.com_etcdlockservers.yaml
