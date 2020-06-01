@@ -7,15 +7,13 @@ IMAGE:=planetscale/vitess-operator
 
 IMAGE_NAME:=$(IMAGE_REGISTRY)/$(IMAGE)
 
-OPERATOR_SDK_VERSION:=v0.16.0
-
 # Enable Go modules
 export GO111MODULE=on
 
 # Regular operator-sdk build is good for development because it does the actual
 # build outside Docker, so it uses your cached modules.
 build:
-	operator-sdk-$(OPERATOR_SDK_VERSION) build $(IMAGE_NAME):$(IMAGE_TAG) --image-build-args '--no-cache'
+	go run github.com/operator-framework/operator-sdk/cmd/operator-sdk build $(IMAGE_NAME):$(IMAGE_TAG) --image-build-args '--no-cache'
 
 # Release build is slow but self-contained (doesn't depend on anything in your
 # local machine). We use this for automated builds that we publish.
@@ -33,7 +31,7 @@ integration-test:
 	PATH="$(PWD)/tools/_bin:$(PATH)" go test -v -timeout 5m ./test/integration/... -args --logtostderr -v=6
 
 generate:
-	operator-sdk-$(OPERATOR_SDK_VERSION) generate k8s
+	go run github.com/operator-framework/operator-sdk/cmd/operator-sdk generate k8s
 	go run sigs.k8s.io/controller-tools/cmd/controller-gen crd:trivialVersions=true,maxDescLen=0 paths="./pkg/apis/planetscale/v2" output:crd:artifacts:config=./deploy/crds
 	go run github.com/ahmetb/gen-crd-api-reference-docs -api-dir ./pkg/apis -config docs/api/config.json -template-dir docs/api/template -out-file docs/api/index.html
 

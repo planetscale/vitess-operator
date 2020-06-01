@@ -6,7 +6,6 @@ require (
 	github.com/Azure/go-autorest v14.0.0+incompatible // indirect
 	github.com/Azure/go-autorest/autorest v0.9.2 // indirect
 	github.com/ahmetb/gen-crd-api-reference-docs v0.1.5-0.20190629210212-52e137b8d003
-	github.com/go-openapi/spec v0.19.4
 	github.com/hashicorp/serf v0.8.3 // indirect
 	github.com/klauspost/compress v1.7.5 // indirect
 	github.com/klauspost/cpuid v1.2.1 // indirect
@@ -21,10 +20,11 @@ require (
 	k8s.io/apimachinery v0.0.0
 	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/klog v1.0.0
-	k8s.io/kube-openapi v0.0.0-20191107075043-30be4d16710a
+	k8s.io/kube-openapi v0.0.0-20191107075043-30be4d16710a // indirect
 	k8s.io/kubernetes v1.16.2
 	k8s.io/utils v0.0.0-20191010214722-8d271d903fe4
 	sigs.k8s.io/controller-runtime v0.4.0
+	sigs.k8s.io/controller-tools v0.2.4
 	vitess.io/vitess v0.0.0-20200306210105-f569401b5c70
 )
 
