@@ -68,7 +68,7 @@ func Add(mgr manager.Manager) error {
 func newReconciler(mgr manager.Manager) (*ReconcileVitessBackupStorage, error) {
 	c := mgr.GetClient()
 	scheme := mgr.GetScheme()
-	recorder := mgr.GetRecorder(controllerName)
+	recorder := mgr.GetEventRecorderFor(controllerName)
 
 	return &ReconcileVitessBackupStorage{
 		client:     c,

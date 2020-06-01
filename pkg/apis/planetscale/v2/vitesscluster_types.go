@@ -441,8 +441,8 @@ type VitessClusterCellStatus struct {
 }
 
 // NewVitessClusterCellStatus creates a new status object with default values.
-func NewVitessClusterCellStatus() *VitessClusterCellStatus {
-	return &VitessClusterCellStatus{
+func NewVitessClusterCellStatus() VitessClusterCellStatus {
+	return VitessClusterCellStatus{
 		GatewayAvailable: corev1.ConditionUnknown,
 	}
 }
@@ -485,7 +485,7 @@ type VitessClusterKeyspaceStatus struct {
 }
 
 // NewVitessClusterKeyspaceStatus creates a new status object with default values.
-func NewVitessClusterKeyspaceStatus(spec *VitessKeyspaceTemplate) *VitessClusterKeyspaceStatus {
+func NewVitessClusterKeyspaceStatus(spec *VitessKeyspaceTemplate) VitessClusterKeyspaceStatus {
 	// Fill in the parts of keyspace status that express desired states, which
 	// we can compute from the template spec without waiting to observe
 	// anything. Typically, clients would look directly at the spec to find
@@ -501,7 +501,7 @@ func NewVitessClusterKeyspaceStatus(spec *VitessKeyspaceTemplate) *VitessCluster
 		}
 	}
 
-	return &VitessClusterKeyspaceStatus{
+	return VitessClusterKeyspaceStatus{
 		DesiredShards:  desiredShards,
 		DesiredTablets: desiredTablets,
 	}

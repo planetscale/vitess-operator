@@ -325,13 +325,13 @@ type VitessKeyspaceShardStatus struct {
 }
 
 // NewVitessKeyspaceShardStatus creates a new status object with default values.
-func NewVitessKeyspaceShardStatus(spec *VitessKeyspaceKeyRangeShard) *VitessKeyspaceShardStatus {
+func NewVitessKeyspaceShardStatus(spec *VitessKeyspaceKeyRangeShard) VitessKeyspaceShardStatus {
 	desiredTablets := int32(0)
 	for tpIndex := range spec.TabletPools {
 		desiredTablets += spec.TabletPools[tpIndex].Replicas
 	}
 
-	return &VitessKeyspaceShardStatus{
+	return VitessKeyspaceShardStatus{
 		HasMaster:      corev1.ConditionUnknown,
 		DesiredTablets: desiredTablets,
 	}

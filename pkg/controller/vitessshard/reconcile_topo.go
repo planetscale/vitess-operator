@@ -122,7 +122,9 @@ func (r *ReconcileVitessShard) pruneTablets(ctx context.Context, vts *planetscal
 			continue
 		}
 
-		if vts.Status.Tablets[name] == nil && vts.Status.OrphanedTablets[name] == nil {
+		_, desired := vts.Status.Tablets[name]
+		_, orphaned := vts.Status.OrphanedTablets[name]
+		if !desired && !orphaned {
 			// The tablet exists in topo, but not in the VitessShard spec.
 			// It's also not being kept around by a blocked turn-down.
 			// We use the Vitess wrangler (multi-step command executor) to delete the tablet.

@@ -434,8 +434,8 @@ type VitessTabletStatus struct {
 }
 
 // NewVitessTabletStatus creates a new status object with default values.
-func NewVitessTabletStatus(poolType VitessTabletPoolType, index int32) *VitessTabletStatus {
-	return &VitessTabletStatus{
+func NewVitessTabletStatus(poolType VitessTabletPoolType, index int32) VitessTabletStatus {
+	return VitessTabletStatus{
 		PoolType:        string(poolType),
 		Index:           index,
 		Running:         corev1.ConditionUnknown,
