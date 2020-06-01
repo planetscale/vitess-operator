@@ -173,7 +173,7 @@ type VitessShardTabletPool struct {
 	// The allowed types are "replica" for master-eligible replicas that serve
 	// transactional (OLTP) workloads; and "rdonly" for master-ineligible replicas
 	// (can never be promoted to master) that serve batch/analytical (OLAP) workloads.
-	// +kubebuilder:validation:Enum=replica,rdonly,externalmaster,externalreplica,externalrdonly
+	// +kubebuilder:validation:Enum=replica;rdonly;externalmaster;externalreplica;externalrdonly
 	Type VitessTabletPoolType `json:"type"`
 
 	// Replicas is the number of tablets to deploy in this pool.
@@ -334,9 +334,9 @@ type VitessShardStatus struct {
 	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
 
 	// Tablets is a summary of the status of all desired tablets in the shard.
-	Tablets map[string]*VitessTabletStatus `json:"tablets,omitempty"`
+	Tablets map[string]VitessTabletStatus `json:"tablets,omitempty"`
 	// OrphanedTablets is a list of unwanted tablets that could not be turned down.
-	OrphanedTablets map[string]*OrphanStatus `json:"orphanedTablets,omitempty"`
+	OrphanedTablets map[string]OrphanStatus `json:"orphanedTablets,omitempty"`
 
 	// Cells is a list of cells in which any tablets for this shard are deployed.
 	Cells []string `json:"cells,omitempty"`
@@ -357,7 +357,7 @@ type VitessShardStatus struct {
 
 	// Conditions is a map of all VitessShard specific conditions we want to set and monitor.
 	// It's ok for multiple controllers to add conditions here, and those conditions will be preserved.
-	Conditions map[VitessShardConditionType]*VitessShardCondition `json:"conditions,omitempty"`
+	Conditions map[VitessShardConditionType]VitessShardCondition `json:"conditions,omitempty"`
 
 	// MasterAlias is the tablet alias of the master according to the global
 	// shard record. This could be empty either because there is no master,
@@ -384,7 +384,7 @@ type VitessShardConditionType string
 type VitessShardCondition struct {
 	// Status is the status of the condition.
 	// Can be True, False, Unknown.
-	// +kubebuilder:validation:Enum=True,False,Unknown
+	// +kubebuilder:validation:Enum=True;False;Unknown
 	Status corev1.ConditionStatus `json:"status"`
 	// Last time the condition transitioned from one status to another.
 	// Optional.
@@ -400,12 +400,12 @@ type VitessShardCondition struct {
 // NewVitessShardStatus creates a new status object with default values.
 func NewVitessShardStatus() VitessShardStatus {
 	return VitessShardStatus{
-		Tablets:          make(map[string]*VitessTabletStatus),
-		OrphanedTablets:  make(map[string]*OrphanStatus),
+		Tablets:          make(map[string]VitessTabletStatus),
+		OrphanedTablets:  make(map[string]OrphanStatus),
 		HasMaster:        corev1.ConditionUnknown,
 		HasInitialBackup: corev1.ConditionUnknown,
 		Idle:             corev1.ConditionUnknown,
-		Conditions:       make(map[VitessShardConditionType]*VitessShardCondition),
+		Conditions:       make(map[VitessShardConditionType]VitessShardCondition),
 	}
 }
 

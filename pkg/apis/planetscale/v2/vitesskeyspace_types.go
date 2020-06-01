@@ -161,7 +161,7 @@ type VitessKeyspaceTemplate struct {
 	// you can set the policy to Immediate to skip these checks.
 	//
 	// Default: RequireIdle
-	// +kubebuilder:validation:Enum=RequireIdle,Immediate
+	// +kubebuilder:validation:Enum=RequireIdle;Immediate
 	TurndownPolicy VitessKeyspaceTurndownPolicy `json:"turndownPolicy,omitempty"`
 }
 
@@ -281,9 +281,9 @@ type VitessKeyspaceStatus struct {
 	// The generation observed by the controller.
 	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
 	// Shards is a summary of the status of all desired shards.
-	Shards map[string]*VitessKeyspaceShardStatus `json:"shards,omitempty"`
+	Shards map[string]VitessKeyspaceShardStatus `json:"shards,omitempty"`
 	// OrphanedShards is a list of unwanted shards that could not be turned down.
-	OrphanedShards map[string]*OrphanStatus `json:"orphanedShards,omitempty"`
+	OrphanedShards map[string]OrphanStatus `json:"orphanedShards,omitempty"`
 	// Idle is a condition indicating whether the keyspace can be turned down.
 	// If Idle is True, the keyspace is not deployed in any cells, so it should
 	// be safe to turn down the keyspace.
@@ -293,8 +293,8 @@ type VitessKeyspaceStatus struct {
 // NewVitessKeyspaceStatus creates a new status object with default values.
 func NewVitessKeyspaceStatus() VitessKeyspaceStatus {
 	return VitessKeyspaceStatus{
-		Shards:         make(map[string]*VitessKeyspaceShardStatus),
-		OrphanedShards: make(map[string]*OrphanStatus),
+		Shards:         make(map[string]VitessKeyspaceShardStatus),
+		OrphanedShards: make(map[string]OrphanStatus),
 		Idle:           corev1.ConditionUnknown,
 	}
 }

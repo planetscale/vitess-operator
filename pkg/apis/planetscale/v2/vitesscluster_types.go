@@ -131,7 +131,7 @@ type VitessClusterUpdateStrategy struct {
 	//   planned reparents whenever possible to avoid master downtime.
 	//
 	// Default: External
-	// +kubebuilder:validation:Enum=External,Immediate
+	// +kubebuilder:validation:Enum=External;Immediate
 	Type *VitessClusterUpdateStrategyType `json:"type,omitempty"`
 
 	// External can optionally be used to enable the user to customize their external update strategy
@@ -280,7 +280,7 @@ type ClusterBackupSpec struct {
 	// from one tablet in each shard. Otherwise, new tablets trying to restore
 	// will find that the latest backup was created with the wrong engine.
 	// Default: builtin
-	// +kubebuilder:validation:Enum=builtin,xtrabackup
+	// +kubebuilder:validation:Enum=builtin;xtrabackup
 	Engine VitessBackupEngine `json:"engine,omitempty"`
 }
 
@@ -408,14 +408,14 @@ type VitessClusterStatus struct {
 	VitessDashboard VitessDashboardStatus `json:"vitessDashboard,omitempty"`
 
 	// Cells is a summary of the status of desired cells.
-	Cells map[string]*VitessClusterCellStatus `json:"cells,omitempty"`
+	Cells map[string]VitessClusterCellStatus `json:"cells,omitempty"`
 	// Keyspaces is a summary of the status of desired keyspaces.
-	Keyspaces map[string]*VitessClusterKeyspaceStatus `json:"keyspaces,omitempty"`
+	Keyspaces map[string]VitessClusterKeyspaceStatus `json:"keyspaces,omitempty"`
 
 	// OrphanedCells is a list of unwanted cells that could not be turned down.
-	OrphanedCells map[string]*OrphanStatus `json:"orphanedCells,omitempty"`
+	OrphanedCells map[string]OrphanStatus `json:"orphanedCells,omitempty"`
 	// OrphanedKeyspaces is a list of unwanted keyspaces that could not be turned down.
-	OrphanedKeyspaces map[string]*OrphanStatus `json:"orphanedKeyspaces,omitempty"`
+	OrphanedKeyspaces map[string]OrphanStatus `json:"orphanedKeyspaces,omitempty"`
 }
 
 // NewVitessClusterStatus creates a new status object with default values.
@@ -424,10 +424,10 @@ func NewVitessClusterStatus() VitessClusterStatus {
 		VitessDashboard: VitessDashboardStatus{
 			Available: corev1.ConditionUnknown,
 		},
-		Cells:             make(map[string]*VitessClusterCellStatus),
-		Keyspaces:         make(map[string]*VitessClusterKeyspaceStatus),
-		OrphanedCells:     make(map[string]*OrphanStatus),
-		OrphanedKeyspaces: make(map[string]*OrphanStatus),
+		Cells:             make(map[string]VitessClusterCellStatus),
+		Keyspaces:         make(map[string]VitessClusterKeyspaceStatus),
+		OrphanedCells:     make(map[string]OrphanStatus),
+		OrphanedKeyspaces: make(map[string]OrphanStatus),
 	}
 }
 
