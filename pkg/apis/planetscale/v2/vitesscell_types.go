@@ -37,7 +37,6 @@ import (
 // just like a Node does not own the Pods deployed on it. In addition, each
 // VitessKeyspace can deploy Vitess instances in multiple VitessCells,
 // just like a Deployment can manage Pods that run on multiple Nodes.
-// +k8s:openapi-gen=true
 // +kubebuilder:resource:path=vitesscells,shortName=vtc
 // +kubebuilder:subresource:status
 type VitessCell struct {
@@ -49,7 +48,6 @@ type VitessCell struct {
 }
 
 // VitessCellSpec defines the desired state of a VitessCell.
-// +k8s:openapi-gen=true
 type VitessCellSpec struct {
 	// VitessCellTemplate contains the user-specified parts of VitessCellSpec.
 	// These are the parts that are configurable inside VitessCluster.
@@ -224,7 +222,6 @@ type VitessCellGatewayStatus struct {
 }
 
 // VitessCellStatus defines the observed state of VitessCell
-// +k8s:openapi-gen=true
 type VitessCellStatus struct {
 	// The generation observed by the controller.
 	ObservedGeneration int64 `json:"observedGeneration,omitempty"`

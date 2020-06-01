@@ -32,7 +32,6 @@ import (
 // These objects are created automatically by the VitessBackupStorage controller
 // to provide access to backup metadata from Kubernetes. Each backup found in
 // the storage location will be represented by its own VitessBackup object.
-// +k8s:openapi-gen=true
 // +kubebuilder:resource:path=vitessbackups,shortName=vtb
 type VitessBackup struct {
 	metav1.TypeMeta   `json:",inline"`
@@ -43,12 +42,10 @@ type VitessBackup struct {
 }
 
 // VitessBackupSpec defines the desired state of the backup.
-// +k8s:openapi-gen=true
 type VitessBackupSpec struct {
 }
 
 // VitessBackupStatus describes the observed state of the backup.
-// +k8s:openapi-gen=true
 type VitessBackupStatus struct {
 	// StartTime is the time when the backup started.
 	StartTime metav1.Time `json:"startTime,omitempty"`

@@ -15,8 +15,8 @@ from pre-built images.
 
 ### Prerequisites
 
-Install [Operator SDK](https://github.com/operator-framework/operator-sdk/blob/master/doc/user/install-operator-sdk.md)
-version 0.10.0 and rename it to `operator-sdk-v0.10.0` in your path.
+Download [Operator SDK v0.16.0](https://github.com/operator-framework/operator-sdk/releases/tag/v0.16.0)
+and rename it to `operator-sdk-v0.16.0` in your path.
 We include the version in the file name to ensure that builds will fail if the
 installed version is incorrect.
 

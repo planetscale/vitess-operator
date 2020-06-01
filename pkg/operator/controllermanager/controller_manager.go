@@ -8,7 +8,7 @@ import (
 	"k8s.io/client-go/rest"
 
 	"sigs.k8s.io/controller-runtime/pkg/manager"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
 	"planetscale.dev/vitess-operator/pkg/controller"
 	vbssubcontroller "planetscale.dev/vitess-operator/pkg/controller/vitessbackupstorage/subcontroller"

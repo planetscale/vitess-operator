@@ -31,7 +31,6 @@ import (
 // Each keyspace consists of a number of shards, which then consist of tablets.
 // The tablets belonging to one VitessKeyspace can ultimately be deployed across
 // various VitessCells.
-// +k8s:openapi-gen=true
 // +kubebuilder:resource:path=vitesskeyspaces,shortName=vtk
 // +kubebuilder:subresource:status
 type VitessKeyspace struct {
@@ -43,7 +42,6 @@ type VitessKeyspace struct {
 }
 
 // VitessKeyspaceSpec defines the desired state of a VitessKeyspace.
-// +k8s:openapi-gen=true
 type VitessKeyspaceSpec struct {
 	// VitessKeyspaceTemplate contains the user-specified parts of VitessKeyspaceSpec.
 	// These are the parts that are configurable inside VitessCluster.
@@ -279,7 +277,6 @@ type VitessKeyRange struct {
 }
 
 // VitessKeyspaceStatus defines the observed state of a VitessKeyspace.
-// +k8s:openapi-gen=true
 type VitessKeyspaceStatus struct {
 	// The generation observed by the controller.
 	ObservedGeneration int64 `json:"observedGeneration,omitempty"`

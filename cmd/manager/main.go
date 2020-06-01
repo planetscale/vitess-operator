@@ -22,15 +22,17 @@ import (
 	"fmt"
 	"os"
 	goruntime "runtime"
+	"strings"
 	"time"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
+	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
-	"sigs.k8s.io/controller-runtime/pkg/runtime/signals"
+	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	"github.com/operator-framework/operator-sdk/pkg/leader"
@@ -38,6 +40,7 @@ import (
 
 	"planetscale.dev/vitess-operator/pkg/operator/controllermanager"
 	"planetscale.dev/vitess-operator/pkg/operator/fork"
+	"planetscale.dev/vitess-operator/version"
 )
 
 var (
@@ -52,6 +55,7 @@ var (
 var log = logf.Log.WithName("manager")
 
 func printVersion() {
+	log.Info(fmt.Sprintf("Operator Version: %s", version.Version))
 	log.Info(fmt.Sprintf("Go Version: %s", goruntime.Version()))
 	log.Info(fmt.Sprintf("Go OS/Arch: %s/%s", goruntime.GOOS, goruntime.GOARCH))
 	log.Info(fmt.Sprintf("Version of operator-sdk: %v", sdkVersion.Version))
@@ -91,11 +95,20 @@ func main() {
 		}
 	}
 
-	mgr, err := controllermanager.New(forkPath, cfg, manager.Options{
+	options := manager.Options{
 		Namespace:          namespace,
 		SyncPeriod:         cacheInvalidateInterval,
 		MetricsBindAddress: fmt.Sprintf("%s:%d", metricsHost, metricsPort),
-	})
+	}
+	// Add support for MultiNamespace set in WATCH_NAMESPACE (e.g ns1,ns2)
+	// Note that this is not intended to be used for excluding namespaces, this is better done via a Predicate
+	// Also note that you may face performance issues when using this with a high number of namespaces.
+	// More Info: https://godoc.org/github.com/kubernetes-sigs/controller-runtime/pkg/cache#MultiNamespacedCacheBuilder
+	if strings.Contains(namespace, ",") {
+		options.Namespace = ""
+		options.NewCache = cache.MultiNamespacedCacheBuilder(strings.Split(namespace, ","))
+	}
+	mgr, err := controllermanager.New(forkPath, cfg, options)
 	if err != nil {
 		log.Error(err, "")
 		os.Exit(1)

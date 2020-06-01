@@ -7,7 +7,7 @@ IMAGE:=planetscale/vitess-operator
 
 IMAGE_NAME:=$(IMAGE_REGISTRY)/$(IMAGE)
 
-OPERATOR_SDK_VERSION:=v0.10.0
+OPERATOR_SDK_VERSION:=v0.16.0
 
 # Enable Go modules
 export GO111MODULE=on

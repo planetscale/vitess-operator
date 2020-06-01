@@ -37,7 +37,6 @@ import (
 // object to get more details on the status of that cell than are summarized in the
 // VitessCluster status, but any configuration changes should only be made in
 // the VitessCluster object.
-// +k8s:openapi-gen=true
 // +kubebuilder:resource:path=vitessclusters,shortName=vt
 // +kubebuilder:subresource:status
 type VitessCluster struct {
@@ -49,7 +48,6 @@ type VitessCluster struct {
 }
 
 // VitessClusterSpec defines the desired state of VitessCluster.
-// +k8s:openapi-gen=true
 type VitessClusterSpec struct {
 	// Images specifies the container images (including version tag) to use
 	// in the cluster.
@@ -396,7 +394,6 @@ type VitessDashboardStatus struct {
 }
 
 // VitessClusterStatus defines the observed state of VitessCluster
-// +k8s:openapi-gen=true
 type VitessClusterStatus struct {
 	// The generation observed by the controller.
 	ObservedGeneration int64 `json:"observedGeneration,omitempty"`

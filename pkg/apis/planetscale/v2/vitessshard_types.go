@@ -34,7 +34,6 @@ import (
 // various VitessCells. All the tablets in a given shard, across all cells,
 // use MySQL replication to stay eventually consistent with the MySQL master
 // for that shard.
-// +k8s:openapi-gen=true
 // +kubebuilder:resource:path=vitessshards,shortName=vts
 // +kubebuilder:subresource:status
 type VitessShard struct {
@@ -46,7 +45,6 @@ type VitessShard struct {
 }
 
 // VitessShardSpec defines the desired state of a VitessShard.
-// +k8s:openapi-gen=true
 type VitessShardSpec struct {
 	// VitessShardTemplate contains the user-specified parts of VitessShardSpec.
 	// These are the parts that are configurable inside VitessCluster.
@@ -331,7 +329,6 @@ type ExternalDatastore struct {
 }
 
 // VitessShardStatus defines the observed state of a VitessShard.
-// +k8s:openapi-gen=true
 type VitessShardStatus struct {
 	// The generation observed by the controller.
 	ObservedGeneration int64 `json:"observedGeneration,omitempty"`

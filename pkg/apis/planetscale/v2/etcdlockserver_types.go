@@ -35,7 +35,6 @@ import (
 // loss, which is important for Vitess because restoring from an etcd backup
 // (resetting the lockserver to a point in the past) would violate the
 // consistency model that Vitess expects of a lockserver.
-// +k8s:openapi-gen=true
 // +kubebuilder:resource:path=etcdlockservers,shortName=etcdls
 // +kubebuilder:subresource:status
 type EtcdLockserver struct {
@@ -47,7 +46,6 @@ type EtcdLockserver struct {
 }
 
 // EtcdLockserverSpec defines the desired state of an EtcdLockserver.
-// +k8s:openapi-gen=true
 type EtcdLockserverSpec struct {
 	// EtcdLockserverTemplate contains the user-specified parts of EtcdLockserverSpec.
 	// These are the parts that are configurable inside VitessCluster.
@@ -179,7 +177,6 @@ type EtcdLockserverTemplate struct {
 }
 
 // EtcdLockserverStatus defines the observed state of an EtcdLockserver.
-// +k8s:openapi-gen=true
 type EtcdLockserverStatus struct {
 	// The generation observed by the controller.
 	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
