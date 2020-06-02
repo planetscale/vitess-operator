@@ -168,29 +168,31 @@ func (s *VitessShardSpec) CellInCluster(cellName string) bool {
 // we update the status and update the transition time.
 func (s *VitessShardStatus) SetConditionStatus(condType VitessShardConditionType, newStatus corev1.ConditionStatus, reason, message string) {
 	if s.Conditions == nil {
-		s.Conditions = make(map[VitessShardConditionType]*VitessShardCondition)
+		s.Conditions = make(map[VitessShardConditionType]VitessShardCondition)
 	}
 
-	if s.Conditions[condType] == nil {
-		s.Conditions[condType] = NewVitessShardCondition()
+	cond, ok := s.Conditions[condType]
+	if !ok {
+		cond = NewVitessShardCondition()
 	}
 
 	// We should update reason and message regardless of whether the status type is different.
-	s.Conditions[condType].Reason = reason
-	s.Conditions[condType].Message = message
-	if s.Conditions[condType].Status == newStatus {
-		return
+	cond.Reason = reason
+	cond.Message = message
+
+	if cond.Status != newStatus {
+		now := metav1.NewTime(time.Now())
+		cond.Status = newStatus
+		cond.LastTransitionTime = &now
 	}
 
-	now := metav1.NewTime(time.Now())
-	s.Conditions[condType].Status = newStatus
-	s.Conditions[condType].LastTransitionTime = &now
+	s.Conditions[condType] = cond
 }
 
 // NewVitessShardCondition returns an init VitessShardCondition object.
-func NewVitessShardCondition() *VitessShardCondition {
+func NewVitessShardCondition() VitessShardCondition {
 	now := metav1.NewTime(time.Now())
-	return &VitessShardCondition{
+	return VitessShardCondition{
 		Status:             corev1.ConditionUnknown,
 		LastTransitionTime: &now,
 		Reason:             "",
@@ -210,14 +212,14 @@ func (c *VitessShardCondition) StatusDuration() time.Duration {
 }
 
 // DeepCopyConditions deep copies the conditions map for VitessShardStatus.
-func (s *VitessShardStatus) DeepCopyConditions() map[VitessShardConditionType]*VitessShardCondition {
+func (s *VitessShardStatus) DeepCopyConditions() map[VitessShardConditionType]VitessShardCondition {
 	if s == nil {
 		return nil
 	}
-	out := make(map[VitessShardConditionType]*VitessShardCondition, len(s.Conditions))
+	out := make(map[VitessShardConditionType]VitessShardCondition, len(s.Conditions))
 
 	for key, val := range s.Conditions {
-		out[key] = val.DeepCopy()
+		out[key] = *val.DeepCopy()
 	}
 
 	return out

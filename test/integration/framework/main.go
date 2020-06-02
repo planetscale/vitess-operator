@@ -67,6 +67,13 @@ spec:
     - vitess-operator
 `
 
+const defaultNamespace = `
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: default
+`
+
 const defaultServiceAccount = `
 apiVersion: v1
 kind: ServiceAccount
@@ -129,6 +136,10 @@ func testMain(tests func() int) error {
 			return fmt.Errorf("timed out waiting for kube-apiserver to be ready: %v\n%s", kubectlErr, out)
 		}
 		time.Sleep(time.Second)
+	}
+
+	if out, err := execKubectlStdin(strings.NewReader(defaultNamespace), "apply", "-f", "-"); err != nil {
+		return fmt.Errorf("cannot create default Namespace: %v\n%s", err, out)
 	}
 
 	// Create a default ServiceAccount. We have to do this in order to make the

@@ -94,8 +94,9 @@ func (r *ReconcileVitessKeyspace) reconcileShards(ctx context.Context, vtk *plan
 		},
 		Status: func(key client.ObjectKey, obj runtime.Object) {
 			curObj := obj.(*planetscalev2.VitessShard)
+			keyRange := curObj.Spec.KeyRange.String()
 
-			status := vtk.Status.Shards[curObj.Spec.KeyRange.String()]
+			status := vtk.Status.Shards[keyRange]
 			status.Cells = curObj.Status.Cells
 			if curObj.Status.HasMaster != "" {
 				status.HasMaster = curObj.Status.HasMaster
@@ -113,10 +114,11 @@ func (r *ReconcileVitessKeyspace) reconcileShards(ctx context.Context, vtk *plan
 					status.UpdatedTablets++
 				}
 			}
+			vtk.Status.Shards[keyRange] = status
 		},
 		OrphanStatus: func(key client.ObjectKey, obj runtime.Object, orphanStatus *planetscalev2.OrphanStatus) {
 			curObj := obj.(*planetscalev2.VitessShard)
-			vtk.Status.OrphanedShards[curObj.Spec.Name] = orphanStatus
+			vtk.Status.OrphanedShards[curObj.Spec.Name] = *orphanStatus
 		},
 		PrepareForTurndown: func(key client.ObjectKey, obj runtime.Object) *planetscalev2.OrphanStatus {
 			// Make sure it's ok to delete this shard.

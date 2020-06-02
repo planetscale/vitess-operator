@@ -109,10 +109,12 @@ func (r *ReconcileVitessCluster) reconcileKeyspaces(ctx context.Context, vt *pla
 				status.Cells = append(status.Cells, cell)
 			}
 			sort.Strings(status.Cells)
+
+			vt.Status.Keyspaces[curObj.Spec.Name] = status
 		},
 		OrphanStatus: func(key client.ObjectKey, obj runtime.Object, orphanStatus *planetscalev2.OrphanStatus) {
 			curObj := obj.(*planetscalev2.VitessKeyspace)
-			vt.Status.OrphanedKeyspaces[curObj.Spec.Name] = orphanStatus
+			vt.Status.OrphanedKeyspaces[curObj.Spec.Name] = *orphanStatus
 		},
 		PrepareForTurndown: func(key client.ObjectKey, obj runtime.Object) *planetscalev2.OrphanStatus {
 			curObj := obj.(*planetscalev2.VitessKeyspace)

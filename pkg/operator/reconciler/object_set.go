@@ -69,7 +69,7 @@ func (r *Reconciler) ReconcileObjectSet(ctx context.Context, owner runtime.Objec
 		Namespace:     ownerMeta.GetNamespace(),
 		LabelSelector: apilabels.SelectorFromSet(apilabels.Set(labels)),
 	}
-	if err := r.client.List(ctx, listOpts, listObj); err != nil {
+	if err := r.client.List(ctx, listObj, listOpts); err != nil {
 		r.recorder.Eventf(owner, corev1.EventTypeWarning, "ListFailed", "failed to list %v objects: %v", gvk.Kind, err)
 		return err
 	}

@@ -201,7 +201,7 @@ func (f *Fixture) ExpectPods(listOpts *client.ListOptions, expectedCount int) *c
 	condition := fmt.Sprintf("%v Pods matching %v to exist", expectedCount, listOpts)
 	f.WaitFor(condition, func() error {
 		pods = &corev1.PodList{}
-		if err := f.client.List(f.ctx, listOpts, pods); err != nil {
+		if err := f.client.List(f.ctx, pods, listOpts); err != nil {
 			return err
 		}
 		if got, want := len(pods.Items), expectedCount; got != want {

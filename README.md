@@ -13,13 +13,6 @@ This secton describes how to build your own Vitess Operator binaries and images.
 See the Getting Started guides above if you just want to deploy Vitess Operator
 from pre-built images.
 
-### Prerequisites
-
-Install [Operator SDK](https://github.com/operator-framework/operator-sdk/blob/master/doc/user/install-operator-sdk.md)
-version 0.10.0 and rename it to `operator-sdk-v0.10.0` in your path.
-We include the version in the file name to ensure that builds will fail if the
-installed version is incorrect.
-
 ### Build Docker image
 
 From this directory, run:

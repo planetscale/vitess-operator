@@ -37,7 +37,6 @@ import (
 // just like a Node does not own the Pods deployed on it. In addition, each
 // VitessKeyspace can deploy Vitess instances in multiple VitessCells,
 // just like a Deployment can manage Pods that run on multiple Nodes.
-// +k8s:openapi-gen=true
 // +kubebuilder:resource:path=vitesscells,shortName=vtc
 // +kubebuilder:subresource:status
 type VitessCell struct {
@@ -49,7 +48,6 @@ type VitessCell struct {
 }
 
 // VitessCellSpec defines the desired state of a VitessCell.
-// +k8s:openapi-gen=true
 type VitessCellSpec struct {
 	// VitessCellTemplate contains the user-specified parts of VitessCellSpec.
 	// These are the parts that are configurable inside VitessCluster.
@@ -147,6 +145,7 @@ type VitessCellGatewaySpec struct {
 	// Note that when adding a new volume, you should usually also add a
 	// volumeMount to specify where in each container's filesystem the volume
 	// should be mounted.
+	// +kubebuilder:validation:EmbeddedResource
 	ExtraVolumes []corev1.Volume `json:"extraVolumes,omitempty"`
 
 	// ExtraVolumeMounts can optionally be used to override default Pod
@@ -156,16 +155,19 @@ type VitessCellGatewaySpec struct {
 
 	// InitContainers can optionally be used to supply extra init containers
 	// that will be run to completion one after another before any app containers are started.
+	// +kubebuilder:validation:EmbeddedResource
 	InitContainers []corev1.Container `json:"initContainers,omitempty"`
 
 	// SidecarContainers can optionally be used to supply extra containers
 	// that run alongside the main containers.
+	// +kubebuilder:validation:EmbeddedResource
 	SidecarContainers []corev1.Container `json:"sidecarContainers,omitempty"`
 
 	// Affinity allows you to set rules that constrain the scheduling of
 	// your vtgate pods. WARNING: These affinity rules will override all default affinities
 	// that we set; in turn, we can't guarantee optimal scheduling of your pods if you
 	// choose to set this field.
+	// +kubebuilder:validation:EmbeddedResource
 	Affinity *corev1.Affinity `json:"affinity,omitempty"`
 
 	// Annotations can optionally be used to attach custom annotations to Pods
@@ -224,7 +226,6 @@ type VitessCellGatewayStatus struct {
 }
 
 // VitessCellStatus defines the observed state of VitessCell
-// +k8s:openapi-gen=true
 type VitessCellStatus struct {
 	// The generation observed by the controller.
 	ObservedGeneration int64 `json:"observedGeneration,omitempty"`

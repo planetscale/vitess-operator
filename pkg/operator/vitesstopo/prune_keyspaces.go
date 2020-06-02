@@ -40,7 +40,7 @@ type PruneKeyspacesParams struct {
 	// Keyspaces is a current list of KeySpaceTemplates from the cluster spec.
 	Keyspaces []planetscalev2.VitessKeyspaceTemplate
 	// OrphanedKeyspaces is a list of unwanted keyspaces that could not be turned down.
-	OrphanedKeyspaces map[string]*planetscalev2.OrphanStatus
+	OrphanedKeyspaces map[string]planetscalev2.OrphanStatus
 }
 
 // PruneKeyspaces will prune keyspaces that exist but shouldn't anymore.
@@ -69,11 +69,12 @@ func PruneKeyspaces(ctx context.Context, p PruneKeyspacesParams) (reconcile.Resu
 }
 
 // KeyspacesToPrune returns a list of keyspace candidates for pruning, based on a provided list of keyspaces to consider.
-func KeyspacesToPrune(keyspaceNames []string, desiredKeyspaces sets.String, orphanedKeyspaces map[string]*planetscalev2.OrphanStatus) []string {
+func KeyspacesToPrune(keyspaceNames []string, desiredKeyspaces sets.String, orphanedKeyspaces map[string]planetscalev2.OrphanStatus) []string {
 	var candidates []string
 
 	for _, name := range keyspaceNames {
-		if !desiredKeyspaces.Has(name) && orphanedKeyspaces[name] == nil {
+		_, orphaned := orphanedKeyspaces[name]
+		if !desiredKeyspaces.Has(name) && !orphaned {
 			// The keyspace exists in topo, but not in the VT spec.
 			// It's also not being kept around by a blocked turn-down.
 			// We should add it to the list of candidates to prune.

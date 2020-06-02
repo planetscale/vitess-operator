@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/pflag"
 
 	"k8s.io/klog"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
 	"github.com/operator-framework/operator-sdk/pkg/log/zap"
 

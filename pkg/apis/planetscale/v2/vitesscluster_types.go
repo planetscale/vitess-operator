@@ -37,7 +37,6 @@ import (
 // object to get more details on the status of that cell than are summarized in the
 // VitessCluster status, but any configuration changes should only be made in
 // the VitessCluster object.
-// +k8s:openapi-gen=true
 // +kubebuilder:resource:path=vitessclusters,shortName=vt
 // +kubebuilder:subresource:status
 type VitessCluster struct {
@@ -49,7 +48,6 @@ type VitessCluster struct {
 }
 
 // VitessClusterSpec defines the desired state of VitessCluster.
-// +k8s:openapi-gen=true
 type VitessClusterSpec struct {
 	// Images specifies the container images (including version tag) to use
 	// in the cluster.
@@ -133,7 +131,7 @@ type VitessClusterUpdateStrategy struct {
 	//   planned reparents whenever possible to avoid master downtime.
 	//
 	// Default: External
-	// +kubebuilder:validation:Enum=External,Immediate
+	// +kubebuilder:validation:Enum=External;Immediate
 	Type *VitessClusterUpdateStrategyType `json:"type,omitempty"`
 
 	// External can optionally be used to enable the user to customize their external update strategy
@@ -160,7 +158,6 @@ type ExternalVitessClusterUpdateStrategyOptions struct {
 	// - storage
 	//
 	// Default: All resource changes wait to be released by the external rollout tool.
-	// +kubebuilder:validation:Enum=storage
 	AllowResourceChanges []corev1.ResourceName `json:"allowResourceChanges,omitempty"`
 }
 
@@ -282,7 +279,7 @@ type ClusterBackupSpec struct {
 	// from one tablet in each shard. Otherwise, new tablets trying to restore
 	// will find that the latest backup was created with the wrong engine.
 	// Default: builtin
-	// +kubebuilder:validation:Enum=builtin,xtrabackup
+	// +kubebuilder:validation:Enum=builtin;xtrabackup
 	Engine VitessBackupEngine `json:"engine,omitempty"`
 }
 
@@ -355,6 +352,7 @@ type VitessDashboardSpec struct {
 	// Note that when adding a new volume, you should usually also add a
 	// volumeMount to specify where in each container's filesystem the volume
 	// should be mounted.
+	// +kubebuilder:validation:EmbeddedResource
 	ExtraVolumes []corev1.Volume `json:"extraVolumes,omitempty"`
 
 	// ExtraVolumeMounts can optionally be used to override default Pod
@@ -364,16 +362,19 @@ type VitessDashboardSpec struct {
 
 	// InitContainers can optionally be used to supply extra init containers
 	// that will be run to completion one after another before any app containers are started.
+	// +kubebuilder:validation:EmbeddedResource
 	InitContainers []corev1.Container `json:"initContainers,omitempty"`
 
 	// SidecarContainers can optionally be used to supply extra containers
 	// that run alongside the main containers.
+	// +kubebuilder:validation:EmbeddedResource
 	SidecarContainers []corev1.Container `json:"sidecarContainers,omitempty"`
 
 	// Affinity allows you to set rules that constrain the scheduling of
 	// your vtctld pods. WARNING: These affinity rules will override all default affinities
 	// that we set; in turn, we can't guarantee optimal scheduling of your pods if you
 	// choose to set this field.
+	// +kubebuilder:validation:EmbeddedResource
 	Affinity *corev1.Affinity `json:"affinity,omitempty"`
 
 	// Annotations can optionally be used to attach custom annotations to Pods
@@ -396,7 +397,6 @@ type VitessDashboardStatus struct {
 }
 
 // VitessClusterStatus defines the observed state of VitessCluster
-// +k8s:openapi-gen=true
 type VitessClusterStatus struct {
 	// The generation observed by the controller.
 	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
@@ -411,14 +411,14 @@ type VitessClusterStatus struct {
 	VitessDashboard VitessDashboardStatus `json:"vitessDashboard,omitempty"`
 
 	// Cells is a summary of the status of desired cells.
-	Cells map[string]*VitessClusterCellStatus `json:"cells,omitempty"`
+	Cells map[string]VitessClusterCellStatus `json:"cells,omitempty"`
 	// Keyspaces is a summary of the status of desired keyspaces.
-	Keyspaces map[string]*VitessClusterKeyspaceStatus `json:"keyspaces,omitempty"`
+	Keyspaces map[string]VitessClusterKeyspaceStatus `json:"keyspaces,omitempty"`
 
 	// OrphanedCells is a list of unwanted cells that could not be turned down.
-	OrphanedCells map[string]*OrphanStatus `json:"orphanedCells,omitempty"`
+	OrphanedCells map[string]OrphanStatus `json:"orphanedCells,omitempty"`
 	// OrphanedKeyspaces is a list of unwanted keyspaces that could not be turned down.
-	OrphanedKeyspaces map[string]*OrphanStatus `json:"orphanedKeyspaces,omitempty"`
+	OrphanedKeyspaces map[string]OrphanStatus `json:"orphanedKeyspaces,omitempty"`
 }
 
 // NewVitessClusterStatus creates a new status object with default values.
@@ -427,10 +427,10 @@ func NewVitessClusterStatus() VitessClusterStatus {
 		VitessDashboard: VitessDashboardStatus{
 			Available: corev1.ConditionUnknown,
 		},
-		Cells:             make(map[string]*VitessClusterCellStatus),
-		Keyspaces:         make(map[string]*VitessClusterKeyspaceStatus),
-		OrphanedCells:     make(map[string]*OrphanStatus),
-		OrphanedKeyspaces: make(map[string]*OrphanStatus),
+		Cells:             make(map[string]VitessClusterCellStatus),
+		Keyspaces:         make(map[string]VitessClusterKeyspaceStatus),
+		OrphanedCells:     make(map[string]OrphanStatus),
+		OrphanedKeyspaces: make(map[string]OrphanStatus),
 	}
 }
 
@@ -444,8 +444,8 @@ type VitessClusterCellStatus struct {
 }
 
 // NewVitessClusterCellStatus creates a new status object with default values.
-func NewVitessClusterCellStatus() *VitessClusterCellStatus {
-	return &VitessClusterCellStatus{
+func NewVitessClusterCellStatus() VitessClusterCellStatus {
+	return VitessClusterCellStatus{
 		GatewayAvailable: corev1.ConditionUnknown,
 	}
 }
@@ -488,7 +488,7 @@ type VitessClusterKeyspaceStatus struct {
 }
 
 // NewVitessClusterKeyspaceStatus creates a new status object with default values.
-func NewVitessClusterKeyspaceStatus(spec *VitessKeyspaceTemplate) *VitessClusterKeyspaceStatus {
+func NewVitessClusterKeyspaceStatus(spec *VitessKeyspaceTemplate) VitessClusterKeyspaceStatus {
 	// Fill in the parts of keyspace status that express desired states, which
 	// we can compute from the template spec without waiting to observe
 	// anything. Typically, clients would look directly at the spec to find
@@ -504,7 +504,7 @@ func NewVitessClusterKeyspaceStatus(spec *VitessKeyspaceTemplate) *VitessCluster
 		}
 	}
 
-	return &VitessClusterKeyspaceStatus{
+	return VitessClusterKeyspaceStatus{
 		DesiredShards:  desiredShards,
 		DesiredTablets: desiredTablets,
 	}

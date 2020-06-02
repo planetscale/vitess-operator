@@ -96,7 +96,7 @@ func (r *ReconcileVitessShard) tabletPodsFromShard(ctx context.Context, vts *pla
 		}.AsSelector(),
 	}
 
-	if err := r.client.List(ctx, listOpts, podList); err != nil {
+	if err := r.client.List(ctx, podList, listOpts); err != nil {
 		return tabletPods, err
 	}
 

@@ -31,7 +31,6 @@ import (
 // Each keyspace consists of a number of shards, which then consist of tablets.
 // The tablets belonging to one VitessKeyspace can ultimately be deployed across
 // various VitessCells.
-// +k8s:openapi-gen=true
 // +kubebuilder:resource:path=vitesskeyspaces,shortName=vtk
 // +kubebuilder:subresource:status
 type VitessKeyspace struct {
@@ -43,7 +42,6 @@ type VitessKeyspace struct {
 }
 
 // VitessKeyspaceSpec defines the desired state of a VitessKeyspace.
-// +k8s:openapi-gen=true
 type VitessKeyspaceSpec struct {
 	// VitessKeyspaceTemplate contains the user-specified parts of VitessKeyspaceSpec.
 	// These are the parts that are configurable inside VitessCluster.
@@ -163,7 +161,7 @@ type VitessKeyspaceTemplate struct {
 	// you can set the policy to Immediate to skip these checks.
 	//
 	// Default: RequireIdle
-	// +kubebuilder:validation:Enum=RequireIdle,Immediate
+	// +kubebuilder:validation:Enum=RequireIdle;Immediate
 	TurndownPolicy VitessKeyspaceTurndownPolicy `json:"turndownPolicy,omitempty"`
 }
 
@@ -279,14 +277,13 @@ type VitessKeyRange struct {
 }
 
 // VitessKeyspaceStatus defines the observed state of a VitessKeyspace.
-// +k8s:openapi-gen=true
 type VitessKeyspaceStatus struct {
 	// The generation observed by the controller.
 	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
 	// Shards is a summary of the status of all desired shards.
-	Shards map[string]*VitessKeyspaceShardStatus `json:"shards,omitempty"`
+	Shards map[string]VitessKeyspaceShardStatus `json:"shards,omitempty"`
 	// OrphanedShards is a list of unwanted shards that could not be turned down.
-	OrphanedShards map[string]*OrphanStatus `json:"orphanedShards,omitempty"`
+	OrphanedShards map[string]OrphanStatus `json:"orphanedShards,omitempty"`
 	// Idle is a condition indicating whether the keyspace can be turned down.
 	// If Idle is True, the keyspace is not deployed in any cells, so it should
 	// be safe to turn down the keyspace.
@@ -296,8 +293,8 @@ type VitessKeyspaceStatus struct {
 // NewVitessKeyspaceStatus creates a new status object with default values.
 func NewVitessKeyspaceStatus() VitessKeyspaceStatus {
 	return VitessKeyspaceStatus{
-		Shards:         make(map[string]*VitessKeyspaceShardStatus),
-		OrphanedShards: make(map[string]*OrphanStatus),
+		Shards:         make(map[string]VitessKeyspaceShardStatus),
+		OrphanedShards: make(map[string]OrphanStatus),
 		Idle:           corev1.ConditionUnknown,
 	}
 }
@@ -328,13 +325,13 @@ type VitessKeyspaceShardStatus struct {
 }
 
 // NewVitessKeyspaceShardStatus creates a new status object with default values.
-func NewVitessKeyspaceShardStatus(spec *VitessKeyspaceKeyRangeShard) *VitessKeyspaceShardStatus {
+func NewVitessKeyspaceShardStatus(spec *VitessKeyspaceKeyRangeShard) VitessKeyspaceShardStatus {
 	desiredTablets := int32(0)
 	for tpIndex := range spec.TabletPools {
 		desiredTablets += spec.TabletPools[tpIndex].Replicas
 	}
 
-	return &VitessKeyspaceShardStatus{
+	return VitessKeyspaceShardStatus{
 		HasMaster:      corev1.ConditionUnknown,
 		DesiredTablets: desiredTablets,
 	}

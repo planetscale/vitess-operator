@@ -43,6 +43,10 @@ import (
 	"planetscale.dev/vitess-operator/pkg/operator/results"
 )
 
+const (
+	controllerName = "etcdlockserver-controller"
+)
+
 var (
 	maxConcurrentReconciles = flag.Int("etcdlockserver_concurrent_reconciles", 10, "the maximum number of different etcdlockservers to reconcile concurrently")
 )
@@ -67,7 +71,7 @@ func Add(mgr manager.Manager) error {
 func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 	c := mgr.GetClient()
 	scheme := mgr.GetScheme()
-	recorder := mgr.GetRecorder("etcdlockserver-controller")
+	recorder := mgr.GetEventRecorderFor(controllerName)
 
 	return &ReconcileEtcdLockserver{
 		client:     c,
@@ -80,7 +84,7 @@ func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
 func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	// Create a new controller
-	c, err := controller.New("etcdlockserver-controller", mgr, controller.Options{
+	c, err := controller.New(controllerName, mgr, controller.Options{
 		Reconciler:              r,
 		MaxConcurrentReconciles: *maxConcurrentReconciles,
 	})

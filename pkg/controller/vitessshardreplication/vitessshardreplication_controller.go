@@ -81,7 +81,7 @@ func Add(mgr manager.Manager) error {
 func newReconciler(mgr manager.Manager) *ReconcileVitessShard {
 	c := mgr.GetClient()
 	scheme := mgr.GetScheme()
-	recorder := mgr.GetRecorder(controllerName)
+	recorder := mgr.GetEventRecorderFor(controllerName)
 
 	return &ReconcileVitessShard{
 		client:     c,

@@ -37,7 +37,7 @@ type PruneCellsParams struct {
 	// DesiredCells is a map of cell names to their lockserver specs.
 	DesiredCells map[string]*planetscalev2.LockserverSpec
 	// OrphanedCells is a list of unwanted cells that could not be turned down.
-	OrphanedCells map[string]*planetscalev2.OrphanStatus
+	OrphanedCells map[string]planetscalev2.OrphanStatus
 }
 
 // PruneCells will prune cells that exist but shouldn't anymore.
@@ -60,11 +60,12 @@ func PruneCells(ctx context.Context, p PruneCellsParams) (reconcile.Result, erro
 }
 
 // CellsToPrune returns a list of cell candidates for pruning, based on a provided list of cells to consider.
-func CellsToPrune(cellNames []string, desiredCells map[string]*planetscalev2.LockserverSpec, orphanedCells map[string]*planetscalev2.OrphanStatus) []string {
+func CellsToPrune(cellNames []string, desiredCells map[string]*planetscalev2.LockserverSpec, orphanedCells map[string]planetscalev2.OrphanStatus) []string {
 	var candidates []string
 
 	for _, name := range cellNames {
-		if desiredCells[name] == nil && orphanedCells[name] == nil {
+		_, orphaned := orphanedCells[name]
+		if desiredCells[name] == nil && !orphaned {
 			// The cell exists in topo, but not in the VT spec.
 			// It's also not being kept around by a blocked turn-down.
 			// We should add it to the list of candidates to prune.

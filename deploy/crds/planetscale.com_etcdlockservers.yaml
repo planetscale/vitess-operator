@@ -1,0 +1,246 @@
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.2.4
+  creationTimestamp: null
+  name: etcdlockservers.planetscale.com
+spec:
+  group: planetscale.com
+  names:
+    kind: EtcdLockserver
+    listKind: EtcdLockserverList
+    plural: etcdlockservers
+    shortNames:
+    - etcdls
+    singular: etcdlockserver
+  scope: Namespaced
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      properties:
+        apiVersion:
+          type: string
+        kind:
+          type: string
+        metadata:
+          type: object
+        spec:
+          properties:
+            advertisePeerURLs:
+              items:
+                type: string
+              maxItems: 3
+              minItems: 3
+              type: array
+            affinity:
+              type: object
+              x-kubernetes-preserve-unknown-fields: true
+            annotations:
+              additionalProperties:
+                type: string
+              type: object
+            createClientService:
+              type: boolean
+            createPDB:
+              type: boolean
+            createPeerService:
+              type: boolean
+            dataVolumeClaimTemplate:
+              properties:
+                accessModes:
+                  items:
+                    type: string
+                  type: array
+                resources:
+                  properties:
+                    limits:
+                      additionalProperties:
+                        type: string
+                      type: object
+                    requests:
+                      additionalProperties:
+                        type: string
+                      type: object
+                  type: object
+                selector:
+                  properties:
+                    matchExpressions:
+                      items:
+                        properties:
+                          key:
+                            type: string
+                          operator:
+                            type: string
+                          values:
+                            items:
+                              type: string
+                            type: array
+                        required:
+                        - key
+                        - operator
+                        type: object
+                      type: array
+                    matchLabels:
+                      additionalProperties:
+                        type: string
+                      type: object
+                  type: object
+                storageClassName:
+                  type: string
+                volumeMode:
+                  type: string
+                volumeName:
+                  type: string
+              type: object
+            extraEnv:
+              items:
+                properties:
+                  name:
+                    type: string
+                  value:
+                    type: string
+                  valueFrom:
+                    properties:
+                      configMapKeyRef:
+                        properties:
+                          key:
+                            type: string
+                          name:
+                            type: string
+                          optional:
+                            type: boolean
+                        required:
+                        - key
+                        type: object
+                      fieldRef:
+                        properties:
+                          apiVersion:
+                            type: string
+                          fieldPath:
+                            type: string
+                        required:
+                        - fieldPath
+                        type: object
+                      resourceFieldRef:
+                        properties:
+                          containerName:
+                            type: string
+                          divisor:
+                            type: string
+                          resource:
+                            type: string
+                        required:
+                        - resource
+                        type: object
+                      secretKeyRef:
+                        properties:
+                          key:
+                            type: string
+                          name:
+                            type: string
+                          optional:
+                            type: boolean
+                        required:
+                        - key
+                        type: object
+                    type: object
+                required:
+                - name
+                type: object
+              type: array
+            extraFlags:
+              additionalProperties:
+                type: string
+              type: object
+            extraLabels:
+              additionalProperties:
+                type: string
+              type: object
+            extraVolumeMounts:
+              items:
+                properties:
+                  mountPath:
+                    type: string
+                  mountPropagation:
+                    type: string
+                  name:
+                    type: string
+                  readOnly:
+                    type: boolean
+                  subPath:
+                    type: string
+                  subPathExpr:
+                    type: string
+                required:
+                - mountPath
+                - name
+                type: object
+              type: array
+            extraVolumes:
+              items:
+                required:
+                - name
+                type: object
+                x-kubernetes-preserve-unknown-fields: true
+              type: array
+            image:
+              type: string
+            imagePullPolicy:
+              type: string
+            initContainers:
+              items:
+                required:
+                - name
+                type: object
+                x-kubernetes-preserve-unknown-fields: true
+              type: array
+            localMemberIndex:
+              format: int32
+              maximum: 3
+              minimum: 1
+              type: integer
+            resources:
+              properties:
+                limits:
+                  additionalProperties:
+                    type: string
+                  type: object
+                requests:
+                  additionalProperties:
+                    type: string
+                  type: object
+              type: object
+            sidecarContainers:
+              items:
+                required:
+                - name
+                type: object
+                x-kubernetes-preserve-unknown-fields: true
+              type: array
+            zone:
+              type: string
+          type: object
+        status:
+          properties:
+            available:
+              type: string
+            clientServiceName:
+              type: string
+            observedGeneration:
+              format: int64
+              type: integer
+          type: object
+      type: object
+  version: v2
+  versions:
+  - name: v2
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

@@ -41,7 +41,7 @@ type PruneShardsParams struct {
 	// DesiredShards is a set of currently desired shard names, usually pulled from the keyspace spec.
 	DesiredShards sets.String
 	// OrphanedShards is a list of unwanted shards that could not be turned down.
-	OrphanedShards map[string]*planetscalev2.OrphanStatus
+	OrphanedShards map[string]planetscalev2.OrphanStatus
 }
 
 // PruneShards will prune shards that exist but shouldn't anymore.
@@ -64,11 +64,12 @@ func PruneShards(ctx context.Context, p PruneShardsParams) (reconcile.Result, er
 }
 
 // ShardsToPrune returns a list of shard candidates for pruning, based on a provided list of shards to consider.
-func ShardsToPrune(currentShards []string, desiredShards sets.String, orphanedShards map[string]*planetscalev2.OrphanStatus) []string {
+func ShardsToPrune(currentShards []string, desiredShards sets.String, orphanedShards map[string]planetscalev2.OrphanStatus) []string {
 	var candidates []string
 
 	for _, name := range currentShards {
-		if !desiredShards.Has(name) && orphanedShards[name] == nil {
+		_, orphaned := orphanedShards[name]
+		if !desiredShards.Has(name) && !orphaned {
 			// The shard exists in topo, but not in the VitessKeyspace spec.
 			// It's also not being kept around by a blocked turn-down.
 			candidates = append(candidates, name)

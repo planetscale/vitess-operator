@@ -34,7 +34,6 @@ import (
 // defined at the VitessCluster level, so it provides access to metadata
 // about backups stored in that location for any keyspace and any shard in that
 // cluster.
-// +k8s:openapi-gen=true
 // +kubebuilder:resource:path=vitessbackupstorages,shortName=vtbs
 // +kubebuilder:subresource:status
 type VitessBackupStorage struct {
@@ -46,7 +45,6 @@ type VitessBackupStorage struct {
 }
 
 // VitessBackupStorageSpec defines the desired state of VitessBackupStorage.
-// +k8s:openapi-gen=true
 type VitessBackupStorageSpec struct {
 	// Location specifies the Vitess parameters for connecting to the backup
 	// storage location.
@@ -72,6 +70,7 @@ type VitessBackupLocation struct {
 	// Volume specifies a backup location as a Kubernetes Volume Source to mount.
 	// This can be used, for example, to store backups on an NFS mount, or on
 	// a shared host path for local testing.
+	// +kubebuilder:validation:EmbeddedResource
 	Volume *corev1.VolumeSource `json:"volume,omitempty"`
 }
 
@@ -142,7 +141,6 @@ type AzblobBackupLocation struct {
 }
 
 // VitessBackupStorageStatus defines the observed state of VitessBackupStorage.
-// +k8s:openapi-gen=true
 type VitessBackupStorageStatus struct {
 	// The generation observed by the controller.
 	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
