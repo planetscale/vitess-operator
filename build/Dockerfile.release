@@ -20,7 +20,7 @@ RUN go install /go/src/planetscale.dev/vitess-operator/cmd/manager
 
 # The rest is meant to mimic the output from operator-sdk's Dockerfile.
 # We just copy the binary we built inside Docker instead of from outside.
-FROM registry.access.redhat.com/ubi7/ubi-minimal:latest
+FROM registry.access.redhat.com/ubi8/ubi-minimal:latest
 
 ENV OPERATOR=/usr/local/bin/vitess-operator \
     USER_UID=1001 \
