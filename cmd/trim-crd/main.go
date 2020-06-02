@@ -92,23 +92,32 @@ func trimCRD(crd *unstructured.Unstructured) error {
 		return fmt.Errorf("spec.validation.openAPIV3Schema.properties is not an object")
 	}
 
-	return trimProperties(properties)
+	return trimProperties("openAPIV3Schema", properties)
 }
 
-func trimProperties(properties map[string]interface{}) error {
+func trimProperties(parentName string, properties map[string]interface{}) error {
 	for name, val := range properties {
 		property, ok := val.(map[string]interface{})
 		if !ok {
 			return fmt.Errorf("value of property %q is not an object", name)
 		}
-		if err := trimProperty(property); err != nil {
+		if parentName == "dataVolumeClaimTemplate" && name == "dataSource" {
+			// We delete the validation for this field because many clients send
+			// an invalid values (null) due to a bug in the k8s API (missing
+			// omitempty) that existed until k8s 1.14. Even after clients are
+			// upgraded to newer k8s client-go versions, this invalid data can
+			// persist in CRDs so we need to tolerate it.
+			delete(properties, name)
+			continue
+		}
+		if err := trimProperty(name, property); err != nil {
 			return fmt.Errorf("can't trim property %q: %v", name, err)
 		}
 	}
 	return nil
 }
 
-func trimProperty(property map[string]interface{}) error {
+func trimProperty(propertyName string, property map[string]interface{}) error {
 	embedded, found, err := unstructured.NestedBool(property, embeddedResourceTag)
 	if err != nil {
 		return fmt.Errorf("invalid %v tag: %v", embeddedResourceTag, err)
@@ -139,7 +148,7 @@ func trimProperty(property map[string]interface{}) error {
 
 	// Recurse into sub-properties, if any.
 	if properties, ok := property["properties"].(map[string]interface{}); ok {
-		return trimProperties(properties)
+		return trimProperties(propertyName, properties)
 	}
 
 	return nil

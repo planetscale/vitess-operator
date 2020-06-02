@@ -351,18 +351,6 @@ spec:
                                 items:
                                   type: string
                                 type: array
-                              dataSource:
-                                properties:
-                                  apiGroup:
-                                    type: string
-                                  kind:
-                                    type: string
-                                  name:
-                                    type: string
-                                required:
-                                - kind
-                                - name
-                                type: object
                               resources:
                                 properties:
                                   limits:
@@ -588,18 +576,6 @@ spec:
                           items:
                             type: string
                           type: array
-                        dataSource:
-                          properties:
-                            apiGroup:
-                              type: string
-                            kind:
-                              type: string
-                            name:
-                              type: string
-                          required:
-                          - kind
-                          - name
-                          type: object
                         resources:
                           properties:
                             limits:
@@ -895,18 +871,6 @@ spec:
                                               items:
                                                 type: string
                                               type: array
-                                            dataSource:
-                                              properties:
-                                                apiGroup:
-                                                  type: string
-                                                kind:
-                                                  type: string
-                                                name:
-                                                  type: string
-                                              required:
-                                              - kind
-                                              - name
-                                              type: object
                                             resources:
                                               properties:
                                                 limits:
@@ -1212,18 +1176,6 @@ spec:
                                             items:
                                               type: string
                                             type: array
-                                          dataSource:
-                                            properties:
-                                              apiGroup:
-                                                type: string
-                                              kind:
-                                                type: string
-                                              name:
-                                                type: string
-                                            required:
-                                            - kind
-                                            - name
-                                            type: object
                                           resources:
                                             properties:
                                               limits:
