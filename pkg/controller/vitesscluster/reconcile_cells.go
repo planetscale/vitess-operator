@@ -80,6 +80,7 @@ func (r *ReconcileVitessCluster) reconcileCells(ctx context.Context, vt *planets
 			status := vt.Status.Cells[curObj.Spec.Name]
 			status.PendingChanges = curObj.Annotations[rollout.ScheduledAnnotation]
 			status.GatewayAvailable = curObj.Status.Gateway.Available
+			vt.Status.Cells[curObj.Spec.Name] = status
 		},
 		OrphanStatus: func(key client.ObjectKey, obj runtime.Object, orphanStatus *planetscalev2.OrphanStatus) {
 			curObj := obj.(*planetscalev2.VitessCell)

@@ -96,6 +96,7 @@ func (r *ReconcileVitessShard) reconcileTopology(ctx context.Context, vts *plane
 				continue
 			}
 			status.Type = strings.ToLower(tablet.GetType().String())
+			vts.Status.Tablets[name] = status
 		}
 
 		if *vts.Spec.TopologyReconciliation.PruneTablets {

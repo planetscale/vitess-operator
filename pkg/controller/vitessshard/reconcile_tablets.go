@@ -159,12 +159,13 @@ func (r *ReconcileVitessShard) reconcileTablets(ctx context.Context, vts *planet
 
 		New: func(key client.ObjectKey) runtime.Object {
 			tablet := tabletMap[key]
-			tabletStatus := vts.Status.Tablets[tablet.AliasStr]
 
 			// The Pod doesn't exist, so it can't be running or ready.
+			tabletStatus := vts.Status.Tablets[tablet.AliasStr]
 			tabletStatus.Running = corev1.ConditionFalse
 			tabletStatus.Ready = corev1.ConditionFalse
 			tabletStatus.Available = corev1.ConditionFalse
+			vts.Status.Tablets[tablet.AliasStr] = tabletStatus
 
 			return vttablet.NewPod(key, tablet)
 		},
@@ -186,14 +187,15 @@ func (r *ReconcileVitessShard) reconcileTablets(ctx context.Context, vts *planet
 		Status: func(key client.ObjectKey, obj runtime.Object) {
 			pod := obj.(*corev1.Pod)
 			tablet := tabletMap[key]
-			tabletStatus := vts.Status.Tablets[tablet.AliasStr]
 
+			tabletStatus := vts.Status.Tablets[tablet.AliasStr]
 			tabletStatus.Running = k8s.ConditionStatus(pod.Status.Phase == corev1.PodRunning)
 			if _, cond := podutil.GetPodCondition(&pod.Status, corev1.PodReady); cond != nil {
 				tabletStatus.Ready = cond.Status
 				tabletStatus.Available = tabletAvailableStatus(resultBuilder, pod, cond)
 			}
 			tabletStatus.PendingChanges = pod.Annotations[rollout.ScheduledAnnotation]
+			vts.Status.Tablets[tablet.AliasStr] = tabletStatus
 
 			observedShardGenerationVal := pod.Annotations[observedShardGenerationAnnotationKey]
 			if observedShardGenerationVal == "" {
