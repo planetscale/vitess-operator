@@ -1509,8 +1509,6 @@ spec:
                 external:
                   properties:
                     allowResourceChanges:
-                      enum:
-                      - storage
                       items:
                         type: string
                       type: array

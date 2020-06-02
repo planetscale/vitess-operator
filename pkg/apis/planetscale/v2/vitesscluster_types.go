@@ -158,7 +158,6 @@ type ExternalVitessClusterUpdateStrategyOptions struct {
 	// - storage
 	//
 	// Default: All resource changes wait to be released by the external rollout tool.
-	// +kubebuilder:validation:Enum=storage
 	AllowResourceChanges []corev1.ResourceName `json:"allowResourceChanges,omitempty"`
 }
 
