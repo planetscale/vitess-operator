@@ -25,6 +25,7 @@ require (
 	k8s.io/utils v0.0.0-20191010214722-8d271d903fe4
 	sigs.k8s.io/controller-runtime v0.4.0
 	sigs.k8s.io/controller-tools v0.2.4
+	sigs.k8s.io/yaml v1.1.0
 	vitess.io/vitess v0.0.0-20200306210105-f569401b5c70
 )
 

@@ -33,6 +33,7 @@ integration-test:
 generate:
 	go run github.com/operator-framework/operator-sdk/cmd/operator-sdk generate k8s
 	go run sigs.k8s.io/controller-tools/cmd/controller-gen crd:trivialVersions=true,maxDescLen=0 paths="./pkg/apis/planetscale/v2" output:crd:artifacts:config=./deploy/crds
+	find deploy/crds -name '*.yaml' | xargs go run ./cmd/trim-crd
 	go run github.com/ahmetb/gen-crd-api-reference-docs -api-dir ./pkg/apis -config docs/api/config.json -template-dir docs/api/template -out-file docs/api/index.html
 
 push-only: DATE=$(shell date -I)

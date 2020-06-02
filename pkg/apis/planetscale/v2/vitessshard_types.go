@@ -213,6 +213,7 @@ type VitessShardTabletPool struct {
 	// tablets in the specified tablet pool the same way. WARNING: These affinity rules
 	// will override all default affinities that we set; in turn, we can't guarantee
 	// optimal scheduling of your pods if you choose to set this field.
+	// +kubebuilder:validation:EmbeddedResource
 	Affinity *corev1.Affinity `json:"affinity,omitempty"`
 
 	// Annotations can optionally be used to attach custom annotations to Pods
@@ -234,6 +235,7 @@ type VitessShardTabletPool struct {
 	// volumeMount to specify where in each container's filesystem the volume
 	// should be mounted.
 	// These volumes are available to be mounted by both vttablet and mysqld.
+	// +kubebuilder:validation:EmbeddedResource
 	ExtraVolumes []corev1.Volume `json:"extraVolumes,omitempty"`
 
 	// ExtraVolumeMounts can optionally be used to override default Pod
@@ -244,10 +246,12 @@ type VitessShardTabletPool struct {
 
 	// InitContainers can optionally be used to supply extra init containers
 	// that will be run to completion one after another before any app containers are started.
+	// +kubebuilder:validation:EmbeddedResource
 	InitContainers []corev1.Container `json:"initContainers,omitempty"`
 
 	// SidecarContainers can optionally be used to supply extra containers
 	// that run alongside the main containers.
+	// +kubebuilder:validation:EmbeddedResource
 	SidecarContainers []corev1.Container `json:"sidecarContainers,omitempty"`
 }
 
