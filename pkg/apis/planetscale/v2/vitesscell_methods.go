@@ -25,10 +25,6 @@ import (
 func (s *VitessCellGatewaySpec) SecretNames() sets.String {
 	secretNames := sets.NewString()
 
-	if s.Authentication.Static != nil {
-		secretNames.Insert(s.Authentication.Static.Secret.Name)
-	}
-
 	if s.SecureTransport != nil &&
 		s.SecureTransport.TLS != nil {
 		tls := s.SecureTransport.TLS
