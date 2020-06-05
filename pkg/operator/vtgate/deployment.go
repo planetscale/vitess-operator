@@ -268,6 +268,7 @@ func updateAuth(spec *Spec, flags vitess.Flags, container *corev1.Container, pod
 		// Get usernames and passwords from a static file, mounted from a Secret.
 		flags["mysql_auth_server_impl"] = "static"
 		flags["mysql_auth_server_static_file"] = staticAuthFile.FilePath()
+		flags["mysql_auth_static_reload_interval"] = "30s"
 
 		// Add the volume to the Pod, if needed.
 		update.Volumes(&podSpec.Volumes, staticAuthFile.PodVolumes())

@@ -20,14 +20,9 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 )
 
-// SecretNames returns a string set of all dependent secret names that VitessCellGatewaySpec depends on.
-// TODO: Make code generator to keep this updated automatically.
-func (s *VitessCellGatewaySpec) SecretNames() sets.String {
+// ReloadSecretNames returns a string set containing the names of gateway secrets that have to be forcefully reloaded by restarting all vtgates
+func (s *VitessCellGatewaySpec) ReloadSecretNames() sets.String {
 	secretNames := sets.NewString()
-
-	if s.Authentication.Static != nil {
-		secretNames.Insert(s.Authentication.Static.Secret.Name)
-	}
 
 	if s.SecureTransport != nil &&
 		s.SecureTransport.TLS != nil {
