@@ -61,7 +61,7 @@ func (m *secretCellsMapper) Map(obj handler.MapObject) []reconcile.Request {
 	var requests []reconcile.Request
 	for i := range cellList.Items {
 		cell := &cellList.Items[i]
-		if cell.Spec.Gateway.SecretNames().Has(secretName) {
+		if cell.Spec.Gateway.ReloadSecretNames().Has(secretName) {
 			requests = append(requests, reconcile.Request{
 				NamespacedName: apitypes.NamespacedName{
 					Namespace: cell.Namespace,
@@ -105,8 +105,8 @@ func (r *ReconcileVitessCell) reconcileVtgate(ctx context.Context, vtc *planetsc
 		resultBuilder.Error(err)
 	}
 
-	secretNames := vtc.Spec.Gateway.SecretNames()
-	gatewaySecrets, err := secrets.GetByNames(ctx, r.client, vtc.Namespace, secretNames)
+	reloadSecretNames := vtc.Spec.Gateway.ReloadSecretNames()
+	gatewaySecrets, err := secrets.GetByNames(ctx, r.client, vtc.Namespace, reloadSecretNames)
 	if err != nil {
 		// Record error and return, to avoid generating a Deployment based on incomplete information.
 		return resultBuilder.Error(err)
