@@ -17,6 +17,8 @@ limitations under the License.
 package update
 
 import (
+	"strconv"
+
 	corev1 "k8s.io/api/core/v1"
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
@@ -77,7 +79,7 @@ func updateTabletPoolDiskSize(dst, src []planetscalev2.VitessShardTabletPool) {
 	}
 }
 
-func matchingTabletPool(dst *planetscalev2.VitessShardTabletPool, src []planetscalev2.VitessShardTabletPool) *planetscalev2.VitessShardTabletPool{
+func matchingTabletPool(dst *planetscalev2.VitessShardTabletPool, src []planetscalev2.VitessShardTabletPool) *planetscalev2.VitessShardTabletPool {
 	for i := range src {
 		srcTablet := &src[i]
 		if srcTablet.IsMatch(dst) {
@@ -127,7 +129,7 @@ func partitioningTypesMatch(dst *planetscalev2.VitessKeyspacePartitioning, src *
 
 	if dst.Custom != nil && src.Custom == nil {
 		return false
-	} else if dst.Custom == nil && src.Custom != nil  {
+	} else if dst.Custom == nil && src.Custom != nil {
 		return false
 	}
 
@@ -141,7 +143,7 @@ func equalPartitioningsMatch(dst *planetscalev2.VitessKeyspaceEqualPartitioning,
 	}
 
 	return true
- }
+}
 
 func customPartitioningsMatch(dst *planetscalev2.VitessKeyspaceCustomPartitioning, src *planetscalev2.VitessKeyspaceCustomPartitioning) bool {
 	// Validate that the number of shards is the same.
@@ -169,4 +171,23 @@ func StorageResource(dst *corev1.ResourceList, src corev1.ResourceList) {
 		*dst = make(corev1.ResourceList)
 	}
 	(*dst)[corev1.ResourceStorage] = srcVal
+}
+
+// GOMAXPROCS sets the GOMAXPROCS env var if CPU resource limits are configured.
+func GOMAXPROCS(dst *[]corev1.EnvVar, resources corev1.ResourceRequirements) {
+	// We only set GOMAXPROCS if a CPU limit is set.
+	// Requests are irrelevant because they don't trigger CPU throttling.
+	cpu, ok := resources.Limits[corev1.ResourceCPU]
+	if !ok {
+		return
+	}
+	// Value() rounds up to the nearest integer.
+	gomaxprocs := cpu.Value()
+
+	Env(dst, []corev1.EnvVar{
+		{
+			Name:  "GOMAXPROCS",
+			Value: strconv.FormatInt(gomaxprocs, 10),
+		},
+	})
 }

@@ -151,6 +151,10 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 		obj.Spec.Template.Spec.Affinity = nil
 	}
 
+	env := []corev1.EnvVar{}
+	update.GOMAXPROCS(&env, spec.Resources)
+	update.Env(&env, spec.ExtraEnv)
+
 	// Start building the main Container to put in the Pod template.
 	vtgateContainer := &corev1.Container{
 		Name:            containerName,
@@ -197,7 +201,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 			FailureThreshold:    30,
 		},
 		VolumeMounts: spec.ExtraVolumeMounts,
-		Env:          spec.ExtraEnv,
+		Env:          env,
 	}
 
 	// Get all the flags that don't need any logic.

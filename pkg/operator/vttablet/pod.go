@@ -99,6 +99,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	// Compute all operator-generated env vars first.
 	env := tabletEnvVars.Get(spec)
 	vttabletEnv := append(vttabletEnvVars.Get(spec), env...)
+	update.GOMAXPROCS(&vttabletEnv, spec.Vttablet.Resources)
 	// Then apply user-provided overrides last so they take precedence.
 	update.Env(&env, spec.ExtraEnv)
 	update.Env(&vttabletEnv, spec.ExtraEnv)
