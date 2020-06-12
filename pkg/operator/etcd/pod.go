@@ -68,6 +68,7 @@ type Spec struct {
 	LockserverName    string
 	Image             string
 	ImagePullPolicy   corev1.PullPolicy
+	ImagePullSecrets  []corev1.LocalObjectReference
 	Resources         corev1.ResourceRequirements
 	Labels            map[string]string
 	Zone              string
@@ -223,6 +224,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 
 	obj.Spec.Hostname = PodName(spec.LockserverName, spec.Index)
 	obj.Spec.Subdomain = PeerServiceName(spec.LockserverName)
+	obj.Spec.ImagePullSecrets = spec.ImagePullSecrets
 
 	// In both the case of the user injecting their own affinity and the default, we
 	// simply override the pod's existing affinity configuration.

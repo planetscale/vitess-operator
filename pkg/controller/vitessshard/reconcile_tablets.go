@@ -312,6 +312,7 @@ func vttabletSpecs(vts *planetscalev2.VitessShard, parentLabels map[string]strin
 				Labels:                   labels,
 				Images:                   vts.Spec.Images,
 				ImagePullPolicies:        vts.Spec.ImagePullPolicies,
+				ImagePullSecrets:         vts.Spec.ImagePullSecrets,
 				Index:                    tabletIndex,
 				KeyRange:                 vts.Spec.KeyRange,
 				Alias:                    tabletAlias,

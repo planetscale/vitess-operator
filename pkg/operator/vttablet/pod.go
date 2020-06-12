@@ -272,6 +272,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	update.PodContainers(&obj.Spec.Containers, containers)
 
 	// Update other parts of the Pod.
+	obj.Spec.ImagePullSecrets = spec.ImagePullSecrets
 	update.Annotations(&obj.Annotations, tabletAnnotations.Get(spec))
 	update.Volumes(&obj.Spec.Volumes, tabletVolumes.Get(spec))
 	update.Volumes(&obj.Spec.Volumes, spec.ExtraVolumes)

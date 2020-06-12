@@ -35,6 +35,7 @@ type Spec struct {
 	Labels                   map[string]string
 	Images                   planetscalev2.VitessKeyspaceImages
 	ImagePullPolicies        planetscalev2.VitessImagePullPolicies
+	ImagePullSecrets         []corev1.LocalObjectReference
 	Index                    int32
 	KeyRange                 planetscalev2.VitessKeyRange
 	KeyspaceName             string

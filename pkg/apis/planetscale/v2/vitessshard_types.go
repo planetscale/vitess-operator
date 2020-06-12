@@ -72,6 +72,9 @@ type VitessShardSpec struct {
 	// ImagePullPolicies are inherited from the VitessCluster spec.
 	ImagePullPolicies VitessImagePullPolicies `json:"imagePullPolicies,omitempty"`
 
+	// ImagePullSecrets are inherited from the VitessCluster spec.
+	ImagePullSecrets []corev1.LocalObjectReference `json:"imagePullSecrets,omitempty"`
+
 	// KeyRange is the range of keyspace IDs served by this shard.
 	KeyRange VitessKeyRange `json:"keyRange"`
 

@@ -123,8 +123,9 @@ func NewBackupPod(key client.ObjectKey, backupSpec *BackupSpec) *corev1.Pod {
 			Annotations: tabletAnnotations.Get(tabletSpec),
 		},
 		Spec: corev1.PodSpec{
-			RestartPolicy: corev1.RestartPolicyOnFailure,
-			Volumes:       tabletVolumes.Get(tabletSpec),
+			ImagePullSecrets: tabletSpec.ImagePullSecrets,
+			RestartPolicy:    corev1.RestartPolicyOnFailure,
+			Volumes:          tabletVolumes.Get(tabletSpec),
 			SecurityContext: &corev1.PodSecurityContext{
 				FSGroup: pointer.Int64Ptr(fsGroup),
 			},

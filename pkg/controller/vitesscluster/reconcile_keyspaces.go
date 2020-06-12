@@ -174,6 +174,7 @@ func newVitessKeyspace(key client.ObjectKey, vt *planetscalev2.VitessCluster, pa
 			GlobalLockserver:       *lockserver.GlobalConnectionParams(&vt.Spec.GlobalLockserver, vt.Name),
 			Images:                 images,
 			ImagePullPolicies:      vt.Spec.ImagePullPolicies,
+			ImagePullSecrets:       vt.Spec.ImagePullSecrets,
 			ZoneMap:                vt.Spec.ZoneMap(),
 			BackupLocations:        backupLocations,
 			BackupEngine:           backupEngine,

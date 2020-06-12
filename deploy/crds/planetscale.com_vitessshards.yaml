@@ -171,6 +171,13 @@ spec:
                 vttablet:
                   type: string
               type: object
+            imagePullSecrets:
+              items:
+                properties:
+                  name:
+                    type: string
+                type: object
+              type: array
             images:
               properties:
                 mysqld:

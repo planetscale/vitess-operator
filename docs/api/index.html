@@ -312,6 +312,20 @@ images defined in the &lsquo;images&rsquo; field.</p>
 </tr>
 <tr>
 <td>
+<code>imagePullSecrets</code></br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#localobjectreference-v1-core">
+[]Kubernetes core/v1.LocalObjectReference
+</a>
+</em>
+</td>
+<td>
+<p>ImagePullSecrets specifies the image pull secrets to add to all Pods that
+use the images defined in the &lsquo;images&rsquo; field.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>backup</code></br>
 <em>
 <a href="#planetscale.com/v2.ClusterBackupSpec">
@@ -726,6 +740,20 @@ Kubernetes core/v1.PullPolicy
 </td>
 <td>
 <p>ImagePullPolicy specifies if/when to pull a container image.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>imagePullSecrets</code></br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#localobjectreference-v1-core">
+[]Kubernetes core/v1.LocalObjectReference
+</a>
+</em>
+</td>
+<td>
+<p>ImagePullSecrets specifies the container image pull secrets to add to all
+etcd Pods.</p>
 </td>
 </tr>
 <tr>
@@ -2214,17 +2242,6 @@ controller that owns this VitessCell.</p>
 </tr>
 <tr>
 <td>
-<code>extraVitessFlags</code></br>
-<em>
-map[string]string
-</em>
-</td>
-<td>
-<p>ExtraVitessFlags is inherited from the parent&rsquo;s VitessClusterSpec.</p>
-</td>
-</tr>
-<tr>
-<td>
 <code>imagePullPolicies</code></br>
 <em>
 <a href="#planetscale.com/v2.VitessImagePullPolicies">
@@ -2234,6 +2251,30 @@ VitessImagePullPolicies
 </td>
 <td>
 <p>ImagePullPolicies are inherited from the VitessCluster spec.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>imagePullSecrets</code></br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#localobjectreference-v1-core">
+[]Kubernetes core/v1.LocalObjectReference
+</a>
+</em>
+</td>
+<td>
+<p>ImagePullSecrets are inherited from the VitessCluster spec.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>extraVitessFlags</code></br>
+<em>
+map[string]string
+</em>
+</td>
+<td>
+<p>ExtraVitessFlags is inherited from the parent&rsquo;s VitessClusterSpec.</p>
 </td>
 </tr>
 <tr>
@@ -2625,17 +2666,6 @@ controller that owns this VitessCell.</p>
 </tr>
 <tr>
 <td>
-<code>extraVitessFlags</code></br>
-<em>
-map[string]string
-</em>
-</td>
-<td>
-<p>ExtraVitessFlags is inherited from the parent&rsquo;s VitessClusterSpec.</p>
-</td>
-</tr>
-<tr>
-<td>
 <code>imagePullPolicies</code></br>
 <em>
 <a href="#planetscale.com/v2.VitessImagePullPolicies">
@@ -2645,6 +2675,30 @@ VitessImagePullPolicies
 </td>
 <td>
 <p>ImagePullPolicies are inherited from the VitessCluster spec.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>imagePullSecrets</code></br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#localobjectreference-v1-core">
+[]Kubernetes core/v1.LocalObjectReference
+</a>
+</em>
+</td>
+<td>
+<p>ImagePullSecrets are inherited from the VitessCluster spec.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>extraVitessFlags</code></br>
+<em>
+map[string]string
+</em>
+</td>
+<td>
+<p>ExtraVitessFlags is inherited from the parent&rsquo;s VitessClusterSpec.</p>
 </td>
 </tr>
 <tr>
@@ -3055,6 +3109,20 @@ VitessImagePullPolicies
 <td>
 <p>ImagePullPolicies specifies the container image pull policies to use for
 images defined in the &lsquo;images&rsquo; field.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>imagePullSecrets</code></br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#localobjectreference-v1-core">
+[]Kubernetes core/v1.LocalObjectReference
+</a>
+</em>
+</td>
+<td>
+<p>ImagePullSecrets specifies the image pull secrets to add to all Pods that
+use the images defined in the &lsquo;images&rsquo; field.</p>
 </td>
 </tr>
 <tr>
@@ -4115,6 +4183,19 @@ VitessImagePullPolicies
 </tr>
 <tr>
 <td>
+<code>imagePullSecrets</code></br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#localobjectreference-v1-core">
+[]Kubernetes core/v1.LocalObjectReference
+</a>
+</em>
+</td>
+<td>
+<p>ImagePullSecrets are inherited from the VitessCluster spec.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>zoneMap</code></br>
 <em>
 map[string]string
@@ -4642,6 +4723,19 @@ VitessImagePullPolicies
 </td>
 <td>
 <p>ImagePullPolicies are inherited from the VitessCluster spec.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>imagePullSecrets</code></br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#localobjectreference-v1-core">
+[]Kubernetes core/v1.LocalObjectReference
+</a>
+</em>
+</td>
+<td>
+<p>ImagePullSecrets are inherited from the VitessCluster spec.</p>
 </td>
 </tr>
 <tr>
@@ -5192,6 +5286,19 @@ VitessImagePullPolicies
 </tr>
 <tr>
 <td>
+<code>imagePullSecrets</code></br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#localobjectreference-v1-core">
+[]Kubernetes core/v1.LocalObjectReference
+</a>
+</em>
+</td>
+<td>
+<p>ImagePullSecrets are inherited from the VitessCluster spec.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>keyRange</code></br>
 <em>
 <a href="#planetscale.com/v2.VitessKeyRange">
@@ -5471,6 +5578,19 @@ VitessImagePullPolicies
 </td>
 <td>
 <p>ImagePullPolicies are inherited from the VitessCluster spec.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>imagePullSecrets</code></br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#localobjectreference-v1-core">
+[]Kubernetes core/v1.LocalObjectReference
+</a>
+</em>
+</td>
+<td>
+<p>ImagePullSecrets are inherited from the VitessCluster spec.</p>
 </td>
 </tr>
 <tr>
