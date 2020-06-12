@@ -125,6 +125,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 	obj.Spec.Template.Spec.Volumes = nil
 
 	// Pod template options.
+	obj.Spec.Template.Spec.ImagePullSecrets = spec.Cell.ImagePullSecrets
 	obj.Spec.Template.Spec.PriorityClassName = priorityClassName
 	if spec.Affinity != nil {
 		obj.Spec.Template.Spec.Affinity = spec.Affinity

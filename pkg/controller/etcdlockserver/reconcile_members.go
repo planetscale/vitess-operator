@@ -147,6 +147,7 @@ func memberSpecs(ls *planetscalev2.EtcdLockserver, parentLabels map[string]strin
 			LockserverName:    ls.Name,
 			Image:             ls.Spec.Image,
 			ImagePullPolicy:   ls.Spec.ImagePullPolicy,
+			ImagePullSecrets:  ls.Spec.ImagePullSecrets,
 			Resources:         ls.Spec.Resources,
 			Labels:            labels,
 			Zone:              ls.Spec.Zone,

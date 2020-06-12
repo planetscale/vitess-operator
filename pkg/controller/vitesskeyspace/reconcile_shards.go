@@ -163,6 +163,7 @@ func newVitessShard(key client.ObjectKey, vtk *planetscalev2.VitessKeyspace, par
 			GlobalLockserver:       vtk.Spec.GlobalLockserver,
 			Images:                 vtk.Spec.Images,
 			ImagePullPolicies:      vtk.Spec.ImagePullPolicies,
+			ImagePullSecrets:       vtk.Spec.ImagePullSecrets,
 			Name:                   shard.KeyRange.String(),
 			DatabaseName:           vtk.Spec.DatabaseName,
 			KeyRange:               shard.KeyRange,

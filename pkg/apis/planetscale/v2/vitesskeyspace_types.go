@@ -60,6 +60,9 @@ type VitessKeyspaceSpec struct {
 	// ImagePullPolicies are inherited from the VitessCluster spec.
 	ImagePullPolicies VitessImagePullPolicies `json:"imagePullPolicies,omitempty"`
 
+	// ImagePullSecrets are inherited from the VitessCluster spec.
+	ImagePullSecrets []corev1.LocalObjectReference `json:"imagePullSecrets,omitempty"`
+
 	// ZoneMap is a map from Vitess cell name to zone (failure domain) name
 	// for all cells defined in the VitessCluster.
 	ZoneMap map[string]string `json:"zoneMap"`

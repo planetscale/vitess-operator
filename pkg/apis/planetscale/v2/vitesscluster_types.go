@@ -58,6 +58,10 @@ type VitessClusterSpec struct {
 	// images defined in the 'images' field.
 	ImagePullPolicies VitessImagePullPolicies `json:"imagePullPolicies,omitempty"`
 
+	// ImagePullSecrets specifies the image pull secrets to add to all Pods that
+	// use the images defined in the 'images' field.
+	ImagePullSecrets []corev1.LocalObjectReference `json:"imagePullSecrets,omitempty"`
+
 	// Backup specifies how to take and store Vitess backups.
 	// This is optional but strongly recommended. In addition to disaster
 	// recovery, Vitess currently depends on backups to support provisioning

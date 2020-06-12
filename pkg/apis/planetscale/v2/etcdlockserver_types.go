@@ -70,6 +70,10 @@ type EtcdLockserverTemplate struct {
 	// ImagePullPolicy specifies if/when to pull a container image.
 	ImagePullPolicy corev1.PullPolicy `json:"imagePullPolicy,omitempty"`
 
+	// ImagePullSecrets specifies the container image pull secrets to add to all
+	// etcd Pods.
+	ImagePullSecrets []corev1.LocalObjectReference `json:"imagePullSecrets,omitempty"`
+
 	// Resources specify the compute resources to allocate for each etcd member.
 	// Default: Let the operator choose.
 	Resources corev1.ResourceRequirements `json:"resources,omitempty"`

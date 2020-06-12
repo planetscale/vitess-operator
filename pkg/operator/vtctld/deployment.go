@@ -56,6 +56,7 @@ type Spec struct {
 	Cell              *planetscalev2.VitessCellTemplate
 	Image             string
 	ImagePullPolicy   corev1.PullPolicy
+	ImagePullSecrets  []corev1.LocalObjectReference
 	Labels            map[string]string
 	Replicas          int32
 	Resources         corev1.ResourceRequirements
@@ -132,6 +133,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 	// Set only the Pod template fields we care about.
 	// Use functions from the `operator/update` package for lists
 	// that should actually be treated like maps (update items by the .Name field).
+	obj.Spec.Template.Spec.ImagePullSecrets = spec.ImagePullSecrets
 	obj.Spec.Template.Spec.PriorityClassName = priorityClassName
 	update.Volumes(&obj.Spec.Template.Spec.Volumes, spec.ExtraVolumes)
 

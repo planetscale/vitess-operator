@@ -487,6 +487,13 @@ spec:
                             type: string
                           imagePullPolicy:
                             type: string
+                          imagePullSecrets:
+                            items:
+                              properties:
+                                name:
+                                  type: string
+                              type: object
+                            type: array
                           initContainers:
                             items:
                               required:
@@ -712,6 +719,13 @@ spec:
                       type: string
                     imagePullPolicy:
                       type: string
+                    imagePullSecrets:
+                      items:
+                        properties:
+                          name:
+                            type: string
+                        type: object
+                      type: array
                     initContainers:
                       items:
                         required:
@@ -772,6 +786,13 @@ spec:
                 vttablet:
                   type: string
               type: object
+            imagePullSecrets:
+              items:
+                properties:
+                  name:
+                    type: string
+                type: object
+              type: array
             images:
               properties:
                 mysqld:
