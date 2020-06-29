@@ -231,7 +231,7 @@ func electInitialShardMaster(ctx context.Context, keyspaceName, shardName string
 		return nil, fmt.Errorf("lost topology lock; aborting: %v", err)
 	}
 	// Promote the candidate to master.
-	_, err = wr.TabletManagerClient().PromoteSlave(ctx, candidateMaster.tablet.Tablet)
+	_, err = wr.TabletManagerClient().PromoteReplica(ctx, candidateMaster.tablet.Tablet)
 	if err != nil {
 		return nil, fmt.Errorf("failed to promote tablet %v to master: %v", candidateMaster.tablet.AliasString(), err)
 	}

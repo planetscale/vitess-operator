@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"vitess.io/vitess/go/mysql"
+	"vitess.io/vitess/go/netutil"
 
 	"vitess.io/vitess/go/sqltypes"
 	"vitess.io/vitess/go/vt/topo"
@@ -81,7 +82,7 @@ func (r *ReconcileVitessShard) repairReplication(ctx context.Context, vts *plane
 
 	// If using external datastore then replication is handled for us.
 	if vts.Spec.UsingExternalDatastore() {
-	 	return resultBuilder.Result()
+		return resultBuilder.Result()
 	}
 
 	// If we have configured the operator to ignore replication repair, bail.
@@ -216,8 +217,7 @@ func canRepairTablet(ctx context.Context, tabletAlias string, tabletInfo, master
 		return false
 	}
 	// Check if the master address needs to be fixed.
-	if status.MasterHost != topoproto.MysqlHostname(masterTabletInfo.Tablet) ||
-		status.MasterPort != topoproto.MysqlPort(masterTabletInfo.Tablet) {
+	if netutil.JoinHostPort(status.MasterHost, status.MasterPort) != topoproto.MysqlAddr(masterTabletInfo.Tablet) {
 		return true
 	}
 	// We didn't find any problems we know how to fix.
@@ -289,8 +289,7 @@ func (r *ReconcileVitessShard) repairReplicationLocked(ctx context.Context, vts 
 			if err != nil {
 				return
 			}
-			if status.MasterHost == topoproto.MysqlHostname(masterTabletInfo.Tablet) &&
-				status.MasterPort == topoproto.MysqlPort(masterTabletInfo.Tablet) {
+			if netutil.JoinHostPort(status.MasterHost, status.MasterPort) != topoproto.MysqlAddr(masterTabletInfo.Tablet) {
 				// The master address is already correct.
 				return
 			}
