@@ -4,20 +4,20 @@ go 1.13
 
 require (
 	github.com/Azure/go-autorest v14.0.0+incompatible // indirect
-	github.com/Azure/go-autorest/autorest v0.9.2 // indirect
 	github.com/ahmetb/gen-crd-api-reference-docs v0.1.5-0.20190629210212-52e137b8d003
-	github.com/hashicorp/serf v0.8.3 // indirect
+	github.com/hashicorp/consul/api v1.5.0 // indirect
+	github.com/hashicorp/go.net v0.0.1 // indirect
 	github.com/klauspost/compress v1.7.5 // indirect
 	github.com/klauspost/cpuid v1.2.1 // indirect
-	github.com/klauspost/pgzip v1.2.1 // indirect
 	github.com/operator-framework/operator-sdk v0.16.0
 	github.com/prometheus/client_golang v1.4.1
+	github.com/samuel/go-zookeeper v0.0.0-20190923202752-2cc03de413da // indirect
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.4.0
 	gopkg.in/yaml.v2 v2.2.8
 	k8s.io/api v0.0.0
-	k8s.io/apimachinery v0.0.0
+	k8s.io/apimachinery v0.17.3
 	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/klog v1.0.0
 	k8s.io/kube-openapi v0.0.0-20191107075043-30be4d16710a // indirect
@@ -26,7 +26,7 @@ require (
 	sigs.k8s.io/controller-runtime v0.4.0
 	sigs.k8s.io/controller-tools v0.2.4
 	sigs.k8s.io/yaml v1.1.0
-	vitess.io/vitess v0.0.0-20200306210105-f569401b5c70
+	vitess.io/vitess v0.0.0-20200626161118-3cd3fa9d81cd
 )
 
 // ****************************
