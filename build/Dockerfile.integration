@@ -1,0 +1,25 @@
+FROM golang:1.13
+
+ENV OPERATOR=/usr/local/bin/vitess-operator \
+    USER_UID=1001 \
+    USER_NAME=vitess-operator
+
+WORKDIR /vt-op/src/planetscale/vitess-operator
+
+RUN apt-get update && \
+    apt-get install -y software-properties-common \
+    make g++ curl etcd tar
+
+RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+RUN chmod +x ./kubectl
+RUN mv ./kubectl /usr/local/bin
+
+# install operator binary
+COPY build/_output/bin/vitess-operator ${OPERATOR}
+
+COPY build/bin /usr/local/bin
+RUN  /usr/local/bin/user_setup
+
+COPY . /vt-op/src/planetscale/vitess-operator
+
+USER root

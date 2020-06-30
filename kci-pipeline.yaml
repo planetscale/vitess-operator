@@ -1,0 +1,17 @@
+Build phase:
+    stages:
+        Unit Tests:
+            type: tests
+            steps:
+                - sh ci/tests.sh "make unit-test"
+        #Integration Tests:
+        #    type: tests
+        #    steps:
+        #        - sh ci/tests.sh "make integration-test"
+        Build docker image:
+            type: docker_build
+            app_images:
+                - dockerfile: build/Dockerfile.release
+                app_name: vitess-operator
+        Push docker image:
+            type: docker_push

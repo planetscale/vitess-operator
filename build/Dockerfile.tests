@@ -1,0 +1,25 @@
+FROM golang:1.13
+
+ENV OPERATOR=/usr/local/bin/vitess-operator \
+    USER_UID=1001 \
+    USER_NAME=vitess-operator
+
+WORKDIR /vt-op/src/planetscale/vitess-operator
+
+RUN wget -qO - https://deb.opera.com/archive.key | apt-key add -
+
+RUN apt-get -o Acquire::Check-Valid-Until=false -o Acquire::Check-Date=false update
+
+RUN apt-get update && \
+    apt-get install -y software-properties-common \
+    make g++
+
+# install operator binary
+COPY build/_output/bin/vitess-operator ${OPERATOR}
+
+COPY build/bin /usr/local/bin
+RUN  /usr/local/bin/user_setup
+
+COPY . /vt-op/src/planetscale/vitess-operator
+
+USER root
