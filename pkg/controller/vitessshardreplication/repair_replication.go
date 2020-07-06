@@ -289,7 +289,7 @@ func (r *ReconcileVitessShard) repairReplicationLocked(ctx context.Context, vts 
 			if err != nil {
 				return
 			}
-			if netutil.JoinHostPort(status.MasterHost, status.MasterPort) != topoproto.MysqlAddr(masterTabletInfo.Tablet) {
+			if netutil.JoinHostPort(status.MasterHost, status.MasterPort) == topoproto.MysqlAddr(masterTabletInfo.Tablet) {
 				// The master address is already correct.
 				return
 			}
