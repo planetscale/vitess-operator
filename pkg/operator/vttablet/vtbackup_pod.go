@@ -101,6 +101,9 @@ func NewBackupPod(key client.ObjectKey, backupSpec *BackupSpec) *corev1.Pod {
 		Name:  "HOME",
 		Value: homeDir,
 	})
+	// Then apply user-provided overrides last so they take precedence.
+	update.Env(&env, tabletSpec.ExtraEnv)
+
 	// Mount everything for both vttablet and mysqld, since vtbackup does both
 	// jobs. We also need an additional mount to get SSL certs.
 	volumeMounts := []corev1.VolumeMount{
