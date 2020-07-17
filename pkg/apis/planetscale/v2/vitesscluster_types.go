@@ -116,6 +116,14 @@ type VitessClusterSpec struct {
 	// UpdateStrategy specifies how components in the Vitess cluster will be updated
 	// when a revision is made to the VitessCluster spec.
 	UpdateStrategy *VitessClusterUpdateStrategy `json:"updateStrategy,omitempty"`
+
+	// GatewayService can optionally be used to customize the global vtgate Service.
+	// Note that per-cell vtgate Services can be customized within each cell
+	// definition.
+	GatewayService *ServiceOverrides `json:"gatewayService,omitempty"`
+
+	// TabletService can optionally be used to customize the global, headless vttablet Service.
+	TabletService *ServiceOverrides `json:"tabletService,omitempty"`
 }
 
 // VitessClusterUpdateStrategy indicates the strategy that the operator
@@ -390,6 +398,23 @@ type VitessDashboardSpec struct {
 	// created for this component. These will be attached to the underlying
 	// Pods that the vtctld Deployment creates.
 	ExtraLabels map[string]string `json:"extraLabels,omitempty"`
+
+	// Service can optionally be used to customize the vtctld Service.
+	Service *ServiceOverrides `json:"service,omitempty"`
+}
+
+// ServiceOverrides allows customization of an arbitrary Service object.
+type ServiceOverrides struct {
+	// Annotations specifies extra annotations to add to the Service object.
+	// Annotations added in this way will NOT be automatically removed from the
+	// Service object if they are removed here.
+	Annotations map[string]string `json:"annotations,omitempty"`
+
+	// ClusterIP can optionally be used to override the Service's clusterIP.
+	// This field is immutable on Service objects, so changes made after the
+	// initial creation of the Service will only be applied if you manually
+	// delete the Service.
+	ClusterIP string `json:"clusterIP,omitempty"`
 }
 
 // VitessDashboardStatus is a summary of the status of the vtctld deployment.

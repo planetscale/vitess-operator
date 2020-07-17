@@ -182,6 +182,9 @@ type VitessCellGatewaySpec struct {
 	// created for this component. These will be attached to the underlying
 	// Pods that the vtgate Deployment creates.
 	ExtraLabels map[string]string `json:"extraLabels,omitempty"`
+
+	// Service can optionally be used to customize the per-cell vtgate Service.
+	Service *ServiceOverrides `json:"service,omitempty"`
 }
 
 // VitessGatewayAuthentication configures authentication for vtgate in this cell.

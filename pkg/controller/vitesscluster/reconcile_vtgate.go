@@ -27,6 +27,7 @@ import (
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 	"planetscale.dev/vitess-operator/pkg/operator/reconciler"
 	"planetscale.dev/vitess-operator/pkg/operator/results"
+	"planetscale.dev/vitess-operator/pkg/operator/update"
 	"planetscale.dev/vitess-operator/pkg/operator/vtgate"
 )
 
@@ -43,15 +44,18 @@ func (r *ReconcileVitessCluster) reconcileVtgate(ctx context.Context, vt *planet
 		Kind: &corev1.Service{},
 
 		New: func(key client.ObjectKey) runtime.Object {
-			return vtgate.NewService(key, labels)
+			svc := vtgate.NewService(key, labels)
+			update.ServiceOverrides(svc, vt.Spec.GatewayService)
+			return svc
 		},
 		UpdateInPlace: func(key client.ObjectKey, obj runtime.Object) {
-			newObj := obj.(*corev1.Service)
-			vtgate.UpdateService(newObj, labels)
+			svc := obj.(*corev1.Service)
+			vtgate.UpdateService(svc, labels)
+			update.InPlaceServiceOverrides(svc, vt.Spec.GatewayService)
 		},
 		Status: func(key client.ObjectKey, obj runtime.Object) {
-			curObj := obj.(*corev1.Service)
-			vt.Status.GatewayServiceName = curObj.Name
+			svc := obj.(*corev1.Service)
+			vt.Status.GatewayServiceName = svc.Name
 		},
 	})
 	if err != nil {

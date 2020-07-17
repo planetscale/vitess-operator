@@ -41,6 +41,15 @@ spec:
               additionalProperties:
                 type: string
               type: object
+            clientService:
+              properties:
+                annotations:
+                  additionalProperties:
+                    type: string
+                  type: object
+                clusterIP:
+                  type: string
+              type: object
             createClientService:
               type: boolean
             createPDB:
@@ -208,6 +217,15 @@ spec:
               maximum: 3
               minimum: 1
               type: integer
+            peerService:
+              properties:
+                annotations:
+                  additionalProperties:
+                    type: string
+                  type: object
+                clusterIP:
+                  type: string
+              type: object
             resources:
               properties:
                 limits:

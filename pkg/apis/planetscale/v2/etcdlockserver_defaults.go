@@ -65,4 +65,6 @@ func DefaultEtcdLockserverTemplate(ls *EtcdLockserverTemplate) {
 	if ls.CreatePeerService == nil {
 		ls.CreatePeerService = pointer.BoolPtr(defaultEtcdCreatePeerService)
 	}
+	DefaultServiceOverrides(&ls.ClientService)
+	DefaultServiceOverrides(&ls.PeerService)
 }

@@ -448,6 +448,34 @@ VitessClusterUpdateStrategy
 when a revision is made to the VitessCluster spec.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>gatewayService</code></br>
+<em>
+<a href="#planetscale.com/v2.ServiceOverrides">
+ServiceOverrides
+</a>
+</em>
+</td>
+<td>
+<p>GatewayService can optionally be used to customize the global vtgate Service.
+Note that per-cell vtgate Services can be customized within each cell
+definition.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>tabletService</code></br>
+<em>
+<a href="#planetscale.com/v2.ServiceOverrides">
+ServiceOverrides
+</a>
+</em>
+</td>
+<td>
+<p>TabletService can optionally be used to customize the global, headless vttablet Service.</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -989,6 +1017,32 @@ across multiple Kubernetes clusters by configuring the EtcdLockserver CRD
 in each cluster to deploy a different member index. If specified, the
 index must be 1, 2, or 3.</p>
 <p>Default: Deploy all etcd members locally.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>clientService</code></br>
+<em>
+<a href="#planetscale.com/v2.ServiceOverrides">
+ServiceOverrides
+</a>
+</em>
+</td>
+<td>
+<p>ClientService can optionally be used to customize the etcd client Service.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>peerService</code></br>
+<em>
+<a href="#planetscale.com/v2.ServiceOverrides">
+ServiceOverrides
+</a>
+</em>
+</td>
+<td>
+<p>PeerService can optionally be used to customize the etcd peer Service.</p>
 </td>
 </tr>
 </tbody>
@@ -1580,6 +1634,55 @@ string
 this is the key within the &lsquo;data&rsquo; map.</p>
 <p>When &lsquo;volumeName&rsquo; is used, this specifies the name of the file to load
 within that Volume.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="planetscale.com/v2.ServiceOverrides">ServiceOverrides
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#planetscale.com/v2.EtcdLockserverTemplate">EtcdLockserverTemplate</a>, 
+<a href="#planetscale.com/v2.VitessCellGatewaySpec">VitessCellGatewaySpec</a>, 
+<a href="#planetscale.com/v2.VitessClusterSpec">VitessClusterSpec</a>, 
+<a href="#planetscale.com/v2.VitessDashboardSpec">VitessDashboardSpec</a>)
+</p>
+<p>
+<p>ServiceOverrides allows customization of an arbitrary Service object.</p>
+</p>
+<table class="table table-striped">
+<thead class="thead-dark">
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>annotations</code></br>
+<em>
+map[string]string
+</em>
+</td>
+<td>
+<p>Annotations specifies extra annotations to add to the Service object.
+Annotations added in this way will NOT be automatically removed from the
+Service object if they are removed here.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>clusterIP</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>ClusterIP can optionally be used to override the Service&rsquo;s clusterIP.
+This field is immutable on Service objects, so changes made after the
+initial creation of the Service will only be applied if you manually
+delete the Service.</p>
 </td>
 </tr>
 </tbody>
@@ -2505,6 +2608,19 @@ created for this component. These will be attached to the underlying
 Pods that the vtgate Deployment creates.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>service</code></br>
+<em>
+<a href="#planetscale.com/v2.ServiceOverrides">
+ServiceOverrides
+</a>
+</em>
+</td>
+<td>
+<p>Service can optionally be used to customize the per-cell vtgate Service.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="planetscale.com/v2.VitessCellGatewayStatus">VitessCellGatewayStatus
@@ -3249,6 +3365,34 @@ VitessClusterUpdateStrategy
 when a revision is made to the VitessCluster spec.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>gatewayService</code></br>
+<em>
+<a href="#planetscale.com/v2.ServiceOverrides">
+ServiceOverrides
+</a>
+</em>
+</td>
+<td>
+<p>GatewayService can optionally be used to customize the global vtgate Service.
+Note that per-cell vtgate Services can be customized within each cell
+definition.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>tabletService</code></br>
+<em>
+<a href="#planetscale.com/v2.ServiceOverrides">
+ServiceOverrides
+</a>
+</em>
+</td>
+<td>
+<p>TabletService can optionally be used to customize the global, headless vttablet Service.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="planetscale.com/v2.VitessClusterStatus">VitessClusterStatus
@@ -3624,6 +3768,19 @@ map[string]string
 <p>ExtraLabels can optionally be used to attach custom labels to Pods
 created for this component. These will be attached to the underlying
 Pods that the vtctld Deployment creates.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>service</code></br>
+<em>
+<a href="#planetscale.com/v2.ServiceOverrides">
+ServiceOverrides
+</a>
+</em>
+</td>
+<td>
+<p>Service can optionally be used to customize the vtctld Service.</p>
 </td>
 </tr>
 </tbody>

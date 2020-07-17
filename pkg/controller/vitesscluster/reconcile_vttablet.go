@@ -27,6 +27,7 @@ import (
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 	"planetscale.dev/vitess-operator/pkg/operator/reconciler"
 	"planetscale.dev/vitess-operator/pkg/operator/results"
+	"planetscale.dev/vitess-operator/pkg/operator/update"
 	"planetscale.dev/vitess-operator/pkg/operator/vttablet"
 )
 
@@ -47,11 +48,14 @@ func (r *ReconcileVitessCluster) reconcileVttablet(ctx context.Context, vt *plan
 		Kind: &corev1.Service{},
 
 		New: func(key client.ObjectKey) runtime.Object {
-			return vttablet.NewService(key, labels)
+			svc := vttablet.NewService(key, labels)
+			update.ServiceOverrides(svc, vt.Spec.TabletService)
+			return svc
 		},
 		UpdateInPlace: func(key client.ObjectKey, obj runtime.Object) {
-			newObj := obj.(*corev1.Service)
-			vttablet.UpdateService(newObj, labels)
+			svc := obj.(*corev1.Service)
+			vttablet.UpdateService(svc, labels)
+			update.InPlaceServiceOverrides(svc, vt.Spec.TabletService)
 		},
 	})
 	if err != nil {
