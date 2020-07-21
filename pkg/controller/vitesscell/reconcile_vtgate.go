@@ -89,15 +89,18 @@ func (r *ReconcileVitessCell) reconcileVtgate(ctx context.Context, vtc *planetsc
 		Kind: &corev1.Service{},
 
 		New: func(key client.ObjectKey) runtime.Object {
-			return vtgate.NewService(key, labels)
+			svc := vtgate.NewService(key, labels)
+			update.ServiceOverrides(svc, vtc.Spec.Gateway.Service)
+			return svc
 		},
 		UpdateInPlace: func(key client.ObjectKey, obj runtime.Object) {
-			newObj := obj.(*corev1.Service)
-			vtgate.UpdateService(newObj, labels)
+			svc := obj.(*corev1.Service)
+			vtgate.UpdateService(svc, labels)
+			update.InPlaceServiceOverrides(svc, vtc.Spec.Gateway.Service)
 		},
 		Status: func(key client.ObjectKey, obj runtime.Object) {
-			curObj := obj.(*corev1.Service)
-			vtc.Status.Gateway.ServiceName = curObj.Name
+			svc := obj.(*corev1.Service)
+			vtc.Status.Gateway.ServiceName = svc.Name
 		},
 	})
 	if err != nil {

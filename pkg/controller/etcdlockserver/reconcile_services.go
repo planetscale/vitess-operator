@@ -28,6 +28,7 @@ import (
 	"planetscale.dev/vitess-operator/pkg/operator/etcd"
 	"planetscale.dev/vitess-operator/pkg/operator/reconciler"
 	"planetscale.dev/vitess-operator/pkg/operator/results"
+	"planetscale.dev/vitess-operator/pkg/operator/update"
 )
 
 func (r *ReconcileEtcdLockserver) reconcileServices(ctx context.Context, ls *planetscalev2.EtcdLockserver) (reconcile.Result, error) {
@@ -48,11 +49,14 @@ func (r *ReconcileEtcdLockserver) reconcileServices(ctx context.Context, ls *pla
 			Kind: &corev1.Service{},
 
 			New: func(key client.ObjectKey) runtime.Object {
-				return etcd.NewClientService(key, labels)
+				svc := etcd.NewClientService(key, labels)
+				update.ServiceOverrides(svc, ls.Spec.ClientService)
+				return svc
 			},
 			UpdateInPlace: func(key client.ObjectKey, obj runtime.Object) {
-				curObj := obj.(*corev1.Service)
-				etcd.UpdateClientService(curObj, labels)
+				svc := obj.(*corev1.Service)
+				etcd.UpdateClientService(svc, labels)
+				update.InPlaceServiceOverrides(svc, ls.Spec.ClientService)
 			},
 		})
 		if err != nil {
@@ -70,11 +74,14 @@ func (r *ReconcileEtcdLockserver) reconcileServices(ctx context.Context, ls *pla
 			Kind: &corev1.Service{},
 
 			New: func(key client.ObjectKey) runtime.Object {
-				return etcd.NewPeerService(key, labels)
+				svc := etcd.NewPeerService(key, labels)
+				update.ServiceOverrides(svc, ls.Spec.PeerService)
+				return svc
 			},
 			UpdateInPlace: func(key client.ObjectKey, obj runtime.Object) {
-				curObj := obj.(*corev1.Service)
-				etcd.UpdatePeerService(curObj, labels)
+				svc := obj.(*corev1.Service)
+				etcd.UpdatePeerService(svc, labels)
+				update.InPlaceServiceOverrides(svc, ls.Spec.PeerService)
 			},
 		})
 		if err != nil {

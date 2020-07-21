@@ -48,15 +48,18 @@ func (r *ReconcileVitessCluster) reconcileVtctld(ctx context.Context, vt *planet
 		Kind: &corev1.Service{},
 
 		New: func(key client.ObjectKey) runtime.Object {
-			return vtctld.NewService(key, labels)
+			svc := vtctld.NewService(key, labels)
+			update.ServiceOverrides(svc, vt.Spec.VitessDashboard.Service)
+			return svc
 		},
 		UpdateInPlace: func(key client.ObjectKey, obj runtime.Object) {
-			newObj := obj.(*corev1.Service)
-			vtctld.UpdateService(newObj, labels)
+			svc := obj.(*corev1.Service)
+			vtctld.UpdateService(svc, labels)
+			update.InPlaceServiceOverrides(svc, vt.Spec.VitessDashboard.Service)
 		},
 		Status: func(key client.ObjectKey, obj runtime.Object) {
-			curObj := obj.(*corev1.Service)
-			vt.Status.VitessDashboard.ServiceName = curObj.Name
+			svc := obj.(*corev1.Service)
+			vt.Status.VitessDashboard.ServiceName = svc.Name
 		},
 	})
 	if err != nil {

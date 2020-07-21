@@ -182,6 +182,12 @@ type EtcdLockserverTemplate struct {
 	// +kubebuilder:validation:Minimum=1
 	// +kubebuilder:validation:Maximum=3
 	LocalMemberIndex *int32 `json:"localMemberIndex,omitempty"`
+
+	// ClientService can optionally be used to customize the etcd client Service.
+	ClientService *ServiceOverrides `json:"clientService,omitempty"`
+
+	// PeerService can optionally be used to customize the etcd peer Service.
+	PeerService *ServiceOverrides `json:"peerService,omitempty"`
 }
 
 // EtcdLockserverStatus defines the observed state of an EtcdLockserver.

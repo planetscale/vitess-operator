@@ -31,6 +31,8 @@ func DefaultVitessCluster(vt *VitessCluster) {
 	defaultClusterBackup(vt.Spec.Backup)
 	DefaultTopoReconcileConfig(&vt.Spec.TopologyReconciliation)
 	DefaultUpdateStrategy(&vt.Spec.UpdateStrategy)
+	DefaultServiceOverrides(&vt.Spec.GatewayService)
+	DefaultServiceOverrides(&vt.Spec.TabletService)
 }
 
 func defaultGlobalLockserver(vt *VitessCluster) {
@@ -88,6 +90,7 @@ func DefaultVitessDashboard(dashboard **VitessDashboardSpec) {
 			corev1.ResourceMemory: *resource.NewQuantity(defaultVtctldMemoryBytes, resource.BinarySI),
 		}
 	}
+	DefaultServiceOverrides(&(*dashboard).Service)
 }
 
 func DefaultVitessKeyspaceTemplates(keyspaces []VitessKeyspaceTemplate) {
@@ -187,5 +190,12 @@ func DefaultUpdateStrategy(updateStratPtr **VitessClusterUpdateStrategy) {
 		if updateStrat.External == nil {
 			updateStrat.External = &ExternalVitessClusterUpdateStrategyOptions{}
 		}
+	}
+}
+
+// DefaultServiceOverrides applies defaults to a ServiceOverrides field.
+func DefaultServiceOverrides(so **ServiceOverrides) {
+	if *so == nil {
+		*so = &ServiceOverrides{}
 	}
 }

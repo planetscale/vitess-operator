@@ -56,6 +56,7 @@ func DefaultVitessGateway(gtway *VitessCellGatewaySpec) {
 			corev1.ResourceMemory: *resource.NewQuantity(defaultVtgateMemoryBytes, resource.BinarySI),
 		}
 	}
+	DefaultServiceOverrides(&gtway.Service)
 }
 
 // DefaultVitessCellImages fills in unspecified keyspace-level images from cluster-level defaults.
