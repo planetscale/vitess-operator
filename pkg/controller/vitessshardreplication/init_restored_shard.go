@@ -286,8 +286,8 @@ func getTabletStatus(ctx context.Context, tmc tmclient.TabletManagerClient, tabl
 	if err == nil {
 		// We got a real slave status, which means the tablet was already replicating at some point.
 		status.replicationConfigured = true
-	} else if !strings.Contains(err.Error(), mysql.ErrNotSlave.Error()) {
-		// We expect the error ErrNotSlave, which means "SHOW SLAVE STATUS" returned
+	} else if !strings.Contains(err.Error(), mysql.ErrNotReplica.Error()) {
+		// We expect the error ErrNotReplica, which means "SHOW SLAVE STATUS" returned
 		// zero rows (replication is not configured at all).
 		// If SlaveStatus() failed for the wrong reason, we don't know
 		// whether replication is configured.

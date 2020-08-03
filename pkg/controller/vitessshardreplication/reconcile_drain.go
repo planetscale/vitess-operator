@@ -319,7 +319,7 @@ func (r *ReconcileVitessShard) handleExternalReparent(ctx context.Context, vts *
 	if err == nil {
 		// TODO: Remove this after all externalmaster tablets have been updated
 		// to set the -demote_master_type=SPARE flag.
-		err = wr.ChangeSlaveType(ctx, oldMasterAlias, topodatapb.TabletType_SPARE)
+		err = wr.ChangeTabletType(ctx, oldMasterAlias, topodatapb.TabletType_SPARE)
 	}
 
 	return err
