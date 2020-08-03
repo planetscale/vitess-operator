@@ -196,9 +196,9 @@ func readyForShardInit(ctx context.Context, ts *topo.Server, tmc tmclient.Tablet
 		// We got a real slave status, which means the tablet was already replicating at some point.
 		return fmt.Errorf("replication was previously configured on tablet %v", name)
 	}
-	// We expect the error ErrNotSlave, which means "SHOW SLAVE STATUS" returned
+	// We expect the error ErrNotReplica, which means "SHOW SLAVE STATUS" returned
 	// zero rows (replication is not configured at all).
-	if !strings.Contains(err.Error(), mysql.ErrNotSlave.Error()) {
+	if !strings.Contains(err.Error(), mysql.ErrNotReplica.Error()) {
 		// SlaveStatus() failed for the wrong reason.
 		return fmt.Errorf("failed to get slave status for tablet %v: %v", name, err)
 	}
