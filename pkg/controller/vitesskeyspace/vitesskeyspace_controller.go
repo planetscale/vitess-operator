@@ -42,6 +42,11 @@ import (
 	"planetscale.dev/vitess-operator/pkg/operator/reconciler"
 	"planetscale.dev/vitess-operator/pkg/operator/results"
 	"planetscale.dev/vitess-operator/pkg/operator/resync"
+	"planetscale.dev/vitess-operator/pkg/operator/toposerver"
+
+	"vitess.io/vitess/go/vt/logutil"
+	"vitess.io/vitess/go/vt/vttablet/tmclient"
+	"vitess.io/vitess/go/vt/wrangler"
 )
 
 const (
@@ -179,6 +184,23 @@ func (r *ReconcileVitessKeyspace) Reconcile(request reconcile.Request) (reconcil
 	topoResult, err := r.reconcileTopology(ctx, vtk)
 	resultBuilder.Merge(topoResult, err)
 
+	wr, err := newWrangler(ctx, *vtk)
+	if err != nil {
+		r.recorder.Eventf(vtk, corev1.EventTypeWarning, "StatusUpdateWarning", "failed to retrieve resharding information: %v", err)
+	}
+	if wr != nil {
+		workflows, err := wr.ListAllWorkflows(ctx, vtk.Name)
+		if err != nil {
+			r.recorder.Eventf(vtk, corev1.EventTypeWarning, "StatusUpdateWarning", "failed to list active resharding workflows: %v", err)
+		}
+		if len(workflows) != 0 {
+			vtk.Status.ReshardingInProgress = true
+			vtk.Status.ActiveWorkflows = workflows
+		} else {
+			vtk.Status.ReshardingInProgress = false
+		}
+	}
+
 	// Update status if needed.
 	vtk.Status.ObservedGeneration = vtk.Generation
 	if !apiequality.Semantic.DeepEqual(&vtk.Status, &oldStatus) {
@@ -197,4 +219,19 @@ func (r *ReconcileVitessKeyspace) Reconcile(request reconcile.Request) (reconcil
 	result, err := resultBuilder.Result()
 	reconcileCount.WithLabelValues(vtk.Labels[planetscalev2.ClusterLabel], vtk.Spec.Name, metrics.Result(err)).Inc()
 	return result, err
+}
+
+// newWrangler initializes a new Vitess Wrangler that gives us access to information
+// about resharding workflows.
+func newWrangler(ctx context.Context, vtk planetscalev2.VitessKeyspace) (*wrangler.Wrangler, error) {
+	// We need to initialize for the first time if we got here.
+	ts, err := toposerver.Open(ctx, vtk.Spec.GlobalLockserver)
+	if err != nil {
+		return nil, err
+	}
+	tmc := tmclient.NewTabletManagerClient()
+
+	// Wrangler wraps the necessary clients and implements
+	// multi-step Vitess cluster management workflows.
+	return wrangler.New(logutil.NewConsoleLogger(), ts.Server, tmc), nil
 }
