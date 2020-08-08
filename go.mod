@@ -3,11 +3,15 @@ module planetscale.dev/vitess-operator
 go 1.13
 
 require (
+	github.com/Azure/go-autorest v14.0.0+incompatible // indirect
 	github.com/ahmetb/gen-crd-api-reference-docs v0.1.5-0.20190629210212-52e137b8d003
+	github.com/hashicorp/consul/api v1.5.0 // indirect
+	github.com/hashicorp/go.net v0.0.1 // indirect
 	github.com/klauspost/compress v1.7.5 // indirect
 	github.com/klauspost/cpuid v1.2.1 // indirect
 	github.com/operator-framework/operator-sdk v0.16.0
 	github.com/prometheus/client_golang v1.4.1
+	github.com/samuel/go-zookeeper v0.0.0-20190923202752-2cc03de413da // indirect
 	github.com/sirupsen/logrus v1.4.2
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.4.0
