@@ -184,22 +184,17 @@ func (r *ReconcileVitessKeyspace) Reconcile(request reconcile.Request) (reconcil
 	topoResult, err := r.reconcileTopology(ctx, vtk)
 	resultBuilder.Merge(topoResult, err)
 
-	wr, err := newWrangler(ctx, *vtk)
+	wr, err := newWrangler(ctx, vtk.Spec.GlobalLockserver)
 	if err != nil {
 		r.recorder.Eventf(vtk, corev1.EventTypeWarning, "StatusUpdateWarning", "failed to retrieve resharding information: %v", err)
 	}
-	if wr != nil {
-		workflows, err := wr.ListAllWorkflows(ctx, vtk.Name)
-		if err != nil {
-			r.recorder.Eventf(vtk, corev1.EventTypeWarning, "StatusUpdateWarning", "failed to list active resharding workflows: %v", err)
-		}
-		if len(workflows) != 0 {
-			vtk.Status.ReshardingInProgress = true
-			vtk.Status.ActiveWorkflows = workflows
-		} else {
-			vtk.Status.ReshardingInProgress = false
-		}
+
+	workflows, err := wr.ListAllWorkflows(ctx, vtk.Name)
+	if err != nil {
+		r.recorder.Eventf(vtk, corev1.EventTypeWarning, "StatusUpdateWarning", "failed to list active resharding workflows: %v", err)
 	}
+	vtk.Status.ReshardingInProgress = len(workflows) != 0
+	vtk.Status.ActiveWorkflows = workflows
 
 	// Update status if needed.
 	vtk.Status.ObservedGeneration = vtk.Generation
@@ -223,9 +218,9 @@ func (r *ReconcileVitessKeyspace) Reconcile(request reconcile.Request) (reconcil
 
 // newWrangler initializes a new Vitess Wrangler that gives us access to information
 // about resharding workflows.
-func newWrangler(ctx context.Context, vtk planetscalev2.VitessKeyspace) (*wrangler.Wrangler, error) {
+func newWrangler(ctx context.Context, lockserverSpec planetscalev2.VitessLockserverParams) (*wrangler.Wrangler, error) {
 	// We need to initialize for the first time if we got here.
-	ts, err := toposerver.Open(ctx, vtk.Spec.GlobalLockserver)
+	ts, err := toposerver.Open(ctx, lockserverSpec)
 	if err != nil {
 		return nil, err
 	}
