@@ -1627,6 +1627,10 @@ vitess.io/vitess v0.0.0-20200626161118-3cd3fa9d81cd h1:pUSqb47wLYcKWYC8mhCvaXlPc
 vitess.io/vitess v0.0.0-20200626161118-3cd3fa9d81cd/go.mod h1:kbcKLeCFrFI+WADfcBRgBSxdevGTlKcrnQ30I02MwBE=
 vitess.io/vitess v0.0.0-20200728124225-a3a52322d4d2 h1:o1V7qNBQQkO/Tzqg7YhWpbCQoV5EA37rGOQyTmey9ow=
 vitess.io/vitess v0.0.0-20200728124225-a3a52322d4d2/go.mod h1:MjQFT3yaDsYxY+fwUwxqD0d7MRx7c8+wx0nMeXC9U/s=
+vitess.io/vitess v0.0.0-20200810101014-2130a0e75923 h1:M34doS+Z7doOgy7xMxGh/5xt9CaC10jXJa4SdhXSfkk=
+vitess.io/vitess v0.0.0-20200810101014-2130a0e75923/go.mod h1:MjQFT3yaDsYxY+fwUwxqD0d7MRx7c8+wx0nMeXC9U/s=
+vitess.io/vitess v0.7.0 h1:ycK2Bo0PJOLYrWRbZDfh5NFa+gNKqa+77M8bN0edEI4=
+vitess.io/vitess v0.7.0/go.mod h1:MjQFT3yaDsYxY+fwUwxqD0d7MRx7c8+wx0nMeXC9U/s=
 vitess.io/vitess v2.1.1+incompatible h1:nuuGHiWYWpudD3gOCLeGzol2EJ25e/u5Wer2wV1O130=
 vitess.io/vitess v2.1.1+incompatible/go.mod h1:h4qvkyNYTOC0xI+vcidSWoka0gQAZc9ZPHbkHo48gP0=
 vitess.io/vitess/examples/are-you-alive v0.0.0-20200302220708-6b7695375ce9/go.mod h1:3Lnc7tMP/PtC7X4Yxu2tcqYbXAX4aGLDKEDsaQwPDp4=
