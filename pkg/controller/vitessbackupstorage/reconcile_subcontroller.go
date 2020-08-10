@@ -77,7 +77,7 @@ func (r *ReconcileVitessBackupStorage) reconcileSubcontroller(ctx context.Contex
 		Kind: &corev1.Pod{},
 
 		New: func(key client.ObjectKey) runtime.Object {
-			return &corev1.Pod{
+			pod := &corev1.Pod{
 				ObjectMeta: metav1.ObjectMeta{
 					Namespace: key.Namespace,
 					Name:      key.Name,
@@ -85,6 +85,8 @@ func (r *ReconcileVitessBackupStorage) reconcileSubcontroller(ctx context.Contex
 				},
 				Spec: *spec,
 			}
+			update.Annotations(&pod.Annotations, vbs.Spec.Location.Annotations)
+			return pod
 		},
 		UpdateInPlace: func(key client.ObjectKey, newObj runtime.Object) {
 			pod := newObj.(*corev1.Pod)
