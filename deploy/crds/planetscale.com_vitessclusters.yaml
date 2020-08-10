@@ -38,6 +38,10 @@ spec:
                 locations:
                   items:
                     properties:
+                      annotations:
+                        additionalProperties:
+                          type: string
+                        type: object
                       azblob:
                         properties:
                           account:
