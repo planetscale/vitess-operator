@@ -131,3 +131,10 @@ var defaultVitessImages = &VitessImages{
 
 	MysqldExporter: "prom/mysqld-exporter:v0.11.0",
 }
+
+var (
+	// DefaultVitessPriorityClass is the name of the PriorityClass to use by
+	// default for Pods that run Vitess components. This value can be configured
+	// at operator startup time with the -default_vitess_priority_class flag.
+	DefaultVitessPriorityClass = "vitess"
+)

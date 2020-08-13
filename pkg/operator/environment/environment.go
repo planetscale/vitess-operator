@@ -25,6 +25,8 @@ import (
 	"time"
 
 	"github.com/spf13/pflag"
+
+	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 )
 
 var (
@@ -34,7 +36,11 @@ var (
 // FlagSet returns the FlagSet for the operator.
 func FlagSet() *pflag.FlagSet {
 	operatorFlagSet := pflag.NewFlagSet("operator", pflag.ExitOnError)
+
 	operatorFlagSet.DurationVar(&reconcileTimeout, "reconcile_timeout", 10*time.Minute, "Maximum time that any controller will spend trying to reconcile a single object before giving up.")
+
+	operatorFlagSet.StringVar(&planetscalev2.DefaultVitessPriorityClass, "default_vitess_priority_class", planetscalev2.DefaultVitessPriorityClass, "Default PriorityClass to use for Pods that run Vitess components. An empty value means don't use any PriorityClass.")
+
 	return operatorFlagSet
 }
 

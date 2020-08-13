@@ -24,6 +24,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 	"planetscale.dev/vitess-operator/pkg/operator/contenthash"
 	"planetscale.dev/vitess-operator/pkg/operator/k8s"
 	"planetscale.dev/vitess-operator/pkg/operator/update"
@@ -49,9 +50,8 @@ const (
 	//          having different sizes for different EtcdLockserver objects.
 	NumReplicas = 3
 
-	etcdContainerName     = "etcd"
-	etcdCommand           = "/usr/local/bin/etcd"
-	etcdPriorityClassName = "vitess"
+	etcdContainerName = "etcd"
+	etcdCommand       = "/usr/local/bin/etcd"
 
 	dataVolumeName      = "data"
 	dataVolumeMountPath = "/var/etcd"
@@ -284,8 +284,11 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 		}
 	}
 
-	// Use the PriorityClass we defined for etcd in deploy/priority.yaml.
-	obj.Spec.PriorityClassName = etcdPriorityClassName
+	// Use the PriorityClass we defined for etcd in deploy/priority.yaml,
+	// or a custom value if overridden in the operator command line.
+	if planetscalev2.DefaultVitessPriorityClass != "" {
+		obj.Spec.PriorityClassName = planetscalev2.DefaultVitessPriorityClass
+	}
 
 	// Make a final list of desired containers and init containers before merging.
 	initContainers := spec.InitContainers

@@ -336,8 +336,11 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 		}
 	}
 
-	// Use the PriorityClass we defined for vttablets in deploy/priority.yaml.
-	obj.Spec.PriorityClassName = vttabletPriorityClassName
+	// Use the PriorityClass we defined for vttablets in deploy/priority.yaml,
+	// or a custom value if overridden on the operator command line.
+	if planetscalev2.DefaultVitessPriorityClass != "" {
+		obj.Spec.PriorityClassName = planetscalev2.DefaultVitessPriorityClass
+	}
 }
 
 // AliasFromPod returns a TabletAlias corresponding to a vttablet Pod.

@@ -34,8 +34,7 @@ import (
 )
 
 const (
-	containerName     = "vtctld"
-	priorityClassName = "vitess"
+	containerName = "vtctld"
 
 	command    = "/vt/bin/vtctld"
 	webDir     = "/vt/src/vitess.io/vitess/web/vtctld"
@@ -134,7 +133,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 	// Use functions from the `operator/update` package for lists
 	// that should actually be treated like maps (update items by the .Name field).
 	obj.Spec.Template.Spec.ImagePullSecrets = spec.ImagePullSecrets
-	obj.Spec.Template.Spec.PriorityClassName = priorityClassName
+	obj.Spec.Template.Spec.PriorityClassName = planetscalev2.DefaultVitessPriorityClass
 	update.Volumes(&obj.Spec.Template.Spec.Volumes, spec.ExtraVolumes)
 
 	update.PodTemplateContainers(&obj.Spec.Template.Spec.InitContainers, spec.InitContainers)

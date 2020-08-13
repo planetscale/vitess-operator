@@ -21,8 +21,6 @@ import (
 )
 
 const (
-	vttabletPriorityClassName = "vitess"
-
 	vttabletContainerName = "vttablet"
 	vttabletCommand       = "/vt/bin/vttablet"
 

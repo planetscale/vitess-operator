@@ -35,8 +35,7 @@ import (
 )
 
 const (
-	containerName     = "vtgate"
-	priorityClassName = "vitess"
+	containerName = "vtgate"
 
 	command    = "/vt/bin/vtgate"
 	serviceMap = "grpc-vtgateservice"
@@ -126,7 +125,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 
 	// Pod template options.
 	obj.Spec.Template.Spec.ImagePullSecrets = spec.Cell.ImagePullSecrets
-	obj.Spec.Template.Spec.PriorityClassName = priorityClassName
+	obj.Spec.Template.Spec.PriorityClassName = planetscalev2.DefaultVitessPriorityClass
 	if spec.Affinity != nil {
 		obj.Spec.Template.Spec.Affinity = spec.Affinity
 	} else if spec.Cell.Zone != "" {
