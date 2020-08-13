@@ -18,6 +18,7 @@ package vitesskeyspace
 
 import (
 	"context"
+	"strings"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -47,7 +48,7 @@ func (r *ReconcileVitessKeyspace) reconcileShards(ctx context.Context, vtk *plan
 	keys := make([]client.ObjectKey, 0, len(shards))
 	shardMap := make(map[client.ObjectKey]*planetscalev2.VitessKeyspaceKeyRangeShard, len(shards))
 	for _, shard := range shards {
-		key := client.ObjectKey{Namespace: vtk.Namespace, Name: vitessshard.Name(clusterName, vtk.Spec.Name, shard.KeyRange)}
+		key := client.ObjectKey{Namespace: vtk.Namespace, Name: strings.ReplaceAll(vitessshard.Name(clusterName, vtk.Spec.Name, shard.KeyRange), "_", "-")}
 		keys = append(keys, key)
 		shardMap[key] = shard
 

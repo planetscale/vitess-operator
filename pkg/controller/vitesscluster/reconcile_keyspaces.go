@@ -19,6 +19,7 @@ package vitesscluster
 import (
 	"context"
 	"sort"
+	"strings"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -45,7 +46,7 @@ func (r *ReconcileVitessCluster) reconcileKeyspaces(ctx context.Context, vt *pla
 	keyspaceMap := make(map[client.ObjectKey]*planetscalev2.VitessKeyspaceTemplate, len(vt.Spec.Keyspaces))
 	for i := range vt.Spec.Keyspaces {
 		keyspace := &vt.Spec.Keyspaces[i]
-		key := client.ObjectKey{Namespace: vt.Namespace, Name: vitesskeyspace.Name(vt.Name, keyspace.Name)}
+		key := client.ObjectKey{Namespace: vt.Namespace, Name: strings.ReplaceAll(vitesskeyspace.Name(vt.Name, keyspace.Name), "_", "-")}
 		keys = append(keys, key)
 		keyspaceMap[key] = keyspace
 
