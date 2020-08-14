@@ -20,13 +20,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	"vitess.io/vitess/go/mysql"
 	"vitess.io/vitess/go/sqltypes"
 	topodatapb "vitess.io/vitess/go/vt/proto/topodata"
 	"vitess.io/vitess/go/vt/topo"
@@ -198,7 +196,7 @@ func readyForShardInit(ctx context.Context, ts *topo.Server, tmc tmclient.Tablet
 	}
 	// We expect the error ErrNotReplica, which means "SHOW SLAVE STATUS" returned
 	// zero rows (replication is not configured at all).
-	if !strings.Contains(err.Error(), mysql.ErrNotReplica.Error()) {
+	if !isErrNotReplica(err) {
 		// SlaveStatus() failed for the wrong reason.
 		return fmt.Errorf("failed to get slave status for tablet %v: %v", name, err)
 	}
