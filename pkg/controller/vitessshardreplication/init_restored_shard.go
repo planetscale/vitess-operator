@@ -286,7 +286,7 @@ func getTabletStatus(ctx context.Context, tmc tmclient.TabletManagerClient, tabl
 	if err == nil {
 		// We got a real slave status, which means the tablet was already replicating at some point.
 		status.replicationConfigured = true
-	} else if !strings.Contains(err.Error(), mysql.ErrNotReplica.Error()) {
+	} else if !isErrNotReplica(err) {
 		// We expect the error ErrNotReplica, which means "SHOW SLAVE STATUS" returned
 		// zero rows (replication is not configured at all).
 		// If SlaveStatus() failed for the wrong reason, we don't know
@@ -315,4 +315,47 @@ func getTabletStatus(ctx context.Context, tmc tmclient.TabletManagerClient, tabl
 	}
 
 	return status
+}
+
+// isErrNotReplica returns true if the given error is recognized as one of the
+// errors Vitess sends to indicate that it successfully checked replication
+// status, but the answer is that replication is in a disabled state.
+// Replication could be in a disabled state either because the tablet is a
+// replica that has not been configured yet, or because it's acting as a master.
+//
+// Unfortunately, the Vitess RPC to fetch replication status does not offer any
+// officially-supported way to distinguish between this case (replication disabled)
+// and other errors (e.g. MySQL didn't respond). The best we can do for now is
+// inspect the text of the error.
+//
+// In July 2020, Vitess changed the text of the error we're looking for.
+// To remain compatible with older versions, we check for these historical
+// values as well as the latest known value pulled from our build dependency.
+//
+// TODO: Add an officially-supported signal in the Vitess RPC to recognize this
+//       important state programmatically.
+func isErrNotReplica(err error) bool {
+	errString := err.Error()
+
+	// Check for the latest known value from the version of Vitess we import.
+	if strings.Contains(errString, mysql.ErrNotReplica.Error()) {
+		return true
+	}
+
+	// Check for historically known values since Vitess does not treat this
+	// error string as part of its public API and hence the value may change.
+	for _, search := range errNotReplicaStrings {
+		if strings.Contains(errString, search) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// errNotReplicaStrings are historically known error strings that indicate
+// a tablet has replication disabled.
+var errNotReplicaStrings = []string{
+	"no slave status",
+	"no replication status",
 }
