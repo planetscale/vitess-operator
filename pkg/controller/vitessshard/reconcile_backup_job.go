@@ -238,7 +238,7 @@ func vtbackupSpec(key client.ObjectKey, vts *planetscalev2.VitessShard, parentLa
 		InitContainers:           pool.InitContainers,
 		SidecarContainers:        pool.SidecarContainers,
 		ExtraEnv:                 pool.ExtraEnv,
-		Annotations:              vts.Spec.Annotations,
+		Annotations:              pool.Annotations,
 	}
 	update.Annotations(&tabletSpec.Annotations, backupLocation.Annotations)
 
