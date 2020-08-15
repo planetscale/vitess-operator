@@ -55,7 +55,7 @@ const (
 
 var (
 	maxConcurrentReconciles = flag.Int("vitesskeyspace_concurrent_reconciles", 10, "the maximum number of different vitesskeyspaces to reconcile concurrently")
-	resyncPeriod            = flag.Duration("vitesskeyspace_resync_period", 30*time.Minute, "reconcile vitesskeyspaces with this period even if no Kubernetes events occur")
+	resyncPeriod            = flag.Duration("vitesskeyspace_resync_period", 15*time.Second, "reconcile vitesskeyspaces with this period even if no Kubernetes events occur")
 )
 
 var log = logrus.WithField("controller", "VitessKeyspace")
@@ -189,9 +189,10 @@ func (r *ReconcileVitessKeyspace) Reconcile(request reconcile.Request) (reconcil
 		r.recorder.Eventf(vtk, corev1.EventTypeWarning, "StatusUpdateWarning", "failed to retrieve resharding information: %v", err)
 	}
 
-	workflows, err := wr.ListAllWorkflows(ctx, vtk.Name)
+	workflows, err := wr.ListAllWorkflows(ctx, vtk.Spec.Name)
 	if err != nil {
 		r.recorder.Eventf(vtk, corev1.EventTypeWarning, "StatusUpdateWarning", "failed to list active resharding workflows: %v", err)
+		workflows = make([]string, 0)
 	}
 	vtk.Status.ReshardingInProgress = len(workflows) != 0
 	vtk.Status.ActiveWorkflows = workflows
