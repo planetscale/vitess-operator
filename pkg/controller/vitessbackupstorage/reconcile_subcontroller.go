@@ -91,6 +91,7 @@ func (r *ReconcileVitessBackupStorage) reconcileSubcontroller(ctx context.Contex
 		UpdateInPlace: func(key client.ObjectKey, newObj runtime.Object) {
 			pod := newObj.(*corev1.Pod)
 			update.Labels(&pod.Labels, labels)
+			update.Annotations(&pod.Annotations, vbs.Spec.Location.Annotations)
 		},
 		UpdateRecreate: func(key client.ObjectKey, newObj runtime.Object) {
 			pod := newObj.(*corev1.Pod)
