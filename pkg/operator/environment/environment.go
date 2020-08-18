@@ -40,6 +40,8 @@ func FlagSet() *pflag.FlagSet {
 	operatorFlagSet.DurationVar(&reconcileTimeout, "reconcile_timeout", 10*time.Minute, "Maximum time that any controller will spend trying to reconcile a single object before giving up.")
 
 	operatorFlagSet.StringVar(&planetscalev2.DefaultVitessPriorityClass, "default_vitess_priority_class", planetscalev2.DefaultVitessPriorityClass, "Default PriorityClass to use for Pods that run Vitess components. An empty value means don't use any PriorityClass.")
+	operatorFlagSet.Int64Var(&planetscalev2.DefaultVitessRunAsUser, "default_vitess_run_as_user", planetscalev2.DefaultVitessRunAsUser, "Default UID to use for Pods that run Vitess components.")
+	operatorFlagSet.Int64Var(&planetscalev2.DefaultVitessFSGroup, "default_vitess_fs_group", planetscalev2.DefaultVitessFSGroup, "Default GID to use for Pods that run Vitess components.")
 
 	return operatorFlagSet
 }

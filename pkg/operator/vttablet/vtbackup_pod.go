@@ -130,13 +130,13 @@ func NewBackupPod(key client.ObjectKey, backupSpec *BackupSpec) *corev1.Pod {
 			RestartPolicy:    corev1.RestartPolicyOnFailure,
 			Volumes:          tabletVolumes.Get(tabletSpec),
 			SecurityContext: &corev1.PodSecurityContext{
-				FSGroup: pointer.Int64Ptr(fsGroup),
+				FSGroup: pointer.Int64Ptr(planetscalev2.DefaultVitessFSGroup),
 			},
 			InitContainers: []corev1.Container{
 				{
 					Name: "init-vt-root",
 					SecurityContext: &corev1.SecurityContext{
-						RunAsUser: pointer.Int64Ptr(runAsUser),
+						RunAsUser: pointer.Int64Ptr(planetscalev2.DefaultVitessRunAsUser),
 					},
 					// We only use the vtbackup image to steal the vtbackup binary.
 					// When we actually run it, we run inside the mysqld image.
@@ -162,7 +162,7 @@ func NewBackupPod(key client.ObjectKey, backupSpec *BackupSpec) *corev1.Pod {
 					Args:            vtbackupFlags.Get(backupSpec).FormatArgs(),
 					Resources:       tabletSpec.Mysqld.Resources,
 					SecurityContext: &corev1.SecurityContext{
-						RunAsUser: pointer.Int64Ptr(runAsUser),
+						RunAsUser: pointer.Int64Ptr(planetscalev2.DefaultVitessRunAsUser),
 					},
 					Env:          env,
 					VolumeMounts: volumeMounts,

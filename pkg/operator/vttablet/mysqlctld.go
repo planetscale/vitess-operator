@@ -20,6 +20,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/utils/pointer"
 
+	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 	"planetscale.dev/vitess-operator/pkg/operator/lazy"
 )
 
@@ -70,7 +71,7 @@ func init() {
 			{
 				Name: "init-vt-root",
 				SecurityContext: &corev1.SecurityContext{
-					RunAsUser: pointer.Int64Ptr(runAsUser),
+					RunAsUser: pointer.Int64Ptr(planetscalev2.DefaultVitessRunAsUser),
 				},
 				Image:           spec.Images.Vttablet,
 				ImagePullPolicy: spec.ImagePullPolicies.Vttablet,
@@ -93,7 +94,7 @@ func init() {
 			initContainers = append(initContainers, corev1.Container{
 				Name: "init-mysql-socket",
 				SecurityContext: &corev1.SecurityContext{
-					RunAsUser: pointer.Int64Ptr(runAsUser),
+					RunAsUser: pointer.Int64Ptr(planetscalev2.DefaultVitessRunAsUser),
 				},
 				Image:           spec.Images.Vttablet,
 				ImagePullPolicy: spec.ImagePullPolicies.Vttablet,

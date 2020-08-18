@@ -40,7 +40,6 @@ const (
 	webDir     = "/vt/src/vitess.io/vitess/web/vtctld"
 	webDir2    = "/vt/src/vitess.io/vitess/web/vtctld2/app"
 	serviceMap = "grpc-vtctl"
-	runAsUser  = 999
 )
 
 // DeploymentName returns the name of the vtctld Deployment for a given cell.
@@ -159,7 +158,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 			},
 			Resources: spec.Resources,
 			SecurityContext: &corev1.SecurityContext{
-				RunAsUser: pointer.Int64Ptr(runAsUser),
+				RunAsUser: pointer.Int64Ptr(planetscalev2.DefaultVitessRunAsUser),
 			},
 			ReadinessProbe: &corev1.Probe{
 				Handler: corev1.Handler{

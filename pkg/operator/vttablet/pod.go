@@ -132,7 +132,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 		},
 		Resources: spec.Vttablet.Resources,
 		SecurityContext: &corev1.SecurityContext{
-			RunAsUser: pointer.Int64Ptr(runAsUser),
+			RunAsUser: pointer.Int64Ptr(planetscalev2.DefaultVitessRunAsUser),
 		},
 		ReadinessProbe: &corev1.Probe{
 			Handler: corev1.Handler{
@@ -181,7 +181,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 			},
 			Resources: spec.Mysqld.Resources,
 			SecurityContext: &corev1.SecurityContext{
-				RunAsUser: pointer.Int64Ptr(runAsUser),
+				RunAsUser: pointer.Int64Ptr(planetscalev2.DefaultVitessRunAsUser),
 			},
 			// TODO(enisoc): Add readiness and liveness probes that make sense for mysqld.
 			Env:          env,
@@ -215,7 +215,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 				},
 			},
 			SecurityContext: &corev1.SecurityContext{
-				RunAsUser: pointer.Int64Ptr(runAsUser),
+				RunAsUser: pointer.Int64Ptr(planetscalev2.DefaultVitessRunAsUser),
 			},
 			VolumeMounts: mysqldMounts,
 			Resources: corev1.ResourceRequirements{
@@ -280,7 +280,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	if obj.Spec.SecurityContext == nil {
 		obj.Spec.SecurityContext = &corev1.PodSecurityContext{}
 	}
-	obj.Spec.SecurityContext.FSGroup = pointer.Int64Ptr(fsGroup)
+	obj.Spec.SecurityContext.FSGroup = pointer.Int64Ptr(planetscalev2.DefaultVitessFSGroup)
 
 	obj.Spec.TerminationGracePeriodSeconds = pointer.Int64Ptr(terminationGracePeriodSeconds)
 

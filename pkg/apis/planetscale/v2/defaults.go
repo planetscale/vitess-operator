@@ -135,6 +135,16 @@ var defaultVitessImages = &VitessImages{
 var (
 	// DefaultVitessPriorityClass is the name of the PriorityClass to use by
 	// default for Pods that run Vitess components. This value can be configured
-	// at operator startup time with the -default_vitess_priority_class flag.
+	// at operator startup time with the --default_vitess_priority_class flag.
 	DefaultVitessPriorityClass = "vitess"
+
+	// DefaultVitessRunAsUser is the UID to use by default for Pods that run
+	// Vitess components. This value can be configured at operator startup time
+	// with the --default_vitess_run_as_user flag.
+	DefaultVitessRunAsUser int64 = 999
+
+	// DefaultVitessFSGroup is the GID to use by default for Pods that run
+	// Vitess components. This value can be configured at operator startup time
+	// with the --default_vitess_fs_group flag.
+	DefaultVitessFSGroup int64 = 999
 )

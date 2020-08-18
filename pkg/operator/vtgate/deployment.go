@@ -39,7 +39,6 @@ const (
 
 	command    = "/vt/bin/vtgate"
 	serviceMap = "grpc-vtgateservice"
-	runAsUser  = 999
 
 	tabletTypesToWait     = "MASTER,REPLICA"
 	gatewayImplementation = "discoverygateway"
@@ -180,7 +179,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 		},
 		Resources: spec.Resources,
 		SecurityContext: &corev1.SecurityContext{
-			RunAsUser: pointer.Int64Ptr(runAsUser),
+			RunAsUser: pointer.Int64Ptr(planetscalev2.DefaultVitessRunAsUser),
 		},
 		ReadinessProbe: &corev1.Probe{
 			Handler: corev1.Handler{
