@@ -72,6 +72,9 @@ type VitessBackupLocation struct {
 	// a shared host path for local testing.
 	// +kubebuilder:validation:EmbeddedResource
 	Volume *corev1.VolumeSource `json:"volume,omitempty"`
+	// Annotations can optionally be used to attach custom annotations to Pods
+	// that need access to this backup storage location.
+	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
 // GCSBackupLocation specifies a backup location in Google Cloud Storage.
