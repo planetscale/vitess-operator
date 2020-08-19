@@ -43,6 +43,9 @@ func FlagSet() *pflag.FlagSet {
 	operatorFlagSet.Int64Var(&planetscalev2.DefaultVitessRunAsUser, "default_vitess_run_as_user", planetscalev2.DefaultVitessRunAsUser, "Default UID to use for Pods that run Vitess components.")
 	operatorFlagSet.Int64Var(&planetscalev2.DefaultVitessFSGroup, "default_vitess_fs_group", planetscalev2.DefaultVitessFSGroup, "Default GID to use for Pods that run Vitess components.")
 
+	operatorFlagSet.StringVar(&planetscalev2.DefaultEtcdImage, "default_etcd_image", planetscalev2.DefaultEtcdImage, "Default etcd image to use when not specified in the CRD.")
+	operatorFlagSet.StringVar(&planetscalev2.DefaultImages.MysqldExporter, "default_mysqld_exporter_image", planetscalev2.DefaultImages.MysqldExporter, "Default mysqld-exporter image to use when not specified in the CRD.")
+
 	return operatorFlagSet
 }
 

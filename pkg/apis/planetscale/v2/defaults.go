@@ -56,7 +56,6 @@ const (
 	// Gi is the scale factor for Gibi (2**30)
 	Gi = 1 << 30
 
-	defaultEtcdImage               = "quay.io/coreos/etcd:v3.3.13"
 	defaultEtcdStorageRequestBytes = 1 * Gi
 	defaultEtcdCPUMillis           = 100
 	defaultEtcdMemoryBytes         = 256 * Mi
@@ -94,18 +93,8 @@ const (
 	defaultVitessLiteImage = "vitess/lite:v7.0.0"
 )
 
-/*
-defaultVitessImages are the default images used for this API Version (planetscale.com/v2).
-
-As discussed in the comment at the top of this file, we cannot change these
-after planetscale.com/v2 is released. Anyone using the operator in production
-should set these images explicitly in the CRD anyway, so they know what they're
-getting and when they need to upgrade.
-
-These API-level defaults exist merely to support a friendly "kick the tires"
-experience when trying out the operator.
-*/
-var defaultVitessImages = &VitessImages{
+// DefaultImages are a set of images to use when the CRD doesn't specify.
+var DefaultImages = &VitessImages{
 	Vtctld:   defaultVitessLiteImage,
 	Vtgate:   defaultVitessLiteImage,
 	Vttablet: defaultVitessLiteImage,
@@ -147,4 +136,9 @@ var (
 	// Vitess components. This value can be configured at operator startup time
 	// with the --default_vitess_fs_group flag.
 	DefaultVitessFSGroup int64 = 999
+
+	// DefaultEtcdImage is the image to use for etcd when the CRD doesn't specify.
+	// This value can be configured at operator startup time with the
+	// --default_etcd_image flag.
+	DefaultEtcdImage = "quay.io/coreos/etcd:v3.3.13"
 )

@@ -25,7 +25,7 @@ import (
 // DefaultVitessCluster fills in default values for unspecified fields.
 func DefaultVitessCluster(vt *VitessCluster) {
 	defaultGlobalLockserver(vt)
-	DefaultVitessImages(&vt.Spec.Images, defaultVitessImages)
+	DefaultVitessImages(&vt.Spec.Images, DefaultImages)
 	DefaultVitessDashboard(&vt.Spec.VitessDashboard)
 	DefaultVitessKeyspaceTemplates(vt.Spec.Keyspaces)
 	defaultClusterBackup(vt.Spec.Backup)
