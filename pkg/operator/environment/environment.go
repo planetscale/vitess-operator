@@ -42,6 +42,8 @@ func FlagSet() *pflag.FlagSet {
 	operatorFlagSet.StringVar(&planetscalev2.DefaultVitessPriorityClass, "default_vitess_priority_class", planetscalev2.DefaultVitessPriorityClass, "Default PriorityClass to use for Pods that run Vitess components. An empty value means don't use any PriorityClass.")
 	operatorFlagSet.Int64Var(&planetscalev2.DefaultVitessRunAsUser, "default_vitess_run_as_user", planetscalev2.DefaultVitessRunAsUser, "Default UID to use for Pods that run Vitess components.")
 	operatorFlagSet.Int64Var(&planetscalev2.DefaultVitessFSGroup, "default_vitess_fs_group", planetscalev2.DefaultVitessFSGroup, "Default GID to use for Pods that run Vitess components.")
+	operatorFlagSet.Int64Var(&planetscalev2.DefaultEtcdRunAsUser, "default_etcd_run_as_user", planetscalev2.DefaultEtcdRunAsUser, "Default UID to use for etcd Pods.")
+	operatorFlagSet.Int64Var(&planetscalev2.DefaultEtcdFSGroup, "default_etcd_fs_group", planetscalev2.DefaultEtcdFSGroup, "Default GID to use for etcd Pods.")
 
 	operatorFlagSet.StringVar(&planetscalev2.DefaultEtcdImage, "default_etcd_image", planetscalev2.DefaultEtcdImage, "Default etcd image to use when not specified in the CRD.")
 	operatorFlagSet.StringVar(&planetscalev2.DefaultImages.MysqldExporter, "default_mysqld_exporter_image", planetscalev2.DefaultImages.MysqldExporter, "Default mysqld-exporter image to use when not specified in the CRD.")

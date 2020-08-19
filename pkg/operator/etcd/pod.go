@@ -22,6 +22,7 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
@@ -163,12 +164,20 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	}
 	update.VolumeMounts(&volumeMounts, spec.ExtraVolumeMounts)
 
+	var securityContext *corev1.SecurityContext
+	if planetscalev2.DefaultEtcdRunAsUser > 0 {
+		securityContext = &corev1.SecurityContext{
+			RunAsUser: pointer.Int64Ptr(planetscalev2.DefaultEtcdRunAsUser),
+		}
+	}
+
 	etcdContainer := &corev1.Container{
 		Name:            etcdContainerName,
 		Image:           spec.Image,
 		ImagePullPolicy: spec.ImagePullPolicy,
 		Command:         []string{etcdCommand},
 		Args:            spec.Args(),
+		SecurityContext: securityContext,
 		Ports: []corev1.ContainerPort{
 			{
 				Name:          ClientPortName,
@@ -225,6 +234,13 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	obj.Spec.Hostname = PodName(spec.LockserverName, spec.Index)
 	obj.Spec.Subdomain = PeerServiceName(spec.LockserverName)
 	obj.Spec.ImagePullSecrets = spec.ImagePullSecrets
+
+	if planetscalev2.DefaultEtcdFSGroup > 0 {
+		if obj.Spec.SecurityContext == nil {
+			obj.Spec.SecurityContext = &corev1.PodSecurityContext{}
+		}
+		obj.Spec.SecurityContext.FSGroup = pointer.Int64Ptr(planetscalev2.DefaultEtcdFSGroup)
+	}
 
 	// In both the case of the user injecting their own affinity and the default, we
 	// simply override the pod's existing affinity configuration.

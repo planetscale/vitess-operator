@@ -137,6 +137,16 @@ var (
 	// with the --default_vitess_fs_group flag.
 	DefaultVitessFSGroup int64 = 999
 
+	// DefaultEtcdRunAsUser is the UID to use by default for etcd Pods.
+	// This value can be configured at operator startup time with the
+	// --default_etcd_run_as_user flag.
+	DefaultEtcdRunAsUser int64 = 0
+
+	// DefaultEtcdFSGroup is the GID to use by default for etcd Pods.
+	// This value can be configured at operator startup time with the
+	// --default_etcd_fs_group flag.
+	DefaultEtcdFSGroup int64 = 0
+
 	// DefaultEtcdImage is the image to use for etcd when the CRD doesn't specify.
 	// This value can be configured at operator startup time with the
 	// --default_etcd_image flag.
