@@ -292,7 +292,7 @@ type VitessKeyspaceStatus struct {
 	// be safe to turn down the keyspace.
 	Idle corev1.ConditionStatus `json:"idle,omitempty"`
 	// ReshardingInProgress indicates if there is a VReplication workflow in progress.
-	ReshardingInProgress bool `json:"reshardingInProgress,omitempty"`
+	ReshardingInProgress corev1.ConditionStatus `json:"reshardingInProgress,omitempty"`
 	// ActiveWorkflows is a list of the current VReplication workflows in progress.
 	ActiveWorkflows []string `json:"activeWorkflows,omitempty"`
 }
