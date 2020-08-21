@@ -882,7 +882,7 @@ spec:
                 type: object
               type: object
             reshardingInProgress:
-              type: boolean
+              type: string
             shards:
               additionalProperties:
                 properties:
