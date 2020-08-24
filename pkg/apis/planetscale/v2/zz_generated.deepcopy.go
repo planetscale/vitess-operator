@@ -1842,6 +1842,11 @@ func (in *VitessKeyspaceStatus) DeepCopyInto(out *VitessKeyspaceStatus) {
 			(*out)[key] = val
 		}
 	}
+	if in.ActiveWorkflows != nil {
+		in, out := &in.ActiveWorkflows, &out.ActiveWorkflows
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
 	return
 }
 

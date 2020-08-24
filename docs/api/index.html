@@ -5053,6 +5053,30 @@ If Idle is True, the keyspace is not deployed in any cells, so it should
 be safe to turn down the keyspace.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>reshardingInProgress</code></br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#conditionstatus-v1-core">
+Kubernetes core/v1.ConditionStatus
+</a>
+</em>
+</td>
+<td>
+<p>ReshardingInProgress indicates if there is a VReplication workflow in progress.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>activeWorkflows</code></br>
+<em>
+[]string
+</em>
+</td>
+<td>
+<p>ActiveWorkflows is a list of the current VReplication workflows in progress.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="planetscale.com/v2.VitessKeyspaceTemplate">VitessKeyspaceTemplate
