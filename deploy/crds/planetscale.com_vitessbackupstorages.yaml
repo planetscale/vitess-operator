@@ -30,6 +30,10 @@ spec:
           properties:
             location:
               properties:
+                annotations:
+                  additionalProperties:
+                    type: string
+                  type: object
                 azblob:
                   properties:
                     account:

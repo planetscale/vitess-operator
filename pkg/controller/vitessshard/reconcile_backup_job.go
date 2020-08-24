@@ -29,6 +29,7 @@ import (
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 	"planetscale.dev/vitess-operator/pkg/operator/reconciler"
 	"planetscale.dev/vitess-operator/pkg/operator/results"
+	"planetscale.dev/vitess-operator/pkg/operator/update"
 	"planetscale.dev/vitess-operator/pkg/operator/vitessbackup"
 	"planetscale.dev/vitess-operator/pkg/operator/vttablet"
 )
@@ -219,31 +220,35 @@ func vtbackupSpec(key client.ObjectKey, vts *planetscalev2.VitessShard, parentLa
 	minRetentionTime := time.Duration(0)
 	minRetentionCount := 1
 
+	// Fill in the parts of a vttablet spec that make sense for vtbackup.
+	tabletSpec := &vttablet.Spec{
+		GlobalLockserver:         vts.Spec.GlobalLockserver,
+		Labels:                   labels,
+		Images:                   vts.Spec.Images,
+		KeyRange:                 vts.Spec.KeyRange,
+		Vttablet:                 &pool.Vttablet,
+		Mysqld:                   pool.Mysqld,
+		DataVolumePVCName:        key.Name,
+		DataVolumePVCSpec:        pool.DataVolumeClaimTemplate,
+		KeyspaceName:             keyspaceName,
+		DatabaseName:             vts.Spec.DatabaseName,
+		DatabaseInitScriptSecret: vts.Spec.DatabaseInitScriptSecret,
+		BackupLocation:           backupLocation,
+		BackupEngine:             vts.Spec.BackupEngine,
+		InitContainers:           pool.InitContainers,
+		SidecarContainers:        pool.SidecarContainers,
+		ExtraEnv:                 pool.ExtraEnv,
+		Annotations:              pool.Annotations,
+	}
+	update.Annotations(&tabletSpec.Annotations, backupLocation.Annotations)
+
 	return &vttablet.BackupSpec{
 		InitialBackup:     backupType == vitessbackup.TypeInit,
 		MinBackupInterval: minBackupInterval,
 		MinRetentionTime:  minRetentionTime,
 		MinRetentionCount: minRetentionCount,
 
-		// Fill in the parts of a vttablet spec that make sense for vtbackup.
-		TabletSpec: &vttablet.Spec{
-			GlobalLockserver:         vts.Spec.GlobalLockserver,
-			Labels:                   labels,
-			Images:                   vts.Spec.Images,
-			KeyRange:                 vts.Spec.KeyRange,
-			Vttablet:                 &pool.Vttablet,
-			Mysqld:                   pool.Mysqld,
-			DataVolumePVCName:        key.Name,
-			DataVolumePVCSpec:        pool.DataVolumeClaimTemplate,
-			KeyspaceName:             keyspaceName,
-			DatabaseName:             vts.Spec.DatabaseName,
-			DatabaseInitScriptSecret: vts.Spec.DatabaseInitScriptSecret,
-			BackupLocation:           backupLocation,
-			BackupEngine:             vts.Spec.BackupEngine,
-			InitContainers:           pool.InitContainers,
-			SidecarContainers:        pool.SidecarContainers,
-			ExtraEnv:                 pool.ExtraEnv,
-		},
+		TabletSpec: tabletSpec,
 	}
 }
 

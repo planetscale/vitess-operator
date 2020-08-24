@@ -642,6 +642,13 @@ func (in *VitessBackupLocation) DeepCopyInto(out *VitessBackupLocation) {
 		*out = new(v1.VolumeSource)
 		(*in).DeepCopyInto(*out)
 	}
+	if in.Annotations != nil {
+		in, out := &in.Annotations, &out.Annotations
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
 	return
 }
 
