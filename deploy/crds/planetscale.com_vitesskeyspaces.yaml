@@ -868,6 +868,10 @@ spec:
           type: object
         status:
           properties:
+            activeWorkflows:
+              items:
+                type: string
+              type: array
             idle:
               type: string
             observedGeneration:
@@ -885,6 +889,8 @@ spec:
                 - reason
                 type: object
               type: object
+            reshardingInProgress:
+              type: string
             shards:
               additionalProperties:
                 properties:

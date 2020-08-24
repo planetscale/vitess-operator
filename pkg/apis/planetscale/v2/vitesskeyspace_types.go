@@ -294,6 +294,10 @@ type VitessKeyspaceStatus struct {
 	// If Idle is True, the keyspace is not deployed in any cells, so it should
 	// be safe to turn down the keyspace.
 	Idle corev1.ConditionStatus `json:"idle,omitempty"`
+	// ReshardingInProgress indicates if there is a VReplication workflow in progress.
+	ReshardingInProgress corev1.ConditionStatus `json:"reshardingInProgress,omitempty"`
+	// ActiveWorkflows is a list of the current VReplication workflows in progress.
+	ActiveWorkflows []string `json:"activeWorkflows,omitempty"`
 }
 
 // NewVitessKeyspaceStatus creates a new status object with default values.

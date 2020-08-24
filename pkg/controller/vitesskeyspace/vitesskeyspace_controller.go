@@ -42,6 +42,11 @@ import (
 	"planetscale.dev/vitess-operator/pkg/operator/reconciler"
 	"planetscale.dev/vitess-operator/pkg/operator/results"
 	"planetscale.dev/vitess-operator/pkg/operator/resync"
+	"planetscale.dev/vitess-operator/pkg/operator/toposerver"
+
+	"vitess.io/vitess/go/vt/logutil"
+	"vitess.io/vitess/go/vt/vttablet/tmclient"
+	"vitess.io/vitess/go/vt/wrangler"
 )
 
 const (
@@ -50,7 +55,7 @@ const (
 
 var (
 	maxConcurrentReconciles = flag.Int("vitesskeyspace_concurrent_reconciles", 10, "the maximum number of different vitesskeyspaces to reconcile concurrently")
-	resyncPeriod            = flag.Duration("vitesskeyspace_resync_period", 30*time.Minute, "reconcile vitesskeyspaces with this period even if no Kubernetes events occur")
+	resyncPeriod            = flag.Duration("vitesskeyspace_resync_period", 15*time.Second, "reconcile vitesskeyspaces with this period even if no Kubernetes events occur")
 )
 
 var log = logrus.WithField("controller", "VitessKeyspace")
@@ -178,6 +183,12 @@ func (r *ReconcileVitessKeyspace) Reconcile(request reconcile.Request) (reconcil
 	// NOTE: This must always be done after reconcileShards, so Status.Shards is populated.
 	topoResult, err := r.reconcileTopology(ctx, vtk)
 	resultBuilder.Merge(topoResult, err)
+
+	// Check resharding status and report back.
+	if err := r.reconcileResharding(ctx, vtk); err != nil {
+		r.recorder.Eventf(vtk, corev1.EventTypeWarning, "StatusUpdateWarning", "failed to retrieve resharding information: %v", err)
+		resultBuilder.Error(err)
+	}
 
 	// Update status if needed.
 	vtk.Status.ObservedGeneration = vtk.Generation
