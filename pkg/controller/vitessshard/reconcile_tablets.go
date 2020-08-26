@@ -306,7 +306,9 @@ func vttabletSpecs(vts *planetscalev2.VitessShard, parentLabels map[string]strin
 				drain.SupportedAnnotation: "ensure that the tablet is not a master",
 			}
 			update.Annotations(&annotations, pool.Annotations)
-			update.Annotations(&annotations, backupLocation.Annotations)
+			if backupLocation != nil {
+				update.Annotations(&annotations, backupLocation.Annotations)
+			}
 			tablets = append(tablets, &vttablet.Spec{
 				GlobalLockserver:         vts.Spec.GlobalLockserver,
 				Labels:                   labels,
