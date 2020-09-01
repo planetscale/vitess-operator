@@ -40,8 +40,11 @@ func FlagSet() *pflag.FlagSet {
 	operatorFlagSet.DurationVar(&reconcileTimeout, "reconcile_timeout", 10*time.Minute, "Maximum time that any controller will spend trying to reconcile a single object before giving up.")
 
 	operatorFlagSet.StringVar(&planetscalev2.DefaultVitessPriorityClass, "default_vitess_priority_class", planetscalev2.DefaultVitessPriorityClass, "Default PriorityClass to use for Pods that run Vitess components. An empty value means don't use any PriorityClass.")
+	operatorFlagSet.StringVar(&planetscalev2.DefaultVitessServiceAccount, "default_vitess_service_account", planetscalev2.DefaultVitessServiceAccount, "Default ServiceAccount to use for Pods that run Vitess components. An empty value means let Kubernetes fill in a default.")
 	operatorFlagSet.Int64Var(&planetscalev2.DefaultVitessRunAsUser, "default_vitess_run_as_user", planetscalev2.DefaultVitessRunAsUser, "Default UID to use for Pods that run Vitess components.")
 	operatorFlagSet.Int64Var(&planetscalev2.DefaultVitessFSGroup, "default_vitess_fs_group", planetscalev2.DefaultVitessFSGroup, "Default GID to use for Pods that run Vitess components.")
+
+	operatorFlagSet.StringVar(&planetscalev2.DefaultEtcdServiceAccount, "default_etcd_service_account", planetscalev2.DefaultEtcdServiceAccount, "Default ServiceAccount to use for etcd Pods. An empty value means let Kubernetes fill in a default.")
 	operatorFlagSet.Int64Var(&planetscalev2.DefaultEtcdRunAsUser, "default_etcd_run_as_user", planetscalev2.DefaultEtcdRunAsUser, "Default UID to use for etcd Pods.")
 	operatorFlagSet.Int64Var(&planetscalev2.DefaultEtcdFSGroup, "default_etcd_fs_group", planetscalev2.DefaultEtcdFSGroup, "Default GID to use for etcd Pods.")
 

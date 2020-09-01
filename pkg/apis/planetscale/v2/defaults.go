@@ -127,6 +127,11 @@ var (
 	// at operator startup time with the --default_vitess_priority_class flag.
 	DefaultVitessPriorityClass = "vitess"
 
+	// DefaultVitessServiceAccount is the name of the ServiceAccount to use by
+	// default for Pods that run Vitess components. This value can be configured
+	// at operator startup time with the --default_vitess_service_account flag.
+	DefaultVitessServiceAccount = ""
+
 	// DefaultVitessRunAsUser is the UID to use by default for Pods that run
 	// Vitess components. This value can be configured at operator startup time
 	// with the --default_vitess_run_as_user flag.
@@ -136,6 +141,11 @@ var (
 	// Vitess components. This value can be configured at operator startup time
 	// with the --default_vitess_fs_group flag.
 	DefaultVitessFSGroup int64 = 999
+
+	// DefaultEtcdServiceAccount is the name of the ServiceAccount to use by
+	// default for etcd Pods. This value can be configured at operator startup
+	// time with the --default_etcd_service_account flag.
+	DefaultEtcdServiceAccount = ""
 
 	// DefaultEtcdRunAsUser is the UID to use by default for etcd Pods.
 	// This value can be configured at operator startup time with the

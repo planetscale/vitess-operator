@@ -125,6 +125,8 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 	// Pod template options.
 	obj.Spec.Template.Spec.ImagePullSecrets = spec.Cell.ImagePullSecrets
 	obj.Spec.Template.Spec.PriorityClassName = planetscalev2.DefaultVitessPriorityClass
+	obj.Spec.Template.Spec.ServiceAccountName = planetscalev2.DefaultVitessServiceAccount
+
 	if spec.Affinity != nil {
 		obj.Spec.Template.Spec.Affinity = spec.Affinity
 	} else if spec.Cell.Zone != "" {

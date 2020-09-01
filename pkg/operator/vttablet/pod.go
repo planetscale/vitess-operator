@@ -341,6 +341,10 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	if planetscalev2.DefaultVitessPriorityClass != "" {
 		obj.Spec.PriorityClassName = planetscalev2.DefaultVitessPriorityClass
 	}
+
+	if planetscalev2.DefaultVitessServiceAccount != "" {
+		obj.Spec.ServiceAccountName = planetscalev2.DefaultVitessServiceAccount
+	}
 }
 
 // AliasFromPod returns a TabletAlias corresponding to a vttablet Pod.

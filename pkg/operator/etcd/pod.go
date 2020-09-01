@@ -242,6 +242,10 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 		obj.Spec.SecurityContext.FSGroup = pointer.Int64Ptr(planetscalev2.DefaultEtcdFSGroup)
 	}
 
+	if planetscalev2.DefaultEtcdServiceAccount != "" {
+		obj.Spec.ServiceAccountName = planetscalev2.DefaultEtcdServiceAccount
+	}
+
 	// In both the case of the user injecting their own affinity and the default, we
 	// simply override the pod's existing affinity configuration.
 	if spec.Affinity != nil {

@@ -133,6 +133,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 	// that should actually be treated like maps (update items by the .Name field).
 	obj.Spec.Template.Spec.ImagePullSecrets = spec.ImagePullSecrets
 	obj.Spec.Template.Spec.PriorityClassName = planetscalev2.DefaultVitessPriorityClass
+	obj.Spec.Template.Spec.ServiceAccountName = planetscalev2.DefaultVitessServiceAccount
 	update.Volumes(&obj.Spec.Template.Spec.Volumes, spec.ExtraVolumes)
 
 	update.PodTemplateContainers(&obj.Spec.Template.Spec.InitContainers, spec.InitContainers)
