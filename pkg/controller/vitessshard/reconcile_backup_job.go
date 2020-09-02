@@ -220,6 +220,11 @@ func vtbackupSpec(key client.ObjectKey, vts *planetscalev2.VitessShard, parentLa
 	minRetentionTime := time.Duration(0)
 	minRetentionCount := 1
 
+	// Allocate a new map so we don't mutate inputs.
+	annotations := map[string]string{}
+	update.Annotations(&annotations, pool.Annotations)
+	update.Annotations(&annotations, backupLocation.Annotations)
+
 	// Fill in the parts of a vttablet spec that make sense for vtbackup.
 	tabletSpec := &vttablet.Spec{
 		GlobalLockserver:         vts.Spec.GlobalLockserver,
@@ -238,9 +243,8 @@ func vtbackupSpec(key client.ObjectKey, vts *planetscalev2.VitessShard, parentLa
 		InitContainers:           pool.InitContainers,
 		SidecarContainers:        pool.SidecarContainers,
 		ExtraEnv:                 pool.ExtraEnv,
-		Annotations:              pool.Annotations,
+		Annotations:              annotations,
 	}
-	update.Annotations(&tabletSpec.Annotations, backupLocation.Annotations)
 
 	return &vttablet.BackupSpec{
 		InitialBackup:     backupType == vitessbackup.TypeInit,
