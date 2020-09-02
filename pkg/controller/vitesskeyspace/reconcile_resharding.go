@@ -42,6 +42,10 @@ func (r *ReconcileVitessKeyspace) reconcileResharding(ctx context.Context, vtk *
 			Workflow: workflow.Workflow,
 		}
 
+		// We aggregate status across all the shards for the workflow so we can definitely know if we are in two states:
+		// Copying, or Error. We also do this so we can determine what all of the serving shards are.
+		// At a high level we mostly need to know if we are still in the Copying phase (for any shard whatsoever), or if
+		// we have an error in resharding somewhere that needs to be surfaced.
 		for name, status := range workflow.ShardStatuses {
 			if status.MasterIsServing {
 				shard := strings.Split(name, "/")[0]
