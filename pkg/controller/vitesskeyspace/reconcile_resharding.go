@@ -71,6 +71,7 @@ func (r *reconcileHandler) reconcileResharding(ctx context.Context) error {
 			for _, vReplRow := range status.MasterReplicationStatuses {
 				if vReplRow.State == "Error" {
 					workflowStatus.State = planetscalev2.WorkflowError
+					workflowStatus.ErrorMessage = vReplRow.Message
 					break
 				}
 				if vReplRow.State == "Copying" {
