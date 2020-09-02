@@ -297,6 +297,9 @@ type VitessKeyspaceStatus struct {
 	ActiveWorkflows []WorkflowStatus `json:"activeWorkflows,omitempty"`
 	// ServingShards is a list of shards that are currently serving writes.
 	ServingShards []string `json:"servingShards,omitempty"`
+	// Conditions is a map of all VitessKeyspace specific conditions we want to set and monitor.
+	// It's ok for multiple controllers to add conditions here, and those conditions will be preserved.
+	Conditions map[VitessKeyspaceConditionType]VitessKeyspaceCondition `json:"conditions,omitempty"`
 }
 
 // WorkflowStatus defines some of the workflow related status information.
@@ -370,6 +373,36 @@ func NewVitessKeyspaceShardStatus(spec *VitessKeyspaceKeyRangeShard) VitessKeysp
 		DesiredTablets: desiredTablets,
 	}
 }
+
+// VitessKeyspaceCondition contains details for the current condition of this VitessKeyspace.
+type VitessKeyspaceCondition struct {
+	// Status is the status of the condition.
+	// Can be True, False, Unknown.
+	// +kubebuilder:validation:Enum=True;False;Unknown
+	Status corev1.ConditionStatus `json:"status"`
+	// Last time the condition transitioned from one status to another.
+	// Optional.
+	LastTransitionTime *metav1.Time `json:"lastTransitionTime,omitempty"`
+	// Unique, one-word, PascalCase reason for the condition's last transition.
+	// Optional.
+	Reason string `json:"reason,omitempty"`
+	// Human-readable message indicating details about last transition.
+	// Optional.
+	Message string `json:"message,omitempty"`
+}
+
+// VitessKeyspaceConditionType is a valid value for the key of a VitessKeyspaceCondition map where the key is a
+// VitessKeyspaceConditionType and the value is a VitessKeyspaceCondition.
+type VitessKeyspaceConditionType string
+
+// These are valid conditions of VitessKeyspace.
+const (
+	// VitessKeyspaceReshardingActive indicates that for the given keyspace, there is currently an ongoing resharding operation.
+	VitessKeyspaceReshardingActive VitessKeyspaceConditionType = "ReshardingActive"
+	// VitessKeyspaceReshardingActive indicates that for the given keyspace, there is currently an ongoing resharding operation,
+	// and for that operation we are past the copying phase, and replication lag is below 10 seconds.
+	VitessKeyspaceReshardingInSync VitessKeyspaceConditionType = "ReshardingInSync"
+)
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 

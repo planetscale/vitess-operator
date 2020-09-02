@@ -878,6 +878,26 @@ spec:
                 - workflow
                 type: object
               type: array
+            conditions:
+              additionalProperties:
+                properties:
+                  lastTransitionTime:
+                    format: date-time
+                    type: string
+                  message:
+                    type: string
+                  reason:
+                    type: string
+                  status:
+                    enum:
+                    - "True"
+                    - "False"
+                    - Unknown
+                    type: string
+                required:
+                - status
+                type: object
+              type: object
             idle:
               type: string
             observedGeneration:

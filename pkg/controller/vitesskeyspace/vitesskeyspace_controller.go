@@ -24,7 +24,6 @@ import (
 	"github.com/sirupsen/logrus"
 
 	corev1 "k8s.io/api/core/v1"
-	apiequality "k8s.io/apimachinery/pkg/api/equality"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/record"
@@ -51,6 +50,12 @@ const (
 var (
 	maxConcurrentReconciles = flag.Int("vitesskeyspace_concurrent_reconciles", 10, "the maximum number of different vitesskeyspaces to reconcile concurrently")
 	resyncPeriod            = flag.Duration("vitesskeyspace_resync_period", 15*time.Second, "reconcile vitesskeyspaces with this period even if no Kubernetes events occur")
+
+	// keyspaceConditions lists all the conditions that the keyspace controller is responsible for updating.
+	keyspaceConditions = map[planetscalev2.VitessKeyspaceConditionType]bool{
+		planetscalev2.VitessKeyspaceReshardingActive: true,
+		planetscalev2.VitessKeyspaceReshardingInSync: true,
+	}
 )
 
 var log = logrus.WithField("controller", "VitessKeyspace")
@@ -135,7 +140,7 @@ type ReconcileVitessKeyspace struct {
 // Note:
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
-func (r *ReconcileVitessKeyspace) Reconcile(request reconcile.Request) (reconcile.Result, error) {
+func (r *ReconcileVitessKeyspace) Reconcile(request reconcile.Request) (finalResult reconcile.Result, finalErr error) {
 	ctx, cancel := context.WithTimeout(context.TODO(), environment.ReconcileTimeout())
 	defer cancel()
 
@@ -147,53 +152,41 @@ func (r *ReconcileVitessKeyspace) Reconcile(request reconcile.Request) (reconcil
 	})
 	log.Info("Reconciling VitessKeyspace")
 
-	// Fetch the VitessKeyspace instance
-	vtk := &planetscalev2.VitessKeyspace{}
-	err := r.client.Get(ctx, request.NamespacedName, vtk)
+	handler, err := r.NewReconcileHandler(ctx, request)
 	if err != nil {
-		if apierrors.IsNotFound(err) {
-			// Request object not found, could have been deleted after reconcile request.
-			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
-			// Return and don't requeue
-			return resultBuilder.Result()
-		}
-		// Error reading the object - requeue the request.
 		return resultBuilder.Error(err)
 	}
-	planetscalev2.DefaultVitessKeyspace(vtk)
+	if handler == nil {
+		return resultBuilder.Result()
+	}
+	defer handler.close()
 
-	// Reset status, since that's all out of date info that we will recompute now.
-	oldStatus := vtk.Status
-	vtk.Status = planetscalev2.NewVitessKeyspaceStatus()
+	defer func() {
+		err := handler.updateStatus(ctx)
+		if err != nil {
+			finalResult, finalErr = resultBuilder.Error(err)
+		}
+	}()
 
-	// Idle means the keyspace is not deployed in any cells (there are no tablet pools defined).
-	vtk.Status.Idle = k8s.ConditionStatus(len(vtk.Spec.CellNames()) == 0)
+	err = handler.tsInit(ctx)
+	if err != nil {
+		return resultBuilder.RequeueAfter(topoRequeueDelay)
+	}
 
 	// Create/update desired VitessShards.
-	if err := r.reconcileShards(ctx, vtk); err != nil {
+	if err := handler.reconcileShards(ctx); err != nil {
 		resultBuilder.Error(err)
 	}
 
 	// Check latest Vitess topology state and update as needed.
 	// NOTE: This must always be done after reconcileShards, so Status.Shards is populated.
-	topoResult, err := r.reconcileTopology(ctx, vtk)
+	topoResult, err := handler.reconcileTopology(ctx)
 	resultBuilder.Merge(topoResult, err)
 
 	// Check resharding status and report back.
-	if err := r.reconcileResharding(ctx, vtk); err != nil {
-		r.recorder.Eventf(vtk, corev1.EventTypeWarning, "StatusUpdateWarning", "failed to retrieve resharding information: %v", err)
+	if err := handler.reconcileResharding(ctx); err != nil {
+		handler.recorder.Eventf(handler.vtk, corev1.EventTypeWarning, "StatusUpdateWarning", "failed to retrieve resharding information: %v", err)
 		resultBuilder.Error(err)
-	}
-
-	// Update status if needed.
-	vtk.Status.ObservedGeneration = vtk.Generation
-	if !apiequality.Semantic.DeepEqual(&vtk.Status, &oldStatus) {
-		if err := r.client.Status().Update(ctx, vtk); err != nil {
-			if !apierrors.IsConflict(err) {
-				r.recorder.Eventf(vtk, corev1.EventTypeWarning, "StatusUpdateFailed", "failed to update status: %v", err)
-			}
-			resultBuilder.Error(err)
-		}
 	}
 
 	// Request a periodic resync for the keyspace so we can recheck topology
@@ -201,6 +194,55 @@ func (r *ReconcileVitessKeyspace) Reconcile(request reconcile.Request) (reconcil
 	r.resync.Enqueue(request.NamespacedName)
 
 	result, err := resultBuilder.Result()
-	reconcileCount.WithLabelValues(vtk.Labels[planetscalev2.ClusterLabel], vtk.Spec.Name, metrics.Result(err)).Inc()
+	reconcileCount.WithLabelValues(handler.vtk.Labels[planetscalev2.ClusterLabel], handler.vtk.Spec.Name, metrics.Result(err)).Inc()
 	return result, err
+}
+
+func (r *ReconcileVitessKeyspace) NewReconcileHandler(ctx context.Context, request reconcile.Request) (*reconcileHandler, error) {
+	// Fetch the VitessKeyspace instance
+	vtk := &planetscalev2.VitessKeyspace{}
+	err := r.client.Get(ctx, request.NamespacedName, vtk)
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			// Request object not found, could have been deleted after reconcile request.
+			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
+			// Return nil error so caller hits nil reconcileHandler and decides to bail.
+			return nil, nil
+		}
+		// Error reading the object - return error so caller re-queues.
+		return nil, err
+	}
+	planetscalev2.DefaultVitessKeyspace(vtk)
+
+	// This isn't a failure to reconcile, but a serialization delay. We need to wait,
+	// so at this point we should bail rather then return a valid handler.
+	if vtk.Status.ObservedGeneration == 0 || vtk.Status.ObservedGeneration != vtk.Generation {
+		return nil, nil
+	}
+
+	oldStatus := vtk.Status.DeepCopy()
+	vtk.Status = planetscalev2.NewVitessKeyspaceStatus()
+	vtk.Status.Conditions = oldStatus.Conditions
+
+	// Add empty condition map if condition map isn't there already for safety.
+	if vtk.Status.Conditions == nil {
+		vtk.Status.Conditions = make(map[planetscalev2.VitessKeyspaceConditionType]planetscalev2.VitessKeyspaceCondition)
+	}
+
+	untouchedConditions := make(map[planetscalev2.VitessKeyspaceConditionType]bool, len(keyspaceConditions))
+	for condition := range keyspaceConditions {
+		untouchedConditions[condition] = true
+	}
+
+	// Idle means the keyspace is not deployed in any cells (there are no tablet pools defined).
+	vtk.Status.Idle = k8s.ConditionStatus(len(vtk.Spec.CellNames()) == 0)
+
+	return &reconcileHandler{
+		client:              r.client,
+		recorder:            r.recorder,
+		reconciler:          r.reconciler,
+		vtk:                 vtk,
+		oldStatus:           oldStatus,
+		untouchedConditions: untouchedConditions,
+	}, nil
 }

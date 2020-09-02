@@ -1,3 +1,19 @@
+/*
+Copyright 2020 PlanetScale Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package vitesskeyspace
 
 import (
@@ -19,14 +35,14 @@ const (
 	maxSafeVReplicationLag = 10
 )
 
-func (r *ReconcileVitessKeyspace) reconcileResharding(ctx context.Context, vtk *planetscalev2.VitessKeyspace) error {
-	wr, ts, err := newWrangler(ctx, vtk.Spec.GlobalLockserver)
+func (r *reconcileHandler) reconcileResharding(ctx context.Context) error {
+	wr, ts, err := newWrangler(ctx, r.vtk.Spec.GlobalLockserver)
 	if err != nil {
 		return err
 	}
 	defer ts.Close()
 
-	workflowList, err := wr.ListAllWorkflows(ctx, vtk.Spec.Name)
+	workflowList, err := wr.ListAllWorkflows(ctx, r.vtk.Spec.Name)
 	if err != nil {
 		workflowList = make([]string, 0)
 	}
@@ -34,7 +50,7 @@ func (r *ReconcileVitessKeyspace) reconcileResharding(ctx context.Context, vtk *
 	reshardingInProgress := corev1.ConditionUnknown
 	workflows := make([]planetscalev2.WorkflowStatus, 0, len(workflowList))
 	for _, workflowName := range workflowList {
-		workflow, err := wr.ShowWorkflow(ctx, workflowName, vtk.Spec.Name)
+		workflow, err := wr.ShowWorkflow(ctx, workflowName, r.vtk.Spec.Name)
 		if err != nil {
 			return err
 		}
@@ -49,7 +65,7 @@ func (r *ReconcileVitessKeyspace) reconcileResharding(ctx context.Context, vtk *
 		for name, status := range workflow.ShardStatuses {
 			if status.MasterIsServing {
 				shard := strings.Split(name, "/")[0]
-				vtk.Status.ServingShards = append(vtk.Status.ServingShards, shard)
+				r.vtk.Status.ServingShards = append(r.vtk.Status.ServingShards, shard)
 			}
 			for _, vReplRow := range status.MasterReplicationStatuses {
 				if vReplRow.State == "Error" {
@@ -80,8 +96,8 @@ func (r *ReconcileVitessKeyspace) reconcileResharding(ctx context.Context, vtk *
 			workflowStatus.UnsafeVReplicationLag = true
 		}
 	}
-	vtk.Status.ReshardingInProgress = reshardingInProgress
-	sort.Strings(vtk.Status.ServingShards)
+	r.vtk.Status.ReshardingInProgress = reshardingInProgress
+	sort.Strings(r.vtk.Status.ServingShards)
 
 	return nil
 }

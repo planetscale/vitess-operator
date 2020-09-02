@@ -4455,6 +4455,83 @@ VitessKeyspaceStatus
 </tr>
 </tbody>
 </table>
+<h3 id="planetscale.com/v2.VitessKeyspaceCondition">VitessKeyspaceCondition
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#planetscale.com/v2.VitessKeyspaceStatus">VitessKeyspaceStatus</a>)
+</p>
+<p>
+<p>VitessKeyspaceCondition contains details for the current condition of this VitessKeyspace.</p>
+</p>
+<table class="table table-striped">
+<thead class="thead-dark">
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>status</code></br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#conditionstatus-v1-core">
+Kubernetes core/v1.ConditionStatus
+</a>
+</em>
+</td>
+<td>
+<p>Status is the status of the condition.
+Can be True, False, Unknown.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>lastTransitionTime</code></br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#time-v1-meta">
+Kubernetes meta/v1.Time
+</a>
+</em>
+</td>
+<td>
+<p>Last time the condition transitioned from one status to another.
+Optional.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>reason</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Unique, one-word, PascalCase reason for the condition&rsquo;s last transition.
+Optional.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>message</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Human-readable message indicating details about last transition.
+Optional.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="planetscale.com/v2.VitessKeyspaceConditionType">VitessKeyspaceConditionType
+(<code>string</code> alias)</p></h3>
+<p>
+<p>VitessKeyspaceConditionType is a valid value for the key of a VitessKeyspaceCondition map where the key is a
+VitessKeyspaceConditionType and the value is a VitessKeyspaceCondition.</p>
+</p>
 <h3 id="planetscale.com/v2.VitessKeyspaceCustomPartitioning">VitessKeyspaceCustomPartitioning
 </h3>
 <p>
@@ -5088,6 +5165,20 @@ Kubernetes core/v1.ConditionStatus
 </td>
 <td>
 <p>ServingShards is a list of shards that are currently serving writes.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>conditions</code></br>
+<em>
+<a href="#planetscale.com/v2.VitessKeyspaceCondition">
+map[planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceConditionType]planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceCondition
+</a>
+</em>
+</td>
+<td>
+<p>Conditions is a map of all VitessKeyspace specific conditions we want to set and monitor.
+It&rsquo;s ok for multiple controllers to add conditions here, and those conditions will be preserved.</p>
 </td>
 </tr>
 </tbody>

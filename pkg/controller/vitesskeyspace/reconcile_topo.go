@@ -24,7 +24,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 	"planetscale.dev/vitess-operator/pkg/operator/results"
 	"planetscale.dev/vitess-operator/pkg/operator/toposerver"
 	"planetscale.dev/vitess-operator/pkg/operator/vitesstopo"
@@ -39,34 +38,34 @@ const (
 	topoRequeueDelay = 5 * time.Second
 )
 
-func (r *ReconcileVitessKeyspace) reconcileTopology(ctx context.Context, vtk *planetscalev2.VitessKeyspace) (reconcile.Result, error) {
+func (r *reconcileHandler) reconcileTopology(ctx context.Context) (reconcile.Result, error) {
 	resultBuilder := &results.Builder{}
 
-	ts, err := toposerver.Open(ctx, vtk.Spec.GlobalLockserver)
+	ts, err := toposerver.Open(ctx, r.vtk.Spec.GlobalLockserver)
 	if err != nil {
-		r.recorder.Eventf(vtk, corev1.EventTypeWarning, "TopoConnectFailed", "failed to connect to global lockserver: %v", err)
+		r.recorder.Eventf(r.vtk, corev1.EventTypeWarning, "TopoConnectFailed", "failed to connect to global lockserver: %v", err)
 		// Give the lockserver some time to come up.
 		return resultBuilder.RequeueAfter(topoRequeueDelay)
 	}
 	defer ts.Close()
 
-	if *vtk.Spec.TopologyReconciliation.PruneShards {
+	if *r.vtk.Spec.TopologyReconciliation.PruneShards {
 		// Don't hold our slot in the reconcile work queue for too long.
 		ctx, cancel := context.WithTimeout(ctx, topoReconcileTimeout)
 		defer cancel()
 
-		desiredShards := make(sets.String, len(vtk.Status.Shards))
-		for k := range vtk.Status.Shards {
+		desiredShards := make(sets.String, len(r.vtk.Status.Shards))
+		for k := range r.vtk.Status.Shards {
 			desiredShards.Insert(k)
 		}
 
 		result, err := vitesstopo.PruneShards(ctx, vitesstopo.PruneShardsParams{
-			EventObj:       vtk,
+			EventObj:       r.vtk,
 			TopoServer:     ts.Server,
 			Recorder:       r.recorder,
-			KeyspaceName:   vtk.Spec.Name,
+			KeyspaceName:   r.vtk.Spec.Name,
 			DesiredShards:  desiredShards,
-			OrphanedShards: vtk.Status.OrphanedShards,
+			OrphanedShards: r.vtk.Status.OrphanedShards,
 		})
 		resultBuilder.Merge(result, err)
 	}
