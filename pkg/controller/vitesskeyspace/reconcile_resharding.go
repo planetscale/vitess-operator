@@ -54,6 +54,14 @@ func (r *reconcileHandler) reconcileResharding(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
+		if workflow.SourceLocation.Keyspace != workflow.TargetLocation.Keyspace {
+			if reshardingInProgress == corev1.ConditionUnknown {
+				reshardingInProgress = corev1.ConditionFalse
+			}
+			continue
+		}
+		reshardingInProgress = corev1.ConditionTrue
+
 		workflowStatus := planetscalev2.WorkflowStatus{
 			Workflow: workflow.Workflow,
 			State:    planetscalev2.WorkflowUnknown,
@@ -83,12 +91,6 @@ func (r *reconcileHandler) reconcileResharding(ctx context.Context) error {
 			}
 		}
 		workflows = append(workflows, workflowStatus)
-
-		if workflow.SourceLocation.Keyspace == workflow.TargetLocation.Keyspace {
-			reshardingInProgress = corev1.ConditionTrue
-		} else if reshardingInProgress != corev1.ConditionTrue {
-			reshardingInProgress = corev1.ConditionFalse
-		}
 
 		// If MaxVReplicationLag ever exceeds max safe value, we need to set UnsafeVReplicationLag to true.
 		if workflow.MaxVReplicationLag >= maxSafeVReplicationLag {
