@@ -56,6 +56,7 @@ func (r *reconcileHandler) reconcileResharding(ctx context.Context) error {
 		}
 		workflowStatus := planetscalev2.WorkflowStatus{
 			Workflow: workflow.Workflow,
+			State:    planetscalev2.WorkflowUnknown,
 		}
 
 		// We aggregate status across all the shards for the workflow so we can definitely know if we are in two states:
@@ -69,17 +70,14 @@ func (r *reconcileHandler) reconcileResharding(ctx context.Context) error {
 			}
 			for _, vReplRow := range status.MasterReplicationStatuses {
 				if vReplRow.State == "Error" {
-					workflowStatus.State = planetscalev2.ErrorState
+					workflowStatus.State = planetscalev2.WorkflowError
 					break
 				}
 				if vReplRow.State == "Copying" {
-					workflowStatus.State = planetscalev2.CopyingState
+					workflowStatus.State = planetscalev2.WorkflowCopying
 				}
-				if vReplRow.State == "Lagging" && workflowStatus.State != planetscalev2.CopyingState {
-					workflowStatus.State = planetscalev2.LaggingState
-				}
-				if vReplRow.State == "Running" && workflowStatus.State == "" {
-					workflowStatus.State = planetscalev2.RunningState
+				if (vReplRow.State == "Running" || vReplRow.State == "Lagging") && workflowStatus.State == planetscalev2.WorkflowUnknown {
+					workflowStatus.State = planetscalev2.WorkflowRunning
 				}
 			}
 		}

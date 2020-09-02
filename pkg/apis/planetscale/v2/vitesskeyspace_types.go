@@ -306,7 +306,7 @@ type VitessKeyspaceStatus struct {
 type WorkflowStatus struct {
 	// Workflow represents the name of the workflow relevant to the related replication statuses.
 	Workflow string `json:"workflow"`
-	// State is either 'Running', 'Copying', or 'Lagging'.
+	// State is either 'Running', 'Copying', 'Error' or 'Unknown'.
 	State WorkflowState `json:"state"`
 	// UnsafeVReplicationLag indicates if VReplication lag is currently exceeding 10s for the given workflow
 	UnsafeVReplicationLag bool `json:"unsafeVReplicationLag,omitempty"`
@@ -316,15 +316,15 @@ type WorkflowStatus struct {
 type WorkflowState string
 
 const (
-	// RunningState indicates that the workflow is currently in the Running state. This state
+	// WorkflowRunning indicates that the workflow is currently in the Running state. This state
 	// indicates that vreplication is ongoing, but we have moved passed the copying phase.
-	RunningState WorkflowState = "Running"
-	// CopyingState indicates that the workflow is currently in the Copying state.
-	CopyingState WorkflowState = "Copying"
-	// Lagging indicates that the workflow currently has vreplication lag exceeding 10 seconds.
-	LaggingState WorkflowState = "Lagging"
-	// ErrorState indicates that the workflow is currently experiencing some kind of error.
-	ErrorState WorkflowState = "Error"
+	WorkflowRunning WorkflowState = "Running"
+	// WorkflowCopying indicates that the workflow is currently in the Copying state.
+	WorkflowCopying WorkflowState = "Copying"
+	// WorkflowError indicates that the workflow is currently experiencing some kind of error.
+	WorkflowError WorkflowState = "Error"
+	// WorkflowUnknown indicates that we could not discover the state for the given workflow.
+	WorkflowUnknown WorkflowState = "Unknown"
 )
 
 // NewVitessKeyspaceStatus creates a new status object with default values.
