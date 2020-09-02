@@ -869,6 +869,8 @@ spec:
                 properties:
                   state:
                     type: string
+                  unsafeVReplicationLag:
+                    type: boolean
                   workflow:
                     type: string
                 required:

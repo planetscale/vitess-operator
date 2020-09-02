@@ -15,6 +15,10 @@ import (
 	"vitess.io/vitess/go/vt/wrangler"
 )
 
+const (
+	maxSafeVReplicationLag = 10
+)
+
 func (r *ReconcileVitessKeyspace) reconcileResharding(ctx context.Context, vtk *planetscalev2.VitessKeyspace) error {
 	wr, ts, err := newWrangler(ctx, vtk.Spec.GlobalLockserver)
 	if err != nil {
@@ -65,6 +69,11 @@ func (r *ReconcileVitessKeyspace) reconcileResharding(ctx context.Context, vtk *
 			reshardingInProgress = corev1.ConditionTrue
 		} else if reshardingInProgress != corev1.ConditionTrue {
 			reshardingInProgress = corev1.ConditionFalse
+		}
+
+		// If MaxVReplicationLag ever exceeds max safe value, we need to set UnsafeVReplicationLag to true.
+		if workflow.MaxVReplicationLag >= maxSafeVReplicationLag {
+			workflowStatus.UnsafeVReplicationLag = true
 		}
 	}
 	vtk.Status.ReshardingInProgress = reshardingInProgress

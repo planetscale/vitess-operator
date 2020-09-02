@@ -305,6 +305,8 @@ type WorkflowStatus struct {
 	Workflow string `json:"workflow"`
 	// State is either 'Running', 'Copying', or 'Lagging'.
 	State WorkflowState `json:"state"`
+	// UnsafeVReplicationLag indicates if VReplication lag is currently exceeding 10s for the given workflow
+	UnsafeVReplicationLag bool `json:"unsafeVReplicationLag,omitempty"`
 }
 
 // WorkflowState represents the current state for the given Workflow.
