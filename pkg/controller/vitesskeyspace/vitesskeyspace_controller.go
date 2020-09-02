@@ -42,11 +42,6 @@ import (
 	"planetscale.dev/vitess-operator/pkg/operator/reconciler"
 	"planetscale.dev/vitess-operator/pkg/operator/results"
 	"planetscale.dev/vitess-operator/pkg/operator/resync"
-	"planetscale.dev/vitess-operator/pkg/operator/toposerver"
-
-	"vitess.io/vitess/go/vt/logutil"
-	"vitess.io/vitess/go/vt/vttablet/tmclient"
-	"vitess.io/vitess/go/vt/wrangler"
 )
 
 const (

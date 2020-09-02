@@ -1977,7 +1977,7 @@ map[string]string
 </td>
 <td>
 <p>Annotations can optionally be used to attach custom annotations to Pods
-created for this component.</p>
+that need access to this backup storage location.</p>
 </td>
 </tr>
 </tbody>
@@ -5070,11 +5070,24 @@ Kubernetes core/v1.ConditionStatus
 <td>
 <code>activeWorkflows</code></br>
 <em>
-[]string
+<a href="#planetscale.com/v2.WorkflowStatus">
+[]WorkflowStatus
+</a>
 </em>
 </td>
 <td>
 <p>ActiveWorkflows is a list of the current VReplication workflows in progress.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>servingShards</code></br>
+<em>
+[]string
+</em>
+</td>
+<td>
+<p>ServingShards is a list of shards that are currently serving writes.</p>
 </td>
 </tr>
 </tbody>
@@ -6547,6 +6560,58 @@ operator, or pass additional flags to vttablet. All entries must be
 key-value string pairs of the form &ldquo;flag&rdquo;: &ldquo;value&rdquo;. The flag name should
 not have any prefix (just &ldquo;flag&rdquo;, not &ldquo;-flag&rdquo;). To set a boolean flag,
 set the string value to either &ldquo;true&rdquo; or &ldquo;false&rdquo;.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="planetscale.com/v2.WorkflowState">WorkflowState
+(<code>string</code> alias)</p></h3>
+<p>
+(<em>Appears on:</em>
+<a href="#planetscale.com/v2.WorkflowStatus">WorkflowStatus</a>)
+</p>
+<p>
+<p>WorkflowState represents the current state for the given Workflow.</p>
+</p>
+<h3 id="planetscale.com/v2.WorkflowStatus">WorkflowStatus
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#planetscale.com/v2.VitessKeyspaceStatus">VitessKeyspaceStatus</a>)
+</p>
+<p>
+<p>WorkflowStatus defines some of the workflow related status information.</p>
+</p>
+<table class="table table-striped">
+<thead class="thead-dark">
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>workflow</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Workflow represents the name of the workflow relevant to the related replication statuses.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>state</code></br>
+<em>
+<a href="#planetscale.com/v2.WorkflowState">
+WorkflowState
+</a>
+</em>
+</td>
+<td>
+<p>State is either &lsquo;Running&rsquo;, &lsquo;Copying&rsquo;, or &lsquo;Lagging&rsquo;.</p>
 </td>
 </tr>
 </tbody>
