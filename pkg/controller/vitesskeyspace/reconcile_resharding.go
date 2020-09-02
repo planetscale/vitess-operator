@@ -2,6 +2,8 @@ package vitesskeyspace
 
 import (
 	"context"
+	"sort"
+	"strings"
 
 	corev1 "k8s.io/api/core/v1"
 
@@ -20,18 +22,53 @@ func (r *ReconcileVitessKeyspace) reconcileResharding(ctx context.Context, vtk *
 	}
 	defer ts.Close()
 
-	workflows, err := wr.ListAllWorkflows(ctx, vtk.Spec.Name)
+	workflowList, err := wr.ListAllWorkflows(ctx, vtk.Spec.Name)
 	if err != nil {
-		workflows = make([]string, 0)
+		workflowList = make([]string, 0)
 	}
 
-	vtk.Status.ActiveWorkflows = workflows
-	// TODO: Address when ConditionUnknown is applicable.
-	if len(workflows) != 0 {
-		vtk.Status.ReshardingInProgress = corev1.ConditionTrue
-	} else {
-		vtk.Status.ReshardingInProgress = corev1.ConditionFalse
+	reshardingInProgress := corev1.ConditionUnknown
+	workflows := make([]planetscalev2.WorkflowStatus, 0, len(workflowList))
+	for _, workflowName := range workflowList {
+		workflow, err := wr.ShowWorkflow(ctx, workflowName, vtk.Spec.Name)
+		if err != nil {
+			return err
+		}
+		workflowStatus := planetscalev2.WorkflowStatus{
+			Workflow: workflow.Workflow,
+		}
+
+		for name, status := range workflow.ShardStatuses {
+			if status.MasterIsServing {
+				shard := strings.Split(name, "/")[0]
+				vtk.Status.ServingShards = append(vtk.Status.ServingShards, shard)
+			}
+			for _, vReplRow := range status.MasterReplicationStatuses {
+				if vReplRow.State == "Error" {
+					workflowStatus.State = planetscalev2.ErrorState
+					break
+				}
+				if vReplRow.State == "Copying" {
+					workflowStatus.State = planetscalev2.CopyingState
+				}
+				if vReplRow.State == "Lagging" && workflowStatus.State != planetscalev2.CopyingState {
+					workflowStatus.State = planetscalev2.LaggingState
+				}
+				if vReplRow.State == "Running" && workflowStatus.State == "" {
+					workflowStatus.State = planetscalev2.RunningState
+				}
+			}
+		}
+		workflows = append(workflows, workflowStatus)
+
+		if workflow.SourceLocation.Keyspace == workflow.TargetLocation.Keyspace {
+			reshardingInProgress = corev1.ConditionTrue
+		} else if reshardingInProgress != corev1.ConditionTrue {
+			reshardingInProgress = corev1.ConditionFalse
+		}
 	}
+	vtk.Status.ReshardingInProgress = reshardingInProgress
+	sort.Strings(vtk.Status.ServingShards)
 
 	return nil
 }

@@ -294,8 +294,33 @@ type VitessKeyspaceStatus struct {
 	// ReshardingInProgress indicates if there is a VReplication workflow in progress.
 	ReshardingInProgress corev1.ConditionStatus `json:"reshardingInProgress,omitempty"`
 	// ActiveWorkflows is a list of the current VReplication workflows in progress.
-	ActiveWorkflows []string `json:"activeWorkflows,omitempty"`
+	ActiveWorkflows []WorkflowStatus `json:"activeWorkflows,omitempty"`
+	// ServingShards is a list of shards that are currently serving writes.
+	ServingShards []string `json:"servingShards,omitempty"`
 }
+
+// WorkflowStatus defines some of the workflow related status information.
+type WorkflowStatus struct {
+	// Workflow represents the name of the workflow relevant to the related replication statuses.
+	Workflow string `json:"workflow"`
+	// State is either 'Running', 'Copying', or 'Lagging'.
+	State WorkflowState `json:"state"`
+}
+
+// WorkflowState represents the current state for the given Workflow.
+type WorkflowState string
+
+const (
+	// RunningState indicates that the workflow is currently in the Running state. This state
+	// indicates that vreplication is ongoing, but we have moved passed the copying phase.
+	RunningState WorkflowState = "Running"
+	// CopyingState indicates that the workflow is currently in the Copying state.
+	CopyingState WorkflowState = "Copying"
+	// Lagging indicates that the workflow currently has vreplication lag exceeding 10 seconds.
+	LaggingState WorkflowState = "Lagging"
+	// ErrorState indicates that the workflow is currently experiencing some kind of error.
+	ErrorState WorkflowState = "Error"
+)
 
 // NewVitessKeyspaceStatus creates a new status object with default values.
 func NewVitessKeyspaceStatus() VitessKeyspaceStatus {
