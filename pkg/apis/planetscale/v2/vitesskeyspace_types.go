@@ -293,21 +293,25 @@ type VitessKeyspaceStatus struct {
 	Idle corev1.ConditionStatus `json:"idle,omitempty"`
 	// ReshardingInProgress indicates if there is a VReplication workflow in progress.
 	ReshardingInProgress corev1.ConditionStatus `json:"reshardingInProgress,omitempty"`
-	// ActiveWorkflows is a list of the current VReplication workflows in progress.
-	ActiveWorkflows []WorkflowStatus `json:"activeWorkflows,omitempty"`
-	// ServingShards is a list of shards that are currently serving writes.
-	ServingShards []string `json:"servingShards,omitempty"`
+	// ReshardingStatus is used to provide information about an ongoing resharding operation.
+	ReshardingStatus ReshardingStatus `json:"reshardingStatus,omitempty"`
 	// Conditions is a map of all VitessKeyspace specific conditions we want to set and monitor.
 	// It's ok for multiple controllers to add conditions here, and those conditions will be preserved.
 	Conditions map[VitessKeyspaceConditionType]VitessKeyspaceCondition `json:"conditions,omitempty"`
 }
 
-// WorkflowStatus defines some of the workflow related status information.
-type WorkflowStatus struct {
+// ReshardingStatus defines some of the workflow related status information.
+type ReshardingStatus struct {
 	// Workflow represents the name of the workflow relevant to the related replication statuses.
 	Workflow string `json:"workflow"`
 	// State is either 'Running', 'Copying', 'Error' or 'Unknown'.
 	State WorkflowState `json:"state"`
+	// ServingShards is a list of shards that are currently serving writes.
+	ServingShards []string `json:"servingShards,omitempty"`
+	// SourceShards is a list of source shards for the current resharding operation.
+	SourceShards []string `json:"sourceShards,omitempty"`
+	// TargetShards is a list of target shards for the current resharding operation.
+	TargetShards []string `json:"targetShards,omitempty"`
 }
 
 // WorkflowState represents the current state for the given Workflow.

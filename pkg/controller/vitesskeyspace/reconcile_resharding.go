@@ -38,7 +38,7 @@ func (r *reconcileHandler) reconcileResharding(ctx context.Context) error {
 	}
 
 	reshardingInProgress := corev1.ConditionUnknown
-	workflows := make([]planetscalev2.WorkflowStatus, 0, len(workflowList))
+	var workflowStatus *planetscalev2.ReshardingStatus
 	for _, workflowName := range workflowList {
 		workflow, err := r.wr.ShowWorkflow(ctx, workflowName, r.vtk.Spec.Name)
 		if err != nil {
@@ -52,9 +52,15 @@ func (r *reconcileHandler) reconcileResharding(ctx context.Context) error {
 		}
 		reshardingInProgress = corev1.ConditionTrue
 
-		workflowStatus := planetscalev2.WorkflowStatus{
-			Workflow: workflow.Workflow,
-			State:    planetscalev2.WorkflowUnknown,
+		if workflowStatus != nil {
+			return fmt.Errorf("found more than one active resharding workflow")
+		}
+
+		workflowStatus = &planetscalev2.ReshardingStatus{
+			Workflow:     workflow.Workflow,
+			State:        planetscalev2.WorkflowUnknown,
+			SourceShards: workflow.SourceLocation.Shards,
+			TargetShards: workflow.TargetLocation.Shards,
 		}
 
 		// We aggregate status across all the shards for the workflow so we can definitely know if we are in two states:
@@ -64,7 +70,7 @@ func (r *reconcileHandler) reconcileResharding(ctx context.Context) error {
 		for name, status := range workflow.ShardStatuses {
 			if status.MasterIsServing {
 				shard := strings.Split(name, "/")[0]
-				r.vtk.Status.ServingShards = append(r.vtk.Status.ServingShards, shard)
+				workflowStatus.ServingShards = append(workflowStatus.ServingShards, shard)
 			}
 			for _, vReplRow := range status.MasterReplicationStatuses {
 				if vReplRow.State == "Error" {
@@ -80,8 +86,6 @@ func (r *reconcileHandler) reconcileResharding(ctx context.Context) error {
 				}
 			}
 		}
-		workflows = append(workflows, workflowStatus)
-
 		if workflowStatus.State == planetscalev2.WorkflowCopying {
 			r.vtk.Status.SetConditionStatus(planetscalev2.VitessKeyspaceReshardingInSync, corev1.ConditionFalse, "WorkflowCopying", fmt.Sprintf("Workflow %v is currently in Copy phase.", workflowStatus.Workflow))
 		}
@@ -90,7 +94,10 @@ func (r *reconcileHandler) reconcileResharding(ctx context.Context) error {
 		if workflow.MaxVReplicationLag >= maxSafeVReplicationLag {
 			r.vtk.Status.SetConditionStatus(planetscalev2.VitessKeyspaceReshardingInSync, corev1.ConditionFalse, "WorkflowLagging", fmt.Sprintf("Workflow %v is currently lagging by greater than 10 seconds.", workflowStatus.Workflow))
 		}
+
+		sort.Strings(workflowStatus.ServingShards)
 	}
+
 	if reshardingInProgress == corev1.ConditionTrue {
 		r.vtk.Status.SetConditionStatus(planetscalev2.VitessKeyspaceReshardingActive, reshardingInProgress, "ReshardingActive", "At least one workflow has active resharding ongoing.")
 	} else if reshardingInProgress == corev1.ConditionFalse {
@@ -99,8 +106,6 @@ func (r *reconcileHandler) reconcileResharding(ctx context.Context) error {
 		// ConditionUnknown so likely we have no active workflows.
 		r.vtk.Status.SetConditionStatus(planetscalev2.VitessKeyspaceReshardingActive, reshardingInProgress, "NoActiveWorkflows", "No active workflows.")
 	}
-
-	sort.Strings(r.vtk.Status.ServingShards)
 
 	return nil
 }

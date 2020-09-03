@@ -864,20 +864,6 @@ spec:
           type: object
         status:
           properties:
-            activeWorkflows:
-              items:
-                properties:
-                  state:
-                    type: string
-                  unsafeVReplicationLag:
-                    type: boolean
-                  workflow:
-                    type: string
-                required:
-                - state
-                - workflow
-                type: object
-              type: array
             conditions:
               additionalProperties:
                 properties:
@@ -917,10 +903,28 @@ spec:
               type: object
             reshardingInProgress:
               type: string
-            servingShards:
-              items:
-                type: string
-              type: array
+            reshardingStatus:
+              properties:
+                servingShards:
+                  items:
+                    type: string
+                  type: array
+                sourceShards:
+                  items:
+                    type: string
+                  type: array
+                state:
+                  type: string
+                targetShards:
+                  items:
+                    type: string
+                  type: array
+                workflow:
+                  type: string
+              required:
+              - state
+              - workflow
+              type: object
             shards:
               additionalProperties:
                 properties:
