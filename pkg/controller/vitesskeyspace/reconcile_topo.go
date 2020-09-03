@@ -20,12 +20,10 @@ import (
 	"context"
 	"time"
 
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	"planetscale.dev/vitess-operator/pkg/operator/results"
-	"planetscale.dev/vitess-operator/pkg/operator/toposerver"
 	"planetscale.dev/vitess-operator/pkg/operator/vitesstopo"
 )
 
@@ -41,14 +39,6 @@ const (
 func (r *reconcileHandler) reconcileTopology(ctx context.Context) (reconcile.Result, error) {
 	resultBuilder := &results.Builder{}
 
-	ts, err := toposerver.Open(ctx, r.vtk.Spec.GlobalLockserver)
-	if err != nil {
-		r.recorder.Eventf(r.vtk, corev1.EventTypeWarning, "TopoConnectFailed", "failed to connect to global lockserver: %v", err)
-		// Give the lockserver some time to come up.
-		return resultBuilder.RequeueAfter(topoRequeueDelay)
-	}
-	defer ts.Close()
-
 	if *r.vtk.Spec.TopologyReconciliation.PruneShards {
 		// Don't hold our slot in the reconcile work queue for too long.
 		ctx, cancel := context.WithTimeout(ctx, topoReconcileTimeout)
@@ -61,7 +51,7 @@ func (r *reconcileHandler) reconcileTopology(ctx context.Context) (reconcile.Res
 
 		result, err := vitesstopo.PruneShards(ctx, vitesstopo.PruneShardsParams{
 			EventObj:       r.vtk,
-			TopoServer:     ts.Server,
+			TopoServer:     r.ts.Server,
 			Recorder:       r.recorder,
 			KeyspaceName:   r.vtk.Spec.Name,
 			DesiredShards:  desiredShards,
