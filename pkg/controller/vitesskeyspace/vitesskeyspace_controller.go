@@ -214,12 +214,6 @@ func (r *ReconcileVitessKeyspace) NewReconcileHandler(ctx context.Context, reque
 	}
 	planetscalev2.DefaultVitessKeyspace(vtk)
 
-	// This isn't a failure to reconcile, but a serialization delay. We need to wait,
-	// so at this point we should bail rather then return a valid handler.
-	if vtk.Status.ObservedGeneration == 0 || vtk.Status.ObservedGeneration != vtk.Generation {
-		return nil, nil
-	}
-
 	oldStatus := vtk.Status.DeepCopy()
 	vtk.Status = planetscalev2.NewVitessKeyspaceStatus()
 	vtk.Status.Conditions = oldStatus.Conditions
