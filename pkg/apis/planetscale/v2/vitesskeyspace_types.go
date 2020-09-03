@@ -291,8 +291,6 @@ type VitessKeyspaceStatus struct {
 	// If Idle is True, the keyspace is not deployed in any cells, so it should
 	// be safe to turn down the keyspace.
 	Idle corev1.ConditionStatus `json:"idle,omitempty"`
-	// ReshardingInProgress indicates if there is a VReplication workflow in progress.
-	ReshardingInProgress corev1.ConditionStatus `json:"reshardingInProgress,omitempty"`
 	// ReshardingStatus is used to provide information about an ongoing resharding operation.
 	ReshardingStatus ReshardingStatus `json:"reshardingStatus,omitempty"`
 	// Conditions is a map of all VitessKeyspace specific conditions we want to set and monitor.

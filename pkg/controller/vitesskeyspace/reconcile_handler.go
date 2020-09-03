@@ -56,7 +56,7 @@ type reconcileHandler struct {
 // tsInit will initialize a toposerver connection, as well as a
 // tablet manager client and wrangler for subroutine use.
 func (r *reconcileHandler) tsInit(ctx context.Context) error {
-	if r == nil || r.ts != nil {
+	if r.ts != nil {
 		return nil
 	}
 
@@ -85,10 +85,6 @@ func (r *reconcileHandler) tsInit(ctx context.Context) error {
 // close should be called in a defer upon construction of a reconcileHandler to
 // defer the closing of underlying topo if we successfully created one.
 func (r *reconcileHandler) close() {
-	if r == nil {
-		return
-	}
-
 	if r.ts != nil {
 		r.ts.Close()
 	}
