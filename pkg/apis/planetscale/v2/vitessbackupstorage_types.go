@@ -54,10 +54,14 @@ type VitessBackupStorageSpec struct {
 // VitessBackupLocation defines a location where Vitess backups can be stored.
 type VitessBackupLocation struct {
 	// Name is used to refer to this backup location from other parts of a
-	// VitessCluster object, such as in tablet pool definitions. This name
-	// must be unique among all backup locations defined in a given cluster.
-	// A backup location with an empty name defines the default location used
-	// when a tablet pool does not specify a backup location name.
+	// VitessCluster object.
+	//
+	// In particular, the backupLocationName field in each tablet pool within
+	// each shard must match one of the names defined by this field.
+	//
+	// This name must be unique among all backup locations defined in a given
+	// cluster. A backup location with an empty name defines the default
+	// location used when a tablet pool does not specify a backupLocationName.
 	// +kubebuilder:validation:MaxLength=25
 	// +kubebuilder:validation:Pattern=^[a-z0-9]([a-z0-9]*[a-z0-9])?$
 	Name string `json:"name,omitempty"`
