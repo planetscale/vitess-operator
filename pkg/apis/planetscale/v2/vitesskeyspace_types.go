@@ -291,8 +291,10 @@ type VitessKeyspaceStatus struct {
 	// If Idle is True, the keyspace is not deployed in any cells, so it should
 	// be safe to turn down the keyspace.
 	Idle corev1.ConditionStatus `json:"idle,omitempty"`
-	// ReshardingStatus is used to provide information about an ongoing resharding operation.
-	ReshardingStatus ReshardingStatus `json:"reshardingStatus,omitempty"`
+	// ReshardingStatus provides information about an active resharding operation, if any.
+	// This field is only present if the ReshardingActive condition is True. If that condition is Unknown,
+	// it means the operator was unable to query resharding status from Vitess.
+	Resharding ReshardingStatus `json:"resharding,omitempty"`
 	// Conditions is a map of all VitessKeyspace specific conditions we want to set and monitor.
 	// It's ok for multiple controllers to add conditions here, and those conditions will be preserved.
 	Conditions map[VitessKeyspaceConditionType]VitessKeyspaceCondition `json:"conditions,omitempty"`

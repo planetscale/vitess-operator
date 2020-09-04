@@ -1508,7 +1508,7 @@ string
 </em>
 </td>
 <td>
-<p>Workflow represents the name of the workflow relevant to the related replication statuses.</p>
+<p>Workflow represents the name of the active vreplication workflow for resharding.</p>
 </td>
 </tr>
 <tr>
@@ -5208,20 +5208,7 @@ be safe to turn down the keyspace.</p>
 </tr>
 <tr>
 <td>
-<code>reshardingInProgress</code></br>
-<em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#conditionstatus-v1-core">
-Kubernetes core/v1.ConditionStatus
-</a>
-</em>
-</td>
-<td>
-<p>ReshardingInProgress indicates if there is a VReplication workflow in progress.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>reshardingStatus</code></br>
+<code>resharding</code></br>
 <em>
 <a href="#planetscale.com/v2.ReshardingStatus">
 ReshardingStatus
@@ -5229,7 +5216,9 @@ ReshardingStatus
 </em>
 </td>
 <td>
-<p>ReshardingStatus is used to provide information about an ongoing resharding operation.</p>
+<p>ReshardingStatus provides information about an active resharding operation, if any.
+This field is only present if the ReshardingActive condition is True. If that condition is Unknown,
+it means the operator was unable to query resharding status from Vitess.</p>
 </td>
 </tr>
 <tr>

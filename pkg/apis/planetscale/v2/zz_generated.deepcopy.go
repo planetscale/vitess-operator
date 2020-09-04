@@ -1893,7 +1893,7 @@ func (in *VitessKeyspaceStatus) DeepCopyInto(out *VitessKeyspaceStatus) {
 			(*out)[key] = val
 		}
 	}
-	in.ReshardingStatus.DeepCopyInto(&out.ReshardingStatus)
+	in.Resharding.DeepCopyInto(&out.Resharding)
 	if in.Conditions != nil {
 		in, out := &in.Conditions, &out.Conditions
 		*out = make(map[VitessKeyspaceConditionType]VitessKeyspaceCondition, len(*in))

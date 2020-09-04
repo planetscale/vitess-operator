@@ -901,9 +901,7 @@ spec:
                 - reason
                 type: object
               type: object
-            reshardingInProgress:
-              type: string
-            reshardingStatus:
+            resharding:
               properties:
                 servingShards:
                   items:
