@@ -19,7 +19,10 @@ package v2
 import (
 	"encoding/hex"
 	"sort"
+	"time"
 
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"planetscale.dev/vitess-operator/pkg/operator/partitioning"
 	topodatapb "vitess.io/vitess/go/vt/proto/topodata"
 )
@@ -136,4 +139,68 @@ func (p *VitessKeyspacePartitioning) TabletPools() []VitessShardTabletPool {
 		return pools
 	}
 	return nil
+}
+
+// SetConditionStatus first ensures we have allocated a conditions map, and also ensures we have allocated a ShardCondition
+// for the VitessKeyspaceConditionType key supplied. It then moves onto setting the conditions status.
+// For the condition's status, it always updates the reason and message every time. If the current status is the same as the supplied
+// newStatus, then we do not update LastTransitionTime. However, if newStatus is different from current status, then
+// we update the status and update the transition time.
+func (s *VitessKeyspaceStatus) SetConditionStatus(condType VitessKeyspaceConditionType, newStatus corev1.ConditionStatus, reason, message string) {
+	if s.Conditions == nil {
+		s.Conditions = make(map[VitessKeyspaceConditionType]VitessKeyspaceCondition)
+	}
+
+	cond, ok := s.Conditions[condType]
+	if !ok {
+		cond = NewVitessKeyspaceCondition()
+	}
+
+	// We should update reason and message regardless of whether the status type is different.
+	cond.Reason = reason
+	cond.Message = message
+
+	if cond.Status != newStatus {
+		now := metav1.NewTime(time.Now())
+		cond.Status = newStatus
+		cond.LastTransitionTime = &now
+	}
+
+	s.Conditions[condType] = cond
+}
+
+// NewVitessKeyspaceCondition returns an init VitessKeyspaceCondition object.
+func NewVitessKeyspaceCondition() VitessKeyspaceCondition {
+	now := metav1.NewTime(time.Now())
+	return VitessKeyspaceCondition{
+		Status:             corev1.ConditionUnknown,
+		LastTransitionTime: &now,
+		Reason:             "",
+		Message:            "",
+	}
+}
+
+// StatusDuration returns the duration since LastTransitionTime. It represents how long we've been in the current status for
+// this condition. If LastTransitionTime is nil, then we return zero to indicate that we have no confidence about the duration
+// of the status.
+func (c *VitessKeyspaceCondition) StatusDuration() time.Duration {
+	if c.LastTransitionTime == nil {
+		return time.Duration(0)
+	}
+
+	return time.Since(c.LastTransitionTime.Time)
+}
+
+// DeepCopyConditions deep copies the conditions map for VitessKeyspaceStatus.
+func (s *VitessKeyspaceStatus) DeepCopyConditions() map[VitessKeyspaceConditionType]VitessKeyspaceCondition {
+	if s == nil {
+		return nil
+	}
+	out := make(map[VitessKeyspaceConditionType]VitessKeyspaceCondition, len(s.Conditions))
+
+	for key, val := range s.Conditions {
+		out[key] = *val.DeepCopy()
+	}
+
+	return out
 }

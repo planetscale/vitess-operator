@@ -1483,6 +1483,82 @@ string
 </tr>
 </tbody>
 </table>
+<h3 id="planetscale.com/v2.ReshardingStatus">ReshardingStatus
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#planetscale.com/v2.VitessKeyspaceStatus">VitessKeyspaceStatus</a>)
+</p>
+<p>
+<p>ReshardingStatus defines some of the workflow related status information.</p>
+</p>
+<table class="table table-striped">
+<thead class="thead-dark">
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>workflow</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Workflow represents the name of the active vreplication workflow for resharding.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>state</code></br>
+<em>
+<a href="#planetscale.com/v2.WorkflowState">
+WorkflowState
+</a>
+</em>
+</td>
+<td>
+<p>State is either &lsquo;Running&rsquo;, &lsquo;Copying&rsquo;, &lsquo;Error&rsquo; or &lsquo;Unknown&rsquo;.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>servingShards</code></br>
+<em>
+[]string
+</em>
+</td>
+<td>
+<p>ServingShards is a list of shards that are currently serving writes.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>sourceShards</code></br>
+<em>
+[]string
+</em>
+</td>
+<td>
+<p>SourceShards is a list of source shards for the current resharding operation.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>targetShards</code></br>
+<em>
+[]string
+</em>
+</td>
+<td>
+<p>TargetShards is a list of target shards for the current resharding operation.</p>
+</td>
+</tr>
+</tbody>
+</table>
 <h3 id="planetscale.com/v2.S3BackupLocation">S3BackupLocation
 </h3>
 <p>
@@ -1977,7 +2053,7 @@ map[string]string
 </td>
 <td>
 <p>Annotations can optionally be used to attach custom annotations to Pods
-created for this component.</p>
+that need access to this backup storage location.</p>
 </td>
 </tr>
 </tbody>
@@ -4455,6 +4531,83 @@ VitessKeyspaceStatus
 </tr>
 </tbody>
 </table>
+<h3 id="planetscale.com/v2.VitessKeyspaceCondition">VitessKeyspaceCondition
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#planetscale.com/v2.VitessKeyspaceStatus">VitessKeyspaceStatus</a>)
+</p>
+<p>
+<p>VitessKeyspaceCondition contains details for the current condition of this VitessKeyspace.</p>
+</p>
+<table class="table table-striped">
+<thead class="thead-dark">
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>status</code></br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#conditionstatus-v1-core">
+Kubernetes core/v1.ConditionStatus
+</a>
+</em>
+</td>
+<td>
+<p>Status is the status of the condition.
+Can be True, False, Unknown.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>lastTransitionTime</code></br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#time-v1-meta">
+Kubernetes meta/v1.Time
+</a>
+</em>
+</td>
+<td>
+<p>Last time the condition transitioned from one status to another.
+Optional.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>reason</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Unique, one-word, PascalCase reason for the condition&rsquo;s last transition.
+Optional.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>message</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Human-readable message indicating details about last transition.
+Optional.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="planetscale.com/v2.VitessKeyspaceConditionType">VitessKeyspaceConditionType
+(<code>string</code> alias)</p></h3>
+<p>
+<p>VitessKeyspaceConditionType is a valid value for the key of a VitessKeyspaceCondition map where the key is a
+VitessKeyspaceConditionType and the value is a VitessKeyspaceCondition.</p>
+</p>
 <h3 id="planetscale.com/v2.VitessKeyspaceCustomPartitioning">VitessKeyspaceCustomPartitioning
 </h3>
 <p>
@@ -5055,26 +5208,31 @@ be safe to turn down the keyspace.</p>
 </tr>
 <tr>
 <td>
-<code>reshardingInProgress</code></br>
+<code>resharding</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#conditionstatus-v1-core">
-Kubernetes core/v1.ConditionStatus
+<a href="#planetscale.com/v2.ReshardingStatus">
+ReshardingStatus
 </a>
 </em>
 </td>
 <td>
-<p>ReshardingInProgress indicates if there is a VReplication workflow in progress.</p>
+<p>ReshardingStatus provides information about an active resharding operation, if any.
+This field is only present if the ReshardingActive condition is True. If that condition is Unknown,
+it means the operator was unable to query resharding status from Vitess.</p>
 </td>
 </tr>
 <tr>
 <td>
-<code>activeWorkflows</code></br>
+<code>conditions</code></br>
 <em>
-[]string
+<a href="#planetscale.com/v2.VitessKeyspaceCondition">
+map[planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceConditionType]planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceCondition
+</a>
 </em>
 </td>
 <td>
-<p>ActiveWorkflows is a list of the current VReplication workflows in progress.</p>
+<p>Conditions is a map of all VitessKeyspace specific conditions we want to set and monitor.
+It&rsquo;s ok for multiple controllers to add conditions here, and those conditions will be preserved.</p>
 </td>
 </tr>
 </tbody>
@@ -6551,6 +6709,15 @@ set the string value to either &ldquo;true&rdquo; or &ldquo;false&rdquo;.</p>
 </tr>
 </tbody>
 </table>
+<h3 id="planetscale.com/v2.WorkflowState">WorkflowState
+(<code>string</code> alias)</p></h3>
+<p>
+(<em>Appears on:</em>
+<a href="#planetscale.com/v2.ReshardingStatus">ReshardingStatus</a>)
+</p>
+<p>
+<p>WorkflowState represents the current state for the given Workflow.</p>
+</p>
 <hr/>
 <p><em>
 Generated with <code>gen-crd-api-reference-docs</code>.

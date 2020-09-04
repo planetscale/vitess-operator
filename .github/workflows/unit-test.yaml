@@ -3,9 +3,11 @@ on:
   push:
     branches:
     - master
+    - feature/resharding
   pull_request:
     branches:
     - master
+    - feature/resharding
 jobs:
   build:
     name: Unit Test
