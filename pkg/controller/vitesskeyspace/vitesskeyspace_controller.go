@@ -208,7 +208,7 @@ func (r *ReconcileVitessKeyspace) NewReconcileHandler(ctx context.Context, reque
 
 	oldStatus := vtk.Status.DeepCopy()
 	vtk.Status = planetscalev2.NewVitessKeyspaceStatus()
-	vtk.Status.Conditions = oldStatus.Conditions
+	vtk.Status.Conditions = oldStatus.DeepCopyConditions()
 
 	// Add empty condition map if condition map isn't there already for safety.
 	if vtk.Status.Conditions == nil {
