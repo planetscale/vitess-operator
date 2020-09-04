@@ -43,7 +43,7 @@ const (
 	runAsUser  = 999
 
 	tabletTypesToWait     = "MASTER,REPLICA"
-	gatewayImplementation = "discoverygateway"
+	gatewayImplementation = "tabletgateway"
 
 	bufferMasterTrafficDuringFailover = true
 	bufferMinTimeBetweenFailovers     = "20s"
