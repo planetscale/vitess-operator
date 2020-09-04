@@ -295,6 +295,7 @@ type VitessKeyspaceStatus struct {
 	// This field is only present if the ReshardingActive condition is True. If that condition is Unknown,
 	// it means the operator was unable to query resharding status from Vitess.
 	Resharding ReshardingStatus `json:"resharding,omitempty"`
+	// FIXME: Convert this to a list for kubectl wait compatibility before merging the feature branch to master.
 	// Conditions is a map of all VitessKeyspace specific conditions we want to set and monitor.
 	// It's ok for multiple controllers to add conditions here, and those conditions will be preserved.
 	Conditions map[VitessKeyspaceConditionType]VitessKeyspaceCondition `json:"conditions,omitempty"`
