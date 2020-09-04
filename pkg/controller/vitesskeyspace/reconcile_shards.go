@@ -31,45 +31,45 @@ import (
 	"planetscale.dev/vitess-operator/pkg/operator/vitessshard"
 )
 
-func (r *ReconcileVitessKeyspace) reconcileShards(ctx context.Context, vtk *planetscalev2.VitessKeyspace) error {
-	clusterName := vtk.Labels[planetscalev2.ClusterLabel]
+func (r *reconcileHandler) reconcileShards(ctx context.Context) error {
+	clusterName := r.vtk.Labels[planetscalev2.ClusterLabel]
 
 	labels := map[string]string{
 		planetscalev2.ClusterLabel:  clusterName,
-		planetscalev2.KeyspaceLabel: vtk.Spec.Name,
+		planetscalev2.KeyspaceLabel: r.vtk.Spec.Name,
 	}
 
 	// Compute the set of all desired shards based on the defined partitionings.
-	shards := vtk.Spec.ShardTemplates()
+	shards := r.vtk.Spec.ShardTemplates()
 
 	// Generate keys (object names) for all desired shards.
 	// Keep a map back from generated names to the shard specs.
 	keys := make([]client.ObjectKey, 0, len(shards))
 	shardMap := make(map[client.ObjectKey]*planetscalev2.VitessKeyspaceKeyRangeShard, len(shards))
 	for _, shard := range shards {
-		key := client.ObjectKey{Namespace: vtk.Namespace, Name: vitessshard.Name(clusterName, vtk.Spec.Name, shard.KeyRange)}
+		key := client.ObjectKey{Namespace: r.vtk.Namespace, Name: vitessshard.Name(clusterName, r.vtk.Spec.Name, shard.KeyRange)}
 		keys = append(keys, key)
 		shardMap[key] = shard
 
 		// Initialize a status entry for every desired shard, so it will be
 		// listed even if we end up not having anything to report about it.
-		vtk.Status.Shards[shard.KeyRange.String()] = planetscalev2.NewVitessKeyspaceShardStatus(shard)
+		r.vtk.Status.Shards[shard.KeyRange.String()] = planetscalev2.NewVitessKeyspaceShardStatus(shard)
 	}
 
-	return r.reconciler.ReconcileObjectSet(ctx, vtk, keys, labels, reconciler.Strategy{
+	return r.reconciler.ReconcileObjectSet(ctx, r.vtk, keys, labels, reconciler.Strategy{
 		Kind: &planetscalev2.VitessShard{},
 
 		New: func(key client.ObjectKey) runtime.Object {
-			return newVitessShard(key, vtk, labels, shardMap[key])
+			return newVitessShard(key, r.vtk, labels, shardMap[key])
 		},
 		UpdateInPlace: func(key client.ObjectKey, obj runtime.Object) {
 			newObj := obj.(*planetscalev2.VitessShard)
-			if *vtk.Spec.UpdateStrategy.Type == planetscalev2.ExternalVitessClusterUpdateStrategyType {
-				updateVitessShardInPlace(key, newObj, vtk, labels, shardMap[key])
+			if *r.vtk.Spec.UpdateStrategy.Type == planetscalev2.ExternalVitessClusterUpdateStrategyType {
+				updateVitessShardInPlace(key, newObj, r.vtk, labels, shardMap[key])
 				return
 			}
 
-			updateVitessShard(key, newObj, vtk, labels, shardMap[key])
+			updateVitessShard(key, newObj, r.vtk, labels, shardMap[key])
 			if newObj.Status.LowestPodGeneration != newObj.Generation {
 				// Nothing to do here yet - need to wait until generations match before we cascade.
 				return
@@ -86,17 +86,17 @@ func (r *ReconcileVitessKeyspace) reconcileShards(ctx context.Context, vtk *plan
 		},
 		UpdateRollingInPlace: func(key client.ObjectKey, obj runtime.Object) {
 			newObj := obj.(*planetscalev2.VitessShard)
-			if *vtk.Spec.UpdateStrategy.Type == planetscalev2.ImmediateVitessClusterUpdateStrategyType {
+			if *r.vtk.Spec.UpdateStrategy.Type == planetscalev2.ImmediateVitessClusterUpdateStrategyType {
 				// In this case we should use UpdateInPlace for all updates.
 				return
 			}
-			updateVitessShard(key, newObj, vtk, labels, shardMap[key])
+			updateVitessShard(key, newObj, r.vtk, labels, shardMap[key])
 		},
 		Status: func(key client.ObjectKey, obj runtime.Object) {
 			curObj := obj.(*planetscalev2.VitessShard)
 			keyRange := curObj.Spec.KeyRange.String()
 
-			status := vtk.Status.Shards[keyRange]
+			status := r.vtk.Status.Shards[keyRange]
 			status.Cells = curObj.Status.Cells
 			if curObj.Status.HasMaster != "" {
 				status.HasMaster = curObj.Status.HasMaster
@@ -114,11 +114,11 @@ func (r *ReconcileVitessKeyspace) reconcileShards(ctx context.Context, vtk *plan
 					status.UpdatedTablets++
 				}
 			}
-			vtk.Status.Shards[keyRange] = status
+			r.vtk.Status.Shards[keyRange] = status
 		},
 		OrphanStatus: func(key client.ObjectKey, obj runtime.Object, orphanStatus *planetscalev2.OrphanStatus) {
 			curObj := obj.(*planetscalev2.VitessShard)
-			vtk.Status.OrphanedShards[curObj.Spec.Name] = *orphanStatus
+			r.vtk.Status.OrphanedShards[curObj.Spec.Name] = *orphanStatus
 		},
 		PrepareForTurndown: func(key client.ObjectKey, obj runtime.Object) *planetscalev2.OrphanStatus {
 			// Make sure it's ok to delete this shard.
