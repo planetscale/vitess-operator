@@ -23,7 +23,6 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/record"
@@ -168,11 +167,6 @@ func (r *ReconcileVitessKeyspace) Reconcile(request reconcile.Request) (finalRes
 		}
 	}()
 
-	err = handler.tsInit(ctx)
-	if err != nil {
-		return resultBuilder.RequeueAfter(topoRequeueDelay)
-	}
-
 	// Create/update desired VitessShards.
 	if err := handler.reconcileShards(ctx); err != nil {
 		resultBuilder.Error(err)
@@ -184,10 +178,8 @@ func (r *ReconcileVitessKeyspace) Reconcile(request reconcile.Request) (finalRes
 	resultBuilder.Merge(topoResult, err)
 
 	// Check resharding status and report back.
-	if err := handler.reconcileResharding(ctx); err != nil {
-		handler.recorder.Eventf(handler.vtk, corev1.EventTypeWarning, "StatusUpdateWarning", "failed to retrieve resharding information: %v", err)
-		resultBuilder.Error(err)
-	}
+	reshardingResult, err := handler.reconcileResharding(ctx)
+	resultBuilder.Merge(reshardingResult, err)
 
 	// Request a periodic resync for the keyspace so we can recheck topology
 	// even if no Kubernetes events have occurred.

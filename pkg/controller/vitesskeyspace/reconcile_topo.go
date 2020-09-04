@@ -40,6 +40,11 @@ func (r *reconcileHandler) reconcileTopology(ctx context.Context) (reconcile.Res
 	resultBuilder := &results.Builder{}
 
 	if *r.vtk.Spec.TopologyReconciliation.PruneShards {
+		err := r.tsInit(ctx)
+		if err != nil {
+			return resultBuilder.RequeueAfter(topoRequeueDelay)
+		}
+
 		// Don't hold our slot in the reconcile work queue for too long.
 		ctx, cancel := context.WithTimeout(ctx, topoReconcileTimeout)
 		defer cancel()

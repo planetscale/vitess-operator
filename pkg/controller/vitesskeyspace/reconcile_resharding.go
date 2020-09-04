@@ -24,19 +24,32 @@ import (
 	"strings"
 
 	corev1 "k8s.io/api/core/v1"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"vitess.io/vitess/go/vt/wrangler"
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
+	"planetscale.dev/vitess-operator/pkg/operator/results"
 )
 
 const (
 	maxSafeVReplicationLag = 10
 )
 
-func (r *reconcileHandler) reconcileResharding(ctx context.Context) error {
+func (r *reconcileHandler) reconcileResharding(ctx context.Context) (reconcile.Result, error) {
+	resultBuilder := &results.Builder{}
+
+	err := r.tsInit(ctx)
+	if err != nil {
+		return resultBuilder.RequeueAfter(topoRequeueDelay)
+	}
+
 	workflowList, err := r.wr.ListAllWorkflows(ctx, r.vtk.Spec.Name)
 	if err != nil {
-		return err
+		// The only reason this would fail is if runVExec fails. This could be a topo communication failure or any number
+		// of indeterminable failures. We probably want to requeu faster than the resync period to try again, but wait a bit in
+		// case it was a topo related failure.
+		r.recorder.Eventf(r.vtk, corev1.EventTypeWarning, "ListAllWorkflowsFailed", "failed to list all workflows: %v", err)
+		return resultBuilder.RequeueAfter(topoRequeueDelay)
 	}
 
 	// Look for a resharding workflow. If we find a second one bail out.
@@ -44,7 +57,11 @@ func (r *reconcileHandler) reconcileResharding(ctx context.Context) error {
 	for _, workflowName := range workflowList {
 		workflow, err := r.wr.ShowWorkflow(ctx, workflowName, r.vtk.Spec.Name)
 		if err != nil {
-			return err
+			// The only reason this would fail is if runVExec fails. This could be a topo communication failure or any number
+			// of indeterminable failures. We probably want to requeu faster than the resync period to try again, but wait a bit in
+			// case it was a topo related failure.
+			r.recorder.Eventf(r.vtk, corev1.EventTypeWarning, "ShowWorkflowFailed", "failed to show workflow %v: %v", workflowName, err)
+			return resultBuilder.RequeueAfter(topoRequeueDelay)
 		}
 		if workflow.SourceLocation.Keyspace != workflow.TargetLocation.Keyspace ||
 			reflect.DeepEqual(workflow.SourceLocation.Shards, workflow.TargetLocation.Shards) {
@@ -56,7 +73,9 @@ func (r *reconcileHandler) reconcileResharding(ctx context.Context) error {
 		if reshardingWorkflow != nil {
 			r.setConditionStatus(planetscalev2.VitessKeyspaceReshardingActive, corev1.ConditionTrue, "MoreThanOneActiveReshardingWorkflow", "Resharding is active, however there is currently more than one active resharding workflow.")
 			r.setConditionStatus(planetscalev2.VitessKeyspaceReshardingInSync, corev1.ConditionUnknown, "MoreThanOneActiveReshardingWorkflow", "More than one resharding workflow. Can't determine which one follow for determining whether we are in sync or not.")
-			return fmt.Errorf("found more than one active resharding workflow")
+			r.recorder.Eventf(r.vtk, corev1.EventTypeWarning, "MultipleActiveReshardingWorkflows", "Found multiple active resharding workflows.")
+			// This will take a while for a human operator to manually fix, so let's just re-queue at our normal resync rate.
+			return resultBuilder.Result()
 		}
 
 		reshardingWorkflow = workflow
@@ -65,7 +84,7 @@ func (r *reconcileHandler) reconcileResharding(ctx context.Context) error {
 
 	if reshardingWorkflow == nil {
 		r.setConditionStatus(planetscalev2.VitessKeyspaceReshardingActive, corev1.ConditionFalse, "NoActiveReshardingWorkflows", "No active resharding workflows found.")
-		return nil
+		return resultBuilder.Result()
 	}
 	r.setConditionStatus(planetscalev2.VitessKeyspaceReshardingActive, corev1.ConditionTrue, "ReshardingActive", "One active resharding workflow was found.")
 
@@ -114,5 +133,5 @@ func (r *reconcileHandler) reconcileResharding(ctx context.Context) error {
 
 	sort.Strings(workflowStatus.ServingShards)
 
-	return nil
+	return resultBuilder.Result()
 }
