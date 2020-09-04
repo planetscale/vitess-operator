@@ -28,6 +28,10 @@ spec:
           type: object
         spec:
           properties:
+            annotations:
+              additionalProperties:
+                type: string
+              type: object
             backupEngine:
               type: string
             backupLocations:
