@@ -101,7 +101,7 @@ func (r *reconcileHandler) updateStatus(ctx context.Context) error {
 	}
 
 	r.vtk.Status.ObservedGeneration = r.vtk.Generation
-	if !equality.Semantic.DeepEqual(&r.vtk.Status, &r.oldStatus) {
+	if !equality.Semantic.DeepEqual(&r.vtk.Status, r.oldStatus) {
 		if err := r.client.Status().Update(ctx, r.vtk); err != nil {
 			if !errors.IsConflict(err) {
 				r.recorder.Eventf(r.vtk, v1.EventTypeWarning, "StatusUpdateFailed", "failed to update status: %v", err)
