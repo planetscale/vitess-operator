@@ -71,7 +71,7 @@ func (r *reconcileHandler) reconcileResharding(ctx context.Context) (reconcile.R
 		}
 
 		if reshardingWorkflow != nil {
-			r.setConditionStatus(planetscalev2.VitessKeyspaceReshardingActive, corev1.ConditionTrue, "MoreThanOneActiveReshardingWorkflow", "Resharding is active, however there is currently more than one active resharding workflow.")
+			r.setConditionStatus(planetscalev2.VitessKeyspaceReshardingActive, corev1.ConditionUnknown, "MoreThanOneActiveReshardingWorkflow", "There is currently more than one active resharding workflow, and we don't know how to handle this situation.")
 			r.setConditionStatus(planetscalev2.VitessKeyspaceReshardingInSync, corev1.ConditionUnknown, "MoreThanOneActiveReshardingWorkflow", "More than one resharding workflow. Can't determine which one follow for determining whether we are in sync or not.")
 			r.recorder.Eventf(r.vtk, corev1.EventTypeWarning, "MultipleActiveReshardingWorkflows", "Found multiple active resharding workflows.")
 			// This will take a while for a human operator to manually fix, so let's just re-queue at our normal resync rate.
