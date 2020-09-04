@@ -300,7 +300,7 @@ type VitessKeyspaceStatus struct {
 
 // ReshardingStatus defines some of the workflow related status information.
 type ReshardingStatus struct {
-	// Workflow represents the name of the workflow relevant to the related replication statuses.
+	// Workflow represents the name of the active vreplication workflow for resharding.
 	Workflow string `json:"workflow"`
 	// State is either 'Running', 'Copying', 'Error' or 'Unknown'.
 	State WorkflowState `json:"state"`
@@ -397,10 +397,10 @@ type VitessKeyspaceConditionType string
 
 // These are valid conditions of VitessKeyspace.
 const (
-	// VitessKeyspaceReshardingActive indicates that for the given keyspace, there is currently an ongoing resharding operation.
+	// VitessKeyspaceReshardingActive indicates whether the keyspace has an active resharding operation,
 	VitessKeyspaceReshardingActive VitessKeyspaceConditionType = "ReshardingActive"
-	// VitessKeyspaceReshardingActive indicates that for the given keyspace, there is currently an ongoing resharding operation,
-	// and for that operation we are past the copying phase, and replication lag is below 10 seconds.
+	// VitessKeyspaceReshardingInSync indicates whether the keyspace has an active
+	// resharding operation whose target shards are ready to serve if traffic is switched.
 	VitessKeyspaceReshardingInSync VitessKeyspaceConditionType = "ReshardingInSync"
 )
 
