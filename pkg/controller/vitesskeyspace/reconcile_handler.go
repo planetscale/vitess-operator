@@ -100,6 +100,7 @@ func (r *reconcileHandler) updateStatus(ctx context.Context) error {
 		r.setConditionStatus(condition, v1.ConditionUnknown, "ReconcileFailed", "Failed to determine status of the condition.")
 	}
 
+	r.vtk.Status.ObservedGeneration = r.vtk.Generation
 	if !equality.Semantic.DeepEqual(&r.vtk.Status, &r.oldStatus) {
 		if err := r.client.Status().Update(ctx, r.vtk); err != nil {
 			if !errors.IsConflict(err) {
