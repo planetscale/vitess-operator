@@ -79,7 +79,6 @@ func (r *reconcileHandler) reconcileResharding(ctx context.Context) (reconcile.R
 		}
 
 		reshardingWorkflow = workflow
-		break
 	}
 
 	if reshardingWorkflow == nil {
