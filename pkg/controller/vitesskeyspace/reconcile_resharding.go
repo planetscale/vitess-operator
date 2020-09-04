@@ -99,27 +99,29 @@ func (r *reconcileHandler) reconcileResharding(ctx context.Context) (reconcile.R
 	// Copying, or Error. We also do this so we can determine what all of the serving shards are.
 	// At a high level we mostly need to know if we are still in the Copying phase (for any shard whatsoever), or if
 	// we have an error in resharding somewhere that needs to be surfaced.
+	var errorMsgs []string
 	for name, status := range reshardingWorkflow.ShardStatuses {
 		if status.MasterIsServing {
 			shard := strings.Split(name, "/")[0]
 			workflowStatus.ServingShards = append(workflowStatus.ServingShards, shard)
 		}
-		if workflowStatus.State == planetscalev2.WorkflowError {
-			continue
-		}
 		for _, vReplRow := range status.MasterReplicationStatuses {
 			if vReplRow.State == "Error" {
 				workflowStatus.State = planetscalev2.WorkflowError
-				r.setConditionStatus(planetscalev2.VitessKeyspaceReshardingInSync, corev1.ConditionFalse, "VReplicationError", fmt.Sprintf("Encountered a VReplication Error: %v", vReplRow.Message))
+				errorMsgs = append(errorMsgs, vReplRow.Message)
 				break
 			}
-			if vReplRow.State == "Copying" {
+			if vReplRow.State == "Copying" && workflowStatus.State != planetscalev2.WorkflowError {
 				workflowStatus.State = planetscalev2.WorkflowCopying
 			}
 			if (vReplRow.State == "Running" || vReplRow.State == "Lagging") && workflowStatus.State == planetscalev2.WorkflowUnknown {
 				workflowStatus.State = planetscalev2.WorkflowRunning
 			}
 		}
+	}
+	if workflowStatus.State == planetscalev2.WorkflowError {
+		sort.Strings(errorMsgs)
+		r.setConditionStatus(planetscalev2.VitessKeyspaceReshardingInSync, corev1.ConditionFalse, "VReplicationError", fmt.Sprintf("Encountered a VReplication Error: %v", errorMsgs[0]))
 	}
 	if workflowStatus.State == planetscalev2.WorkflowCopying {
 		r.setConditionStatus(planetscalev2.VitessKeyspaceReshardingInSync, corev1.ConditionFalse, "WorkflowCopying", fmt.Sprintf("Workflow %v is currently in Copy phase.", workflowStatus.Workflow))
