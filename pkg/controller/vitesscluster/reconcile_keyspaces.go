@@ -165,9 +165,10 @@ func newVitessKeyspace(key client.ObjectKey, vt *planetscalev2.VitessCluster, pa
 
 	return &planetscalev2.VitessKeyspace{
 		ObjectMeta: metav1.ObjectMeta{
-			Namespace: key.Namespace,
-			Name:      key.Name,
-			Labels:    labels,
+			Namespace:   key.Namespace,
+			Name:        key.Name,
+			Labels:      labels,
+			Annotations: keyspace.Annotations,
 		},
 		Spec: planetscalev2.VitessKeyspaceSpec{
 			VitessKeyspaceTemplate: *template,
@@ -191,6 +192,10 @@ func updateVitessKeyspace(key client.ObjectKey, vtk *planetscalev2.VitessKeyspac
 	// Update labels, but ignore existing ones we don't set.
 	update.Labels(&vtk.Labels, newKeyspace.Labels)
 
+	// Add or remove annotations requested in vts.Spec.Annotations.
+	// This must be done before we update vtk.Spec.
+	updateVitessKeyspaceAnnotations(vtk, newKeyspace)
+
 	// For now, everything in Spec is safe to update.
 	vtk.Spec = newKeyspace.Spec
 }
@@ -213,4 +218,31 @@ func updateVitessKeyspaceInPlace(key client.ObjectKey, vtk *planetscalev2.Vitess
 
 	// Only update things that are safe to roll out immediately.
 	vtk.Spec.TurndownPolicy = newKeyspace.Spec.TurndownPolicy
+
+	// Add or remove annotations requested in vtk.Spec.Annotations.
+	updateVitessKeyspaceAnnotations(vtk, newKeyspace)
+}
+
+func updateVitessKeyspaceAnnotations(vtk *planetscalev2.VitessKeyspace, newKeyspace *planetscalev2.VitessKeyspace) {
+	differentAnnotations := differentKeys(vtk.Spec.Annotations, newKeyspace.Spec.Annotations)
+	for _, annotation := range differentAnnotations {
+		delete(vtk.Annotations, annotation)
+	}
+
+	// Update annotations we set.
+	update.Annotations(&vtk.Annotations, newKeyspace.Annotations)
+
+	vtk.Spec.Annotations = newKeyspace.Spec.Annotations
+}
+
+// differentKeys returns keys from an older map instance that are no longer in a newer map instance.
+func differentKeys(oldMap, newMap map[string]string) []string {
+	var differentKeys []string
+	for k := range oldMap {
+		if _, exist := newMap[k]; !exist {
+			differentKeys = append(differentKeys, k)
+		}
+	}
+
+	return differentKeys
 }
