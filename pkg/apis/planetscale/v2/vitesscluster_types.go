@@ -76,6 +76,9 @@ type VitessClusterSpec struct {
 	// Dashboard deploys a set of Vitess Dashboard servers (vtctld) for the Vitess cluster.
 	VitessDashboard *VitessDashboardSpec `json:"vitessDashboard,omitempty"`
 
+	// VitessOrchestrator deploys a set of Vitess Orchestrator servers for the Vitess cluster.
+	VitessOrchestrator *VitessOrchestratorSpec `json:"vitessOrchestrator,omitempty"`
+
 	// Cells is a list of templates for VitessCells to create for this cluster.
 	//
 	// Each VitessCell represents a set of Nodes in a given failure domain,
@@ -102,7 +105,7 @@ type VitessClusterSpec struct {
 	Keyspaces []VitessKeyspaceTemplate `json:"keyspaces,omitempty" patchStrategy:"merge" patchMergeKey:"name"`
 
 	// ExtraVitessFlags can optionally be used to pass flags to all Vitess components.
-	// WARNING: Any flags passed here must be flags that can be accepted by vtgate, vtctld and vttablet.
+	// WARNING: Any flags passed here must be flags that can be accepted by vtgate, vtctld, orchestrator and vttablet.
 	// An example use-case would be topo flags.
 	//
 	// All entries must be key-value string pairs of the form "flag": "value". The flag name should
@@ -221,6 +224,8 @@ type VitessImages struct {
 
 	// Vtctld is the container image (including version tag) to use for Vitess Dashboard instances.
 	Vtctld string `json:"vtctld,omitempty"`
+	// Orchestrator is the container image (including version tag) to use for Vitess Orchestrator instances.
+	Orchestrator string `json:"orchestrator,omitempty"`
 	// Vtgate is the container image (including version tag) to use for Vitess Gateway instances.
 	Vtgate string `json:"vtgate,omitempty"`
 	// Vttablet is the container image (including version tag) to use for Vitess Tablet instances.
@@ -259,6 +264,8 @@ type MysqldImage struct {
 type VitessImagePullPolicies struct {
 	// Vtctld is the container image pull policy to use for Vitess Dashboard instances.
 	Vtctld corev1.PullPolicy `json:"vtctld,omitempty"`
+	// Orchestrator is the container image pull policy to use for Vitess Orchestrator instances.
+	Orchestrator corev1.PullPolicy `json:"orchestrator,omitempty"`
 	// Vtgate is the container image pull policy to use for Vitess Gateway instances.
 	Vtgate corev1.PullPolicy `json:"vtgate,omitempty"`
 	// Vttablet is the container image pull policy to use for Vitess Tablet instances.
@@ -407,6 +414,74 @@ type VitessDashboardSpec struct {
 	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
 }
 
+// VitessOrchestratorSpec specifies deployment parameters for orchestrator.
+type VitessOrchestratorSpec struct {
+	// Cells is a list of cell names (as defined in the Cells list)
+	// in which to deploy orchestrator.
+	// Default: Deploy to all defined cells.
+	Cells []string `json:"cells,omitempty"`
+
+	// Replicas is the number of orchestrator instances to deploy in each cell.
+	Replicas *int32 `json:"replicas,omitempty"`
+
+	// Resources determines the compute resources reserved for each orchestrator replica.
+	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
+
+	// ExtraFlags can optionally be used to override default flags set by the
+	// operator, or pass additional flags to orchestrator. All entries must be
+	// key-value string pairs of the form "flag": "value". The flag name should
+	// not have any prefix (just "flag", not "-flag"). To set a boolean flag,
+	// set the string value to either "true" or "false".
+	ExtraFlags map[string]string `json:"extraFlags,omitempty"`
+
+	// ExtraEnv can optionally be used to override default environment variables
+	// set by the operator, or pass additional environment variables.
+	ExtraEnv []corev1.EnvVar `json:"extraEnv,omitempty"`
+
+	// ExtraVolumes can optionally be used to override default Pod volumes
+	// defined by the operator, or provide additional volumes to the Pod.
+	// Note that when adding a new volume, you should usually also add a
+	// volumeMount to specify where in each container's filesystem the volume
+	// should be mounted.
+	// +kubebuilder:validation:EmbeddedResource
+	ExtraVolumes []corev1.Volume `json:"extraVolumes,omitempty"`
+
+	// ExtraVolumeMounts can optionally be used to override default Pod
+	// volumeMounts defined by the operator, or specify additional mounts.
+	// Typically, these are used to mount volumes defined through extraVolumes.
+	ExtraVolumeMounts []corev1.VolumeMount `json:"extraVolumeMounts,omitempty"`
+
+	// InitContainers can optionally be used to supply extra init containers
+	// that will be run to completion one after another before any app containers are started.
+	// +kubebuilder:validation:EmbeddedResource
+	InitContainers []corev1.Container `json:"initContainers,omitempty"`
+
+	// SidecarContainers can optionally be used to supply extra containers
+	// that run alongside the main containers.
+	// +kubebuilder:validation:EmbeddedResource
+	SidecarContainers []corev1.Container `json:"sidecarContainers,omitempty"`
+
+	// Affinity allows you to set rules that constrain the scheduling of
+	// your orchestrator pods. WARNING: These affinity rules will override all default affinities
+	// that we set; in turn, we can't guarantee optimal scheduling of your pods if you
+	// choose to set this field.
+	// +kubebuilder:validation:EmbeddedResource
+	Affinity *corev1.Affinity `json:"affinity,omitempty"`
+
+	// Annotations can optionally be used to attach custom annotations to Pods
+	// created for this component. These will be attached to the underlying
+	// Pods that the orchestrator Deployment creates.
+	Annotations map[string]string `json:"annotations,omitempty"`
+
+	// ExtraLabels can optionally be used to attach custom labels to Pods
+	// created for this component. These will be attached to the underlying
+	// Pods that the orchestrator Deployment creates.
+	ExtraLabels map[string]string `json:"extraLabels,omitempty"`
+
+	// Service can optionally be used to customize the orchestrator Service.
+	Service *ServiceOverrides `json:"service,omitempty"`
+}
+
 // ServiceOverrides allows customization of an arbitrary Service object.
 type ServiceOverrides struct {
 	// Annotations specifies extra annotations to add to the Service object.
@@ -429,6 +504,14 @@ type VitessDashboardStatus struct {
 	ServiceName string `json:"serviceName,omitempty"`
 }
 
+// VitessOrchestratorStatus is a summary of the status of the orchestrator deployment.
+type VitessOrchestratorStatus struct {
+	// Available indicates whether the vtctld service has available endpoints.
+	Available corev1.ConditionStatus `json:"available,omitempty"`
+	// ServiceName is the name of the Service for this cluster's vtctld.
+	ServiceName string `json:"serviceName,omitempty"`
+}
+
 // VitessClusterStatus defines the observed state of VitessCluster
 type VitessClusterStatus struct {
 	// The generation observed by the controller.
@@ -442,6 +525,9 @@ type VitessClusterStatus struct {
 
 	// VitessDashboard is a summary of the status of the vtctld deployment.
 	VitessDashboard VitessDashboardStatus `json:"vitessDashboard,omitempty"`
+
+	// VitessOrchestrator is a summary of the status of the orchestrator deployment.
+	VitessOrchestrator VitessOrchestratorStatus `json:"vitessOrchestrator,omitempty"`
 
 	// Cells is a summary of the status of desired cells.
 	Cells map[string]VitessClusterCellStatus `json:"cells,omitempty"`
@@ -458,6 +544,9 @@ type VitessClusterStatus struct {
 func NewVitessClusterStatus() VitessClusterStatus {
 	return VitessClusterStatus{
 		VitessDashboard: VitessDashboardStatus{
+			Available: corev1.ConditionUnknown,
+		},
+		VitessOrchestrator: VitessOrchestratorStatus{
 			Available: corev1.ConditionUnknown,
 		},
 		Cells:             make(map[string]VitessClusterCellStatus),

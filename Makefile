@@ -10,6 +10,10 @@ IMAGE_NAME:=$(IMAGE_REGISTRY)/$(IMAGE)
 # Enable Go modules
 export GO111MODULE=on
 
+# Hack GOPATH: this works only if $GOPATH/src/planetscale.dev/vitess-operator computes to the current directory.
+# operator-sdk needs GOPATH to be set.
+export GOPATH=$(shell realpath ../../..)
+
 # Regular operator-sdk build is good for development because it does the actual
 # build outside Docker, so it uses your cached modules.
 build:

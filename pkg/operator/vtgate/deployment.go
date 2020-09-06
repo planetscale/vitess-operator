@@ -81,7 +81,7 @@ type Spec struct {
 	Tolerations       []corev1.Toleration
 }
 
-// NewDeployment creates a new Deployment object for vtctld.
+// NewDeployment creates a new Deployment object for orchestrator.
 func NewDeployment(key client.ObjectKey, spec *Spec) *appsv1.Deployment {
 	// Fill in the immutable parts.
 	obj := &appsv1.Deployment{

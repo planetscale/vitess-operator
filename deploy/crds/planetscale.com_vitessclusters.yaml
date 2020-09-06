@@ -850,6 +850,8 @@ spec:
                   type: string
                 mysqldExporter:
                   type: string
+                orchestrator:
+                  type: string
                 vtbackup:
                   type: string
                 vtctld:
@@ -880,6 +882,8 @@ spec:
                       type: string
                   type: object
                 mysqldExporter:
+                  type: string
+                orchestrator:
                   type: string
                 vtbackup:
                   type: string
@@ -1735,6 +1739,148 @@ spec:
                     x-kubernetes-preserve-unknown-fields: true
                   type: array
               type: object
+            vitessOrchestrator:
+              properties:
+                affinity:
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+                annotations:
+                  additionalProperties:
+                    type: string
+                  type: object
+                cells:
+                  items:
+                    type: string
+                  type: array
+                extraEnv:
+                  items:
+                    properties:
+                      name:
+                        type: string
+                      value:
+                        type: string
+                      valueFrom:
+                        properties:
+                          configMapKeyRef:
+                            properties:
+                              key:
+                                type: string
+                              name:
+                                type: string
+                              optional:
+                                type: boolean
+                            required:
+                            - key
+                            type: object
+                          fieldRef:
+                            properties:
+                              apiVersion:
+                                type: string
+                              fieldPath:
+                                type: string
+                            required:
+                            - fieldPath
+                            type: object
+                          resourceFieldRef:
+                            properties:
+                              containerName:
+                                type: string
+                              divisor:
+                                type: string
+                              resource:
+                                type: string
+                            required:
+                            - resource
+                            type: object
+                          secretKeyRef:
+                            properties:
+                              key:
+                                type: string
+                              name:
+                                type: string
+                              optional:
+                                type: boolean
+                            required:
+                            - key
+                            type: object
+                        type: object
+                    required:
+                    - name
+                    type: object
+                  type: array
+                extraFlags:
+                  additionalProperties:
+                    type: string
+                  type: object
+                extraLabels:
+                  additionalProperties:
+                    type: string
+                  type: object
+                extraVolumeMounts:
+                  items:
+                    properties:
+                      mountPath:
+                        type: string
+                      mountPropagation:
+                        type: string
+                      name:
+                        type: string
+                      readOnly:
+                        type: boolean
+                      subPath:
+                        type: string
+                      subPathExpr:
+                        type: string
+                    required:
+                    - mountPath
+                    - name
+                    type: object
+                  type: array
+                extraVolumes:
+                  items:
+                    required:
+                    - name
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                  type: array
+                initContainers:
+                  items:
+                    required:
+                    - name
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                  type: array
+                replicas:
+                  format: int32
+                  type: integer
+                resources:
+                  properties:
+                    limits:
+                      additionalProperties:
+                        type: string
+                      type: object
+                    requests:
+                      additionalProperties:
+                        type: string
+                      type: object
+                  type: object
+                service:
+                  properties:
+                    annotations:
+                      additionalProperties:
+                        type: string
+                      type: object
+                    clusterIP:
+                      type: string
+                  type: object
+                sidecarContainers:
+                  items:
+                    required:
+                    - name
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                  type: array
+              type: object
           required:
           - cells
           type: object
@@ -1827,6 +1973,13 @@ spec:
                 type: object
               type: object
             vitessDashboard:
+              properties:
+                available:
+                  type: string
+                serviceName:
+                  type: string
+              type: object
+            vitessOrchestrator:
               properties:
                 available:
                   type: string

@@ -257,6 +257,8 @@ spec:
                   type: string
                 mysqldExporter:
                   type: string
+                orchestrator:
+                  type: string
                 vtbackup:
                   type: string
                 vtctld:

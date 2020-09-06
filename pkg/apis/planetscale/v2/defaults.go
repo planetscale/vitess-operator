@@ -67,6 +67,10 @@ const (
 	defaultVtctldCPUMillis   = 100
 	defaultVtctldMemoryBytes = 128 * Mi
 
+	defaultOrchestratorReplicas    = 1
+	defaultOrchestratorCPUMillis   = 100
+	defaultOrchestratorMemoryBytes = 128 * Mi
+
 	defaultVtgateReplicas    = 2
 	defaultVtgateCPUMillis   = 500
 	defaultVtgateMemoryBytes = 1 * Gi
@@ -82,6 +86,9 @@ const (
 	DefaultGrpcPort = 15999
 	// DefaultMysqlPort is the port for MySQL client connections.
 	DefaultMysqlPort = 3306
+
+	// OrcWebPort is the default web port for the orchestrator
+	OrcWebPort = 3000
 
 	// DefaultWebPortName is the name for the web port.
 	DefaultWebPortName = "web"
