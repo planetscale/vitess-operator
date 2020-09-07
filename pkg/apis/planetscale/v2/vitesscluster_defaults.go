@@ -27,6 +27,7 @@ func DefaultVitessCluster(vt *VitessCluster) {
 	defaultGlobalLockserver(vt)
 	DefaultVitessImages(&vt.Spec.Images, DefaultImages)
 	DefaultVitessDashboard(&vt.Spec.VitessDashboard)
+	DefaultVitessOrchestrator(&vt.Spec.VitessOrchestrator)
 	DefaultVitessKeyspaceTemplates(vt.Spec.Keyspaces)
 	defaultClusterBackup(vt.Spec.Backup)
 	DefaultTopoReconcileConfig(&vt.Spec.TopologyReconciliation)

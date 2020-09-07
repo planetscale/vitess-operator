@@ -40,7 +40,7 @@ const (
 
 	// VtctldComponentName is the ComponentLabel value for vtctld.
 	VtctldComponentName = "vtctld"
-	// OrcComponentName is the ComponentLabel value for vtctld.
+	// OrcComponentName is the ComponentLabel value for orchestrator.
 	OrcComponentName = "orchestrator"
 	// VtgateComponentName is the ComponentLabel value for vtgate.
 	VtgateComponentName = "vtgate"

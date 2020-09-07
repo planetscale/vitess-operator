@@ -160,9 +160,11 @@ func (r *ReconcileVitessCluster) orchestratorSpecs(vt *planetscalev2.VitessClust
 
 		specs = append(specs, &orchestrator.Spec{
 			GlobalLockserver:  glsParams,
+			ConfigSecret:      vt.Spec.VitessOrchestrator.ConfigSecret,
 			Image:             vt.Spec.Images.Orchestrator,
 			ImagePullPolicy:   vt.Spec.ImagePullPolicies.Orchestrator,
 			ImagePullSecrets:  vt.Spec.ImagePullSecrets,
+			Cell:              cell,
 			Labels:            labels,
 			Replicas:          *vt.Spec.VitessOrchestrator.Replicas,
 			Resources:         vt.Spec.VitessOrchestrator.Resources,

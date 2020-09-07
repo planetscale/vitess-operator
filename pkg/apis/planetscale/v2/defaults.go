@@ -67,7 +67,7 @@ const (
 	defaultVtctldCPUMillis   = 100
 	defaultVtctldMemoryBytes = 128 * Mi
 
-	defaultOrchestratorReplicas    = 1
+	defaultOrchestratorReplicas    = 0
 	defaultOrchestratorCPUMillis   = 100
 	defaultOrchestratorMemoryBytes = 128 * Mi
 

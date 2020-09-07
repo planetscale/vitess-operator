@@ -29,6 +29,7 @@ import (
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 	"planetscale.dev/vitess-operator/pkg/operator/k8s"
 	"planetscale.dev/vitess-operator/pkg/operator/names"
+	"planetscale.dev/vitess-operator/pkg/operator/secrets"
 	"planetscale.dev/vitess-operator/pkg/operator/update"
 	"planetscale.dev/vitess-operator/pkg/operator/vitess"
 )
@@ -38,8 +39,10 @@ const (
 	priorityClassName = "vitess"
 
 	command   = "/vt/bin/orchestrator"
-	webDir    = "/vt/src/vitess.io/vitess/web/orchestrator"
+	webDir    = "/vt/web/orchestrator"
 	runAsUser = 999
+
+	configDirName = "orc-config"
 )
 
 // DeploymentName returns the name of the orchestrator Deployment for a given cell.
@@ -51,6 +54,7 @@ func DeploymentName(clusterName, cellName string) string {
 // as opposed to the API type planetscalev2.VitessDashboardSpec, which is the public API.
 type Spec struct {
 	GlobalLockserver  *planetscalev2.VitessLockserverParams
+	ConfigSecret      planetscalev2.SecretSource
 	Cell              *planetscalev2.VitessCellTemplate
 	Image             string
 	ImagePullPolicy   corev1.PullPolicy
@@ -137,48 +141,48 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 
 	update.PodTemplateContainers(&obj.Spec.Template.Spec.InitContainers, spec.InitContainers)
 	update.PodTemplateContainers(&obj.Spec.Template.Spec.Containers, spec.SidecarContainers)
-	update.PodTemplateContainers(&obj.Spec.Template.Spec.Containers, []corev1.Container{
-		{
-			Name:            containerName,
-			Image:           spec.Image,
-			ImagePullPolicy: spec.ImagePullPolicy,
-			Command:         []string{command},
-			Args:            flags.FormatArgs(),
-			Ports: []corev1.ContainerPort{
-				{
-					Name:          planetscalev2.DefaultWebPortName,
-					Protocol:      corev1.ProtocolTCP,
-					ContainerPort: planetscalev2.OrcWebPort,
-				},
+	orcContainer := &corev1.Container{
+		Name:            containerName,
+		Image:           spec.Image,
+		ImagePullPolicy: spec.ImagePullPolicy,
+		Command:         []string{command},
+		Ports: []corev1.ContainerPort{
+			{
+				Name:          planetscalev2.DefaultWebPortName,
+				Protocol:      corev1.ProtocolTCP,
+				ContainerPort: planetscalev2.OrcWebPort,
 			},
-			Resources: spec.Resources,
-			SecurityContext: &corev1.SecurityContext{
-				RunAsUser: pointer.Int64Ptr(runAsUser),
-			},
-			ReadinessProbe: &corev1.Probe{
-				Handler: corev1.Handler{
-					HTTPGet: &corev1.HTTPGetAction{
-						// TODO(sougou): fix orch to export better end points
-						Path: "/web/clusters",
-						Port: intstr.FromString(planetscalev2.DefaultWebPortName),
-					},
-				},
-			},
-			LivenessProbe: &corev1.Probe{
-				Handler: corev1.Handler{
-					HTTPGet: &corev1.HTTPGetAction{
-						// TODO(sougou): fix orch to export better end points
-						Path: "/web/clusters",
-						Port: intstr.FromString(planetscalev2.DefaultWebPortName),
-					},
-				},
-				InitialDelaySeconds: 300,
-				FailureThreshold:    30,
-			},
-			VolumeMounts: spec.ExtraVolumeMounts,
-			Env:          spec.ExtraEnv,
 		},
-	})
+		Resources: spec.Resources,
+		SecurityContext: &corev1.SecurityContext{
+			RunAsUser: pointer.Int64Ptr(runAsUser),
+		},
+		ReadinessProbe: &corev1.Probe{
+			Handler: corev1.Handler{
+				HTTPGet: &corev1.HTTPGetAction{
+					// TODO(sougou): fix orch to export better end points
+					Path: "/web/clusters",
+					Port: intstr.FromString(planetscalev2.DefaultWebPortName),
+				},
+			},
+		},
+		LivenessProbe: &corev1.Probe{
+			Handler: corev1.Handler{
+				HTTPGet: &corev1.HTTPGetAction{
+					// TODO(sougou): fix orch to export better end points
+					Path: "/web/clusters",
+					Port: intstr.FromString(planetscalev2.DefaultWebPortName),
+				},
+			},
+			InitialDelaySeconds: 300,
+			FailureThreshold:    30,
+		},
+		VolumeMounts: spec.ExtraVolumeMounts,
+		Env:          spec.ExtraEnv,
+	}
+	updateConfig(spec, flags, orcContainer, &obj.Spec.Template.Spec)
+	orcContainer.Args = flags.FormatArgs()
+	update.PodTemplateContainers(&obj.Spec.Template.Spec.Containers, []corev1.Container{*orcContainer})
 
 	if spec.Affinity != nil {
 		obj.Spec.Template.Spec.Affinity = spec.Affinity
@@ -216,4 +220,16 @@ func (spec *Spec) flags() vitess.Flags {
 
 		"logtostderr": true,
 	}
+}
+
+func updateConfig(spec *Spec, flags vitess.Flags, container *corev1.Container, podSpec *corev1.PodSpec) {
+	configFile := secrets.Mount(&spec.ConfigSecret, configDirName)
+
+	flags["config"] = configFile.FilePath()
+
+	// Add the volume to the Pod, if needed.
+	update.Volumes(&podSpec.Volumes, configFile.PodVolumes())
+
+	// Mount the volume in the Container.
+	container.VolumeMounts = append(container.VolumeMounts, configFile.ContainerVolumeMount())
 }

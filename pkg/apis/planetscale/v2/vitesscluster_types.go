@@ -77,6 +77,7 @@ type VitessClusterSpec struct {
 	VitessDashboard *VitessDashboardSpec `json:"vitessDashboard,omitempty"`
 
 	// VitessOrchestrator deploys a set of Vitess Orchestrator servers for the Vitess cluster.
+	// THIS API IS EXPERIMENTAL: NOT TO BE USED IN PRODUCTION.
 	VitessOrchestrator *VitessOrchestratorSpec `json:"vitessOrchestrator,omitempty"`
 
 	// Cells is a list of templates for VitessCells to create for this cluster.
@@ -415,7 +416,11 @@ type VitessDashboardSpec struct {
 }
 
 // VitessOrchestratorSpec specifies deployment parameters for orchestrator.
+// THIS API IS EXPERIMENTAL: NOT TO BE USED IN PRODUCTION.
 type VitessOrchestratorSpec struct {
+	// ConfigSecret contains the config file (with passwords) for orchestrator.
+	ConfigSecret SecretSource `json:"configSecret"`
+
 	// Cells is a list of cell names (as defined in the Cells list)
 	// in which to deploy orchestrator.
 	// Default: Deploy to all defined cells.
