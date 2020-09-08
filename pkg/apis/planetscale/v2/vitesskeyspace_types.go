@@ -166,6 +166,9 @@ type VitessKeyspaceTemplate struct {
 	// Default: RequireIdle
 	// +kubebuilder:validation:Enum=RequireIdle;Immediate
 	TurndownPolicy VitessKeyspaceTurndownPolicy `json:"turndownPolicy,omitempty"`
+
+	// Annotations can optionally be used to attach custom annotations to the VitessKeyspace object.
+	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
 // VitessKeyspaceTurndownPolicy is the policy for turning down a keyspace.

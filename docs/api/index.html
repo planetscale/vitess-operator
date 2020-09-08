@@ -1984,10 +1984,12 @@ string
 </td>
 <td>
 <p>Name is used to refer to this backup location from other parts of a
-VitessCluster object, such as in tablet pool definitions. This name
-must be unique among all backup locations defined in a given cluster.
-A backup location with an empty name defines the default location used
-when a tablet pool does not specify a backup location name.</p>
+VitessCluster object.</p>
+<p>In particular, the backupLocationName field in each tablet pool within
+each shard must match one of the names defined by this field.</p>
+<p>This name must be unique among all backup locations defined in a given
+cluster. A backup location with an empty name defines the default
+location used when a tablet pool does not specify a backupLocationName.</p>
 </td>
 </tr>
 <tr>
@@ -5354,6 +5356,17 @@ object from having immediate, destructive consequences. If the cluster
 spec is only ever edited by automation whose edits you trust to be safe,
 you can set the policy to Immediate to skip these checks.</p>
 <p>Default: RequireIdle</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>annotations</code></br>
+<em>
+map[string]string
+</em>
+</td>
+<td>
+<p>Annotations can optionally be used to attach custom annotations to the VitessKeyspace object.</p>
 </td>
 </tr>
 </tbody>

@@ -878,6 +878,10 @@ spec:
             keyspaces:
               items:
                 properties:
+                  annotations:
+                    additionalProperties:
+                      type: string
+                    type: object
                   databaseName:
                     type: string
                   name:
