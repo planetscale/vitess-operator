@@ -133,6 +133,7 @@ func (r *reconcileHandler) reconcileResharding(ctx context.Context) (reconcile.R
 	}
 
 	sort.Strings(workflowStatus.ServingShards)
+	r.vtk.Status.Resharding = workflowStatus
 
 	return resultBuilder.Result()
 }
