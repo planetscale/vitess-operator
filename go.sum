@@ -837,6 +837,8 @@ github.com/pires/go-proxyproto v0.0.0-20191211124218-517ecdf5bb2b/go.mod h1:Odh9
 github.com/pkg/errors v0.8.0/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pkg/errors v0.8.1 h1:iURUrRGxPUNPdy5/HRSm+Yj6okJ6UtLINN0Q9M4+h3I=
 github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
+github.com/planetscale/vitess v0.0.0-20200910035149-66e8034f5bda h1:s/4qzirEyAVJNMFsMmUk6xWWjTyl22Avv0/u3fD+VoY=
+github.com/planetscale/vitess v0.0.0-20200910035149-66e8034f5bda/go.mod h1:YlZpjSEgkxvRPh8fsRGWGh1N+Ud0V/IV8RnxkNHgGwA=
 github.com/pmezard/go-difflib v0.0.0-20151028094244-d8ed2627bdf0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
@@ -1413,9 +1415,3 @@ sigs.k8s.io/testing_frameworks v0.1.2/go.mod h1:ToQrwSC3s8Xf/lADdZp3Mktcql9CG0UA
 sigs.k8s.io/yaml v1.1.0 h1:4A07+ZFc2wgJwo8YNlQpr1rVlgUDlxXHhPJciaPY5gs=
 sigs.k8s.io/yaml v1.1.0/go.mod h1:UJmg0vDUVViEyp3mgSv9WPwZCDxu4rQW1olrI1uml+o=
 vbom.ml/util v0.0.0-20160121211510-db5cfe13f5cc/go.mod h1:so/NYdZXCz+E3ZpW0uAoCj6uzU2+8OWDFv/HxUSs7kI=
-vitess.io/vitess v0.0.0-20200810101014-2130a0e75923 h1:M34doS+Z7doOgy7xMxGh/5xt9CaC10jXJa4SdhXSfkk=
-vitess.io/vitess v0.0.0-20200810101014-2130a0e75923/go.mod h1:MjQFT3yaDsYxY+fwUwxqD0d7MRx7c8+wx0nMeXC9U/s=
-vitess.io/vitess v0.0.0-20200901235543-6073f0f6ba43 h1:Uqe3605gJvK2lOyzowKtlMy5h45ZZctuZ9CZ7NutApk=
-vitess.io/vitess v0.0.0-20200901235543-6073f0f6ba43/go.mod h1:YlZpjSEgkxvRPh8fsRGWGh1N+Ud0V/IV8RnxkNHgGwA=
-vitess.io/vitess v0.0.0-20200909224454-6a25895b6125 h1:opcotNfV2sVQYgGgQTewZFZIRJ4NuecqhUm8fubWtJg=
-vitess.io/vitess v0.0.0-20200909224454-6a25895b6125/go.mod h1:YlZpjSEgkxvRPh8fsRGWGh1N+Ud0V/IV8RnxkNHgGwA=
