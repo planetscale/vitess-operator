@@ -1417,3 +1417,5 @@ vitess.io/vitess v0.0.0-20200810101014-2130a0e75923 h1:M34doS+Z7doOgy7xMxGh/5xt9
 vitess.io/vitess v0.0.0-20200810101014-2130a0e75923/go.mod h1:MjQFT3yaDsYxY+fwUwxqD0d7MRx7c8+wx0nMeXC9U/s=
 vitess.io/vitess v0.0.0-20200901235543-6073f0f6ba43 h1:Uqe3605gJvK2lOyzowKtlMy5h45ZZctuZ9CZ7NutApk=
 vitess.io/vitess v0.0.0-20200901235543-6073f0f6ba43/go.mod h1:YlZpjSEgkxvRPh8fsRGWGh1N+Ud0V/IV8RnxkNHgGwA=
+vitess.io/vitess v0.0.0-20200909224454-6a25895b6125 h1:opcotNfV2sVQYgGgQTewZFZIRJ4NuecqhUm8fubWtJg=
+vitess.io/vitess v0.0.0-20200909224454-6a25895b6125/go.mod h1:YlZpjSEgkxvRPh8fsRGWGh1N+Ud0V/IV8RnxkNHgGwA=
