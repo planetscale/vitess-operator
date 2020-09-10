@@ -23,6 +23,7 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/sets"
 	"planetscale.dev/vitess-operator/pkg/operator/partitioning"
 	topodatapb "vitess.io/vitess/go/vt/proto/topodata"
 )
@@ -124,6 +125,25 @@ func (s *VitessKeyspaceSpec) CellNames() []string {
 	sort.Strings(cells)
 
 	return cells
+}
+
+// ShardNameSet returns the set of shard names in this partitioning.
+func (p *VitessKeyspacePartitioning) ShardNameSet() sets.String {
+	shardNames := sets.NewString()
+
+	switch {
+	case p.Equal != nil:
+		for _, keyRange := range p.Equal.KeyRanges() {
+			shardNames.Insert(keyRange.String())
+		}
+	case p.Custom != nil:
+		for i := range p.Custom.Shards {
+			shard := &p.Custom.Shards[i]
+			shardNames.Insert(shard.KeyRange.String())
+		}
+	}
+
+	return shardNames
 }
 
 // TabletPools returns the list of tablet pools from whichever paritioning sub-field is defined.

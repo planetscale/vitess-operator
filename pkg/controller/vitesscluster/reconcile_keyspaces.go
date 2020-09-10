@@ -216,6 +216,10 @@ func updateVitessKeyspaceInPlace(key client.ObjectKey, vtk *planetscalev2.Vitess
 		}
 	}
 
+	// Add or remove partitionings as needed, but don't immediately reconfigure
+	// partitionings that already exist.
+	update.PartitioningSet(&vtk.Spec.Partitionings, newKeyspace.Spec.Partitionings)
+
 	// Only update things that are safe to roll out immediately.
 	vtk.Spec.TurndownPolicy = newKeyspace.Spec.TurndownPolicy
 
