@@ -907,10 +907,6 @@ spec:
               type: object
             resharding:
               properties:
-                servingShards:
-                  items:
-                    type: string
-                  type: array
                 sourceShards:
                   items:
                     type: string

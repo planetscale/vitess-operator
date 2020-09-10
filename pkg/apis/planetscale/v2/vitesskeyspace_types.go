@@ -310,8 +310,6 @@ type ReshardingStatus struct {
 	Workflow string `json:"workflow"`
 	// State is either 'Running', 'Copying', 'Error' or 'Unknown'.
 	State WorkflowState `json:"state"`
-	// ServingShards is a list of shards that are currently serving writes.
-	ServingShards []string `json:"servingShards,omitempty"`
 	// SourceShards is a list of source shards for the current resharding operation.
 	SourceShards []string `json:"sourceShards,omitempty"`
 	// TargetShards is a list of target shards for the current resharding operation.
