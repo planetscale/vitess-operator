@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"reflect"
 	"sort"
-	"strings"
 
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -100,15 +99,7 @@ func (r *reconcileHandler) reconcileResharding(ctx context.Context) (reconcile.R
 	// At a high level we mostly need to know if we are still in the Copying phase (for any shard whatsoever), or if
 	// we have an error in resharding somewhere that needs to be surfaced.
 	var errorMsgs []string
-	for name, status := range reshardingWorkflow.ShardStatuses {
-		if status.MasterIsServing {
-			// The shard status name might have the tablet alias appended to it,
-			// such as "-80/cell-123". We only want the shard name, so strip
-			// everything after the first "/" if one is present.
-			shard := strings.Split(name, "/")[0]
-
-			workflowStatus.ServingShards = append(workflowStatus.ServingShards, shard)
-		}
+	for _, status := range reshardingWorkflow.ShardStatuses {
 		for _, vReplRow := range status.MasterReplicationStatuses {
 			if vReplRow.State == "Error" {
 				workflowStatus.State = planetscalev2.WorkflowError
@@ -141,8 +132,6 @@ func (r *reconcileHandler) reconcileResharding(ctx context.Context) (reconcile.R
 	default:
 		r.setConditionStatus(planetscalev2.VitessKeyspaceReshardingInSync, corev1.ConditionUnknown, "UnknownWorkflowState", fmt.Sprintf("VReplication workflow %v is in an unknown state.", workflowStatus.Workflow))
 	}
-
-	sort.Strings(workflowStatus.ServingShards)
 	r.vtk.Status.Resharding = workflowStatus
 
 	return resultBuilder.Result()
