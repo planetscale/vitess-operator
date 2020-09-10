@@ -82,10 +82,11 @@ func (r *reconcileHandler) reconcileResharding(ctx context.Context) (reconcile.R
 	}
 
 	if reshardingWorkflow == nil {
-		r.setConditionStatus(planetscalev2.VitessKeyspaceReshardingActive, corev1.ConditionFalse, "NoActiveReshardingWorkflows", "No active resharding workflows found.")
+		r.setConditionStatus(planetscalev2.VitessKeyspaceReshardingActive, corev1.ConditionFalse, "NoActiveReshardingWorkflow", "No active resharding workflow found.")
+		r.setConditionStatus(planetscalev2.VitessKeyspaceReshardingInSync, corev1.ConditionFalse, "NoActiveReshardingWorkflow", "No active resharding workflow found.")
 		return resultBuilder.Result()
 	}
-	r.setConditionStatus(planetscalev2.VitessKeyspaceReshardingActive, corev1.ConditionTrue, "ReshardingActive", "One active resharding workflow was found.")
+	r.setConditionStatus(planetscalev2.VitessKeyspaceReshardingActive, corev1.ConditionTrue, "ActiveReshardingWorkflow", "One active resharding workflow was found: "+reshardingWorkflow.Workflow)
 
 	workflowStatus := &planetscalev2.ReshardingStatus{
 		Workflow:     reshardingWorkflow.Workflow,
@@ -101,7 +102,11 @@ func (r *reconcileHandler) reconcileResharding(ctx context.Context) (reconcile.R
 	var errorMsgs []string
 	for name, status := range reshardingWorkflow.ShardStatuses {
 		if status.MasterIsServing {
+			// The shard status name might have the tablet alias appended to it,
+			// such as "-80/cell-123". We only want the shard name, so strip
+			// everything after the first "/" if one is present.
 			shard := strings.Split(name, "/")[0]
+
 			workflowStatus.ServingShards = append(workflowStatus.ServingShards, shard)
 		}
 		for _, vReplRow := range status.MasterReplicationStatuses {
@@ -118,18 +123,23 @@ func (r *reconcileHandler) reconcileResharding(ctx context.Context) (reconcile.R
 			}
 		}
 	}
-	if workflowStatus.State == planetscalev2.WorkflowError {
-		sort.Strings(errorMsgs)
-		r.setConditionStatus(planetscalev2.VitessKeyspaceReshardingInSync, corev1.ConditionFalse, "VReplicationError", fmt.Sprintf("Encountered a VReplication Error: %v", errorMsgs[0]))
-	}
-	if workflowStatus.State == planetscalev2.WorkflowCopying {
-		r.setConditionStatus(planetscalev2.VitessKeyspaceReshardingInSync, corev1.ConditionFalse, "WorkflowCopying", fmt.Sprintf("Workflow %v is currently in Copy phase.", workflowStatus.Workflow))
-	}
 
-	// If MaxVReplicationLag ever exceeds max safe value, we need update our condition object.
-	// Copy phase should take precedence though. We don't care about vrepl lag if we are still in copy phase. Regardless we don't allow switching traffic.
-	if reshardingWorkflow.MaxVReplicationLag >= maxSafeVReplicationLag && workflowStatus.State == planetscalev2.WorkflowRunning {
-		r.setConditionStatus(planetscalev2.VitessKeyspaceReshardingInSync, corev1.ConditionFalse, "WorkflowLagging", fmt.Sprintf("Workflow %v is currently lagging by greater than 10 seconds.", workflowStatus.Workflow))
+	switch workflowStatus.State {
+	case planetscalev2.WorkflowError:
+		sort.Strings(errorMsgs)
+		r.setConditionStatus(planetscalev2.VitessKeyspaceReshardingInSync, corev1.ConditionFalse, "Error", fmt.Sprintf("VReplication reported an error: %v", errorMsgs[0]))
+	case planetscalev2.WorkflowCopying:
+		r.setConditionStatus(planetscalev2.VitessKeyspaceReshardingInSync, corev1.ConditionFalse, "Copying", "Existing data from the source shards is being backfilled on target shards")
+	case planetscalev2.WorkflowRunning:
+		// If MaxVReplicationLag ever exceeds max safe value, we need update our condition object.
+		// Copy phase should take precedence though. We don't care about vrepl lag if we are still in copy phase. Regardless we don't allow switching traffic.
+		if reshardingWorkflow.MaxVReplicationLag < maxSafeVReplicationLag {
+			r.setConditionStatus(planetscalev2.VitessKeyspaceReshardingInSync, corev1.ConditionTrue, "CaughtUp", fmt.Sprintf("VReplication on target shards is caught up to within %v seconds of real-time changes happening on source shards", maxSafeVReplicationLag))
+		} else {
+			r.setConditionStatus(planetscalev2.VitessKeyspaceReshardingInSync, corev1.ConditionFalse, "Lagging", fmt.Sprintf("VReplication on one or more target shards is lagging behind real-time changes happening on source shards by %v or more seconds", maxSafeVReplicationLag))
+		}
+	default:
+		r.setConditionStatus(planetscalev2.VitessKeyspaceReshardingInSync, corev1.ConditionUnknown, "UnknownWorkflowState", fmt.Sprintf("VReplication workflow %v is in an unknown state.", workflowStatus.Workflow))
 	}
 
 	sort.Strings(workflowStatus.ServingShards)
