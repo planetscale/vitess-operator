@@ -288,6 +288,8 @@ type VitessKeyspaceStatus struct {
 	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
 	// Shards is a summary of the status of all desired shards.
 	Shards map[string]VitessKeyspaceShardStatus `json:"shards,omitempty"`
+	// Partitionings is an aggregation of status for all shards in each partitioning.
+	Partitionings []VitessKeyspacePartitioningStatus `json:"partitionings,omitempty"`
 	// OrphanedShards is a list of unwanted shards that could not be turned down.
 	OrphanedShards map[string]OrphanStatus `json:"orphanedShards,omitempty"`
 	// Idle is a condition indicating whether the keyspace can be turned down.
@@ -345,6 +347,11 @@ type VitessKeyspaceShardStatus struct {
 	// HasMaster is a condition indicating whether the Vitess topology
 	// reflects a master for this shard.
 	HasMaster corev1.ConditionStatus `json:"hasMaster,omitempty"`
+	// ServingWrites is a condition indicating whether this shard is the one
+	// that serves writes for its key range, according to Vitess topology.
+	// A shard might be deployed without serving writes if, for example, it is
+	// the target of a resharding operation that is still in progress.
+	ServingWrites corev1.ConditionStatus `json:"servingWrites,omitempty"`
 	// DesiredTablets is the number of desired tablets. This is computed from
 	// information that's already available in the spec, but clients should
 	// use this value instead of trying to compute shard partitionings on their
@@ -374,7 +381,29 @@ func NewVitessKeyspaceShardStatus(spec *VitessKeyspaceKeyRangeShard) VitessKeysp
 
 	return VitessKeyspaceShardStatus{
 		HasMaster:      corev1.ConditionUnknown,
+		ServingWrites:  corev1.ConditionUnknown,
 		DesiredTablets: desiredTablets,
+	}
+}
+
+// VitessKeyspacePartitioningStatus aggregates status for all shards in a given partitioning.
+type VitessKeyspacePartitioningStatus struct {
+	// ShardNames is a sorted list of shards in this partitioning,
+	// in the format Vitess uses for shard names.
+	ShardNames []string `json:"shardNames,omitempty"`
+	// ServingWrites is a condition indicating whether all shards in this
+	// partitioning are serving writes for their key ranges.
+	// Note that False only means not all shards are serving writes; it's still
+	// possible that some shards in this partitioning are serving writes.
+	// Check the per-shard status for full details.
+	ServingWrites corev1.ConditionStatus `json:"servingWrites,omitempty"`
+}
+
+// NewVitessKeyspacePartitioningStatus creates a new status object with default values.
+func NewVitessKeyspacePartitioningStatus(partitioning *VitessKeyspacePartitioning) VitessKeyspacePartitioningStatus {
+	return VitessKeyspacePartitioningStatus{
+		ShardNames:    partitioning.ShardNameSet().List(),
+		ServingWrites: corev1.ConditionUnknown,
 	}
 }
 

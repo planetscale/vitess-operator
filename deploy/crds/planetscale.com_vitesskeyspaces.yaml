@@ -905,6 +905,17 @@ spec:
                 - reason
                 type: object
               type: object
+            partitionings:
+              items:
+                properties:
+                  servingWrites:
+                    type: string
+                  shardNames:
+                    items:
+                      type: string
+                    type: array
+                type: object
+              type: array
             resharding:
               properties:
                 sourceShards:
@@ -940,6 +951,8 @@ spec:
                   readyTablets:
                     format: int32
                     type: integer
+                  servingWrites:
+                    type: string
                   tablets:
                     format: int32
                     type: integer

@@ -56,7 +56,15 @@ func (r *reconcileHandler) reconcileShards(ctx context.Context) error {
 		r.vtk.Status.Shards[shard.KeyRange.String()] = planetscalev2.NewVitessKeyspaceShardStatus(shard)
 	}
 
-	return r.reconciler.ReconcileObjectSet(ctx, r.vtk, keys, labels, reconciler.Strategy{
+	// Initialize a status entry for each desired partitioning, so it will be
+	// listed even if we end up not having anything to report about it.
+	r.vtk.Status.Partitionings = make([]planetscalev2.VitessKeyspacePartitioningStatus, len(r.vtk.Spec.Partitionings))
+	for i := range r.vtk.Spec.Partitionings {
+		p := &r.vtk.Spec.Partitionings[i]
+		r.vtk.Status.Partitionings[i] = planetscalev2.NewVitessKeyspacePartitioningStatus(p)
+	}
+
+	err := r.reconciler.ReconcileObjectSet(ctx, r.vtk, keys, labels, reconciler.Strategy{
 		Kind: &planetscalev2.VitessShard{},
 
 		New: func(key client.ObjectKey) runtime.Object {
@@ -101,6 +109,9 @@ func (r *reconcileHandler) reconcileShards(ctx context.Context) error {
 			if curObj.Status.HasMaster != "" {
 				status.HasMaster = curObj.Status.HasMaster
 			}
+			if curObj.Status.ServingWrites != "" {
+				status.ServingWrites = curObj.Status.ServingWrites
+			}
 			status.Tablets = int32(len(curObj.Status.Tablets))
 			status.PendingChanges = curObj.Annotations[rollout.ScheduledAnnotation]
 
@@ -133,6 +144,47 @@ func (r *reconcileHandler) reconcileShards(ctx context.Context) error {
 			return planetscalev2.NewOrphanStatus("Serving", "The shard can't be turned down because it's potentially in the serving set. You must migrate all served types in all cells to another shard before removing this shard.")
 		},
 	})
+	if err != nil {
+		return err
+	}
+
+	// Aggregate per-shard status, grouped by partitioning.
+	for i := range r.vtk.Status.Partitionings {
+		status := &r.vtk.Status.Partitionings[i]
+		status.ServingWrites = allShardsServingWrites(status.ShardNames, r.vtk.Status.Shards)
+	}
+
+	return nil
+}
+
+func allShardsServingWrites(shardNames []string, shardStatus map[string]planetscalev2.VitessKeyspaceShardStatus) corev1.ConditionStatus {
+	// A partitioning with no shards can't be serving.
+	if len(shardNames) == 0 {
+		return corev1.ConditionFalse
+	}
+
+	// Provisionally assume all are serving until we find evidence otherwise.
+	result := corev1.ConditionTrue
+
+	for _, shard := range shardNames {
+		switch shardStatus[shard].ServingWrites {
+		case corev1.ConditionTrue:
+			continue
+		case corev1.ConditionFalse:
+			// If any shard is definitely not serving, it can't be possible
+			// that all shards are definitely serving, regardless of the status
+			// of any other shards.
+			return corev1.ConditionFalse
+		default:
+			// If any shard status is unknown, we change our provisional result
+			// to Unknown and keep checking. If we later find any that are
+			// definitely false, we'll change our answer to False. Otherwise,
+			// it will remain Unknown.
+			result = corev1.ConditionUnknown
+		}
+	}
+
+	return result
 }
 
 // newVitessShard expands a complete VitessShard from a VitessShardTemplate.

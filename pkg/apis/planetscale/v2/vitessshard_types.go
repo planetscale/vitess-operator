@@ -356,6 +356,12 @@ type VitessShardStatus struct {
 	// has been seeded for the shard.
 	HasInitialBackup corev1.ConditionStatus `json:"hasInitialBackup,omitempty"`
 
+	// ServingWrites is a condition indicating whether this shard is the one
+	// that serves writes for its key range, according to Vitess topology.
+	// A shard might be deployed without serving writes if, for example, it is
+	// the target of a resharding operation that is still in progress.
+	ServingWrites corev1.ConditionStatus `json:"servingWrites,omitempty"`
+
 	// Idle is a condition indicating whether the shard can be turned down.
 	// If Idle is True, the shard is not part of the active shard set
 	// (partitioning) for any tablet type in any cell, so it should be safe
@@ -411,6 +417,7 @@ func NewVitessShardStatus() VitessShardStatus {
 		OrphanedTablets:  make(map[string]OrphanStatus),
 		HasMaster:        corev1.ConditionUnknown,
 		HasInitialBackup: corev1.ConditionUnknown,
+		ServingWrites:    corev1.ConditionUnknown,
 		Idle:             corev1.ConditionUnknown,
 		Conditions:       make(map[VitessShardConditionType]VitessShardCondition),
 	}
