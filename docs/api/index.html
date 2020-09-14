@@ -4856,6 +4856,54 @@ in case you don&rsquo;t want them to be divided equally.</p>
 </tr>
 </tbody>
 </table>
+<h3 id="planetscale.com/v2.VitessKeyspacePartitioningStatus">VitessKeyspacePartitioningStatus
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#planetscale.com/v2.VitessKeyspaceStatus">VitessKeyspaceStatus</a>)
+</p>
+<p>
+<p>VitessKeyspacePartitioningStatus aggregates status for all shards in a given partitioning.</p>
+</p>
+<table class="table table-striped">
+<thead class="thead-dark">
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>shardNames</code></br>
+<em>
+[]string
+</em>
+</td>
+<td>
+<p>ShardNames is a sorted list of shards in this partitioning,
+in the format Vitess uses for shard names.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>servingWrites</code></br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#conditionstatus-v1-core">
+Kubernetes core/v1.ConditionStatus
+</a>
+</em>
+</td>
+<td>
+<p>ServingWrites is a condition indicating whether all shards in this
+partitioning are serving writes for their key ranges.
+Note that False only means not all shards are serving writes; it&rsquo;s still
+possible that some shards in this partitioning are serving writes.
+Check the per-shard status for full details.</p>
+</td>
+</tr>
+</tbody>
+</table>
 <h3 id="planetscale.com/v2.VitessKeyspaceShardStatus">VitessKeyspaceShardStatus
 </h3>
 <p>
@@ -4885,6 +4933,22 @@ Kubernetes core/v1.ConditionStatus
 <td>
 <p>HasMaster is a condition indicating whether the Vitess topology
 reflects a master for this shard.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>servingWrites</code></br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#conditionstatus-v1-core">
+Kubernetes core/v1.ConditionStatus
+</a>
+</em>
+</td>
+<td>
+<p>ServingWrites is a condition indicating whether this shard is the one
+that serves writes for its key range, according to Vitess topology.
+A shard might be deployed without serving writes if, for example, it is
+the target of a resharding operation that is still in progress.</p>
 </td>
 </tr>
 <tr>
@@ -5167,6 +5231,19 @@ map[string]planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspac
 </td>
 <td>
 <p>Shards is a summary of the status of all desired shards.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>partitionings</code></br>
+<em>
+<a href="#planetscale.com/v2.VitessKeyspacePartitioningStatus">
+[]VitessKeyspacePartitioningStatus
+</a>
+</em>
+</td>
+<td>
+<p>Partitionings is an aggregation of status for all shards in each partitioning.</p>
 </td>
 </tr>
 <tr>
@@ -6129,6 +6206,22 @@ Kubernetes core/v1.ConditionStatus
 <td>
 <p>HasInitialBackup is a condition indicating whether the initial backup
 has been seeded for the shard.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>servingWrites</code></br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#conditionstatus-v1-core">
+Kubernetes core/v1.ConditionStatus
+</a>
+</em>
+</td>
+<td>
+<p>ServingWrites is a condition indicating whether this shard is the one
+that serves writes for its key range, according to Vitess topology.
+A shard might be deployed without serving writes if, for example, it is
+the target of a resharding operation that is still in progress.</p>
 </td>
 </tr>
 <tr>

@@ -604,6 +604,8 @@ spec:
                 - reason
                 type: object
               type: object
+            servingWrites:
+              type: string
             tablets:
               additionalProperties:
                 properties:
