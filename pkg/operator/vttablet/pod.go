@@ -111,6 +111,11 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	update.VolumeMounts(&mysqldMounts, spec.ExtraVolumeMounts)
 	update.VolumeMounts(&vttabletMounts, spec.ExtraVolumeMounts)
 
+	securityContext := &corev1.SecurityContext{}
+	if planetscalev2.DefaultVitessRunAsUser >= 0 {
+		securityContext.RunAsUser = pointer.Int64Ptr(planetscalev2.DefaultVitessRunAsUser)
+	}
+
 	// Build the containers.
 	vttabletContainer := &corev1.Container{
 		Name:            vttabletContainerName,
@@ -130,10 +135,8 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 				ContainerPort: planetscalev2.DefaultGrpcPort,
 			},
 		},
-		Resources: spec.Vttablet.Resources,
-		SecurityContext: &corev1.SecurityContext{
-			RunAsUser: pointer.Int64Ptr(runAsUser),
-		},
+		Resources:       spec.Vttablet.Resources,
+		SecurityContext: securityContext,
 		ReadinessProbe: &corev1.Probe{
 			Handler: corev1.Handler{
 				HTTPGet: &corev1.HTTPGetAction{
@@ -179,10 +182,8 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 					ContainerPort: planetscalev2.DefaultMysqlPort,
 				},
 			},
-			Resources: spec.Mysqld.Resources,
-			SecurityContext: &corev1.SecurityContext{
-				RunAsUser: pointer.Int64Ptr(runAsUser),
-			},
+			Resources:       spec.Mysqld.Resources,
+			SecurityContext: securityContext,
 			// TODO(enisoc): Add readiness and liveness probes that make sense for mysqld.
 			Env:          env,
 			VolumeMounts: mysqldMounts,
@@ -214,10 +215,8 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 					ContainerPort: mysqldExporterPort,
 				},
 			},
-			SecurityContext: &corev1.SecurityContext{
-				RunAsUser: pointer.Int64Ptr(runAsUser),
-			},
-			VolumeMounts: mysqldMounts,
+			SecurityContext: securityContext,
+			VolumeMounts:    mysqldMounts,
 			Resources: corev1.ResourceRequirements{
 				Requests: corev1.ResourceList{
 					corev1.ResourceCPU:    *resource.NewMilliQuantity(mysqldExporterCPURequestMillis, resource.DecimalSI),
@@ -280,7 +279,9 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	if obj.Spec.SecurityContext == nil {
 		obj.Spec.SecurityContext = &corev1.PodSecurityContext{}
 	}
-	obj.Spec.SecurityContext.FSGroup = pointer.Int64Ptr(fsGroup)
+	if planetscalev2.DefaultVitessFSGroup >= 0 {
+		obj.Spec.SecurityContext.FSGroup = pointer.Int64Ptr(planetscalev2.DefaultVitessFSGroup)
+	}
 
 	obj.Spec.TerminationGracePeriodSeconds = pointer.Int64Ptr(terminationGracePeriodSeconds)
 
@@ -336,8 +337,15 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 		}
 	}
 
-	// Use the PriorityClass we defined for vttablets in deploy/priority.yaml.
-	obj.Spec.PriorityClassName = vttabletPriorityClassName
+	// Use the PriorityClass we defined for vttablets in deploy/priority.yaml,
+	// or a custom value if overridden on the operator command line.
+	if planetscalev2.DefaultVitessPriorityClass != "" {
+		obj.Spec.PriorityClassName = planetscalev2.DefaultVitessPriorityClass
+	}
+
+	if planetscalev2.DefaultVitessServiceAccount != "" {
+		obj.Spec.ServiceAccountName = planetscalev2.DefaultVitessServiceAccount
+	}
 }
 
 // AliasFromPod returns a TabletAlias corresponding to a vttablet Pod.

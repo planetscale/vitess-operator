@@ -22,8 +22,10 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 	"planetscale.dev/vitess-operator/pkg/operator/contenthash"
 	"planetscale.dev/vitess-operator/pkg/operator/k8s"
 	"planetscale.dev/vitess-operator/pkg/operator/update"
@@ -49,9 +51,8 @@ const (
 	//          having different sizes for different EtcdLockserver objects.
 	NumReplicas = 3
 
-	etcdContainerName     = "etcd"
-	etcdCommand           = "/usr/local/bin/etcd"
-	etcdPriorityClassName = "vitess"
+	etcdContainerName = "etcd"
+	etcdCommand       = "/usr/local/bin/etcd"
 
 	dataVolumeName      = "data"
 	dataVolumeMountPath = "/var/etcd"
@@ -163,12 +164,20 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	}
 	update.VolumeMounts(&volumeMounts, spec.ExtraVolumeMounts)
 
+	var securityContext *corev1.SecurityContext
+	if planetscalev2.DefaultEtcdRunAsUser >= 0 {
+		securityContext = &corev1.SecurityContext{
+			RunAsUser: pointer.Int64Ptr(planetscalev2.DefaultEtcdRunAsUser),
+		}
+	}
+
 	etcdContainer := &corev1.Container{
 		Name:            etcdContainerName,
 		Image:           spec.Image,
 		ImagePullPolicy: spec.ImagePullPolicy,
 		Command:         []string{etcdCommand},
 		Args:            spec.Args(),
+		SecurityContext: securityContext,
 		Ports: []corev1.ContainerPort{
 			{
 				Name:          ClientPortName,
@@ -225,6 +234,17 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	obj.Spec.Hostname = PodName(spec.LockserverName, spec.Index)
 	obj.Spec.Subdomain = PeerServiceName(spec.LockserverName)
 	obj.Spec.ImagePullSecrets = spec.ImagePullSecrets
+
+	if planetscalev2.DefaultEtcdFSGroup >= 0 {
+		if obj.Spec.SecurityContext == nil {
+			obj.Spec.SecurityContext = &corev1.PodSecurityContext{}
+		}
+		obj.Spec.SecurityContext.FSGroup = pointer.Int64Ptr(planetscalev2.DefaultEtcdFSGroup)
+	}
+
+	if planetscalev2.DefaultEtcdServiceAccount != "" {
+		obj.Spec.ServiceAccountName = planetscalev2.DefaultEtcdServiceAccount
+	}
 
 	// In both the case of the user injecting their own affinity and the default, we
 	// simply override the pod's existing affinity configuration.
@@ -284,8 +304,11 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 		}
 	}
 
-	// Use the PriorityClass we defined for etcd in deploy/priority.yaml.
-	obj.Spec.PriorityClassName = etcdPriorityClassName
+	// Use the PriorityClass we defined for etcd in deploy/priority.yaml,
+	// or a custom value if overridden in the operator command line.
+	if planetscalev2.DefaultVitessPriorityClass != "" {
+		obj.Spec.PriorityClassName = planetscalev2.DefaultVitessPriorityClass
+	}
 
 	// Make a final list of desired containers and init containers before merging.
 	initContainers := spec.InitContainers

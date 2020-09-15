@@ -56,7 +56,6 @@ const (
 	// Gi is the scale factor for Gibi (2**30)
 	Gi = 1 << 30
 
-	defaultEtcdImage               = "quay.io/coreos/etcd:v3.3.13"
 	defaultEtcdStorageRequestBytes = 1 * Gi
 	defaultEtcdCPUMillis           = 100
 	defaultEtcdMemoryBytes         = 256 * Mi
@@ -94,18 +93,8 @@ const (
 	defaultVitessLiteImage = "vitess/lite:v7.0.0"
 )
 
-/*
-defaultVitessImages are the default images used for this API Version (planetscale.com/v2).
-
-As discussed in the comment at the top of this file, we cannot change these
-after planetscale.com/v2 is released. Anyone using the operator in production
-should set these images explicitly in the CRD anyway, so they know what they're
-getting and when they need to upgrade.
-
-These API-level defaults exist merely to support a friendly "kick the tires"
-experience when trying out the operator.
-*/
-var defaultVitessImages = &VitessImages{
+// DefaultImages are a set of images to use when the CRD doesn't specify.
+var DefaultImages = &VitessImages{
 	Vtctld:   defaultVitessLiteImage,
 	Vtgate:   defaultVitessLiteImage,
 	Vttablet: defaultVitessLiteImage,
@@ -131,3 +120,49 @@ var defaultVitessImages = &VitessImages{
 
 	MysqldExporter: "prom/mysqld-exporter:v0.11.0",
 }
+
+var (
+	// DefaultVitessPriorityClass is the name of the PriorityClass to use by
+	// default for Pods that run Vitess components. This value can be configured
+	// at operator startup time with the --default_vitess_priority_class flag.
+	DefaultVitessPriorityClass = "vitess"
+
+	// DefaultVitessServiceAccount is the name of the ServiceAccount to use by
+	// default for Pods that run Vitess components. This value can be configured
+	// at operator startup time with the --default_vitess_service_account flag.
+	DefaultVitessServiceAccount = ""
+
+	// DefaultVitessRunAsUser is the UID to use by default for Pods that run
+	// Vitess components. This value can be configured at operator startup time
+	// with the --default_vitess_run_as_user flag. A value less than 0 means
+	// don't set RunAsUser at all.
+	DefaultVitessRunAsUser int64 = 999
+
+	// DefaultVitessFSGroup is the GID to use by default for Pods that run
+	// Vitess components. This value can be configured at operator startup time
+	// with the --default_vitess_fs_group flag. A value less than 0 means don't
+	// set FSGroup at all.
+	DefaultVitessFSGroup int64 = 999
+
+	// DefaultEtcdServiceAccount is the name of the ServiceAccount to use by
+	// default for etcd Pods. This value can be configured at operator startup
+	// time with the --default_etcd_service_account flag.
+	DefaultEtcdServiceAccount = ""
+
+	// DefaultEtcdRunAsUser is the UID to use by default for etcd Pods.
+	// This value can be configured at operator startup time with the
+	// --default_etcd_run_as_user flag. A value less than 0 means don't set
+	// RunAsUser at all.
+	DefaultEtcdRunAsUser int64 = -1
+
+	// DefaultEtcdFSGroup is the GID to use by default for etcd Pods.
+	// This value can be configured at operator startup time with the
+	// --default_etcd_fs_group flag. A value less than 0 means don't set FSGroup
+	// at all.
+	DefaultEtcdFSGroup int64 = -1
+
+	// DefaultEtcdImage is the image to use for etcd when the CRD doesn't specify.
+	// This value can be configured at operator startup time with the
+	// --default_etcd_image flag.
+	DefaultEtcdImage = "quay.io/coreos/etcd:v3.3.13"
+)

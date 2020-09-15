@@ -34,14 +34,12 @@ import (
 )
 
 const (
-	containerName     = "vtctld"
-	priorityClassName = "vitess"
+	containerName = "vtctld"
 
 	command    = "/vt/bin/vtctld"
 	webDir     = "/vt/src/vitess.io/vitess/web/vtctld"
 	webDir2    = "/vt/src/vitess.io/vitess/web/vtctld2/app"
 	serviceMap = "grpc-vtctl"
-	runAsUser  = 999
 )
 
 // DeploymentName returns the name of the vtctld Deployment for a given cell.
@@ -134,8 +132,14 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 	// Use functions from the `operator/update` package for lists
 	// that should actually be treated like maps (update items by the .Name field).
 	obj.Spec.Template.Spec.ImagePullSecrets = spec.ImagePullSecrets
-	obj.Spec.Template.Spec.PriorityClassName = priorityClassName
+	obj.Spec.Template.Spec.PriorityClassName = planetscalev2.DefaultVitessPriorityClass
+	obj.Spec.Template.Spec.ServiceAccountName = planetscalev2.DefaultVitessServiceAccount
 	update.Volumes(&obj.Spec.Template.Spec.Volumes, spec.ExtraVolumes)
+
+	securityContext := &corev1.SecurityContext{}
+	if planetscalev2.DefaultVitessRunAsUser >= 0 {
+		securityContext.RunAsUser = pointer.Int64Ptr(planetscalev2.DefaultVitessRunAsUser)
+	}
 
 	update.PodTemplateContainers(&obj.Spec.Template.Spec.InitContainers, spec.InitContainers)
 	update.PodTemplateContainers(&obj.Spec.Template.Spec.Containers, spec.SidecarContainers)
@@ -158,10 +162,8 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 					ContainerPort: planetscalev2.DefaultGrpcPort,
 				},
 			},
-			Resources: spec.Resources,
-			SecurityContext: &corev1.SecurityContext{
-				RunAsUser: pointer.Int64Ptr(runAsUser),
-			},
+			Resources:       spec.Resources,
+			SecurityContext: securityContext,
 			ReadinessProbe: &corev1.Probe{
 				Handler: corev1.Handler{
 					HTTPGet: &corev1.HTTPGetAction{

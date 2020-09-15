@@ -118,6 +118,15 @@ func NewBackupPod(key client.ObjectKey, backupSpec *BackupSpec) *corev1.Pod {
 	volumeMounts = append(volumeMounts, tabletVolumeMounts.Get(tabletSpec)...)
 	volumeMounts = append(volumeMounts, vttabletVolumeMounts.Get(tabletSpec)...)
 
+	podSecurityContext := &corev1.PodSecurityContext{}
+	if planetscalev2.DefaultVitessFSGroup >= 0 {
+		podSecurityContext.FSGroup = pointer.Int64Ptr(planetscalev2.DefaultVitessFSGroup)
+	}
+	securityContext := &corev1.SecurityContext{}
+	if planetscalev2.DefaultVitessRunAsUser >= 0 {
+		securityContext.RunAsUser = pointer.Int64Ptr(planetscalev2.DefaultVitessRunAsUser)
+	}
+
 	pod := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace:   key.Namespace,
@@ -129,15 +138,11 @@ func NewBackupPod(key client.ObjectKey, backupSpec *BackupSpec) *corev1.Pod {
 			ImagePullSecrets: tabletSpec.ImagePullSecrets,
 			RestartPolicy:    corev1.RestartPolicyOnFailure,
 			Volumes:          tabletVolumes.Get(tabletSpec),
-			SecurityContext: &corev1.PodSecurityContext{
-				FSGroup: pointer.Int64Ptr(fsGroup),
-			},
+			SecurityContext:  podSecurityContext,
 			InitContainers: []corev1.Container{
 				{
-					Name: "init-vt-root",
-					SecurityContext: &corev1.SecurityContext{
-						RunAsUser: pointer.Int64Ptr(runAsUser),
-					},
+					Name:            "init-vt-root",
+					SecurityContext: securityContext,
 					// We only use the vtbackup image to steal the vtbackup binary.
 					// When we actually run it, we run inside the mysqld image.
 					Image:           tabletSpec.Images.Vtbackup,
@@ -161,14 +166,16 @@ func NewBackupPod(key client.ObjectKey, backupSpec *BackupSpec) *corev1.Pod {
 					Command:         []string{vtbackupCommand},
 					Args:            vtbackupFlags.Get(backupSpec).FormatArgs(),
 					Resources:       tabletSpec.Mysqld.Resources,
-					SecurityContext: &corev1.SecurityContext{
-						RunAsUser: pointer.Int64Ptr(runAsUser),
-					},
-					Env:          env,
-					VolumeMounts: volumeMounts,
+					SecurityContext: securityContext,
+					Env:             env,
+					VolumeMounts:    volumeMounts,
 				},
 			},
 		},
+	}
+
+	if planetscalev2.DefaultVitessServiceAccount != "" {
+		pod.Spec.ServiceAccountName = planetscalev2.DefaultVitessServiceAccount
 	}
 
 	update.PodContainers(&pod.Spec.InitContainers, backupSpec.TabletSpec.InitContainers)

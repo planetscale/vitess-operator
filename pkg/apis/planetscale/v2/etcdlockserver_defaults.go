@@ -32,7 +32,7 @@ func DefaultEtcdLockserverSpec(ls *EtcdLockserverSpec) {
 
 func DefaultEtcdLockserverTemplate(ls *EtcdLockserverTemplate) {
 	if ls.Image == "" {
-		ls.Image = defaultEtcdImage
+		ls.Image = DefaultEtcdImage
 	}
 	if len(ls.DataVolumeClaimTemplate.AccessModes) == 0 {
 		ls.DataVolumeClaimTemplate.AccessModes = []corev1.PersistentVolumeAccessMode{

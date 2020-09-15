@@ -20,6 +20,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/utils/pointer"
 
+	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 	"planetscale.dev/vitess-operator/pkg/operator/lazy"
 )
 
@@ -64,14 +65,17 @@ func init() {
 	tabletInitContainers.Add(func(s lazy.Spec) []corev1.Container {
 		spec := s.(*Spec)
 
+		securityContext := &corev1.SecurityContext{}
+		if planetscalev2.DefaultVitessRunAsUser >= 0 {
+			securityContext.RunAsUser = pointer.Int64Ptr(planetscalev2.DefaultVitessRunAsUser)
+		}
+
 		// Use an init container to copy only the files we need from the Vitess image.
 		// Note specifically that we don't even copy init_db.sql to avoid accidentally using it.
 		initContainers := []corev1.Container{
 			{
-				Name: "init-vt-root",
-				SecurityContext: &corev1.SecurityContext{
-					RunAsUser: pointer.Int64Ptr(runAsUser),
-				},
+				Name:            "init-vt-root",
+				SecurityContext: securityContext,
 				Image:           spec.Images.Vttablet,
 				ImagePullPolicy: spec.ImagePullPolicies.Vttablet,
 				VolumeMounts: []corev1.VolumeMount{
@@ -91,10 +95,8 @@ func init() {
 		// deployed before we started customizing the UNIX socket location.
 		if spec.DataVolumePVCSpec != nil {
 			initContainers = append(initContainers, corev1.Container{
-				Name: "init-mysql-socket",
-				SecurityContext: &corev1.SecurityContext{
-					RunAsUser: pointer.Int64Ptr(runAsUser),
-				},
+				Name:            "init-mysql-socket",
+				SecurityContext: securityContext,
 				Image:           spec.Images.Vttablet,
 				ImagePullPolicy: spec.ImagePullPolicies.Vttablet,
 				VolumeMounts: []corev1.VolumeMount{
