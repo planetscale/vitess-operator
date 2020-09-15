@@ -165,7 +165,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	update.VolumeMounts(&volumeMounts, spec.ExtraVolumeMounts)
 
 	var securityContext *corev1.SecurityContext
-	if planetscalev2.DefaultEtcdRunAsUser > 0 {
+	if planetscalev2.DefaultEtcdRunAsUser >= 0 {
 		securityContext = &corev1.SecurityContext{
 			RunAsUser: pointer.Int64Ptr(planetscalev2.DefaultEtcdRunAsUser),
 		}
@@ -235,7 +235,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	obj.Spec.Subdomain = PeerServiceName(spec.LockserverName)
 	obj.Spec.ImagePullSecrets = spec.ImagePullSecrets
 
-	if planetscalev2.DefaultEtcdFSGroup > 0 {
+	if planetscalev2.DefaultEtcdFSGroup >= 0 {
 		if obj.Spec.SecurityContext == nil {
 			obj.Spec.SecurityContext = &corev1.PodSecurityContext{}
 		}

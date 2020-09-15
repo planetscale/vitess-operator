@@ -136,6 +136,11 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 	obj.Spec.Template.Spec.ServiceAccountName = planetscalev2.DefaultVitessServiceAccount
 	update.Volumes(&obj.Spec.Template.Spec.Volumes, spec.ExtraVolumes)
 
+	securityContext := &corev1.SecurityContext{}
+	if planetscalev2.DefaultVitessRunAsUser >= 0 {
+		securityContext.RunAsUser = pointer.Int64Ptr(planetscalev2.DefaultVitessRunAsUser)
+	}
+
 	update.PodTemplateContainers(&obj.Spec.Template.Spec.InitContainers, spec.InitContainers)
 	update.PodTemplateContainers(&obj.Spec.Template.Spec.Containers, spec.SidecarContainers)
 	update.PodTemplateContainers(&obj.Spec.Template.Spec.Containers, []corev1.Container{
@@ -157,10 +162,8 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 					ContainerPort: planetscalev2.DefaultGrpcPort,
 				},
 			},
-			Resources: spec.Resources,
-			SecurityContext: &corev1.SecurityContext{
-				RunAsUser: pointer.Int64Ptr(planetscalev2.DefaultVitessRunAsUser),
-			},
+			Resources:       spec.Resources,
+			SecurityContext: securityContext,
 			ReadinessProbe: &corev1.Probe{
 				Handler: corev1.Handler{
 					HTTPGet: &corev1.HTTPGetAction{

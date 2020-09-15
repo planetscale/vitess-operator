@@ -156,6 +156,11 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 	update.GOMAXPROCS(&env, spec.Resources)
 	update.Env(&env, spec.ExtraEnv)
 
+	securityContext := &corev1.SecurityContext{}
+	if planetscalev2.DefaultVitessRunAsUser >= 0 {
+		securityContext.RunAsUser = pointer.Int64Ptr(planetscalev2.DefaultVitessRunAsUser)
+	}
+
 	// Start building the main Container to put in the Pod template.
 	vtgateContainer := &corev1.Container{
 		Name:            containerName,
@@ -179,10 +184,8 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 				ContainerPort: planetscalev2.DefaultMysqlPort,
 			},
 		},
-		Resources: spec.Resources,
-		SecurityContext: &corev1.SecurityContext{
-			RunAsUser: pointer.Int64Ptr(planetscalev2.DefaultVitessRunAsUser),
-		},
+		Resources:       spec.Resources,
+		SecurityContext: securityContext,
 		ReadinessProbe: &corev1.Probe{
 			Handler: corev1.Handler{
 				HTTPGet: &corev1.HTTPGetAction{
