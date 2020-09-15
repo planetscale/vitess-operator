@@ -36,12 +36,12 @@ import (
 )
 
 func (r *ReconcileVitessCluster) reconcileOrchestrator(ctx context.Context, vt *planetscalev2.VitessCluster) (reconcile.Result, error) {
+	resultBuilder := results.Builder{}
 	key := client.ObjectKey{Namespace: vt.Namespace, Name: orchestrator.ServiceName(vt.Name)}
 	labels := map[string]string{
 		planetscalev2.ClusterLabel:   vt.Name,
 		planetscalev2.ComponentLabel: planetscalev2.OrcComponentName,
 	}
-	resultBuilder := results.Builder{}
 
 	// Reconcile orchestrator Service.
 	err := r.reconciler.ReconcileObject(ctx, vt, key, labels, true, reconciler.Strategy{

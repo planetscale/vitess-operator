@@ -36,12 +36,12 @@ import (
 )
 
 func (r *ReconcileVitessCluster) reconcileVtctld(ctx context.Context, vt *planetscalev2.VitessCluster) (reconcile.Result, error) {
+	resultBuilder := results.Builder{}
 	key := client.ObjectKey{Namespace: vt.Namespace, Name: vtctld.ServiceName(vt.Name)}
 	labels := map[string]string{
 		planetscalev2.ClusterLabel:   vt.Name,
 		planetscalev2.ComponentLabel: planetscalev2.VtctldComponentName,
 	}
-	resultBuilder := results.Builder{}
 
 	// Reconcile vtctld Service.
 	err := r.reconciler.ReconcileObject(ctx, vt, key, labels, true, reconciler.Strategy{
