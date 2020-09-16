@@ -167,7 +167,7 @@ func (s *VitessShardSpec) CellInCluster(cellName string) bool {
 // newStatus, then we do not update LastTransitionTime. However, if newStatus is different from current status, then
 // we update the status and update the transition time.
 func (s *VitessShardStatus) SetConditionStatus(condType VitessShardConditionType, newStatus corev1.ConditionStatus, reason, message string) {
-	cond, ok := s.GetCondition(condType)
+	cond, ok := s.getCondition(condType)
 	if !ok {
 		cond = NewVitessShardCondition()
 	}
@@ -230,8 +230,17 @@ func (s *VitessShardStatus) TabletAliases() []string {
 }
 
 // GetCondition provides map style access to retrieve a condition from the conditions list by it's type
-// If the condition doesn't exist, we return nil, false.
-func (s *VitessShardStatus) GetCondition(ty VitessShardConditionType) (value *VitessShardCondition, exists bool) {
+// If the condition doesn't exist, we return false for the exists named return value.
+func (s *VitessShardStatus) GetCondition(ty VitessShardConditionType) (value VitessShardCondition, exists bool) {
+	cond, exists := s.getCondition(ty)
+	if !exists {
+		return VitessShardCondition{}, false
+	}
+	return *cond.DeepCopy(), true
+}
+
+// getCondition is used internally for map style access, and returns a pointer to reduce unnecessary copying.
+func (s *VitessShardStatus) getCondition(ty VitessShardConditionType) (value *VitessShardCondition, exists bool) {
 	for i := range s.Conditions {
 		condition := &s.Conditions[i]
 		if condition.Type == ty {
@@ -240,6 +249,8 @@ func (s *VitessShardStatus) GetCondition(ty VitessShardConditionType) (value *Vi
 	}
 	return nil, false
 }
+
+// setCondition is used internally to provide map style setting of conditions, and will ensure uniqueness by using
 
 // setCondition is used internally to provide map style setting of conditions, and will ensure uniqueness by using
 // upsert semantics.
