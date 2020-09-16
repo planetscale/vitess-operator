@@ -2180,9 +2180,9 @@ func (in *VitessShardStatus) DeepCopyInto(out *VitessShardStatus) {
 	}
 	if in.Conditions != nil {
 		in, out := &in.Conditions, &out.Conditions
-		*out = make([]VitessShardCondition, len(*in))
-		for i := range *in {
-			(*in)[i].DeepCopyInto(&(*out)[i])
+		*out = make(map[VitessShardConditionType]VitessShardCondition, len(*in))
+		for key, val := range *in {
+			(*out)[key] = *val.DeepCopy()
 		}
 	}
 	if in.BackupLocations != nil {

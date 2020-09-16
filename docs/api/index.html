@@ -5869,19 +5869,6 @@ VitessShardStatus
 <tbody>
 <tr>
 <td>
-<code>type</code></br>
-<em>
-<a href="#planetscale.com/v2.VitessShardConditionType">
-VitessShardConditionType
-</a>
-</em>
-</td>
-<td>
-<p>Type is the type of the condition.</p>
-</td>
-</tr>
-<tr>
-<td>
 <code>status</code></br>
 <em>
 <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#conditionstatus-v1-core">
@@ -5936,10 +5923,6 @@ Optional.</p>
 </table>
 <h3 id="planetscale.com/v2.VitessShardConditionType">VitessShardConditionType
 (<code>string</code> alias)</p></h3>
-<p>
-(<em>Appears on:</em>
-<a href="#planetscale.com/v2.VitessShardCondition">VitessShardCondition</a>)
-</p>
 <p>
 <p>VitessShardConditionType is a valid value for the key of a VitessShardCondition map where the key is a
 VitessShardConditionType and the value is a VitessShardCondition.</p>
@@ -6278,12 +6261,12 @@ to turn down the shard.</p>
 <code>conditions</code></br>
 <em>
 <a href="#planetscale.com/v2.VitessShardCondition">
-[]VitessShardCondition
+map[planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessShardConditionType]planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessShardCondition
 </a>
 </em>
 </td>
 <td>
-<p>Conditions is a list of all VitessShard specific conditions we want to set and monitor.
+<p>Conditions is a map of all VitessShard specific conditions we want to set and monitor.
 It&rsquo;s ok for multiple controllers to add conditions here, and those conditions will be preserved.</p>
 </td>
 </tr>

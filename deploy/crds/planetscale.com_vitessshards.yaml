@@ -559,7 +559,7 @@ spec:
                 type: string
               type: array
             conditions:
-              items:
+              additionalProperties:
                 properties:
                   lastTransitionTime:
                     format: date-time
@@ -574,13 +574,10 @@ spec:
                     - "False"
                     - Unknown
                     type: string
-                  type:
-                    type: string
                 required:
                 - status
-                - type
                 type: object
-              type: array
+              type: object
             hasInitialBackup:
               type: string
             hasMaster:

@@ -167,7 +167,11 @@ func (s *VitessShardSpec) CellInCluster(cellName string) bool {
 // newStatus, then we do not update LastTransitionTime. However, if newStatus is different from current status, then
 // we update the status and update the transition time.
 func (s *VitessShardStatus) SetConditionStatus(condType VitessShardConditionType, newStatus corev1.ConditionStatus, reason, message string) {
-	cond, ok := s.getCondition(condType)
+	if s.Conditions == nil {
+		s.Conditions = make(map[VitessShardConditionType]VitessShardCondition)
+	}
+
+	cond, ok := s.Conditions[condType]
 	if !ok {
 		cond = NewVitessShardCondition()
 	}
@@ -182,13 +186,13 @@ func (s *VitessShardStatus) SetConditionStatus(condType VitessShardConditionType
 		cond.LastTransitionTime = &now
 	}
 
-	s.setCondition(cond)
+	s.Conditions[condType] = cond
 }
 
 // NewVitessShardCondition returns an init VitessShardCondition object.
-func NewVitessShardCondition() *VitessShardCondition {
+func NewVitessShardCondition() VitessShardCondition {
 	now := metav1.NewTime(time.Now())
-	return &VitessShardCondition{
+	return VitessShardCondition{
 		Status:             corev1.ConditionUnknown,
 		LastTransitionTime: &now,
 		Reason:             "",
@@ -208,11 +212,14 @@ func (c *VitessShardCondition) StatusDuration() time.Duration {
 }
 
 // DeepCopyConditions deep copies the conditions map for VitessShardStatus.
-func (s *VitessShardStatus) DeepCopyConditions() []VitessShardCondition {
-	out := make([]VitessShardCondition, 0, len(s.Conditions))
+func (s *VitessShardStatus) DeepCopyConditions() map[VitessShardConditionType]VitessShardCondition {
+	if s == nil {
+		return nil
+	}
+	out := make(map[VitessShardConditionType]VitessShardCondition, len(s.Conditions))
 
-	for _, condition := range s.Conditions {
-		out = append(out, *condition.DeepCopy())
+	for key, val := range s.Conditions {
+		out[key] = *val.DeepCopy()
 	}
 
 	return out
@@ -227,42 +234,4 @@ func (s *VitessShardStatus) TabletAliases() []string {
 	sort.Strings(tabletKeys)
 
 	return tabletKeys
-}
-
-// GetCondition provides map style access to retrieve a condition from the conditions list by it's type
-// If the condition doesn't exist, we return false for the exists named return value.
-func (s *VitessShardStatus) GetCondition(ty VitessShardConditionType) (value VitessShardCondition, exists bool) {
-	cond, exists := s.getCondition(ty)
-	if !exists {
-		return VitessShardCondition{}, false
-	}
-	return *cond.DeepCopy(), true
-}
-
-// getCondition is used internally for map style access, and returns a pointer to reduce unnecessary copying.
-func (s *VitessShardStatus) getCondition(ty VitessShardConditionType) (value *VitessShardCondition, exists bool) {
-	for i := range s.Conditions {
-		condition := &s.Conditions[i]
-		if condition.Type == ty {
-			return condition, true
-		}
-	}
-	return nil, false
-}
-
-// setCondition is used internally to provide map style setting of conditions, and will ensure uniqueness by using
-
-// setCondition is used internally to provide map style setting of conditions, and will ensure uniqueness by using
-// upsert semantics.
-func (s *VitessShardStatus) setCondition(newCondition *VitessShardCondition) {
-	for i := range s.Conditions {
-		condition := &s.Conditions[i]
-		if condition.Type == newCondition.Type {
-			s.Conditions[i] = *newCondition
-			return
-		}
-	}
-
-	// We got here so we didn't return early by finding the condition already existing. We'll just append to the end.
-	s.Conditions = append(s.Conditions, *newCondition)
 }
