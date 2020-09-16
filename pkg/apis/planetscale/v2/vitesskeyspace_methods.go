@@ -211,8 +211,8 @@ func (c *VitessKeyspaceCondition) StatusDuration() time.Duration {
 func (s *VitessKeyspaceStatus) DeepCopyConditions() []VitessKeyspaceCondition {
 	out := make([]VitessKeyspaceCondition, len(s.Conditions))
 
-	for i := range s.Conditions {
-		out = append(out, s.Conditions[i])
+	for _, condition := range s.Conditions {
+		out = append(out, *condition.DeepCopy())
 	}
 
 	return out
