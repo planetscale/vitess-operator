@@ -4541,6 +4541,19 @@ VitessKeyspaceStatus
 <tbody>
 <tr>
 <td>
+<code>type</code></br>
+<em>
+<a href="#planetscale.com/v2.VitessKeyspaceConditionType">
+VitessKeyspaceConditionType
+</a>
+</em>
+</td>
+<td>
+<p>Type is the type of the condition.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>status</code></br>
 <em>
 <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#conditionstatus-v1-core">
@@ -4595,6 +4608,10 @@ Optional.</p>
 </table>
 <h3 id="planetscale.com/v2.VitessKeyspaceConditionType">VitessKeyspaceConditionType
 (<code>string</code> alias)</p></h3>
+<p>
+(<em>Appears on:</em>
+<a href="#planetscale.com/v2.VitessKeyspaceCondition">VitessKeyspaceCondition</a>)
+</p>
 <p>
 <p>VitessKeyspaceConditionType is a valid value for the key of a VitessKeyspaceCondition map where the key is a
 VitessKeyspaceConditionType and the value is a VitessKeyspaceCondition.</p>
@@ -5294,13 +5311,12 @@ it means the operator was unable to query resharding status from Vitess.</p>
 <code>conditions</code></br>
 <em>
 <a href="#planetscale.com/v2.VitessKeyspaceCondition">
-map[planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceConditionType]planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceCondition
+[]VitessKeyspaceCondition
 </a>
 </em>
 </td>
 <td>
-<p>FIXME: Convert this to a list for kubectl wait compatibility before merging the feature branch to master.
-Conditions is a map of all VitessKeyspace specific conditions we want to set and monitor.
+<p>Conditions is a list of all VitessKeyspace specific conditions we want to set and monitor.
 It&rsquo;s ok for multiple controllers to add conditions here, and those conditions will be preserved.</p>
 </td>
 </tr>

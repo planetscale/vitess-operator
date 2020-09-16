@@ -167,11 +167,7 @@ func (p *VitessKeyspacePartitioning) TabletPools() []VitessShardTabletPool {
 // newStatus, then we do not update LastTransitionTime. However, if newStatus is different from current status, then
 // we update the status and update the transition time.
 func (s *VitessKeyspaceStatus) SetConditionStatus(condType VitessKeyspaceConditionType, newStatus corev1.ConditionStatus, reason, message string) {
-	if s.Conditions == nil {
-		s.Conditions = make(map[VitessKeyspaceConditionType]VitessKeyspaceCondition)
-	}
-
-	cond, ok := s.Conditions[condType]
+	cond, ok := s.getCondition(condType)
 	if !ok {
 		cond = NewVitessKeyspaceCondition()
 	}
@@ -186,13 +182,13 @@ func (s *VitessKeyspaceStatus) SetConditionStatus(condType VitessKeyspaceConditi
 		cond.LastTransitionTime = &now
 	}
 
-	s.Conditions[condType] = cond
+	s.setCondition(cond)
 }
 
 // NewVitessKeyspaceCondition returns an init VitessKeyspaceCondition object.
-func NewVitessKeyspaceCondition() VitessKeyspaceCondition {
+func NewVitessKeyspaceCondition() *VitessKeyspaceCondition {
 	now := metav1.NewTime(time.Now())
-	return VitessKeyspaceCondition{
+	return &VitessKeyspaceCondition{
 		Status:             corev1.ConditionUnknown,
 		LastTransitionTime: &now,
 		Reason:             "",
@@ -212,15 +208,50 @@ func (c *VitessKeyspaceCondition) StatusDuration() time.Duration {
 }
 
 // DeepCopyConditions deep copies the conditions map for VitessKeyspaceStatus.
-func (s *VitessKeyspaceStatus) DeepCopyConditions() map[VitessKeyspaceConditionType]VitessKeyspaceCondition {
-	if s == nil {
-		return nil
-	}
-	out := make(map[VitessKeyspaceConditionType]VitessKeyspaceCondition, len(s.Conditions))
+func (s *VitessKeyspaceStatus) DeepCopyConditions() []VitessKeyspaceCondition {
+	out := make([]VitessKeyspaceCondition, 0, len(s.Conditions))
 
-	for key, val := range s.Conditions {
-		out[key] = *val.DeepCopy()
+	for _, condition := range s.Conditions {
+		out = append(out, *condition.DeepCopy())
 	}
 
 	return out
+}
+
+// GetCondition provides map style access to retrieve a condition from the conditions list by it's type
+// If the condition doesn't exist, we return false for the exists named return value.
+func (s *VitessKeyspaceStatus) GetCondition(ty VitessKeyspaceConditionType) (value VitessKeyspaceCondition, exists bool) {
+	cond, exists := s.getCondition(ty)
+	if !exists {
+		return VitessKeyspaceCondition{}, false
+	}
+	return *cond.DeepCopy(), true
+}
+
+// getCondition is used internally for map style access, and returns a pointer to reduce unnecessary copying.
+func (s *VitessKeyspaceStatus) getCondition(ty VitessKeyspaceConditionType) (value *VitessKeyspaceCondition, exists bool) {
+	for i := range s.Conditions {
+		condition := &s.Conditions[i]
+		if condition.Type == ty {
+			return condition, true
+		}
+	}
+	return nil, false
+}
+
+// setCondition is used internally to provide map style setting of conditions, and will ensure uniqueness by using
+
+// setCondition is used internally to provide map style setting of conditions, and will ensure uniqueness by using
+// upsert semantics.
+func (s *VitessKeyspaceStatus) setCondition(newCondition *VitessKeyspaceCondition) {
+	for i := range s.Conditions {
+		condition := &s.Conditions[i]
+		if condition.Type == newCondition.Type {
+			s.Conditions[i] = *newCondition
+			return
+		}
+	}
+
+	// We got here so we didn't return early by finding the condition already existing. We'll just append to the end.
+	s.Conditions = append(s.Conditions, *newCondition)
 }
