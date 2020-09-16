@@ -305,8 +305,6 @@ type VitessKeyspaceStatus struct {
 	Conditions []VitessKeyspaceCondition `json:"conditions,omitempty"`
 }
 
-type VitessKeyspaceConditions = []VitessKeyspaceCondition
-
 // ReshardingStatus defines some of the workflow related status information.
 type ReshardingStatus struct {
 	// Workflow represents the name of the active vreplication workflow for resharding.
