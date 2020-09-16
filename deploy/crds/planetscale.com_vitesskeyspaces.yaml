@@ -869,7 +869,7 @@ spec:
         status:
           properties:
             conditions:
-              additionalProperties:
+              items:
                 properties:
                   lastTransitionTime:
                     format: date-time
@@ -884,10 +884,13 @@ spec:
                     - "False"
                     - Unknown
                     type: string
+                  type:
+                    type: string
                 required:
                 - status
+                - type
                 type: object
-              type: object
+              type: array
             idle:
               type: string
             observedGeneration:

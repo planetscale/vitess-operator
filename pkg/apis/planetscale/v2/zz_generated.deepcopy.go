@@ -1923,9 +1923,9 @@ func (in *VitessKeyspaceStatus) DeepCopyInto(out *VitessKeyspaceStatus) {
 	}
 	if in.Conditions != nil {
 		in, out := &in.Conditions, &out.Conditions
-		*out = make(map[VitessKeyspaceConditionType]VitessKeyspaceCondition, len(*in))
-		for key, val := range *in {
-			(*out)[key] = *val.DeepCopy()
+		*out = make([]VitessKeyspaceCondition, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
 	return
