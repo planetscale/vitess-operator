@@ -209,7 +209,7 @@ func (c *VitessKeyspaceCondition) StatusDuration() time.Duration {
 
 // DeepCopyConditions deep copies the conditions map for VitessKeyspaceStatus.
 func (s *VitessKeyspaceStatus) DeepCopyConditions() []VitessKeyspaceCondition {
-	out := make([]VitessKeyspaceCondition, len(s.Conditions))
+	out := make([]VitessKeyspaceCondition, 0, len(s.Conditions))
 
 	for _, condition := range s.Conditions {
 		out = append(out, *condition.DeepCopy())

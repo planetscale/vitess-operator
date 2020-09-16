@@ -209,10 +209,7 @@ func (c *VitessShardCondition) StatusDuration() time.Duration {
 
 // DeepCopyConditions deep copies the conditions map for VitessShardStatus.
 func (s *VitessShardStatus) DeepCopyConditions() []VitessShardCondition {
-	if s == nil {
-		return nil
-	}
-	out := make([]VitessShardCondition, len(s.Conditions))
+	out := make([]VitessShardCondition, 0, len(s.Conditions))
 
 	for _, condition := range s.Conditions {
 		out = append(out, *condition.DeepCopy())
