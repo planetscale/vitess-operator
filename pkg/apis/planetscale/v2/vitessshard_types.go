@@ -368,9 +368,9 @@ type VitessShardStatus struct {
 	// to turn down the shard.
 	Idle corev1.ConditionStatus `json:"idle,omitempty"`
 
-	// Conditions is a map of all VitessShard specific conditions we want to set and monitor.
+	// Conditions is a list of all VitessShard specific conditions we want to set and monitor.
 	// It's ok for multiple controllers to add conditions here, and those conditions will be preserved.
-	Conditions map[VitessShardConditionType]VitessShardCondition `json:"conditions,omitempty"`
+	Conditions []VitessShardCondition `json:"conditions,omitempty"`
 
 	// MasterAlias is the tablet alias of the master according to the global
 	// shard record. This could be empty either because there is no master,
@@ -395,6 +395,8 @@ type VitessShardConditionType string
 
 // VitessShardCondition contains details for the current condition of this VitessShard.
 type VitessShardCondition struct {
+	// Type is the type of the condition.
+	Type VitessShardConditionType `json:"type"`
 	// Status is the status of the condition.
 	// Can be True, False, Unknown.
 	// +kubebuilder:validation:Enum=True;False;Unknown
@@ -419,7 +421,6 @@ func NewVitessShardStatus() VitessShardStatus {
 		HasInitialBackup: corev1.ConditionUnknown,
 		ServingWrites:    corev1.ConditionUnknown,
 		Idle:             corev1.ConditionUnknown,
-		Conditions:       make(map[VitessShardConditionType]VitessShardCondition),
 	}
 }
 
