@@ -142,6 +142,7 @@ func (r *ReconcileVitessCell) reconcileVtgate(ctx context.Context, vtc *planetsc
 		SidecarContainers: vtc.Spec.Gateway.SidecarContainers,
 		Annotations:       annotations,
 		ExtraLabels:       vtc.Spec.Gateway.ExtraLabels,
+		Tolerations:       vtc.Spec.Gateway.Tolerations,
 	}
 	key = client.ObjectKey{Namespace: vtc.Namespace, Name: vtgate.DeploymentName(clusterName, vtc.Spec.Name)}
 
