@@ -868,6 +868,29 @@ spec:
           type: object
         status:
           properties:
+            conditions:
+              items:
+                properties:
+                  lastTransitionTime:
+                    format: date-time
+                    type: string
+                  message:
+                    type: string
+                  reason:
+                    type: string
+                  status:
+                    enum:
+                    - "True"
+                    - "False"
+                    - Unknown
+                    type: string
+                  type:
+                    type: string
+                required:
+                - status
+                - type
+                type: object
+              type: array
             idle:
               type: string
             observedGeneration:
@@ -884,6 +907,35 @@ spec:
                 - message
                 - reason
                 type: object
+              type: object
+            partitionings:
+              items:
+                properties:
+                  servingWrites:
+                    type: string
+                  shardNames:
+                    items:
+                      type: string
+                    type: array
+                type: object
+              type: array
+            resharding:
+              properties:
+                sourceShards:
+                  items:
+                    type: string
+                  type: array
+                state:
+                  type: string
+                targetShards:
+                  items:
+                    type: string
+                  type: array
+                workflow:
+                  type: string
+              required:
+              - state
+              - workflow
               type: object
             shards:
               additionalProperties:
@@ -902,6 +954,8 @@ spec:
                   readyTablets:
                     format: int32
                     type: integer
+                  servingWrites:
+                    type: string
                   tablets:
                     format: int32
                     type: integer

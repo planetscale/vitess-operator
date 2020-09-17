@@ -69,6 +69,7 @@ func (r *ReconcileVitessShard) reconcileTopology(ctx context.Context, vts *plane
 		if shard.MasterAlias != nil {
 			vts.Status.MasterAlias = topoproto.TabletAliasString(shard.MasterAlias)
 		}
+		vts.Status.ServingWrites = k8s.ConditionStatus(shard.IsMasterServing)
 
 		// Is the shard in the serving partition for any cell or tablet type?
 		if servingCells, err := ts.GetShardServingCells(ctx, shard); err == nil {

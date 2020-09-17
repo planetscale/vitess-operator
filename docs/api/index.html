@@ -1483,6 +1483,71 @@ string
 </tr>
 </tbody>
 </table>
+<h3 id="planetscale.com/v2.ReshardingStatus">ReshardingStatus
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#planetscale.com/v2.VitessKeyspaceStatus">VitessKeyspaceStatus</a>)
+</p>
+<p>
+<p>ReshardingStatus defines some of the workflow related status information.</p>
+</p>
+<table class="table table-striped">
+<thead class="thead-dark">
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>workflow</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Workflow represents the name of the active vreplication workflow for resharding.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>state</code></br>
+<em>
+<a href="#planetscale.com/v2.WorkflowState">
+WorkflowState
+</a>
+</em>
+</td>
+<td>
+<p>State is either &lsquo;Running&rsquo;, &lsquo;Copying&rsquo;, &lsquo;Error&rsquo; or &lsquo;Unknown&rsquo;.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>sourceShards</code></br>
+<em>
+[]string
+</em>
+</td>
+<td>
+<p>SourceShards is a list of source shards for the current resharding operation.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>targetShards</code></br>
+<em>
+[]string
+</em>
+</td>
+<td>
+<p>TargetShards is a list of target shards for the current resharding operation.</p>
+</td>
+</tr>
+</tbody>
+</table>
 <h3 id="planetscale.com/v2.S3BackupLocation">S3BackupLocation
 </h3>
 <p>
@@ -4457,6 +4522,100 @@ VitessKeyspaceStatus
 </tr>
 </tbody>
 </table>
+<h3 id="planetscale.com/v2.VitessKeyspaceCondition">VitessKeyspaceCondition
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#planetscale.com/v2.VitessKeyspaceStatus">VitessKeyspaceStatus</a>)
+</p>
+<p>
+<p>VitessKeyspaceCondition contains details for the current condition of this VitessKeyspace.</p>
+</p>
+<table class="table table-striped">
+<thead class="thead-dark">
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>type</code></br>
+<em>
+<a href="#planetscale.com/v2.VitessKeyspaceConditionType">
+VitessKeyspaceConditionType
+</a>
+</em>
+</td>
+<td>
+<p>Type is the type of the condition.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>status</code></br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#conditionstatus-v1-core">
+Kubernetes core/v1.ConditionStatus
+</a>
+</em>
+</td>
+<td>
+<p>Status is the status of the condition.
+Can be True, False, Unknown.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>lastTransitionTime</code></br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#time-v1-meta">
+Kubernetes meta/v1.Time
+</a>
+</em>
+</td>
+<td>
+<p>Last time the condition transitioned from one status to another.
+Optional.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>reason</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Unique, one-word, PascalCase reason for the condition&rsquo;s last transition.
+Optional.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>message</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Human-readable message indicating details about last transition.
+Optional.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="planetscale.com/v2.VitessKeyspaceConditionType">VitessKeyspaceConditionType
+(<code>string</code> alias)</p></h3>
+<p>
+(<em>Appears on:</em>
+<a href="#planetscale.com/v2.VitessKeyspaceCondition">VitessKeyspaceCondition</a>)
+</p>
+<p>
+<p>VitessKeyspaceConditionType is a valid value for the key of a VitessKeyspaceCondition map where the key is a
+VitessKeyspaceConditionType and the value is a VitessKeyspaceCondition.</p>
+</p>
 <h3 id="planetscale.com/v2.VitessKeyspaceCustomPartitioning">VitessKeyspaceCustomPartitioning
 </h3>
 <p>
@@ -4714,6 +4873,54 @@ in case you don&rsquo;t want them to be divided equally.</p>
 </tr>
 </tbody>
 </table>
+<h3 id="planetscale.com/v2.VitessKeyspacePartitioningStatus">VitessKeyspacePartitioningStatus
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#planetscale.com/v2.VitessKeyspaceStatus">VitessKeyspaceStatus</a>)
+</p>
+<p>
+<p>VitessKeyspacePartitioningStatus aggregates status for all shards in a given partitioning.</p>
+</p>
+<table class="table table-striped">
+<thead class="thead-dark">
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>shardNames</code></br>
+<em>
+[]string
+</em>
+</td>
+<td>
+<p>ShardNames is a sorted list of shards in this partitioning,
+in the format Vitess uses for shard names.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>servingWrites</code></br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#conditionstatus-v1-core">
+Kubernetes core/v1.ConditionStatus
+</a>
+</em>
+</td>
+<td>
+<p>ServingWrites is a condition indicating whether all shards in this
+partitioning are serving writes for their key ranges.
+Note that False only means not all shards are serving writes; it&rsquo;s still
+possible that some shards in this partitioning are serving writes.
+Check the per-shard status for full details.</p>
+</td>
+</tr>
+</tbody>
+</table>
 <h3 id="planetscale.com/v2.VitessKeyspaceShardStatus">VitessKeyspaceShardStatus
 </h3>
 <p>
@@ -4743,6 +4950,22 @@ Kubernetes core/v1.ConditionStatus
 <td>
 <p>HasMaster is a condition indicating whether the Vitess topology
 reflects a master for this shard.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>servingWrites</code></br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#conditionstatus-v1-core">
+Kubernetes core/v1.ConditionStatus
+</a>
+</em>
+</td>
+<td>
+<p>ServingWrites is a condition indicating whether this shard is the one
+that serves writes for its key range, according to Vitess topology.
+A shard might be deployed without serving writes if, for example, it is
+the target of a resharding operation that is still in progress.</p>
 </td>
 </tr>
 <tr>
@@ -5029,6 +5252,19 @@ map[string]planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspac
 </tr>
 <tr>
 <td>
+<code>partitionings</code></br>
+<em>
+<a href="#planetscale.com/v2.VitessKeyspacePartitioningStatus">
+[]VitessKeyspacePartitioningStatus
+</a>
+</em>
+</td>
+<td>
+<p>Partitionings is an aggregation of status for all shards in each partitioning.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>orphanedShards</code></br>
 <em>
 <a href="#planetscale.com/v2.OrphanStatus">
@@ -5053,6 +5289,35 @@ Kubernetes core/v1.ConditionStatus
 <p>Idle is a condition indicating whether the keyspace can be turned down.
 If Idle is True, the keyspace is not deployed in any cells, so it should
 be safe to turn down the keyspace.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>resharding</code></br>
+<em>
+<a href="#planetscale.com/v2.ReshardingStatus">
+ReshardingStatus
+</a>
+</em>
+</td>
+<td>
+<p>ReshardingStatus provides information about an active resharding operation, if any.
+This field is only present if the ReshardingActive condition is True. If that condition is Unknown,
+it means the operator was unable to query resharding status from Vitess.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>conditions</code></br>
+<em>
+<a href="#planetscale.com/v2.VitessKeyspaceCondition">
+[]VitessKeyspaceCondition
+</a>
+</em>
+</td>
+<td>
+<p>Conditions is a list of all VitessKeyspace specific conditions we want to set and monitor.
+It&rsquo;s ok for multiple controllers to add conditions here, and those conditions will be preserved.</p>
 </td>
 </tr>
 </tbody>
@@ -5961,6 +6226,22 @@ has been seeded for the shard.</p>
 </tr>
 <tr>
 <td>
+<code>servingWrites</code></br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#conditionstatus-v1-core">
+Kubernetes core/v1.ConditionStatus
+</a>
+</em>
+</td>
+<td>
+<p>ServingWrites is a condition indicating whether this shard is the one
+that serves writes for its key range, according to Vitess topology.
+A shard might be deployed without serving writes if, for example, it is
+the target of a resharding operation that is still in progress.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>idle</code></br>
 <em>
 <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#conditionstatus-v1-core">
@@ -6540,6 +6821,15 @@ set the string value to either &ldquo;true&rdquo; or &ldquo;false&rdquo;.</p>
 </tr>
 </tbody>
 </table>
+<h3 id="planetscale.com/v2.WorkflowState">WorkflowState
+(<code>string</code> alias)</p></h3>
+<p>
+(<em>Appears on:</em>
+<a href="#planetscale.com/v2.ReshardingStatus">ReshardingStatus</a>)
+</p>
+<p>
+<p>WorkflowState represents the current state for the given Workflow.</p>
+</p>
 <hr/>
 <p><em>
 Generated with <code>gen-crd-api-reference-docs</code>.

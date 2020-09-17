@@ -31,45 +31,53 @@ import (
 	"planetscale.dev/vitess-operator/pkg/operator/vitessshard"
 )
 
-func (r *ReconcileVitessKeyspace) reconcileShards(ctx context.Context, vtk *planetscalev2.VitessKeyspace) error {
-	clusterName := vtk.Labels[planetscalev2.ClusterLabel]
+func (r *reconcileHandler) reconcileShards(ctx context.Context) error {
+	clusterName := r.vtk.Labels[planetscalev2.ClusterLabel]
 
 	labels := map[string]string{
 		planetscalev2.ClusterLabel:  clusterName,
-		planetscalev2.KeyspaceLabel: vtk.Spec.Name,
+		planetscalev2.KeyspaceLabel: r.vtk.Spec.Name,
 	}
 
 	// Compute the set of all desired shards based on the defined partitionings.
-	shards := vtk.Spec.ShardTemplates()
+	shards := r.vtk.Spec.ShardTemplates()
 
 	// Generate keys (object names) for all desired shards.
 	// Keep a map back from generated names to the shard specs.
 	keys := make([]client.ObjectKey, 0, len(shards))
 	shardMap := make(map[client.ObjectKey]*planetscalev2.VitessKeyspaceKeyRangeShard, len(shards))
 	for _, shard := range shards {
-		key := client.ObjectKey{Namespace: vtk.Namespace, Name: vitessshard.Name(clusterName, vtk.Spec.Name, shard.KeyRange)}
+		key := client.ObjectKey{Namespace: r.vtk.Namespace, Name: vitessshard.Name(clusterName, r.vtk.Spec.Name, shard.KeyRange)}
 		keys = append(keys, key)
 		shardMap[key] = shard
 
 		// Initialize a status entry for every desired shard, so it will be
 		// listed even if we end up not having anything to report about it.
-		vtk.Status.Shards[shard.KeyRange.String()] = planetscalev2.NewVitessKeyspaceShardStatus(shard)
+		r.vtk.Status.Shards[shard.KeyRange.String()] = planetscalev2.NewVitessKeyspaceShardStatus(shard)
 	}
 
-	return r.reconciler.ReconcileObjectSet(ctx, vtk, keys, labels, reconciler.Strategy{
+	// Initialize a status entry for each desired partitioning, so it will be
+	// listed even if we end up not having anything to report about it.
+	r.vtk.Status.Partitionings = make([]planetscalev2.VitessKeyspacePartitioningStatus, len(r.vtk.Spec.Partitionings))
+	for i := range r.vtk.Spec.Partitionings {
+		p := &r.vtk.Spec.Partitionings[i]
+		r.vtk.Status.Partitionings[i] = planetscalev2.NewVitessKeyspacePartitioningStatus(p)
+	}
+
+	err := r.reconciler.ReconcileObjectSet(ctx, r.vtk, keys, labels, reconciler.Strategy{
 		Kind: &planetscalev2.VitessShard{},
 
 		New: func(key client.ObjectKey) runtime.Object {
-			return newVitessShard(key, vtk, labels, shardMap[key])
+			return newVitessShard(key, r.vtk, labels, shardMap[key])
 		},
 		UpdateInPlace: func(key client.ObjectKey, obj runtime.Object) {
 			newObj := obj.(*planetscalev2.VitessShard)
-			if *vtk.Spec.UpdateStrategy.Type == planetscalev2.ExternalVitessClusterUpdateStrategyType {
-				updateVitessShardInPlace(key, newObj, vtk, labels, shardMap[key])
+			if *r.vtk.Spec.UpdateStrategy.Type == planetscalev2.ExternalVitessClusterUpdateStrategyType {
+				updateVitessShardInPlace(key, newObj, r.vtk, labels, shardMap[key])
 				return
 			}
 
-			updateVitessShard(key, newObj, vtk, labels, shardMap[key])
+			updateVitessShard(key, newObj, r.vtk, labels, shardMap[key])
 			if newObj.Status.LowestPodGeneration != newObj.Generation {
 				// Nothing to do here yet - need to wait until generations match before we cascade.
 				return
@@ -86,20 +94,23 @@ func (r *ReconcileVitessKeyspace) reconcileShards(ctx context.Context, vtk *plan
 		},
 		UpdateRollingInPlace: func(key client.ObjectKey, obj runtime.Object) {
 			newObj := obj.(*planetscalev2.VitessShard)
-			if *vtk.Spec.UpdateStrategy.Type == planetscalev2.ImmediateVitessClusterUpdateStrategyType {
+			if *r.vtk.Spec.UpdateStrategy.Type == planetscalev2.ImmediateVitessClusterUpdateStrategyType {
 				// In this case we should use UpdateInPlace for all updates.
 				return
 			}
-			updateVitessShard(key, newObj, vtk, labels, shardMap[key])
+			updateVitessShard(key, newObj, r.vtk, labels, shardMap[key])
 		},
 		Status: func(key client.ObjectKey, obj runtime.Object) {
 			curObj := obj.(*planetscalev2.VitessShard)
 			keyRange := curObj.Spec.KeyRange.String()
 
-			status := vtk.Status.Shards[keyRange]
+			status := r.vtk.Status.Shards[keyRange]
 			status.Cells = curObj.Status.Cells
 			if curObj.Status.HasMaster != "" {
 				status.HasMaster = curObj.Status.HasMaster
+			}
+			if curObj.Status.ServingWrites != "" {
+				status.ServingWrites = curObj.Status.ServingWrites
 			}
 			status.Tablets = int32(len(curObj.Status.Tablets))
 			status.PendingChanges = curObj.Annotations[rollout.ScheduledAnnotation]
@@ -114,11 +125,11 @@ func (r *ReconcileVitessKeyspace) reconcileShards(ctx context.Context, vtk *plan
 					status.UpdatedTablets++
 				}
 			}
-			vtk.Status.Shards[keyRange] = status
+			r.vtk.Status.Shards[keyRange] = status
 		},
 		OrphanStatus: func(key client.ObjectKey, obj runtime.Object, orphanStatus *planetscalev2.OrphanStatus) {
 			curObj := obj.(*planetscalev2.VitessShard)
-			vtk.Status.OrphanedShards[curObj.Spec.Name] = *orphanStatus
+			r.vtk.Status.OrphanedShards[curObj.Spec.Name] = *orphanStatus
 		},
 		PrepareForTurndown: func(key client.ObjectKey, obj runtime.Object) *planetscalev2.OrphanStatus {
 			// Make sure it's ok to delete this shard.
@@ -133,6 +144,47 @@ func (r *ReconcileVitessKeyspace) reconcileShards(ctx context.Context, vtk *plan
 			return planetscalev2.NewOrphanStatus("Serving", "The shard can't be turned down because it's potentially in the serving set. You must migrate all served types in all cells to another shard before removing this shard.")
 		},
 	})
+	if err != nil {
+		return err
+	}
+
+	// Aggregate per-shard status, grouped by partitioning.
+	for i := range r.vtk.Status.Partitionings {
+		status := &r.vtk.Status.Partitionings[i]
+		status.ServingWrites = allShardsServingWrites(status.ShardNames, r.vtk.Status.Shards)
+	}
+
+	return nil
+}
+
+func allShardsServingWrites(shardNames []string, shardStatus map[string]planetscalev2.VitessKeyspaceShardStatus) corev1.ConditionStatus {
+	// A partitioning with no shards can't be serving.
+	if len(shardNames) == 0 {
+		return corev1.ConditionFalse
+	}
+
+	// Provisionally assume all are serving until we find evidence otherwise.
+	result := corev1.ConditionTrue
+
+	for _, shard := range shardNames {
+		switch shardStatus[shard].ServingWrites {
+		case corev1.ConditionTrue:
+			continue
+		case corev1.ConditionFalse:
+			// If any shard is definitely not serving, it can't be possible
+			// that all shards are definitely serving, regardless of the status
+			// of any other shards.
+			return corev1.ConditionFalse
+		default:
+			// If any shard status is unknown, we change our provisional result
+			// to Unknown and keep checking. If we later find any that are
+			// definitely false, we'll change our answer to False. Otherwise,
+			// it will remain Unknown.
+			result = corev1.ConditionUnknown
+		}
+	}
+
+	return result
 }
 
 // newVitessShard expands a complete VitessShard from a VitessShardTemplate.

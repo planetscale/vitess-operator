@@ -18,11 +18,11 @@ require (
 	k8s.io/klog v1.0.0
 	k8s.io/kube-openapi v0.0.0-20191107075043-30be4d16710a // indirect
 	k8s.io/kubernetes v1.16.2
-	k8s.io/utils v0.0.0-20191010214722-8d271d903fe4
+	k8s.io/utils v0.0.0-20191114184206-e782cd3c129f
 	sigs.k8s.io/controller-runtime v0.4.0
 	sigs.k8s.io/controller-tools v0.2.4
 	sigs.k8s.io/yaml v1.1.0
-	vitess.io/vitess v0.0.0-20200728124225-a3a52322d4d2
+	vitess.io/vitess v0.0.0-20200909224454-6a25895b6125
 )
 
 // ****************************
