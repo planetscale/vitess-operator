@@ -169,7 +169,7 @@ func (p *VitessKeyspacePartitioning) TabletPools() []VitessShardTabletPool {
 func (s *VitessKeyspaceStatus) SetConditionStatus(condType VitessKeyspaceConditionType, newStatus corev1.ConditionStatus, reason, message string) {
 	cond, ok := s.getCondition(condType)
 	if !ok {
-		cond = NewVitessKeyspaceCondition()
+		cond = NewVitessKeyspaceCondition(condType)
 	}
 
 	// We should update reason and message regardless of whether the status type is different.
@@ -186,9 +186,10 @@ func (s *VitessKeyspaceStatus) SetConditionStatus(condType VitessKeyspaceConditi
 }
 
 // NewVitessKeyspaceCondition returns an init VitessKeyspaceCondition object.
-func NewVitessKeyspaceCondition() *VitessKeyspaceCondition {
+func NewVitessKeyspaceCondition(condType VitessKeyspaceConditionType) *VitessKeyspaceCondition {
 	now := metav1.NewTime(time.Now())
 	return &VitessKeyspaceCondition{
+		Type:               condType,
 		Status:             corev1.ConditionUnknown,
 		LastTransitionTime: &now,
 		Reason:             "",
