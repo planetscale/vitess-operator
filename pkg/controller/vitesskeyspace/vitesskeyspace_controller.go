@@ -149,7 +149,7 @@ func (r *ReconcileVitessKeyspace) Reconcile(request reconcile.Request) (finalRes
 		"namespace":      request.Namespace,
 		"vitesskeyspace": request.Name,
 	})
-	log.Info("Reconciling VitessKeyspace")
+	log.Debug("Reconciling VitessKeyspace")
 
 	handler, err := r.NewReconcileHandler(ctx, request)
 	if err != nil {
