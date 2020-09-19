@@ -40,8 +40,7 @@ const (
 	command    = "/vt/bin/vtgate"
 	serviceMap = "grpc-vtgateservice"
 
-	tabletTypesToWait     = "MASTER,REPLICA"
-	gatewayImplementation = "discoverygateway"
+	tabletTypesToWait = "MASTER,REPLICA"
 
 	bufferMasterTrafficDuringFailover = true
 	bufferMinTimeBetweenFailovers     = "20s"
@@ -245,10 +244,9 @@ func (spec *Spec) baseFlags() vitess.Flags {
 	}
 
 	return vitess.Flags{
-		"cell":                   spec.Cell.Name,
-		"cells_to_watch":         strings.Join(cellsToWatch, ","),
-		"tablet_types_to_wait":   tabletTypesToWait,
-		"gateway_implementation": gatewayImplementation,
+		"cell":                 spec.Cell.Name,
+		"cells_to_watch":       strings.Join(cellsToWatch, ","),
+		"tablet_types_to_wait": tabletTypesToWait,
 
 		"enable_buffer":                     bufferMasterTrafficDuringFailover,
 		"buffer_min_time_between_failovers": bufferMinTimeBetweenFailovers,
