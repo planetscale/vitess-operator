@@ -130,6 +130,14 @@ func PodContainer(dst, src *corev1.Container) {
 	dstVolumeMounts := dst.VolumeMounts
 	VolumeMounts(&dstVolumeMounts, src.VolumeMounts)
 
+	// If src doesn't have an opinion on the image pull policy, let it remain as
+	// it is in dst. This is necessary to avoid fighting with admission
+	// controllers like AlwaysPullImages.
+	dstImagePullPolicy := dst.ImagePullPolicy
+	if src.ImagePullPolicy != "" {
+		dstImagePullPolicy = src.ImagePullPolicy
+	}
+
 	// Overwrite everything we didn't specifically save.
 	*dst = *src
 
@@ -137,6 +145,7 @@ func PodContainer(dst, src *corev1.Container) {
 	dst.Resources = dstResources
 	dst.SecurityContext = dstSecurityContext
 	dst.VolumeMounts = dstVolumeMounts
+	dst.ImagePullPolicy = dstImagePullPolicy
 }
 
 // PodTemplateContainer updates entries in 'dst' based on the values in 'src'.
