@@ -19,11 +19,13 @@ package vitesskeyspace
 import (
 	"context"
 	"fmt"
+	"math"
 	"reflect"
 	"sort"
 
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"vitess.io/vitess/go/vt/proto/topodata"
 	"vitess.io/vitess/go/vt/wrangler"
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
@@ -120,8 +122,26 @@ func (r *reconcileHandler) reconcileResharding(ctx context.Context) (reconcile.R
 		sort.Strings(errorMsgs)
 		r.setConditionStatus(planetscalev2.VitessKeyspaceReshardingInSync, corev1.ConditionFalse, "Error", fmt.Sprintf("VReplication reported an error: %v", errorMsgs[0]))
 	case planetscalev2.WorkflowCopying:
+		// Aggregate tablet maps for all source shards.
+		sourceRowCount, err := r.shardsRowCount(ctx, workflowStatus.SourceShards)
+		if err != nil {
+			r.recorder.Eventf(r.vtk, corev1.EventTypeWarning, "SourceShardsRowCountFailed", "failed to aggregate row count for source shards: %v", err)
+			return resultBuilder.RequeueAfter(topoRequeueDelay)
+		}
+		targetRowCount, err := r.shardsRowCount(ctx, workflowStatus.TargetShards)
+		if err != nil {
+			r.recorder.Eventf(r.vtk, corev1.EventTypeWarning, "TargetShardsRowCountFailed", "failed to aggregate row count for target shards: %v", err)
+			return resultBuilder.RequeueAfter(topoRequeueDelay)
+		}
+		percentComplete := int(math.Floor((float64(targetRowCount) / float64(sourceRowCount)) * 100.0))
+		// Row counts are a rough approximation, so this check is to ensure we don't report nonsense values.
+		if percentComplete > 99 {
+			percentComplete = 99
+		}
+		workflowStatus.CopyProgress = percentComplete
 		r.setConditionStatus(planetscalev2.VitessKeyspaceReshardingInSync, corev1.ConditionFalse, "Copying", "Existing data from the source shards is being backfilled on target shards")
 	case planetscalev2.WorkflowRunning:
+		workflowStatus.CopyProgress = 100
 		// If MaxVReplicationLag ever exceeds max safe value, we need update our condition object.
 		// Copy phase should take precedence though. We don't care about vrepl lag if we are still in copy phase. Regardless we don't allow switching traffic.
 		if reshardingWorkflow.MaxVReplicationLag < maxSafeVReplicationLag {
@@ -135,4 +155,34 @@ func (r *reconcileHandler) reconcileResharding(ctx context.Context) (reconcile.R
 	r.vtk.Status.Resharding = workflowStatus
 
 	return resultBuilder.Result()
+}
+
+func (r reconcileHandler) shardsRowCount(ctx context.Context, shardNames []string) (uint64, error) {
+	var rowCount uint64
+	for _, shardName := range shardNames {
+		tabletMap, err := r.ts.GetTabletMapForShard(ctx, r.vtk.Spec.Name, shardName)
+		if err != nil {
+			return 0, err
+		}
+		// Find the master and get data size from it.
+		var masterTabletAlias *topodata.TabletAlias
+		for _, tabletInfo := range tabletMap {
+			if tabletInfo.Type == topodata.TabletType_MASTER {
+				masterTabletAlias = tabletInfo.Alias
+				break
+			}
+		}
+		if masterTabletAlias == nil {
+			return 0, fmt.Errorf("could not find master tablet alias for determining row count")
+		}
+		schema, err := r.wr.GetSchema(ctx, masterTabletAlias, make([]string, 0), make([]string, 0), false)
+		if err != nil {
+			return 0, err
+		}
+		for i := range schema.TableDefinitions {
+			tabletDef := schema.TableDefinitions[i]
+			rowCount += tabletDef.GetRowCount()
+		}
+	}
+	return rowCount, nil
 }
