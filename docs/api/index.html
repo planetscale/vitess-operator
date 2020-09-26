@@ -1546,6 +1546,19 @@ WorkflowState
 <p>TargetShards is a list of target shards for the current resharding operation.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>copyProgress</code></br>
+<em>
+int
+</em>
+</td>
+<td>
+<p>CopyProgress will indicate the percentage completion ranging from 0-100 as integer values.
+Once we are past the copy phase, this value will always be 100, and will never be 100 while we
+are still within the copy phase.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="planetscale.com/v2.S3BackupLocation">S3BackupLocation
