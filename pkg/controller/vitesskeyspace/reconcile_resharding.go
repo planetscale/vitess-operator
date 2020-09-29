@@ -122,12 +122,13 @@ func (r *reconcileHandler) reconcileResharding(ctx context.Context) (reconcile.R
 		sort.Strings(errorMsgs)
 		r.setConditionStatus(planetscalev2.VitessKeyspaceReshardingInSync, corev1.ConditionFalse, "Error", fmt.Sprintf("VReplication reported an error: %v", errorMsgs[0]))
 	case planetscalev2.WorkflowCopying:
-		// Aggregate tablet maps for all source shards.
+		// Aggregate row counts for all source shards.
 		sourceRowCount, err := r.shardsRowCount(ctx, workflowStatus.SourceShards)
 		if err != nil {
 			r.recorder.Eventf(r.vtk, corev1.EventTypeWarning, "SourceShardsRowCountFailed", "failed to aggregate row count for source shards: %v", err)
 			return resultBuilder.RequeueAfter(topoRequeueDelay)
 		}
+		// Aggregate row counts for all target shards.
 		targetRowCount, err := r.shardsRowCount(ctx, workflowStatus.TargetShards)
 		if err != nil {
 			r.recorder.Eventf(r.vtk, corev1.EventTypeWarning, "TargetShardsRowCountFailed", "failed to aggregate row count for target shards: %v", err)
