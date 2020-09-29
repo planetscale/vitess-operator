@@ -19,7 +19,6 @@ package vitesskeyspace
 import (
 	"context"
 	"fmt"
-	"math"
 	"reflect"
 	"sort"
 
@@ -160,7 +159,7 @@ func (r *reconcileHandler) percentCopied(ctx context.Context, sourceShards, targ
 		r.recorder.Eventf(r.vtk, corev1.EventTypeWarning, "CopyProgressUnknown", "failed to aggregate row count for target shards: %v", err)
 		return -1
 	}
-	percentComplete := int(math.Floor((float64(targetRowCount) / float64(sourceRowCount)) * 100.0))
+	percentComplete := int((float64(targetRowCount) / float64(sourceRowCount)) * 100.0)
 	// Row counts are a rough approximation, so this check is to ensure we don't report nonsense values.
 	if percentComplete > 99 {
 		percentComplete = 99
