@@ -401,6 +401,13 @@ type VitessDashboardSpec struct {
 
 	// Service can optionally be used to customize the vtctld Service.
 	Service *ServiceOverrides `json:"service,omitempty"`
+
+	// Tolerations allow you to schedule pods onto nodes with matching taints.
+	// WARNING: kubernetes adds default tolerations for node.kubernetes.io/not-ready
+	// and node.kubernetes.io/unreachable, you'll need to include these or the pod will be
+	// endlessly attempt reconcile difference.
+	// +kubebuilder:validation:EmbeddedResource
+	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
 }
 
 // ServiceOverrides allows customization of an arbitrary Service object.

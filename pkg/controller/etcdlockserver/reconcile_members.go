@@ -163,6 +163,7 @@ func memberSpecs(ls *planetscalev2.EtcdLockserver, parentLabels map[string]strin
 			Affinity:          ls.Spec.Affinity,
 			Annotations:       ls.Spec.Annotations,
 			AdvertisePeerURLs: ls.Spec.AdvertisePeerURLs,
+			Tolerations:       ls.Spec.Tolerations,
 		})
 	}
 	return members
