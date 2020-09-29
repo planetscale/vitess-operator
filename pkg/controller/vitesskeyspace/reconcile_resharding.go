@@ -176,7 +176,7 @@ func (r *reconcileHandler) shardsRowCount(ctx context.Context, shardNames []stri
 	for _, shardName := range shardNames {
 		tabletMap, err := r.ts.GetTabletMapForShard(ctx, r.vtk.Spec.Name, shardName)
 		if err != nil {
-			return 0, err
+			return 0, fmt.Errorf("failed to get tablets for shard %v: %v", shardName, err)
 		}
 		// Find the master and get data size from it.
 		var masterTabletAlias *topodata.TabletAlias
@@ -187,11 +187,11 @@ func (r *reconcileHandler) shardsRowCount(ctx context.Context, shardNames []stri
 			}
 		}
 		if masterTabletAlias == nil {
-			return 0, fmt.Errorf("could not find master tablet alias for determining row count")
+			return 0, fmt.Errorf("could not find master tablet alias for determining row count of shard %v", shardName)
 		}
 		schema, err := r.wr.GetSchema(ctx, masterTabletAlias, make([]string, 0), make([]string, 0), false)
 		if err != nil {
-			return 0, err
+			return 0, fmt.Errorf("failed to get schema for shard %v: %v", shardName, err)
 		}
 		for i := range schema.TableDefinitions {
 			tabletDef := schema.TableDefinitions[i]
