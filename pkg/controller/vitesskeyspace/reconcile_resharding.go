@@ -180,7 +180,7 @@ func (r *reconcileHandler) shardsRowCount(ctx context.Context, shardNames []stri
 		if shardInfo.MasterAlias == nil {
 			return 0, fmt.Errorf("could not find master tablet alias for determining row count of shard %v", shardName)
 		}
-		schema, err := r.wr.GetSchema(ctx, shardInfo.MasterAlias, make([]string, 0), make([]string, 0), false)
+		schema, err := r.wr.GetSchema(ctx, shardInfo.MasterAlias, nil, nil, false)
 		if err != nil {
 			return 0, fmt.Errorf("failed to get schema for shard %v: %v", shardName, err)
 		}
