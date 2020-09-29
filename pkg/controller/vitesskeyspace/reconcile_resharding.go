@@ -153,6 +153,10 @@ func (r *reconcileHandler) percentCopied(ctx context.Context, sourceShards, targ
 		r.recorder.Eventf(r.vtk, corev1.EventTypeWarning, "CopyProgressUnknown", "failed to aggregate row count for source shards: %v", err)
 		return -1
 	}
+	if sourceRowCount == 0 {
+		// If sourceRowCount is zero, then we are just waiting for workflow to transition to Running.
+		return 99
+	}
 	// Aggregate row counts for all target shards.
 	targetRowCount, err := r.shardsRowCount(ctx, targetShards)
 	if err != nil {
