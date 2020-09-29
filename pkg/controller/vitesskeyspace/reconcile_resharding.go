@@ -24,7 +24,6 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"vitess.io/vitess/go/vt/proto/topodata"
 	"vitess.io/vitess/go/vt/wrangler"
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
@@ -174,22 +173,14 @@ func (r *reconcileHandler) percentCopied(ctx context.Context, sourceShards, targ
 func (r *reconcileHandler) shardsRowCount(ctx context.Context, shardNames []string) (uint64, error) {
 	var rowCount uint64
 	for _, shardName := range shardNames {
-		tabletMap, err := r.ts.GetTabletMapForShard(ctx, r.vtk.Spec.Name, shardName)
+		shardInfo, err := r.ts.GetShard(ctx, r.vtk.Spec.Name, shardName)
 		if err != nil {
 			return 0, fmt.Errorf("failed to get tablets for shard %v: %v", shardName, err)
 		}
-		// Find the master and get data size from it.
-		var masterTabletAlias *topodata.TabletAlias
-		for _, tabletInfo := range tabletMap {
-			if tabletInfo.Type == topodata.TabletType_MASTER {
-				masterTabletAlias = tabletInfo.Alias
-				break
-			}
-		}
-		if masterTabletAlias == nil {
+		if shardInfo.MasterAlias == nil {
 			return 0, fmt.Errorf("could not find master tablet alias for determining row count of shard %v", shardName)
 		}
-		schema, err := r.wr.GetSchema(ctx, masterTabletAlias, make([]string, 0), make([]string, 0), false)
+		schema, err := r.wr.GetSchema(ctx, shardInfo.MasterAlias, make([]string, 0), make([]string, 0), false)
 		if err != nil {
 			return 0, fmt.Errorf("failed to get schema for shard %v: %v", shardName, err)
 		}
