@@ -92,6 +92,7 @@ func (r *reconcileHandler) reconcileResharding(ctx context.Context) (reconcile.R
 		State:        planetscalev2.WorkflowUnknown,
 		SourceShards: reshardingWorkflow.SourceLocation.Shards,
 		TargetShards: reshardingWorkflow.TargetLocation.Shards,
+		CopyProgress: -1,
 	}
 
 	// We aggregate status across all the shards for the workflow so we can definitely know if we are in two states:
