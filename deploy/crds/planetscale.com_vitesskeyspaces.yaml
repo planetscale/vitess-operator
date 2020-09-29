@@ -921,6 +921,8 @@ spec:
               type: array
             resharding:
               properties:
+                copyProgress:
+                  type: integer
                 sourceShards:
                   items:
                     type: string

@@ -92,6 +92,7 @@ func (r *reconcileHandler) reconcileResharding(ctx context.Context) (reconcile.R
 		State:        planetscalev2.WorkflowUnknown,
 		SourceShards: reshardingWorkflow.SourceLocation.Shards,
 		TargetShards: reshardingWorkflow.TargetLocation.Shards,
+		CopyProgress: -1,
 	}
 
 	// We aggregate status across all the shards for the workflow so we can definitely know if we are in two states:
@@ -115,13 +116,18 @@ func (r *reconcileHandler) reconcileResharding(ctx context.Context) (reconcile.R
 		}
 	}
 
+	progressCtx, cancel := context.WithTimeout(ctx, topoReconcileTimeout)
+	defer cancel()
 	switch workflowStatus.State {
 	case planetscalev2.WorkflowError:
+		workflowStatus.CopyProgress = r.percentCopied(progressCtx, workflowStatus.SourceShards, workflowStatus.TargetShards)
 		sort.Strings(errorMsgs)
 		r.setConditionStatus(planetscalev2.VitessKeyspaceReshardingInSync, corev1.ConditionFalse, "Error", fmt.Sprintf("VReplication reported an error: %v", errorMsgs[0]))
 	case planetscalev2.WorkflowCopying:
+		workflowStatus.CopyProgress = r.percentCopied(progressCtx, workflowStatus.SourceShards, workflowStatus.TargetShards)
 		r.setConditionStatus(planetscalev2.VitessKeyspaceReshardingInSync, corev1.ConditionFalse, "Copying", "Existing data from the source shards is being backfilled on target shards")
 	case planetscalev2.WorkflowRunning:
+		workflowStatus.CopyProgress = 100
 		// If MaxVReplicationLag ever exceeds max safe value, we need update our condition object.
 		// Copy phase should take precedence though. We don't care about vrepl lag if we are still in copy phase. Regardless we don't allow switching traffic.
 		if reshardingWorkflow.MaxVReplicationLag < maxSafeVReplicationLag {
@@ -135,4 +141,53 @@ func (r *reconcileHandler) reconcileResharding(ctx context.Context) (reconcile.R
 	r.vtk.Status.Resharding = workflowStatus
 
 	return resultBuilder.Result()
+}
+
+// percentCopied aggregates row counts for the source and target shards, and tries to compute percent completed as a district integer
+// value ranging from 0-100. If we fail to communicate with underlying topo, we will emit an appropriate event with the error message,
+// and return -1 as an indicator that the copy progress is unknown.
+func (r *reconcileHandler) percentCopied(ctx context.Context, sourceShards, targetShards []string) int {
+	// Aggregate row counts for all source shards.
+	sourceRowCount, err := r.shardsRowCount(ctx, sourceShards)
+	if err != nil {
+		r.recorder.Eventf(r.vtk, corev1.EventTypeWarning, "CopyProgressUnknown", "failed to aggregate row count for source shards: %v", err)
+		return -1
+	}
+	if sourceRowCount == 0 {
+		// If sourceRowCount is zero, then we are just waiting for workflow to transition to Running.
+		return 99
+	}
+	// Aggregate row counts for all target shards.
+	targetRowCount, err := r.shardsRowCount(ctx, targetShards)
+	if err != nil {
+		r.recorder.Eventf(r.vtk, corev1.EventTypeWarning, "CopyProgressUnknown", "failed to aggregate row count for target shards: %v", err)
+		return -1
+	}
+	percentComplete := int((float64(targetRowCount) / float64(sourceRowCount)) * 100.0)
+	// Row counts are a rough approximation, so this check is to ensure we don't report nonsense values.
+	if percentComplete > 99 {
+		percentComplete = 99
+	}
+	return percentComplete
+}
+
+func (r *reconcileHandler) shardsRowCount(ctx context.Context, shardNames []string) (uint64, error) {
+	var rowCount uint64
+	for _, shardName := range shardNames {
+		shardInfo, err := r.ts.GetShard(ctx, r.vtk.Spec.Name, shardName)
+		if err != nil {
+			return 0, fmt.Errorf("failed to get tablets for shard %v: %v", shardName, err)
+		}
+		if shardInfo.MasterAlias == nil {
+			return 0, fmt.Errorf("could not find master tablet alias for determining row count of shard %v", shardName)
+		}
+		schema, err := r.wr.GetSchema(ctx, shardInfo.MasterAlias, nil, nil, false)
+		if err != nil {
+			return 0, fmt.Errorf("failed to get schema for shard %v: %v", shardName, err)
+		}
+		for _, tabletDef := range schema.TableDefinitions {
+			rowCount += tabletDef.GetRowCount()
+		}
+	}
+	return rowCount, nil
 }

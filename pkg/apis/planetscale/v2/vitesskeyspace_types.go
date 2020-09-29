@@ -315,6 +315,11 @@ type ReshardingStatus struct {
 	SourceShards []string `json:"sourceShards,omitempty"`
 	// TargetShards is a list of target shards for the current resharding operation.
 	TargetShards []string `json:"targetShards,omitempty"`
+	// CopyProgress will indicate the percentage completion ranging from 0-100 as integer values.
+	// Once we are past the copy phase, this value will always be 100, and will never be 100 while we
+	// are still within the copy phase.
+	// If we can not compute the copy progress in a timely fashion, we will report -1 to indicate the progress is unknown.
+	CopyProgress int `json:"copyProgress,omitempty"`
 }
 
 // WorkflowState represents the current state for the given Workflow.
