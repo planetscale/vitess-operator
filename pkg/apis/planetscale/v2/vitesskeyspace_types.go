@@ -378,7 +378,7 @@ type VitessKeyspaceShardStatus struct {
 
 // NewVitessKeyspaceShardStatus creates a new status object with default values.
 func NewVitessKeyspaceShardStatus(spec *VitessKeyspaceKeyRangeShard) VitessKeyspaceShardStatus {
-	desiredTablets := int32(0)
+	var desiredTablets int32
 	for tpIndex := range spec.TabletPools {
 		desiredTablets += spec.TabletPools[tpIndex].Replicas
 	}
@@ -418,7 +418,8 @@ type VitessKeyspacePartitioningStatus struct {
 
 // NewVitessKeyspacePartitioningStatus creates a new status object with default values.
 func NewVitessKeyspacePartitioningStatus(partitioning *VitessKeyspacePartitioning) VitessKeyspacePartitioningStatus {
-	desiredTablets := int32(0)
+	var desiredTablets int32
+
 	tabletPools := partitioning.TabletPools()
 	for tpIndex := range tabletPools {
 		desiredTablets += tabletPools[tpIndex].Replicas
