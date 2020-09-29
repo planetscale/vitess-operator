@@ -184,8 +184,7 @@ func (r *reconcileHandler) shardsRowCount(ctx context.Context, shardNames []stri
 		if err != nil {
 			return 0, fmt.Errorf("failed to get schema for shard %v: %v", shardName, err)
 		}
-		for i := range schema.TableDefinitions {
-			tabletDef := schema.TableDefinitions[i]
+		for _, tabletDef := range schema.TableDefinitions {
 			rowCount += tabletDef.GetRowCount()
 		}
 	}
