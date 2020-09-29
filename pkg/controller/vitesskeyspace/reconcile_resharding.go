@@ -151,13 +151,13 @@ func (r *reconcileHandler) percentCopied(ctx context.Context, sourceShards, targ
 	// Aggregate row counts for all source shards.
 	sourceRowCount, err := r.shardsRowCount(ctx, sourceShards)
 	if err != nil {
-		r.recorder.Eventf(r.vtk, corev1.EventTypeWarning, "SourceShardsRowCountFailed", "failed to aggregate row count for source shards: %v", err)
+		r.recorder.Eventf(r.vtk, corev1.EventTypeWarning, "CopyProgressUnknown", "failed to aggregate row count for source shards: %v", err)
 		return -1
 	}
 	// Aggregate row counts for all target shards.
 	targetRowCount, err := r.shardsRowCount(ctx, targetShards)
 	if err != nil {
-		r.recorder.Eventf(r.vtk, corev1.EventTypeWarning, "TargetShardsRowCountFailed", "failed to aggregate row count for target shards: %v", err)
+		r.recorder.Eventf(r.vtk, corev1.EventTypeWarning, "CopyProgressUnknown", "failed to aggregate row count for target shards: %v", err)
 		return -1
 	}
 	percentComplete := int(math.Floor((float64(targetRowCount) / float64(sourceRowCount)) * 100.0))
