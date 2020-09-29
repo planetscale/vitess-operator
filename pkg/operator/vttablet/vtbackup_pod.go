@@ -139,6 +139,7 @@ func NewBackupPod(key client.ObjectKey, backupSpec *BackupSpec) *corev1.Pod {
 			RestartPolicy:    corev1.RestartPolicyOnFailure,
 			Volumes:          tabletVolumes.Get(tabletSpec),
 			SecurityContext:  podSecurityContext,
+			Tolerations:      tabletSpec.Tolerations,
 			InitContainers: []corev1.Container{
 				{
 					Name:            "init-vt-root",

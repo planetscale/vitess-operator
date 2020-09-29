@@ -244,6 +244,7 @@ func vtbackupSpec(key client.ObjectKey, vts *planetscalev2.VitessShard, parentLa
 		SidecarContainers:        pool.SidecarContainers,
 		ExtraEnv:                 pool.ExtraEnv,
 		Annotations:              annotations,
+		Tolerations:              pool.Tolerations,
 	}
 
 	return &vttablet.BackupSpec{
