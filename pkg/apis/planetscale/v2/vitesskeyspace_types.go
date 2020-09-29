@@ -401,13 +401,33 @@ type VitessKeyspacePartitioningStatus struct {
 	// possible that some shards in this partitioning are serving writes.
 	// Check the per-shard status for full details.
 	ServingWrites corev1.ConditionStatus `json:"servingWrites,omitempty"`
+	// DesiredTablets is the number of desired tablets. This is computed from
+	// information that's already available in the spec, but clients should
+	// use this value instead of trying to compute shard partitionings on their
+	// own.
+	DesiredTablets int32 `json:"desiredTablets,omitempty"`
+	// Tablets is the number of observed tablets. This could be higher or
+	// lower than desiredTablets if the state has not yet converged.
+	Tablets int32 `json:"tablets,omitempty"`
+	// ReadyTablets is the number of desired tablets that are Ready.
+	ReadyTablets int32 `json:"readyTablets,omitempty"`
+	// UpdatedTablets is the number of desired tablets that are up-to-date
+	// (have no pending changes).
+	UpdatedTablets int32 `json:"updatedTablets,omitempty"`
 }
 
 // NewVitessKeyspacePartitioningStatus creates a new status object with default values.
 func NewVitessKeyspacePartitioningStatus(partitioning *VitessKeyspacePartitioning) VitessKeyspacePartitioningStatus {
+	desiredTablets := int32(0)
+	tabletPools := partitioning.TabletPools()
+	for tpIndex := range tabletPools {
+		desiredTablets += tabletPools[tpIndex].Replicas
+	}
+
 	return VitessKeyspacePartitioningStatus{
-		ShardNames:    partitioning.ShardNameSet().List(),
-		ServingWrites: corev1.ConditionUnknown,
+		ShardNames:     partitioning.ShardNameSet().List(),
+		ServingWrites:  corev1.ConditionUnknown,
+		DesiredTablets: desiredTablets,
 	}
 }
 
@@ -441,6 +461,8 @@ const (
 	// VitessKeyspaceReshardingInSync indicates whether the keyspace has an active
 	// resharding operation whose target shards are ready to serve if traffic is switched.
 	VitessKeyspaceReshardingInSync VitessKeyspaceConditionType = "ReshardingInSync"
+	// VitessKeyspaceReady indicates whether the keyspace's serving partitionings tablets are all ready.
+	VitessKeyspaceReady VitessKeyspaceConditionType = "Ready"
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

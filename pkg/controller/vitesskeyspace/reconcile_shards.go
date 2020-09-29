@@ -18,6 +18,7 @@ package vitesskeyspace
 
 import (
 	"context"
+	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -152,6 +153,17 @@ func (r *reconcileHandler) reconcileShards(ctx context.Context) error {
 	for i := range r.vtk.Status.Partitionings {
 		status := &r.vtk.Status.Partitionings[i]
 		status.ServingWrites = allShardsServingWrites(status.ShardNames, r.vtk.Status.Shards)
+		status.Tablets = totalTablets(status.ShardNames, r.vtk.Status.Shards)
+		status.ReadyTablets = totalReadytablets(status.ShardNames, r.vtk.Status.Shards)
+		status.UpdatedTablets = totalUpdatedTablets(status.ShardNames, r.vtk.Status.Shards)
+
+		if status.ServingWrites == corev1.ConditionTrue {
+			if status.ReadyTablets != status.DesiredTablets {
+				r.setConditionStatus(planetscalev2.VitessKeyspaceReady, corev1.ConditionFalse, "NonReadyServingTablets", fmt.Sprintf("Desired serving tablet count: %d; Ready serving tablet count: %d", status.DesiredTablets, status.ReadyTablets))
+			} else {
+				r.setConditionStatus(planetscalev2.VitessKeyspaceReady, corev1.ConditionTrue, "ServingTabletsReady", "All serving tablets for keyspace are ready")
+			}
+		}
 	}
 
 	return nil
@@ -185,6 +197,48 @@ func allShardsServingWrites(shardNames []string, shardStatus map[string]planetsc
 	}
 
 	return result
+}
+
+func totalReadytablets(shardNames []string, shardStatus map[string]planetscalev2.VitessKeyspaceShardStatus) int32 {
+	// A partitioning with no shards has no ready tablets.
+	if len(shardNames) == 0 {
+		return 0
+	}
+
+	var tabletCount int32
+	for _, shard := range shardNames {
+		tabletCount += shardStatus[shard].ReadyTablets
+	}
+
+	return tabletCount
+}
+
+func totalTablets(shardNames []string, shardStatus map[string]planetscalev2.VitessKeyspaceShardStatus) int32 {
+	// A partitioning with no shards has no tablets.
+	if len(shardNames) == 0 {
+		return 0
+	}
+
+	var tabletCount int32
+	for _, shard := range shardNames {
+		tabletCount += shardStatus[shard].Tablets
+	}
+
+	return tabletCount
+}
+
+func totalUpdatedTablets(shardNames []string, shardStatus map[string]planetscalev2.VitessKeyspaceShardStatus) int32 {
+	// A partitioning with no shards has no updated tablets.
+	if len(shardNames) == 0 {
+		return 0
+	}
+
+	var tabletCount int32
+	for _, shard := range shardNames {
+		tabletCount += shardStatus[shard].UpdatedTablets
+	}
+
+	return tabletCount
 }
 
 // newVitessShard expands a complete VitessShard from a VitessShardTemplate.

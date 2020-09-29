@@ -911,12 +911,24 @@ spec:
             partitionings:
               items:
                 properties:
+                  desiredTablets:
+                    format: int32
+                    type: integer
+                  readyTablets:
+                    format: int32
+                    type: integer
                   servingWrites:
                     type: string
                   shardNames:
                     items:
                       type: string
                     type: array
+                  tablets:
+                    format: int32
+                    type: integer
+                  updatedTablets:
+                    format: int32
+                    type: integer
                 type: object
               type: array
             resharding:

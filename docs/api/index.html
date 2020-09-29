@@ -4933,6 +4933,55 @@ possible that some shards in this partitioning are serving writes.
 Check the per-shard status for full details.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>desiredTablets</code></br>
+<em>
+int32
+</em>
+</td>
+<td>
+<p>DesiredTablets is the number of desired tablets. This is computed from
+information that&rsquo;s already available in the spec, but clients should
+use this value instead of trying to compute shard partitionings on their
+own.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>tablets</code></br>
+<em>
+int32
+</em>
+</td>
+<td>
+<p>Tablets is the number of observed tablets. This could be higher or
+lower than desiredTablets if the state has not yet converged.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>readyTablets</code></br>
+<em>
+int32
+</em>
+</td>
+<td>
+<p>ReadyTablets is the number of desired tablets that are Ready.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>updatedTablets</code></br>
+<em>
+int32
+</em>
+</td>
+<td>
+<p>UpdatedTablets is the number of desired tablets that are up-to-date
+(have no pending changes).</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="planetscale.com/v2.VitessKeyspaceShardStatus">VitessKeyspaceShardStatus
