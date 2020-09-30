@@ -154,7 +154,7 @@ func (r *reconcileHandler) reconcileShards(ctx context.Context) error {
 		status := &r.vtk.Status.Partitionings[i]
 		status.ServingWrites = allShardsServingWrites(status.ShardNames, r.vtk.Status.Shards)
 		status.Tablets = totalTablets(status.ShardNames, r.vtk.Status.Shards)
-		status.ReadyTablets = totalReadytablets(status.ShardNames, r.vtk.Status.Shards)
+		status.ReadyTablets = totalReadyTablets(status.ShardNames, r.vtk.Status.Shards)
 		status.UpdatedTablets = totalUpdatedTablets(status.ShardNames, r.vtk.Status.Shards)
 
 		if status.ServingWrites == corev1.ConditionTrue {
@@ -199,7 +199,7 @@ func allShardsServingWrites(shardNames []string, shardStatus map[string]planetsc
 	return result
 }
 
-func totalReadytablets(shardNames []string, shardStatus map[string]planetscalev2.VitessKeyspaceShardStatus) int32 {
+func totalReadyTablets(shardNames []string, shardStatus map[string]planetscalev2.VitessKeyspaceShardStatus) int32 {
 	// A partitioning with no shards has no ready tablets.
 	if len(shardNames) == 0 {
 		return 0
