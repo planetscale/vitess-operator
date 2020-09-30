@@ -200,11 +200,6 @@ func allShardsServingWrites(shardNames []string, shardStatus map[string]planetsc
 }
 
 func totalReadyTablets(shardNames []string, shardStatus map[string]planetscalev2.VitessKeyspaceShardStatus) int32 {
-	// A partitioning with no shards has no ready tablets.
-	if len(shardNames) == 0 {
-		return 0
-	}
-
 	var tabletCount int32
 	for _, shard := range shardNames {
 		tabletCount += shardStatus[shard].ReadyTablets
@@ -214,11 +209,6 @@ func totalReadyTablets(shardNames []string, shardStatus map[string]planetscalev2
 }
 
 func totalTablets(shardNames []string, shardStatus map[string]planetscalev2.VitessKeyspaceShardStatus) int32 {
-	// A partitioning with no shards has no tablets.
-	if len(shardNames) == 0 {
-		return 0
-	}
-
 	var tabletCount int32
 	for _, shard := range shardNames {
 		tabletCount += shardStatus[shard].Tablets
@@ -228,11 +218,6 @@ func totalTablets(shardNames []string, shardStatus map[string]planetscalev2.Vite
 }
 
 func totalUpdatedTablets(shardNames []string, shardStatus map[string]planetscalev2.VitessKeyspaceShardStatus) int32 {
-	// A partitioning with no shards has no updated tablets.
-	if len(shardNames) == 0 {
-		return 0
-	}
-
 	var tabletCount int32
 	for _, shard := range shardNames {
 		tabletCount += shardStatus[shard].UpdatedTablets
