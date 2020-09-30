@@ -414,11 +414,20 @@ type VitessKeyspacePartitioningStatus struct {
 	// UpdatedTablets is the number of desired tablets that are up-to-date
 	// (have no pending changes).
 	UpdatedTablets int32 `json:"updatedTablets,omitempty"`
+	// DesiredShards is the number of desired shards. This is computed from
+	// information that's already available in the spec, but clients should
+	// use this value instead of trying to compute shard partitionings on their
+	// own.
+	DesiredShards int32 `json:"desiredShards,omitempty"`
+	// ReadyShards is the number of desired shards that are Ready.
+	ReadyShards int32 `json:"readyShards,omitempty"`
 }
 
 // NewVitessKeyspacePartitioningStatus creates a new status object with default values.
 func NewVitessKeyspacePartitioningStatus(partitioning *VitessKeyspacePartitioning) VitessKeyspacePartitioningStatus {
 	var desiredTablets int32
+	shards := partitioning.ShardNameSet()
+	desiredShards := int32(shards.Len())
 
 	tabletPools := partitioning.TabletPools()
 	for tpIndex := range tabletPools {
@@ -429,6 +438,7 @@ func NewVitessKeyspacePartitioningStatus(partitioning *VitessKeyspacePartitionin
 		ShardNames:     partitioning.ShardNameSet().List(),
 		ServingWrites:  corev1.ConditionUnknown,
 		DesiredTablets: desiredTablets,
+		DesiredShards:  desiredShards,
 	}
 }
 

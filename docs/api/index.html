@@ -4982,6 +4982,31 @@ int32
 (have no pending changes).</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>desiredShards</code></br>
+<em>
+int32
+</em>
+</td>
+<td>
+<p>DesiredShards is the number of desired shards. This is computed from
+information that&rsquo;s already available in the spec, but clients should
+use this value instead of trying to compute shard partitionings on their
+own.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>readyShards</code></br>
+<em>
+int32
+</em>
+</td>
+<td>
+<p>ReadyShards is the number of desired shards that are Ready.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="planetscale.com/v2.VitessKeyspaceShardStatus">VitessKeyspaceShardStatus

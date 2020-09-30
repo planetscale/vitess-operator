@@ -156,6 +156,7 @@ func (r *reconcileHandler) reconcileShards(ctx context.Context) error {
 		status.Tablets = totalTablets(status.ShardNames, r.vtk.Status.Shards)
 		status.ReadyTablets = totalReadyTablets(status.ShardNames, r.vtk.Status.Shards)
 		status.UpdatedTablets = totalUpdatedTablets(status.ShardNames, r.vtk.Status.Shards)
+		status.ReadyShards = totalReadyShards(status.ShardNames, r.vtk.Status.Shards)
 
 		if status.ServingWrites == corev1.ConditionTrue {
 			foundServingPartitioning = true
@@ -228,6 +229,18 @@ func totalUpdatedTablets(shardNames []string, shardStatus map[string]planetscale
 	}
 
 	return tabletCount
+}
+
+func totalReadyShards(shardNames []string, shardStatus map[string]planetscalev2.VitessKeyspaceShardStatus) int32 {
+	var readyShards int32
+	for _, shardName := range shardNames {
+		shard := shardStatus[shardName]
+		if shard.ReadyTablets == shard.Tablets {
+			readyShards++
+		}
+	}
+
+	return readyShards
 }
 
 // newVitessShard expands a complete VitessShard from a VitessShardTemplate.
