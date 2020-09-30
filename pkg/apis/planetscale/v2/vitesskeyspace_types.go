@@ -427,7 +427,6 @@ type VitessKeyspacePartitioningStatus struct {
 func NewVitessKeyspacePartitioningStatus(partitioning *VitessKeyspacePartitioning) VitessKeyspacePartitioningStatus {
 	var desiredTablets int32
 	shards := partitioning.ShardNameSet()
-	desiredShards := int32(shards.Len())
 
 	tabletPools := partitioning.TabletPools()
 	for tpIndex := range tabletPools {
@@ -435,10 +434,10 @@ func NewVitessKeyspacePartitioningStatus(partitioning *VitessKeyspacePartitionin
 	}
 
 	return VitessKeyspacePartitioningStatus{
-		ShardNames:     partitioning.ShardNameSet().List(),
+		ShardNames:     shards.List(),
 		ServingWrites:  corev1.ConditionUnknown,
 		DesiredTablets: desiredTablets,
-		DesiredShards:  desiredShards,
+		DesiredShards:  int32(shards.Len()),
 	}
 }
 
