@@ -18,7 +18,6 @@ package vitesskeyspace
 
 import (
 	"context"
-	"fmt"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -159,9 +158,9 @@ func (r *reconcileHandler) reconcileShards(ctx context.Context) error {
 
 		if status.ServingWrites == corev1.ConditionTrue {
 			if status.ReadyTablets != status.DesiredTablets {
-				r.setConditionStatus(planetscalev2.VitessKeyspaceReady, corev1.ConditionFalse, "NonReadyServingTablets", fmt.Sprintf("Desired serving tablet count: %d; Ready serving tablet count: %d", status.DesiredTablets, status.ReadyTablets))
+				r.setConditionStatus(planetscalev2.VitessKeyspaceReady, corev1.ConditionFalse, "TabletsNotReady", "Some tablet Pods for the serving partitioning are not Ready.")
 			} else {
-				r.setConditionStatus(planetscalev2.VitessKeyspaceReady, corev1.ConditionTrue, "ServingTabletsReady", "All serving tablets for keyspace are ready")
+				r.setConditionStatus(planetscalev2.VitessKeyspaceReady, corev1.ConditionTrue, "TabletsReady", "All tablet Pods for the serving partitioning are Ready.")
 			}
 		}
 	}
