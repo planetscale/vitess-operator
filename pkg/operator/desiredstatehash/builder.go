@@ -75,3 +75,14 @@ func (b *Builder) AddContainersUpdates(itemName string, value []corev1.Container
 
 	b.state[itemName] = contenthash.ContainersUpdates(value)
 }
+
+// AddTolerations adds an item of state based on a list of tolerations.
+func (b *Builder) AddTolerations(itemName string, value []corev1.Toleration) {
+	// Skip if the value is empty, so that defining new items doesn't cause any
+	// Pods to be updated until someone actually sets a value for the new field.
+	if len(value) == 0 {
+		return
+	}
+
+	b.state[itemName] = contenthash.Tolerations(value)
+}

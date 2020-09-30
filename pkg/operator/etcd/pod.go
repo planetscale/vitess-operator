@@ -298,9 +298,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 		}
 	}
 
-	if spec.Tolerations != nil {
-		obj.Spec.Tolerations = spec.Tolerations
-	}
+	update.Tolerations(&obj.Spec.Tolerations, spec.Tolerations)
 
 	// Use the PriorityClass we defined for etcd in deploy/priority.yaml,
 	// or a custom value if overridden in the operator command line.
@@ -325,6 +323,10 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	// mistake for an item added by the API server and leave behind.
 	desiredStateHash.AddContainersUpdates("init-containers", initContainers)
 	desiredStateHash.AddContainersUpdates("containers", containers)
+
+	// Record a hash of desired tolerations to force the Pod to be recreated if
+	// one disappears from the desired list.
+	desiredStateHash.AddTolerations("tolerations", spec.Tolerations)
 
 	// Add the final desired state hash annotation.
 	update.Annotations(&obj.Annotations, map[string]string{

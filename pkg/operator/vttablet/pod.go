@@ -261,6 +261,10 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	desiredStateHash.AddContainersUpdates("init-containers", initContainers)
 	desiredStateHash.AddContainersUpdates("containers", containers)
 
+	// Record a hash of desired tolerations to force the Pod to be recreated if
+	// one disappears from the desired list.
+	desiredStateHash.AddTolerations("tolerations", spec.Tolerations)
+
 	// Add the final desired state hash annotation.
 	update.Annotations(&obj.Annotations, map[string]string{
 		desiredstatehash.Annotation: desiredStateHash.String(),
@@ -277,6 +281,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	update.Annotations(&obj.Annotations, tabletAnnotations.Get(spec))
 	update.Volumes(&obj.Spec.Volumes, tabletVolumes.Get(spec))
 	update.Volumes(&obj.Spec.Volumes, spec.ExtraVolumes)
+	update.Tolerations(&obj.Spec.Tolerations, spec.Tolerations)
 
 	if obj.Spec.SecurityContext == nil {
 		obj.Spec.SecurityContext = &corev1.PodSecurityContext{}
@@ -337,10 +342,6 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 				},
 			}
 		}
-	}
-
-	if spec.Tolerations != nil {
-		obj.Spec.Tolerations = spec.Tolerations
 	}
 
 	// Use the PriorityClass we defined for vttablets in deploy/priority.yaml,

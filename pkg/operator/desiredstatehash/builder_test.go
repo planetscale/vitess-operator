@@ -42,6 +42,8 @@ func TestEmptyValues(t *testing.T) {
 	b.AddStringMapKeys("empty StringMapKeys", map[string]string{})
 	b.AddContainersUpdates("nil ContainersUpdates", nil)
 	b.AddContainersUpdates("empty ContainersUpdates", []corev1.Container{})
+	b.AddTolerations("nil Tolerations", nil)
+	b.AddTolerations("empty Tolerations", []corev1.Toleration{})
 
 	if got := b.String(); got != want {
 		t.Errorf("b.String() = %q; want %q", got, want)
