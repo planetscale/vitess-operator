@@ -126,6 +126,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 	obj.Spec.Template.Spec.ImagePullSecrets = spec.Cell.ImagePullSecrets
 	obj.Spec.Template.Spec.PriorityClassName = planetscalev2.DefaultVitessPriorityClass
 	obj.Spec.Template.Spec.ServiceAccountName = planetscalev2.DefaultVitessServiceAccount
+	obj.Spec.Template.Spec.Tolerations = spec.Tolerations
 
 	if spec.Affinity != nil {
 		obj.Spec.Template.Spec.Affinity = spec.Affinity
@@ -150,10 +151,6 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 		}
 	} else {
 		obj.Spec.Template.Spec.Affinity = nil
-	}
-
-        if spec.Tolerations != nil {
-		obj.Spec.Template.Spec.Tolerations = spec.Tolerations
 	}
 
 	env := []corev1.EnvVar{}
