@@ -249,6 +249,13 @@ func (in *EtcdLockserverTemplate) DeepCopyInto(out *EtcdLockserverTemplate) {
 		*out = new(ServiceOverrides)
 		(*in).DeepCopyInto(*out)
 	}
+	if in.Tolerations != nil {
+		in, out := &in.Tolerations, &out.Tolerations
+		*out = make([]v1.Toleration, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
+	}
 	return
 }
 
@@ -928,6 +935,13 @@ func (in *VitessCellGatewaySpec) DeepCopyInto(out *VitessCellGatewaySpec) {
 		*out = new(ServiceOverrides)
 		(*in).DeepCopyInto(*out)
 	}
+	if in.Tolerations != nil {
+		in, out := &in.Tolerations, &out.Tolerations
+		*out = make([]v1.Toleration, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
+	}
 	return
 }
 
@@ -1431,6 +1445,13 @@ func (in *VitessDashboardSpec) DeepCopyInto(out *VitessDashboardSpec) {
 		in, out := &in.Service, &out.Service
 		*out = new(ServiceOverrides)
 		(*in).DeepCopyInto(*out)
+	}
+	if in.Tolerations != nil {
+		in, out := &in.Tolerations, &out.Tolerations
+		*out = make([]v1.Toleration, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
 	}
 	return
 }
@@ -2278,6 +2299,13 @@ func (in *VitessShardTabletPool) DeepCopyInto(out *VitessShardTabletPool) {
 	if in.SidecarContainers != nil {
 		in, out := &in.SidecarContainers, &out.SidecarContainers
 		*out = make([]v1.Container, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
+	}
+	if in.Tolerations != nil {
+		in, out := &in.Tolerations, &out.Tolerations
+		*out = make([]v1.Toleration, len(*in))
 		for i := range *in {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}

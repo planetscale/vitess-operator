@@ -256,6 +256,10 @@ type VitessShardTabletPool struct {
 	// that run alongside the main containers.
 	// +kubebuilder:validation:EmbeddedResource
 	SidecarContainers []corev1.Container `json:"sidecarContainers,omitempty"`
+
+	// Tolerations allow you to schedule pods onto nodes with matching taints.
+	// +kubebuilder:validation:EmbeddedResource
+	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
 }
 
 // VttabletSpec configures the vttablet server within a tablet.

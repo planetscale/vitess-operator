@@ -26,7 +26,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
-	"planetscale.dev/vitess-operator/pkg/operator/contenthash"
+	"planetscale.dev/vitess-operator/pkg/operator/desiredstatehash"
 	"planetscale.dev/vitess-operator/pkg/operator/k8s"
 	"planetscale.dev/vitess-operator/pkg/operator/update"
 	"planetscale.dev/vitess-operator/pkg/operator/vitess"
@@ -86,6 +86,7 @@ type Spec struct {
 	Annotations       map[string]string
 	ExtraLabels       map[string]string
 	AdvertisePeerURLs []string
+	Tolerations       []corev1.Toleration
 }
 
 // NewPod creates a new etcd Pod.
@@ -120,13 +121,6 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	update.Labels(&obj.Labels, spec.ExtraLabels)
 	// Update desired annotations.
 	update.Annotations(&obj.Annotations, spec.Annotations)
-
-	// Record hashes of desired label and annotation keys to force the Pod
-	// to be recreated if a key disappears from the desired list.
-	update.Annotations(&obj.Annotations, map[string]string{
-		"planetscale.com/labels-keys-hash":      contenthash.StringMapKeys(spec.ExtraLabels),
-		"planetscale.com/annotations-keys-hash": contenthash.StringMapKeys(spec.Annotations),
-	})
 
 	// Compute default environment variables first.
 	env := []corev1.EnvVar{
@@ -304,6 +298,8 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 		}
 	}
 
+	update.Tolerations(&obj.Spec.Tolerations, spec.Tolerations)
+
 	// Use the PriorityClass we defined for etcd in deploy/priority.yaml,
 	// or a custom value if overridden in the operator command line.
 	if planetscalev2.DefaultVitessPriorityClass != "" {
@@ -316,12 +312,25 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 		*etcdContainer,
 	}
 
+	// Record hashes of desired label and annotation keys to force the Pod
+	// to be recreated if a key disappears from the desired list.
+	desiredStateHash := desiredstatehash.NewBuilder()
+	desiredStateHash.AddStringMapKeys("labels-keys", spec.ExtraLabels)
+	desiredStateHash.AddStringMapKeys("annotations-keys", spec.Annotations)
+
 	// Record a hash of desired containers to force the Pod to be recreated if
 	// something is removed from our desired state that we otherwise might
 	// mistake for an item added by the API server and leave behind.
+	desiredStateHash.AddContainersUpdates("init-containers", initContainers)
+	desiredStateHash.AddContainersUpdates("containers", containers)
+
+	// Record a hash of desired tolerations to force the Pod to be recreated if
+	// one disappears from the desired list.
+	desiredStateHash.AddTolerations("tolerations", spec.Tolerations)
+
+	// Add the final desired state hash annotation.
 	update.Annotations(&obj.Annotations, map[string]string{
-		"planetscale.com/init-containers-hash": contenthash.ContainersUpdates(initContainers),
-		"planetscale.com/containers-hash":      contenthash.ContainersUpdates(containers),
+		desiredstatehash.Annotation: desiredStateHash.String(),
 	})
 
 	// Inject init containers from spec.

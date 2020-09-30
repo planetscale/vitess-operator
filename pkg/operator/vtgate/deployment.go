@@ -78,6 +78,7 @@ type Spec struct {
 	SidecarContainers []corev1.Container
 	Annotations       map[string]string
 	ExtraLabels       map[string]string
+	Tolerations       []corev1.Toleration
 }
 
 // NewDeployment creates a new Deployment object for vtctld.
@@ -125,6 +126,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 	obj.Spec.Template.Spec.ImagePullSecrets = spec.Cell.ImagePullSecrets
 	obj.Spec.Template.Spec.PriorityClassName = planetscalev2.DefaultVitessPriorityClass
 	obj.Spec.Template.Spec.ServiceAccountName = planetscalev2.DefaultVitessServiceAccount
+	obj.Spec.Template.Spec.Tolerations = spec.Tolerations
 
 	if spec.Affinity != nil {
 		obj.Spec.Template.Spec.Affinity = spec.Affinity

@@ -58,6 +58,7 @@ type Spec struct {
 	ExtraVolumeMounts        []corev1.VolumeMount
 	InitContainers           []corev1.Container
 	SidecarContainers        []corev1.Container
+	Tolerations              []corev1.Toleration
 }
 
 // localDatabaseName returns the MySQL database name for a tablet Spec in the case of locally managed MySQL.

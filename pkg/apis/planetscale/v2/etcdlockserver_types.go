@@ -188,6 +188,10 @@ type EtcdLockserverTemplate struct {
 
 	// PeerService can optionally be used to customize the etcd peer Service.
 	PeerService *ServiceOverrides `json:"peerService,omitempty"`
+
+	// Tolerations allow you to schedule pods onto nodes with matching taints.
+	// +kubebuilder:validation:EmbeddedResource
+	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
 }
 
 // EtcdLockserverStatus defines the observed state of an EtcdLockserver.

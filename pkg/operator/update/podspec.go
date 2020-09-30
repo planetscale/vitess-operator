@@ -257,3 +257,23 @@ srcLoop:
 		*dst = append(*dst, *srcObj)
 	}
 }
+
+// Tolerations updates entries in 'dst' based on the values in 'src'.
+// It leaves extra entries (found in 'dst' but not in 'src') untouched,
+// since those might be set by mutating admission webhooks or other controllers.
+func Tolerations(dst *[]corev1.Toleration, src []corev1.Toleration) {
+srcLoop:
+	for srcIndex := range src {
+		srcObj := &src[srcIndex]
+		// If this item is already there, update it.
+		for dstIndex := range *dst {
+			dstObj := &(*dst)[dstIndex]
+			if dstObj.MatchToleration(srcObj) {
+				*dstObj = *srcObj
+				continue srcLoop
+			}
+		}
+		// Otherwise, append it.
+		*dst = append(*dst, *srcObj)
+	}
+}
