@@ -462,7 +462,7 @@ const (
 	// VitessKeyspaceReshardingInSync indicates whether the keyspace has an active
 	// resharding operation whose target shards are ready to serve if traffic is switched.
 	VitessKeyspaceReshardingInSync VitessKeyspaceConditionType = "ReshardingInSync"
-	// VitessKeyspaceReady indicates whether the keyspace's serving partitionings tablets are all ready.
+	// VitessKeyspaceReady indicates whether the tablet Pods of the keyspace's serving partitioning are all Ready.
 	VitessKeyspaceReady VitessKeyspaceConditionType = "Ready"
 )
 
