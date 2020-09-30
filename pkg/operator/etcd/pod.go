@@ -26,7 +26,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
-	"planetscale.dev/vitess-operator/pkg/operator/contenthash"
+	"planetscale.dev/vitess-operator/pkg/operator/desiredstatehash"
 	"planetscale.dev/vitess-operator/pkg/operator/k8s"
 	"planetscale.dev/vitess-operator/pkg/operator/update"
 	"planetscale.dev/vitess-operator/pkg/operator/vitess"
@@ -121,13 +121,6 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	update.Labels(&obj.Labels, spec.ExtraLabels)
 	// Update desired annotations.
 	update.Annotations(&obj.Annotations, spec.Annotations)
-
-	// Record hashes of desired label and annotation keys to force the Pod
-	// to be recreated if a key disappears from the desired list.
-	update.Annotations(&obj.Annotations, map[string]string{
-		"planetscale.com/labels-keys-hash":      contenthash.StringMapKeys(spec.ExtraLabels),
-		"planetscale.com/annotations-keys-hash": contenthash.StringMapKeys(spec.Annotations),
-	})
 
 	// Compute default environment variables first.
 	env := []corev1.EnvVar{
@@ -321,12 +314,21 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 		*etcdContainer,
 	}
 
+	// Record hashes of desired label and annotation keys to force the Pod
+	// to be recreated if a key disappears from the desired list.
+	desiredStateHash := desiredstatehash.NewBuilder()
+	desiredStateHash.AddStringMapKeys("labels-keys", spec.ExtraLabels)
+	desiredStateHash.AddStringMapKeys("annotations-keys", spec.Annotations)
+
 	// Record a hash of desired containers to force the Pod to be recreated if
 	// something is removed from our desired state that we otherwise might
 	// mistake for an item added by the API server and leave behind.
+	desiredStateHash.AddContainersUpdates("init-containers", initContainers)
+	desiredStateHash.AddContainersUpdates("containers", containers)
+
+	// Add the final desired state hash annotation.
 	update.Annotations(&obj.Annotations, map[string]string{
-		"planetscale.com/init-containers-hash": contenthash.ContainersUpdates(initContainers),
-		"planetscale.com/containers-hash":      contenthash.ContainersUpdates(containers),
+		desiredstatehash.Annotation: desiredStateHash.String(),
 	})
 
 	// Inject init containers from spec.
