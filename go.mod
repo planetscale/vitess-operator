@@ -6,6 +6,7 @@ require (
 	github.com/ahmetb/gen-crd-api-reference-docs v0.1.5-0.20190629210212-52e137b8d003
 	github.com/klauspost/compress v1.7.5 // indirect
 	github.com/klauspost/cpuid v1.2.1 // indirect
+	github.com/kubernetes-sigs/kustomize v2.0.3+incompatible // indirect
 	github.com/operator-framework/operator-sdk v0.16.0
 	github.com/prometheus/client_golang v1.4.1
 	github.com/sirupsen/logrus v1.4.2
