@@ -235,7 +235,7 @@ func totalReadyShards(shardNames []string, shardStatus map[string]planetscalev2.
 	var readyShards int32
 	for _, shardName := range shardNames {
 		shard := shardStatus[shardName]
-		if shard.ReadyTablets == shard.Tablets {
+		if shard.ReadyTablets == shard.DesiredTablets {
 			readyShards++
 		}
 	}

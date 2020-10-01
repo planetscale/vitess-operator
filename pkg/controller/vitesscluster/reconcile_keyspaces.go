@@ -91,7 +91,7 @@ func (r *ReconcileVitessCluster) reconcileKeyspaces(ctx context.Context, vt *pla
 			cells := map[string]struct{}{}
 
 			for _, shard := range curObj.Status.Shards {
-				if shard.ReadyTablets == shard.Tablets {
+				if shard.ReadyTablets == shard.DesiredTablets {
 					status.ReadyShards++
 				}
 				if shard.UpdatedTablets == shard.Tablets {
