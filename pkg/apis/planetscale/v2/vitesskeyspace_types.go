@@ -378,7 +378,7 @@ type VitessKeyspaceShardStatus struct {
 
 // NewVitessKeyspaceShardStatus creates a new status object with default values.
 func NewVitessKeyspaceShardStatus(spec *VitessKeyspaceKeyRangeShard) VitessKeyspaceShardStatus {
-	desiredTablets := int32(0)
+	var desiredTablets int32
 	for tpIndex := range spec.TabletPools {
 		desiredTablets += spec.TabletPools[tpIndex].Replicas
 	}
@@ -401,13 +401,43 @@ type VitessKeyspacePartitioningStatus struct {
 	// possible that some shards in this partitioning are serving writes.
 	// Check the per-shard status for full details.
 	ServingWrites corev1.ConditionStatus `json:"servingWrites,omitempty"`
+	// DesiredTablets is the number of desired tablets. This is computed from
+	// information that's already available in the spec, but clients should
+	// use this value instead of trying to compute shard partitionings on their
+	// own.
+	DesiredTablets int32 `json:"desiredTablets,omitempty"`
+	// Tablets is the number of observed tablets. This could be higher or
+	// lower than desiredTablets if the state has not yet converged.
+	Tablets int32 `json:"tablets,omitempty"`
+	// ReadyTablets is the number of desired tablets that are Ready.
+	ReadyTablets int32 `json:"readyTablets,omitempty"`
+	// UpdatedTablets is the number of desired tablets that are up-to-date
+	// (have no pending changes).
+	UpdatedTablets int32 `json:"updatedTablets,omitempty"`
+	// DesiredShards is the number of desired shards. This is computed from
+	// information that's already available in the spec, but clients should
+	// use this value instead of trying to compute shard partitionings on their
+	// own.
+	DesiredShards int32 `json:"desiredShards,omitempty"`
+	// ReadyShards is the number of desired shards that are Ready.
+	ReadyShards int32 `json:"readyShards,omitempty"`
 }
 
 // NewVitessKeyspacePartitioningStatus creates a new status object with default values.
 func NewVitessKeyspacePartitioningStatus(partitioning *VitessKeyspacePartitioning) VitessKeyspacePartitioningStatus {
+	var desiredTablets int32
+	shards := partitioning.ShardNameSet()
+
+	tabletPools := partitioning.TabletPools()
+	for tpIndex := range tabletPools {
+		desiredTablets += tabletPools[tpIndex].Replicas
+	}
+
 	return VitessKeyspacePartitioningStatus{
-		ShardNames:    partitioning.ShardNameSet().List(),
-		ServingWrites: corev1.ConditionUnknown,
+		ShardNames:     shards.List(),
+		ServingWrites:  corev1.ConditionUnknown,
+		DesiredTablets: desiredTablets,
+		DesiredShards:  int32(shards.Len()),
 	}
 }
 
@@ -441,6 +471,8 @@ const (
 	// VitessKeyspaceReshardingInSync indicates whether the keyspace has an active
 	// resharding operation whose target shards are ready to serve if traffic is switched.
 	VitessKeyspaceReshardingInSync VitessKeyspaceConditionType = "ReshardingInSync"
+	// VitessKeyspaceReady indicates whether the tablet Pods of the keyspace's serving partitioning are all Ready.
+	VitessKeyspaceReady VitessKeyspaceConditionType = "Ready"
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

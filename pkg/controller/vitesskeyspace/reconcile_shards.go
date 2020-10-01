@@ -149,9 +149,26 @@ func (r *reconcileHandler) reconcileShards(ctx context.Context) error {
 	}
 
 	// Aggregate per-shard status, grouped by partitioning.
+	var foundServingPartitioning bool
 	for i := range r.vtk.Status.Partitionings {
 		status := &r.vtk.Status.Partitionings[i]
 		status.ServingWrites = allShardsServingWrites(status.ShardNames, r.vtk.Status.Shards)
+		status.Tablets = totalTablets(status.ShardNames, r.vtk.Status.Shards)
+		status.ReadyTablets = totalReadyTablets(status.ShardNames, r.vtk.Status.Shards)
+		status.UpdatedTablets = totalUpdatedTablets(status.ShardNames, r.vtk.Status.Shards)
+		status.ReadyShards = totalReadyShards(status.ShardNames, r.vtk.Status.Shards)
+
+		if status.ServingWrites == corev1.ConditionTrue {
+			foundServingPartitioning = true
+			if status.ReadyTablets != status.DesiredTablets {
+				r.setConditionStatus(planetscalev2.VitessKeyspaceReady, corev1.ConditionFalse, "TabletsNotReady", "Some tablet Pods for the serving partitioning are not Ready.")
+			} else {
+				r.setConditionStatus(planetscalev2.VitessKeyspaceReady, corev1.ConditionTrue, "TabletsReady", "All tablet Pods for the serving partitioning are Ready.")
+			}
+		}
+	}
+	if !foundServingPartitioning {
+		r.setConditionStatus(planetscalev2.VitessKeyspaceReady, corev1.ConditionFalse, "NoServingPartitioning", "No partitioning in this keyspace is serving write traffic.")
 	}
 
 	return nil
@@ -185,6 +202,45 @@ func allShardsServingWrites(shardNames []string, shardStatus map[string]planetsc
 	}
 
 	return result
+}
+
+func totalReadyTablets(shardNames []string, shardStatus map[string]planetscalev2.VitessKeyspaceShardStatus) int32 {
+	var tabletCount int32
+	for _, shard := range shardNames {
+		tabletCount += shardStatus[shard].ReadyTablets
+	}
+
+	return tabletCount
+}
+
+func totalTablets(shardNames []string, shardStatus map[string]planetscalev2.VitessKeyspaceShardStatus) int32 {
+	var tabletCount int32
+	for _, shard := range shardNames {
+		tabletCount += shardStatus[shard].Tablets
+	}
+
+	return tabletCount
+}
+
+func totalUpdatedTablets(shardNames []string, shardStatus map[string]planetscalev2.VitessKeyspaceShardStatus) int32 {
+	var tabletCount int32
+	for _, shard := range shardNames {
+		tabletCount += shardStatus[shard].UpdatedTablets
+	}
+
+	return tabletCount
+}
+
+func totalReadyShards(shardNames []string, shardStatus map[string]planetscalev2.VitessKeyspaceShardStatus) int32 {
+	var readyShards int32
+	for _, shardName := range shardNames {
+		shard := shardStatus[shardName]
+		if shard.ReadyTablets == shard.DesiredTablets {
+			readyShards++
+		}
+	}
+
+	return readyShards
 }
 
 // newVitessShard expands a complete VitessShard from a VitessShardTemplate.

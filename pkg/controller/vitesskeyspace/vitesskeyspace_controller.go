@@ -54,6 +54,7 @@ var (
 	keyspaceConditions = map[planetscalev2.VitessKeyspaceConditionType]bool{
 		planetscalev2.VitessKeyspaceReshardingActive: true,
 		planetscalev2.VitessKeyspaceReshardingInSync: true,
+		planetscalev2.VitessKeyspaceReady:            true,
 	}
 )
 
