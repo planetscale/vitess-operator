@@ -425,18 +425,12 @@ type VitessKeyspacePartitioningStatus struct {
 
 // NewVitessKeyspacePartitioningStatus creates a new status object with default values.
 func NewVitessKeyspacePartitioningStatus(partitioning *VitessKeyspacePartitioning) VitessKeyspacePartitioningStatus {
-	var desiredTablets int32
 	shards := partitioning.ShardNameSet()
-
-	tabletPools := partitioning.TabletPools()
-	for tpIndex := range tabletPools {
-		desiredTablets += tabletPools[tpIndex].Replicas
-	}
 
 	return VitessKeyspacePartitioningStatus{
 		ShardNames:     shards.List(),
 		ServingWrites:  corev1.ConditionUnknown,
-		DesiredTablets: desiredTablets,
+		DesiredTablets: partitioning.TotalReplicas(),
 		DesiredShards:  int32(shards.Len()),
 	}
 }
