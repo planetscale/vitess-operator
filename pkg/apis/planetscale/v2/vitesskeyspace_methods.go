@@ -161,6 +161,30 @@ func (p *VitessKeyspacePartitioning) TabletPools() []VitessShardTabletPool {
 	return nil
 }
 
+// TotalReplicas returns the total number of replicas in all tablet pools of
+// all shards in this partitioning.
+func (p *VitessKeyspacePartitioning) TotalReplicas() int32 {
+	if p.Equal != nil {
+		var perShardCount int32
+		for i := range p.Equal.ShardTemplate.TabletPools {
+			perShardCount += p.Equal.ShardTemplate.TabletPools[i].Replicas
+		}
+		return perShardCount * p.Equal.Parts
+	}
+	if p.Custom != nil {
+		var count int32
+		for shardIdx := range p.Custom.Shards {
+			shard := &p.Custom.Shards[shardIdx]
+			for poolIdx := range shard.TabletPools {
+				pool := &shard.TabletPools[poolIdx]
+				count += pool.Replicas
+			}
+		}
+		return count
+	}
+	return 0
+}
+
 // SetConditionStatus first ensures we have allocated a conditions map, and also ensures we have allocated a ShardCondition
 // for the VitessKeyspaceConditionType key supplied. It then moves onto setting the conditions status.
 // For the condition's status, it always updates the reason and message every time. If the current status is the same as the supplied

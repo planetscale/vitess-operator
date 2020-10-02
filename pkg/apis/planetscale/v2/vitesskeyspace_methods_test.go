@@ -50,3 +50,64 @@ func TestTranslationToVitessKeyRange(t *testing.T) {
 		}
 	}
 }
+
+func TestVitessKeyspacePartitioningTotalReplicas(t *testing.T) {
+	equalPartitioning := VitessKeyspacePartitioning{
+		Equal: &VitessKeyspaceEqualPartitioning{
+			Parts: 2,
+			ShardTemplate: VitessShardTemplate{
+				TabletPools: []VitessShardTabletPool{
+					{
+						Cell:     "cell1",
+						Replicas: 1,
+					},
+					{
+						Cell:     "cell2",
+						Replicas: 2,
+					},
+				},
+			},
+		},
+	}
+	if got := equalPartitioning.TotalReplicas(); got != 6 {
+		t.Errorf("equalPartitioning.TotalReplicas() = %v; want 6", got)
+	}
+
+	customPartitioning := VitessKeyspacePartitioning{
+		Custom: &VitessKeyspaceCustomPartitioning{
+			Shards: []VitessKeyspaceKeyRangeShard{
+				{
+					VitessShardTemplate: VitessShardTemplate{
+						TabletPools: []VitessShardTabletPool{
+							{
+								Cell:     "cell1",
+								Replicas: 1,
+							},
+							{
+								Cell:     "cell2",
+								Replicas: 2,
+							},
+						},
+					},
+				},
+				{
+					VitessShardTemplate: VitessShardTemplate{
+						TabletPools: []VitessShardTabletPool{
+							{
+								Cell:     "cell1",
+								Replicas: 1,
+							},
+							{
+								Cell:     "cell2",
+								Replicas: 2,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	if got := customPartitioning.TotalReplicas(); got != 6 {
+		t.Errorf("customPartitioning.TotalReplicas() = %v; want 6", got)
+	}
+}
