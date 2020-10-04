@@ -27,7 +27,6 @@ func DefaultVitessCluster(vt *VitessCluster) {
 	defaultGlobalLockserver(vt)
 	DefaultVitessImages(&vt.Spec.Images, DefaultImages)
 	DefaultVitessDashboard(&vt.Spec.VitessDashboard)
-	DefaultVitessOrchestrator(&vt.Spec.VitessOrchestrator)
 	DefaultVitessKeyspaceTemplates(vt.Spec.Keyspaces)
 	defaultClusterBackup(vt.Spec.Backup)
 	DefaultTopoReconcileConfig(&vt.Spec.TopologyReconciliation)
@@ -95,27 +94,6 @@ func DefaultVitessDashboard(dashboard **VitessDashboardSpec) {
 		}
 	}
 	DefaultServiceOverrides(&(*dashboard).Service)
-}
-
-func DefaultVitessOrchestrator(orchestrator **VitessOrchestratorSpec) {
-	if *orchestrator == nil {
-		*orchestrator = &VitessOrchestratorSpec{}
-	}
-	if (*orchestrator).Replicas == nil {
-		(*orchestrator).Replicas = pointer.Int32Ptr(defaultOrchestratorReplicas)
-	}
-	if len((*orchestrator).Resources.Requests) == 0 {
-		(*orchestrator).Resources.Requests = corev1.ResourceList{
-			corev1.ResourceCPU:    *resource.NewMilliQuantity(defaultOrchestratorCPUMillis, resource.DecimalSI),
-			corev1.ResourceMemory: *resource.NewQuantity(defaultOrchestratorMemoryBytes, resource.BinarySI),
-		}
-	}
-	if len((*orchestrator).Resources.Limits) == 0 {
-		(*orchestrator).Resources.Limits = corev1.ResourceList{
-			corev1.ResourceMemory: *resource.NewQuantity(defaultOrchestratorMemoryBytes, resource.BinarySI),
-		}
-	}
-	DefaultServiceOverrides(&(*orchestrator).Service)
 }
 
 func DefaultVitessKeyspaceTemplates(keyspaces []VitessKeyspaceTemplate) {

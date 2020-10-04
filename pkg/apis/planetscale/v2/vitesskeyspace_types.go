@@ -113,6 +113,12 @@ type VitessKeyspaceTemplate struct {
 	// Default: Add a "vt_" prefix to the keyspace name.
 	DatabaseName string `json:"databaseName,omitempty"`
 
+	// VitessOrchestrator deploys a set of Vitess Orchestrator servers for the Keyspace.
+	// It is highly recommended that you set disable_active_reparents=true
+	// and enable_semi_sync=false for the vtablets if enabling Orchestrator.
+	// THIS API IS EXPERIMENTAL: NOT TO BE USED IN PRODUCTION.
+	VitessOrchestrator *VitessOrchestratorSpec `json:"vitessOrchestrator,omitempty"`
+
 	// Partitionings specify how to divide the keyspace up into shards by
 	// defining the range of keyspace IDs that each shard contains.
 	// For example, you might divide the keyspace into N equal-sized key ranges.
@@ -171,6 +177,70 @@ type VitessKeyspaceTemplate struct {
 	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
+// VitessOrchestratorSpec specifies deployment parameters for orchestrator.
+// THIS API IS EXPERIMENTAL: NOT TO BE USED IN PRODUCTION.
+type VitessOrchestratorSpec struct {
+	// ConfigSecret contains the config file (with passwords) for orchestrator.
+	ConfigSecret SecretSource `json:"configSecret"`
+
+	// Resources determines the compute resources reserved for each orchestrator replica.
+	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
+
+	// ExtraFlags can optionally be used to override default flags set by the
+	// operator, or pass additional flags to orchestrator. All entries must be
+	// key-value string pairs of the form "flag": "value". The flag name should
+	// not have any prefix (just "flag", not "-flag"). To set a boolean flag,
+	// set the string value to either "true" or "false".
+	ExtraFlags map[string]string `json:"extraFlags,omitempty"`
+
+	// ExtraEnv can optionally be used to override default environment variables
+	// set by the operator, or pass additional environment variables.
+	ExtraEnv []corev1.EnvVar `json:"extraEnv,omitempty"`
+
+	// ExtraVolumes can optionally be used to override default Pod volumes
+	// defined by the operator, or provide additional volumes to the Pod.
+	// Note that when adding a new volume, you should usually also add a
+	// volumeMount to specify where in each container's filesystem the volume
+	// should be mounted.
+	// +kubebuilder:validation:EmbeddedResource
+	ExtraVolumes []corev1.Volume `json:"extraVolumes,omitempty"`
+
+	// ExtraVolumeMounts can optionally be used to override default Pod
+	// volumeMounts defined by the operator, or specify additional mounts.
+	// Typically, these are used to mount volumes defined through extraVolumes.
+	ExtraVolumeMounts []corev1.VolumeMount `json:"extraVolumeMounts,omitempty"`
+
+	// InitContainers can optionally be used to supply extra init containers
+	// that will be run to completion one after another before any app containers are started.
+	// +kubebuilder:validation:EmbeddedResource
+	InitContainers []corev1.Container `json:"initContainers,omitempty"`
+
+	// SidecarContainers can optionally be used to supply extra containers
+	// that run alongside the main containers.
+	// +kubebuilder:validation:EmbeddedResource
+	SidecarContainers []corev1.Container `json:"sidecarContainers,omitempty"`
+
+	// Affinity allows you to set rules that constrain the scheduling of
+	// your orchestrator pods. WARNING: These affinity rules will override all default affinities
+	// that we set; in turn, we can't guarantee optimal scheduling of your pods if you
+	// choose to set this field.
+	// +kubebuilder:validation:EmbeddedResource
+	Affinity *corev1.Affinity `json:"affinity,omitempty"`
+
+	// Annotations can optionally be used to attach custom annotations to Pods
+	// created for this component. These will be attached to the underlying
+	// Pods that the orchestrator Deployment creates.
+	Annotations map[string]string `json:"annotations,omitempty"`
+
+	// ExtraLabels can optionally be used to attach custom labels to Pods
+	// created for this component. These will be attached to the underlying
+	// Pods that the orchestrator Deployment creates.
+	ExtraLabels map[string]string `json:"extraLabels,omitempty"`
+
+	// Service can optionally be used to customize the orchestrator Service.
+	Service *ServiceOverrides `json:"service,omitempty"`
+}
+
 // VitessKeyspaceTurndownPolicy is the policy for turning down a keyspace.
 type VitessKeyspaceTurndownPolicy string
 
@@ -196,6 +266,8 @@ type VitessKeyspaceImages struct {
 
 	// Vttablet is the container image (including version tag) to use for Vitess Tablet instances.
 	Vttablet string `json:"vttablet,omitempty"`
+	// Orchestrator is the container image (including version tag) to use for Vitess Orchestrator instances.
+	Orchestrator string `json:"orchestrator,omitempty"`
 	// Vtbackup is the container image (including version tag) to use for Vitess Backup jobs.
 	Vtbackup string `json:"vtbackup,omitempty"`
 	// Mysqld specifies the container image to use for mysqld, as well as

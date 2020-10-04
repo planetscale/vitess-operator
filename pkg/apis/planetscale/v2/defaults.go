@@ -114,6 +114,8 @@ var DefaultImages = &VitessImages{
 	// initialization, since vtbackup is effectively a modified mysqlctl(d).
 	Vtbackup: defaultVitessLiteImage,
 
+	Orchestrator: defaultVitessLiteImage,
+
 	// Note: We used to use a mysql-only image, but it's better to use the
 	// same image as the vttablet container since vttablet now uses the
 	// local mysqld binary in its container to do version detection, so the

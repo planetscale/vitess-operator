@@ -45,22 +45,22 @@ const (
 	configDirName = "orc-config"
 )
 
-// DeploymentName returns the name of the orchestrator Deployment for a given cell.
-func DeploymentName(clusterName, cellName string) string {
-	return names.Join(clusterName, cellName, planetscalev2.OrcComponentName)
+// DeploymentName returns the name of the orchestrator Deployment for a given tablet pool.
+func DeploymentName(clusterName, keyspace, shard, cellName string) string {
+	return names.Join(clusterName, keyspace, shard, cellName, planetscalev2.OrcComponentName)
 }
 
 // Spec specifies all the internal parameters needed to deploy orchestrator,
 // as opposed to the API type planetscalev2.VitessDashboardSpec, which is the public API.
 type Spec struct {
-	GlobalLockserver  *planetscalev2.VitessLockserverParams
+	GlobalLockserver  planetscalev2.VitessLockserverParams
 	ConfigSecret      planetscalev2.SecretSource
-	Cell              *planetscalev2.VitessCellTemplate
+	Cell              string
+	Zone              string
 	Image             string
 	ImagePullPolicy   corev1.PullPolicy
 	ImagePullSecrets  []corev1.LocalObjectReference
 	Labels            map[string]string
-	Replicas          int32
 	Resources         corev1.ResourceRequirements
 	Affinity          *corev1.Affinity
 	ExtraFlags        map[string]string
@@ -97,9 +97,6 @@ func NewDeployment(key client.ObjectKey, spec *Spec) *appsv1.Deployment {
 func UpdateDeploymentImmediate(obj *appsv1.Deployment, spec *Spec) {
 	// Set labels on the Deployment object.
 	update.Labels(&obj.Labels, spec.Labels)
-
-	// Scaling up or down doesn't require a rolling update.
-	obj.Spec.Replicas = pointer.Int32Ptr(spec.Replicas)
 }
 
 // UpdateDeployment updates the mutable parts of the orchestrator Deployment
@@ -186,7 +183,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 
 	if spec.Affinity != nil {
 		obj.Spec.Template.Spec.Affinity = spec.Affinity
-	} else if spec.Cell.Zone != "" {
+	} else if spec.Zone != "" {
 		// Limit to a specific zone.
 		obj.Spec.Template.Spec.Affinity = &corev1.Affinity{
 			NodeAffinity: &corev1.NodeAffinity{
@@ -197,7 +194,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 								{
 									Key:      k8s.ZoneFailureDomainLabel,
 									Operator: corev1.NodeSelectorOpIn,
-									Values:   []string{spec.Cell.Zone},
+									Values:   []string{spec.Zone},
 								},
 							},
 						},

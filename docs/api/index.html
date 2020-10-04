@@ -370,20 +370,6 @@ VitessDashboardSpec
 </tr>
 <tr>
 <td>
-<code>vitessOrchestrator</code></br>
-<em>
-<a href="#planetscale.com/v2.VitessOrchestratorSpec">
-VitessOrchestratorSpec
-</a>
-</em>
-</td>
-<td>
-<p>VitessOrchestrator deploys a set of Vitess Orchestrator servers for the Vitess cluster.
-THIS API IS EXPERIMENTAL: NOT TO BE USED IN PRODUCTION.</p>
-</td>
-</tr>
-<tr>
-<td>
 <code>cells</code></br>
 <em>
 <a href="#planetscale.com/v2.VitessCellTemplate">
@@ -3422,20 +3408,6 @@ VitessDashboardSpec
 </tr>
 <tr>
 <td>
-<code>vitessOrchestrator</code></br>
-<em>
-<a href="#planetscale.com/v2.VitessOrchestratorSpec">
-VitessOrchestratorSpec
-</a>
-</em>
-</td>
-<td>
-<p>VitessOrchestrator deploys a set of Vitess Orchestrator servers for the Vitess cluster.
-THIS API IS EXPERIMENTAL: NOT TO BE USED IN PRODUCTION.</p>
-</td>
-</tr>
-<tr>
-<td>
 <code>cells</code></br>
 <em>
 <a href="#planetscale.com/v2.VitessCellTemplate">
@@ -3607,19 +3579,6 @@ VitessDashboardStatus
 </td>
 <td>
 <p>VitessDashboard is a summary of the status of the vtctld deployment.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>vitessOrchestrator</code></br>
-<em>
-<a href="#planetscale.com/v2.VitessOrchestratorStatus">
-VitessOrchestratorStatus
-</a>
-</em>
-</td>
-<td>
-<p>VitessOrchestrator is a summary of the status of the orchestrator deployment.</p>
 </td>
 </tr>
 <tr>
@@ -4209,7 +4168,7 @@ Kubernetes core/v1.PullPolicy
 <td>
 <code>orchestrator</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#pullpolicy-v1-core">
+<a href="https://v1-16.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#pullpolicy-v1-core">
 Kubernetes core/v1.PullPolicy
 </a>
 </em>
@@ -4848,6 +4807,17 @@ string
 </td>
 <td>
 <p>Vttablet is the container image (including version tag) to use for Vitess Tablet instances.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>orchestrator</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Orchestrator is the container image (including version tag) to use for Vitess Orchestrator instances.</p>
 </td>
 </tr>
 <tr>
@@ -5573,6 +5543,22 @@ this to be the same as the keyspace name to reduce confusion.</p>
 </tr>
 <tr>
 <td>
+<code>vitessOrchestrator</code></br>
+<em>
+<a href="#planetscale.com/v2.VitessOrchestratorSpec">
+VitessOrchestratorSpec
+</a>
+</em>
+</td>
+<td>
+<p>VitessOrchestrator deploys a set of Vitess Orchestrator servers for the Keyspace.
+It is highly recommended that you set disable_active_reparents=true
+and enable_semi_sync=false for the vtablets if enabling Orchestrator.
+THIS API IS EXPERIMENTAL: NOT TO BE USED IN PRODUCTION.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>partitionings</code></br>
 <em>
 <a href="#planetscale.com/v2.VitessKeyspacePartitioning">
@@ -5718,7 +5704,8 @@ Multiple Vitess clusters can share a lockserver as long as they have unique root
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#planetscale.com/v2.VitessClusterSpec">VitessClusterSpec</a>)
+<a href="#planetscale.com/v2.VitessKeyspaceTemplate">VitessKeyspaceTemplate</a>, 
+<a href="#planetscale.com/v2.VitessShardSpec">VitessShardSpec</a>)
 </p>
 <p>
 <p>VitessOrchestratorSpec specifies deployment parameters for orchestrator.
@@ -5747,33 +5734,9 @@ SecretSource
 </tr>
 <tr>
 <td>
-<code>cells</code></br>
-<em>
-[]string
-</em>
-</td>
-<td>
-<p>Cells is a list of cell names (as defined in the Cells list)
-in which to deploy orchestrator.
-Default: Deploy to all defined cells.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>replicas</code></br>
-<em>
-int32
-</em>
-</td>
-<td>
-<p>Replicas is the number of orchestrator instances to deploy in each cell.</p>
-</td>
-</tr>
-<tr>
-<td>
 <code>resources</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#resourcerequirements-v1-core">
+<a href="https://v1-16.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#resourcerequirements-v1-core">
 Kubernetes core/v1.ResourceRequirements
 </a>
 </em>
@@ -5801,7 +5764,7 @@ set the string value to either &ldquo;true&rdquo; or &ldquo;false&rdquo;.</p>
 <td>
 <code>extraEnv</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#envvar-v1-core">
+<a href="https://v1-16.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#envvar-v1-core">
 []Kubernetes core/v1.EnvVar
 </a>
 </em>
@@ -5815,7 +5778,7 @@ set by the operator, or pass additional environment variables.</p>
 <td>
 <code>extraVolumes</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#volume-v1-core">
+<a href="https://v1-16.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#volume-v1-core">
 []Kubernetes core/v1.Volume
 </a>
 </em>
@@ -5832,7 +5795,7 @@ should be mounted.</p>
 <td>
 <code>extraVolumeMounts</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#volumemount-v1-core">
+<a href="https://v1-16.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#volumemount-v1-core">
 []Kubernetes core/v1.VolumeMount
 </a>
 </em>
@@ -5847,7 +5810,7 @@ Typically, these are used to mount volumes defined through extraVolumes.</p>
 <td>
 <code>initContainers</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#container-v1-core">
+<a href="https://v1-16.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#container-v1-core">
 []Kubernetes core/v1.Container
 </a>
 </em>
@@ -5861,7 +5824,7 @@ that will be run to completion one after another before any app containers are s
 <td>
 <code>sidecarContainers</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#container-v1-core">
+<a href="https://v1-16.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#container-v1-core">
 []Kubernetes core/v1.Container
 </a>
 </em>
@@ -5875,7 +5838,7 @@ that run alongside the main containers.</p>
 <td>
 <code>affinity</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#affinity-v1-core">
+<a href="https://v1-16.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#affinity-v1-core">
 Kubernetes core/v1.Affinity
 </a>
 </em>
@@ -5932,7 +5895,7 @@ ServiceOverrides
 </h3>
 <p>
 (<em>Appears on:</em>
-<a href="#planetscale.com/v2.VitessClusterStatus">VitessClusterStatus</a>)
+<a href="#planetscale.com/v2.VitessShardStatus">VitessShardStatus</a>)
 </p>
 <p>
 <p>VitessOrchestratorStatus is a summary of the status of the orchestrator deployment.</p>
@@ -5949,7 +5912,7 @@ ServiceOverrides
 <td>
 <code>available</code></br>
 <em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.13/#conditionstatus-v1-core">
+<a href="https://v1-16.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#conditionstatus-v1-core">
 Kubernetes core/v1.ConditionStatus
 </a>
 </em>
@@ -6219,6 +6182,19 @@ VitessLockserverParams
 </td>
 <td>
 <p>GlobalLockserver are the params to connect to the global lockserver.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>vitessOrchestrator</code></br>
+<em>
+<a href="#planetscale.com/v2.VitessOrchestratorSpec">
+VitessOrchestratorSpec
+</a>
+</em>
+</td>
+<td>
+<p>VitessOrchestrator is inherited from the parent&rsquo;s VitessKeyspace.</p>
 </td>
 </tr>
 <tr>
@@ -6519,6 +6495,19 @@ VitessLockserverParams
 </tr>
 <tr>
 <td>
+<code>vitessOrchestrator</code></br>
+<em>
+<a href="#planetscale.com/v2.VitessOrchestratorSpec">
+VitessOrchestratorSpec
+</a>
+</em>
+</td>
+<td>
+<p>VitessOrchestrator is inherited from the parent&rsquo;s VitessKeyspace.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>backupLocations</code></br>
 <em>
 <a href="#planetscale.com/v2.VitessBackupLocation">
@@ -6645,6 +6634,19 @@ map[string]planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus
 </td>
 <td>
 <p>Cells is a list of cells in which any tablets for this shard are deployed.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>vitessOrchestrator</code></br>
+<em>
+<a href="#planetscale.com/v2.VitessOrchestratorStatus">
+VitessOrchestratorStatus
+</a>
+</em>
+</td>
+<td>
+<p>VitessOrchestrator is a summary of the status of the orchestrator deployment.</p>
 </td>
 </tr>
 <tr>
