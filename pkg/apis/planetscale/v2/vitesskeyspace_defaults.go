@@ -26,12 +26,12 @@ import (
 // and the defaulting code for a parent object may not have been run yet, meaning the values passed down from that parent
 // might not be safe to deref.
 func DefaultVitessKeyspace(dst *VitessKeyspace) {
-	DefaultVitessOrchestrator(&dst.Spec.VitessOrchestrator)
+	DefaultOrchestrator(&dst.Spec.Orchestrator)
 	DefaultTopoReconcileConfig(&dst.Spec.TopologyReconciliation)
 	DefaultUpdateStrategy(&dst.Spec.UpdateStrategy)
 }
 
-func DefaultVitessOrchestrator(orchestrator **VitessOrchestratorSpec) {
+func DefaultOrchestrator(orchestrator **OrchestratorSpec) {
 	// If no orchestrator is specified, we don't launch any.
 	if *orchestrator == nil {
 		return

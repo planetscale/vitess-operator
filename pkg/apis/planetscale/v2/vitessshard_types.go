@@ -81,8 +81,8 @@ type VitessShardSpec struct {
 	// GlobalLockserver are the params to connect to the global lockserver.
 	GlobalLockserver VitessLockserverParams `json:"globalLockserver"`
 
-	// VitessOrchestrator is inherited from the parent's VitessKeyspace.
-	VitessOrchestrator *VitessOrchestratorSpec `json:"vitessOrchestrator,omitempty"`
+	// Orchestrator is inherited from the parent's VitessKeyspace.
+	Orchestrator *OrchestratorSpec `json:"orchestrator,omitempty"`
 
 	// BackupLocations are the backup locations defined in the VitessCluster.
 	BackupLocations []VitessBackupLocation `json:"backupLocations,omitempty"`
@@ -355,8 +355,8 @@ type VitessShardStatus struct {
 	// Cells is a list of cells in which any tablets for this shard are deployed.
 	Cells []string `json:"cells,omitempty"`
 
-	// VitessOrchestrator is a summary of the status of the orchestrator deployment.
-	VitessOrchestrator VitessOrchestratorStatus `json:"vitessOrchestrator,omitempty"`
+	// Orchestrator is a summary of the status of the orchestrator deployment.
+	Orchestrator OrchestratorStatus `json:"orchestrator,omitempty"`
 
 	// HasMaster is a condition indicating whether the Vitess topology
 	// reflects a master for this shard.
@@ -399,8 +399,8 @@ type VitessShardStatus struct {
 	LowestPodGeneration int64 `json:"lowestPodGeneration,omitempty"`
 }
 
-// VitessOrchestratorStatus is a summary of the status of the orchestrator deployment.
-type VitessOrchestratorStatus struct {
+// OrchestratorStatus is a summary of the status of the orchestrator deployment.
+type OrchestratorStatus struct {
 	// Available indicates whether the vtctld service has available endpoints.
 	Available corev1.ConditionStatus `json:"available,omitempty"`
 	// ServiceName is the name of the Service for this cluster's vtctld.
@@ -433,7 +433,7 @@ func NewVitessShardStatus() VitessShardStatus {
 	return VitessShardStatus{
 		Tablets:         make(map[string]VitessTabletStatus),
 		OrphanedTablets: make(map[string]OrphanStatus),
-		VitessOrchestrator: VitessOrchestratorStatus{
+		Orchestrator: OrchestratorStatus{
 			Available: corev1.ConditionUnknown,
 		},
 		HasMaster:        corev1.ConditionUnknown,

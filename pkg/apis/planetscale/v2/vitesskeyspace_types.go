@@ -113,11 +113,11 @@ type VitessKeyspaceTemplate struct {
 	// Default: Add a "vt_" prefix to the keyspace name.
 	DatabaseName string `json:"databaseName,omitempty"`
 
-	// VitessOrchestrator deploys a set of Vitess Orchestrator servers for the Keyspace.
+	// Orchestrator deploys a set of Orchestrator servers for the Keyspace.
 	// It is highly recommended that you set disable_active_reparents=true
 	// and enable_semi_sync=false for the vtablets if enabling Orchestrator.
 	// THIS API IS EXPERIMENTAL: NOT TO BE USED IN PRODUCTION.
-	VitessOrchestrator *VitessOrchestratorSpec `json:"vitessOrchestrator,omitempty"`
+	Orchestrator *OrchestratorSpec `json:"orchestrator,omitempty"`
 
 	// Partitionings specify how to divide the keyspace up into shards by
 	// defining the range of keyspace IDs that each shard contains.
@@ -177,9 +177,9 @@ type VitessKeyspaceTemplate struct {
 	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
-// VitessOrchestratorSpec specifies deployment parameters for orchestrator.
+// OrchestratorSpec specifies deployment parameters for orchestrator.
 // THIS API IS EXPERIMENTAL: NOT TO BE USED IN PRODUCTION.
-type VitessOrchestratorSpec struct {
+type OrchestratorSpec struct {
 	// ConfigSecret contains the config file (with passwords) for orchestrator.
 	ConfigSecret SecretSource `json:"configSecret"`
 

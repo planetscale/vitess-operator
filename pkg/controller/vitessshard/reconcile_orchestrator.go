@@ -39,7 +39,7 @@ func (r *ReconcileVitessShard) reconcileOrchestrator(ctx context.Context, vts *p
 	clusterName := vts.Labels[planetscalev2.ClusterLabel]
 
 	labels := map[string]string{
-		planetscalev2.ComponentLabel: planetscalev2.VttabletComponentName,
+		planetscalev2.ComponentLabel: planetscalev2.OrcComponentName,
 		planetscalev2.ClusterLabel:   clusterName,
 		planetscalev2.KeyspaceLabel:  vts.Labels[planetscalev2.KeyspaceLabel],
 		planetscalev2.ShardLabel:     vts.Spec.KeyRange.SafeName(),
@@ -90,8 +90,8 @@ func (r *ReconcileVitessShard) reconcileOrchestrator(ctx context.Context, vts *p
 			// The important thing is that somebody will answer when a client hits the Service.
 			if available := conditions.Deployment(curObj.Status.Conditions, appsv1.DeploymentAvailable); available != nil {
 				// Update the overall status if either we found one that's True, or we previously knew nothing at all (Unknown).
-				if available.Status == corev1.ConditionTrue || vts.Status.VitessOrchestrator.Available == corev1.ConditionUnknown {
-					vts.Status.VitessOrchestrator.Available = available.Status
+				if available.Status == corev1.ConditionTrue || vts.Status.Orchestrator.Available == corev1.ConditionUnknown {
+					vts.Status.Orchestrator.Available = available.Status
 				}
 			}
 		},
@@ -104,7 +104,7 @@ func (r *ReconcileVitessShard) reconcileOrchestrator(ctx context.Context, vts *p
 }
 
 func (r *ReconcileVitessShard) orchestratorSpecs(vts *planetscalev2.VitessShard, parentLabels map[string]string) []*orchestrator.Spec {
-	if vts.Spec.VitessOrchestrator == nil {
+	if vts.Spec.Orchestrator == nil {
 		return nil
 	}
 
@@ -133,27 +133,27 @@ func (r *ReconcileVitessShard) orchestratorSpecs(vts *planetscalev2.VitessShard,
 		// Merge ExtraVitessFlags and ExtraFlags into a new map.
 		extraFlags := make(map[string]string)
 		update.StringMap(&extraFlags, vts.Spec.ExtraVitessFlags)
-		update.StringMap(&extraFlags, vts.Spec.VitessOrchestrator.ExtraFlags)
+		update.StringMap(&extraFlags, vts.Spec.Orchestrator.ExtraFlags)
 
 		specs = append(specs, &orchestrator.Spec{
 			GlobalLockserver:  vts.Spec.GlobalLockserver,
-			ConfigSecret:      vts.Spec.VitessOrchestrator.ConfigSecret,
+			ConfigSecret:      vts.Spec.Orchestrator.ConfigSecret,
 			Image:             vts.Spec.Images.Orchestrator,
 			ImagePullPolicy:   vts.Spec.ImagePullPolicies.Orchestrator,
 			ImagePullSecrets:  vts.Spec.ImagePullSecrets,
 			Cell:              tabletPool.Cell,
 			Zone:              vts.Spec.ZoneMap[tabletPool.Cell],
 			Labels:            labels,
-			Resources:         vts.Spec.VitessOrchestrator.Resources,
-			Affinity:          vts.Spec.VitessOrchestrator.Affinity,
+			Resources:         vts.Spec.Orchestrator.Resources,
+			Affinity:          vts.Spec.Orchestrator.Affinity,
 			ExtraFlags:        extraFlags,
-			ExtraEnv:          vts.Spec.VitessOrchestrator.ExtraEnv,
-			ExtraVolumes:      vts.Spec.VitessOrchestrator.ExtraVolumes,
-			ExtraVolumeMounts: vts.Spec.VitessOrchestrator.ExtraVolumeMounts,
-			InitContainers:    vts.Spec.VitessOrchestrator.InitContainers,
-			SidecarContainers: vts.Spec.VitessOrchestrator.SidecarContainers,
-			Annotations:       vts.Spec.VitessOrchestrator.Annotations,
-			ExtraLabels:       vts.Spec.VitessOrchestrator.ExtraLabels,
+			ExtraEnv:          vts.Spec.Orchestrator.ExtraEnv,
+			ExtraVolumes:      vts.Spec.Orchestrator.ExtraVolumes,
+			ExtraVolumeMounts: vts.Spec.Orchestrator.ExtraVolumeMounts,
+			InitContainers:    vts.Spec.Orchestrator.InitContainers,
+			SidecarContainers: vts.Spec.Orchestrator.SidecarContainers,
+			Annotations:       vts.Spec.Orchestrator.Annotations,
+			ExtraLabels:       vts.Spec.Orchestrator.ExtraLabels,
 		})
 	}
 	return specs
