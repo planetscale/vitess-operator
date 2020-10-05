@@ -85,7 +85,7 @@ func (r *reconcileHandler) reconcileResharding(ctx context.Context) (reconcile.R
 		r.setConditionStatus(planetscalev2.VitessKeyspaceReshardingInSync, corev1.ConditionFalse, "NoActiveReshardingWorkflow", "No active resharding workflow found.")
 		return resultBuilder.Result()
 	}
-	if reshardingWorkflow.Workflow != r.oldStatus.Resharding.Workflow {
+	if r.oldStatus.Resharding != nil && reshardingWorkflow.Workflow != r.oldStatus.Resharding.Workflow {
 		r.setConditionStatus(planetscalev2.VitessKeyspaceReshardingInSync, corev1.ConditionUnknown, "UnknownWorkflowState", fmt.Sprintf("VReplication workflow %v is different from previous workflow %v.", reshardingWorkflow.Workflow, r.oldStatus.Resharding.Workflow))
 	}
 	r.setConditionStatus(planetscalev2.VitessKeyspaceReshardingActive, corev1.ConditionTrue, "ActiveReshardingWorkflow", "One active resharding workflow was found: "+reshardingWorkflow.Workflow)
