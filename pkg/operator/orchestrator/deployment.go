@@ -55,6 +55,8 @@ func DeploymentName(clusterName, keyspace, shard, cellName string) string {
 type Spec struct {
 	GlobalLockserver  planetscalev2.VitessLockserverParams
 	ConfigSecret      planetscalev2.SecretSource
+	Keyspace          string
+	Shard             string
 	Cell              string
 	Zone              string
 	Image             string
@@ -212,6 +214,8 @@ func (spec *Spec) flags() vitess.Flags {
 		"topo_implementation":        spec.GlobalLockserver.Implementation,
 		"topo_global_server_address": spec.GlobalLockserver.Address,
 		"topo_global_root":           spec.GlobalLockserver.RootPath,
+
+		"clusters_to_watch": spec.Keyspace + "/" + spec.Shard,
 
 		"orc_web_dir": webDir,
 
