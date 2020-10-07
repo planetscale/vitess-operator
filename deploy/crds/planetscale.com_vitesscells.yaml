@@ -257,13 +257,13 @@ spec:
                   type: string
                 mysqldExporter:
                   type: string
-                orchestrator:
-                  type: string
                 vtbackup:
                   type: string
                 vtctld:
                   type: string
                 vtgate:
+                  type: string
+                vtorc:
                   type: string
                 vttablet:
                   type: string

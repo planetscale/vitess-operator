@@ -26,28 +26,28 @@ import (
 // and the defaulting code for a parent object may not have been run yet, meaning the values passed down from that parent
 // might not be safe to deref.
 func DefaultVitessKeyspace(dst *VitessKeyspace) {
-	DefaultOrchestrator(&dst.Spec.Orchestrator)
+	DefaultVitessOrchestrator(&dst.Spec.VitessOrchestrator)
 	DefaultTopoReconcileConfig(&dst.Spec.TopologyReconciliation)
 	DefaultUpdateStrategy(&dst.Spec.UpdateStrategy)
 }
 
-func DefaultOrchestrator(orchestrator **OrchestratorSpec) {
-	// If no orchestrator is specified, we don't launch any.
-	if *orchestrator == nil {
+func DefaultVitessOrchestrator(vtorc **VitessOrchestratorSpec) {
+	// If no vtorc is specified, we don't launch any.
+	if *vtorc == nil {
 		return
 	}
-	if len((*orchestrator).Resources.Requests) == 0 {
-		(*orchestrator).Resources.Requests = corev1.ResourceList{
-			corev1.ResourceCPU:    *resource.NewMilliQuantity(defaultOrchestratorCPUMillis, resource.DecimalSI),
-			corev1.ResourceMemory: *resource.NewQuantity(defaultOrchestratorMemoryBytes, resource.BinarySI),
+	if len((*vtorc).Resources.Requests) == 0 {
+		(*vtorc).Resources.Requests = corev1.ResourceList{
+			corev1.ResourceCPU:    *resource.NewMilliQuantity(defaultVtorcCPUMillis, resource.DecimalSI),
+			corev1.ResourceMemory: *resource.NewQuantity(defaultVtorcMemoryBytes, resource.BinarySI),
 		}
 	}
-	if len((*orchestrator).Resources.Limits) == 0 {
-		(*orchestrator).Resources.Limits = corev1.ResourceList{
-			corev1.ResourceMemory: *resource.NewQuantity(defaultOrchestratorMemoryBytes, resource.BinarySI),
+	if len((*vtorc).Resources.Limits) == 0 {
+		(*vtorc).Resources.Limits = corev1.ResourceList{
+			corev1.ResourceMemory: *resource.NewQuantity(defaultVtorcMemoryBytes, resource.BinarySI),
 		}
 	}
-	DefaultServiceOverrides(&(*orchestrator).Service)
+	DefaultServiceOverrides(&(*vtorc).Service)
 }
 
 // DefaultVitessKeyspaceImages fills in unspecified keyspace-level images from cluster-level defaults.
@@ -56,8 +56,8 @@ func DefaultVitessKeyspaceImages(dst *VitessKeyspaceImages, clusterDefaults *Vit
 	if dst.Vttablet == "" {
 		dst.Vttablet = clusterDefaults.Vttablet
 	}
-	if dst.Orchestrator == "" {
-		dst.Orchestrator = clusterDefaults.Orchestrator
+	if dst.Vtorc == "" {
+		dst.Vtorc = clusterDefaults.Vtorc
 	}
 	if dst.Vtbackup == "" {
 		dst.Vtbackup = clusterDefaults.Vtbackup

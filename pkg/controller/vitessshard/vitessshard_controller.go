@@ -180,9 +180,9 @@ func (r *ReconcileVitessShard) Reconcile(request reconcile.Request) (reconcile.R
 		vts.Status.Conditions = oldStatus.DeepCopyConditions()
 	}
 
-	// Create/update orchestrators
-	orchestratorResult, err := r.reconcileOrchestrator(ctx, vts)
-	resultBuilder.Merge(orchestratorResult, err)
+	// Create/update vtorc.
+	vtorcResult, err := r.reconcileVtorc(ctx, vts)
+	resultBuilder.Merge(vtorcResult, err)
 
 	// Create/update desired tablets.
 	tabletResult, err := r.reconcileTablets(ctx, vts)

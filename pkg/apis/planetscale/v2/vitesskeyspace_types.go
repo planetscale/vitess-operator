@@ -113,11 +113,11 @@ type VitessKeyspaceTemplate struct {
 	// Default: Add a "vt_" prefix to the keyspace name.
 	DatabaseName string `json:"databaseName,omitempty"`
 
-	// Orchestrator deploys a set of Orchestrator servers for the Keyspace.
+	// VitessOrchestrator deploys a set of Vitess Orchestrator (vtorc) servers for the Keyspace.
 	// It is highly recommended that you set disable_active_reparents=true
-	// and enable_semi_sync=false for the vtablets if enabling Orchestrator.
+	// and enable_semi_sync=false for the vtablets if enabling vtorc.
 	// THIS API IS EXPERIMENTAL: NOT TO BE USED IN PRODUCTION.
-	Orchestrator *OrchestratorSpec `json:"orchestrator,omitempty"`
+	VitessOrchestrator *VitessOrchestratorSpec `json:"vitessOrchestrator,omitempty"`
 
 	// Partitionings specify how to divide the keyspace up into shards by
 	// defining the range of keyspace IDs that each shard contains.
@@ -177,17 +177,17 @@ type VitessKeyspaceTemplate struct {
 	Annotations map[string]string `json:"annotations,omitempty"`
 }
 
-// OrchestratorSpec specifies deployment parameters for orchestrator.
+// VitessOrchestratorSpec specifies deployment parameters for vtorc.
 // THIS API IS EXPERIMENTAL: NOT TO BE USED IN PRODUCTION.
-type OrchestratorSpec struct {
-	// ConfigSecret contains the config file (with passwords) for orchestrator.
+type VitessOrchestratorSpec struct {
+	// ConfigSecret contains the config file (with passwords) for vtorc.
 	ConfigSecret SecretSource `json:"configSecret"`
 
-	// Resources determines the compute resources reserved for each orchestrator replica.
+	// Resources determines the compute resources reserved for each vtorc replica.
 	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
 
 	// ExtraFlags can optionally be used to override default flags set by the
-	// operator, or pass additional flags to orchestrator. All entries must be
+	// operator, or pass additional flags to vtorc. All entries must be
 	// key-value string pairs of the form "flag": "value". The flag name should
 	// not have any prefix (just "flag", not "-flag"). To set a boolean flag,
 	// set the string value to either "true" or "false".
@@ -221,7 +221,7 @@ type OrchestratorSpec struct {
 	SidecarContainers []corev1.Container `json:"sidecarContainers,omitempty"`
 
 	// Affinity allows you to set rules that constrain the scheduling of
-	// your orchestrator pods. WARNING: These affinity rules will override all default affinities
+	// your vtorc pods. WARNING: These affinity rules will override all default affinities
 	// that we set; in turn, we can't guarantee optimal scheduling of your pods if you
 	// choose to set this field.
 	// +kubebuilder:validation:EmbeddedResource
@@ -229,16 +229,20 @@ type OrchestratorSpec struct {
 
 	// Annotations can optionally be used to attach custom annotations to Pods
 	// created for this component. These will be attached to the underlying
-	// Pods that the orchestrator Deployment creates.
+	// Pods that the vtorc Deployment creates.
 	Annotations map[string]string `json:"annotations,omitempty"`
 
 	// ExtraLabels can optionally be used to attach custom labels to Pods
 	// created for this component. These will be attached to the underlying
-	// Pods that the orchestrator Deployment creates.
+	// Pods that the vtorc Deployment creates.
 	ExtraLabels map[string]string `json:"extraLabels,omitempty"`
 
-	// Service can optionally be used to customize the orchestrator Service.
+	// Service can optionally be used to customize the vtorc Service.
 	Service *ServiceOverrides `json:"service,omitempty"`
+
+	// Tolerations allow you to schedule pods onto nodes with matching taints.
+	// +kubebuilder:validation:EmbeddedResource
+	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
 }
 
 // VitessKeyspaceTurndownPolicy is the policy for turning down a keyspace.
@@ -266,8 +270,8 @@ type VitessKeyspaceImages struct {
 
 	// Vttablet is the container image (including version tag) to use for Vitess Tablet instances.
 	Vttablet string `json:"vttablet,omitempty"`
-	// Orchestrator is the container image (including version tag) to use for Vitess Orchestrator instances.
-	Orchestrator string `json:"orchestrator,omitempty"`
+	// Vtorc is the container image (including version tag) to use for Vitess Orchestrator instances.
+	Vtorc string `json:"vtorc,omitempty"`
 	// Vtbackup is the container image (including version tag) to use for Vitess Backup jobs.
 	Vtbackup string `json:"vtbackup,omitempty"`
 	// Mysqld specifies the container image to use for mysqld, as well as

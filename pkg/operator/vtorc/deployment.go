@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package orchestrator
+package vtorc
 
 import (
 	"strings"
@@ -35,19 +35,21 @@ import (
 )
 
 const (
-	containerName     = "orchestrator"
-	priorityClassName = "vitess"
+	containerName = "vtorc"
 
-	command   = "/vt/bin/orchestrator"
-	webDir    = "/vt/web/orchestrator"
-	runAsUser = 999
+	command = "/vt/bin/vtorc"
+	webDir  = "/vt/web/orchestrator"
 
-	configDirName = "orc-config"
+	configDirName = "vtorc-config"
 )
 
+func deploymentName(clusterName, keyspace, shardSafeName, cellName string) string {
+	return names.Join(clusterName, keyspace, shardSafeName, cellName, planetscalev2.VtorcComponentName)
+}
+
 // DeploymentName returns the name of the orchestrator Deployment for a given tablet pool.
-func DeploymentName(clusterName, keyspace, shard, cellName string) string {
-	return names.Join(clusterName, keyspace, shard, cellName, planetscalev2.OrcComponentName)
+func DeploymentName(clusterName, keyspace string, shardKeyRange planetscalev2.VitessKeyRange, cellName string) string {
+	return deploymentName(clusterName, keyspace, shardKeyRange.SafeName(), cellName)
 }
 
 // Spec specifies all the internal parameters needed to deploy orchestrator,
@@ -73,9 +75,10 @@ type Spec struct {
 	SidecarContainers []corev1.Container
 	Annotations       map[string]string
 	ExtraLabels       map[string]string
+	Tolerations       []corev1.Toleration
 }
 
-// NewDeployment creates a new Deployment object for orchestrator.
+// NewDeployment creates a new Deployment object for vtorc.
 func NewDeployment(key client.ObjectKey, spec *Spec) *appsv1.Deployment {
 	// Fill in the immutable parts.
 	obj := &appsv1.Deployment{
@@ -101,7 +104,7 @@ func UpdateDeploymentImmediate(obj *appsv1.Deployment, spec *Spec) {
 	update.Labels(&obj.Labels, spec.Labels)
 }
 
-// UpdateDeployment updates the mutable parts of the orchestrator Deployment
+// UpdateDeployment updates the mutable parts of the vtorc Deployment
 // that should be changed as part of a gradual, rolling update.
 func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 	UpdateDeploymentImmediate(obj, spec)
@@ -135,12 +138,19 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 	// Use functions from the `operator/update` package for lists
 	// that should actually be treated like maps (update items by the .Name field).
 	obj.Spec.Template.Spec.ImagePullSecrets = spec.ImagePullSecrets
-	obj.Spec.Template.Spec.PriorityClassName = priorityClassName
+	obj.Spec.Template.Spec.PriorityClassName = planetscalev2.DefaultVitessPriorityClass
+	obj.Spec.Template.Spec.ServiceAccountName = planetscalev2.DefaultVitessServiceAccount
+	obj.Spec.Template.Spec.Tolerations = spec.Tolerations
 	update.Volumes(&obj.Spec.Template.Spec.Volumes, spec.ExtraVolumes)
+
+	securityContext := &corev1.SecurityContext{}
+	if planetscalev2.DefaultVitessRunAsUser >= 0 {
+		securityContext.RunAsUser = pointer.Int64Ptr(planetscalev2.DefaultVitessRunAsUser)
+	}
 
 	update.PodTemplateContainers(&obj.Spec.Template.Spec.InitContainers, spec.InitContainers)
 	update.PodTemplateContainers(&obj.Spec.Template.Spec.Containers, spec.SidecarContainers)
-	orcContainer := &corev1.Container{
+	vtorcContainer := &corev1.Container{
 		Name:            containerName,
 		Image:           spec.Image,
 		ImagePullPolicy: spec.ImagePullPolicy,
@@ -149,13 +159,11 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 			{
 				Name:          planetscalev2.DefaultWebPortName,
 				Protocol:      corev1.ProtocolTCP,
-				ContainerPort: planetscalev2.OrcWebPort,
+				ContainerPort: planetscalev2.DefaultVtorcWebPort,
 			},
 		},
-		Resources: spec.Resources,
-		SecurityContext: &corev1.SecurityContext{
-			RunAsUser: pointer.Int64Ptr(runAsUser),
-		},
+		Resources:       spec.Resources,
+		SecurityContext: securityContext,
 		ReadinessProbe: &corev1.Probe{
 			Handler: corev1.Handler{
 				HTTPGet: &corev1.HTTPGetAction{
@@ -179,9 +187,9 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 		VolumeMounts: spec.ExtraVolumeMounts,
 		Env:          spec.ExtraEnv,
 	}
-	updateConfig(spec, flags, orcContainer, &obj.Spec.Template.Spec)
-	orcContainer.Args = flags.FormatArgs()
-	update.PodTemplateContainers(&obj.Spec.Template.Spec.Containers, []corev1.Container{*orcContainer})
+	updateConfig(spec, flags, vtorcContainer, &obj.Spec.Template.Spec)
+	vtorcContainer.Args = flags.FormatArgs()
+	update.PodTemplateContainers(&obj.Spec.Template.Spec.Containers, []corev1.Container{*vtorcContainer})
 
 	if spec.Affinity != nil {
 		obj.Spec.Template.Spec.Affinity = spec.Affinity

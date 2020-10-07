@@ -269,7 +269,7 @@ func newVitessShard(key client.ObjectKey, vtk *planetscalev2.VitessKeyspace, par
 		Spec: planetscalev2.VitessShardSpec{
 			VitessShardTemplate:    *template,
 			GlobalLockserver:       vtk.Spec.GlobalLockserver,
-			Orchestrator:           vtk.Spec.Orchestrator,
+			VitessOrchestrator:     vtk.Spec.VitessOrchestrator,
 			Images:                 vtk.Spec.Images,
 			ImagePullPolicies:      vtk.Spec.ImagePullPolicies,
 			ImagePullSecrets:       vtk.Spec.ImagePullSecrets,

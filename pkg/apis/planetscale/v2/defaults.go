@@ -67,9 +67,9 @@ const (
 	defaultVtctldCPUMillis   = 100
 	defaultVtctldMemoryBytes = 128 * Mi
 
-	defaultOrchestratorReplicas    = 0
-	defaultOrchestratorCPUMillis   = 100
-	defaultOrchestratorMemoryBytes = 128 * Mi
+	defaultVtorcReplicas    = 0
+	defaultVtorcCPUMillis   = 100
+	defaultVtorcMemoryBytes = 128 * Mi
 
 	defaultVtgateReplicas    = 2
 	defaultVtgateCPUMillis   = 500
@@ -87,8 +87,8 @@ const (
 	// DefaultMysqlPort is the port for MySQL client connections.
 	DefaultMysqlPort = 3306
 
-	// OrcWebPort is the default web port for the orchestrator
-	OrcWebPort = 3000
+	// DefaultVtorcWebPort is the default web port for vtorc.
+	DefaultVtorcWebPort = 3000
 
 	// DefaultWebPortName is the name for the web port.
 	DefaultWebPortName = "web"
@@ -114,7 +114,7 @@ var DefaultImages = &VitessImages{
 	// initialization, since vtbackup is effectively a modified mysqlctl(d).
 	Vtbackup: defaultVitessLiteImage,
 
-	Orchestrator: defaultVitessLiteImage,
+	Vtorc: defaultVitessLiteImage,
 
 	// Note: We used to use a mysql-only image, but it's better to use the
 	// same image as the vttablet container since vttablet now uses the

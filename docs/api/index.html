@@ -414,7 +414,7 @@ map[string]string
 </td>
 <td>
 <p>ExtraVitessFlags can optionally be used to pass flags to all Vitess components.
-WARNING: Any flags passed here must be flags that can be accepted by vtgate, vtctld, orchestrator and vttablet.
+WARNING: Any flags passed here must be flags that can be accepted by vtgate, vtctld, vtorc, and vttablet.
 An example use-case would be topo flags.</p>
 <p>All entries must be key-value string pairs of the form &ldquo;flag&rdquo;: &ldquo;value&rdquo;. The flag name should
 not have any prefix (just &ldquo;flag&rdquo;, not &ldquo;-flag&rdquo;). To set a boolean flag,
@@ -1453,240 +1453,6 @@ particular MySQL instance.</p>
 </tr>
 </tbody>
 </table>
-<h3 id="planetscale.com/v2.OrchestratorSpec">OrchestratorSpec
-</h3>
-<p>
-(<em>Appears on:</em>
-<a href="#planetscale.com/v2.VitessKeyspaceTemplate">VitessKeyspaceTemplate</a>, 
-<a href="#planetscale.com/v2.VitessShardSpec">VitessShardSpec</a>)
-</p>
-<p>
-<p>OrchestratorSpec specifies deployment parameters for orchestrator.
-THIS API IS EXPERIMENTAL: NOT TO BE USED IN PRODUCTION.</p>
-</p>
-<table class="table table-striped">
-<thead class="thead-dark">
-<tr>
-<th>Field</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<code>configSecret</code></br>
-<em>
-<a href="#planetscale.com/v2.SecretSource">
-SecretSource
-</a>
-</em>
-</td>
-<td>
-<p>ConfigSecret contains the config file (with passwords) for orchestrator.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>resources</code></br>
-<em>
-<a href="https://v1-16.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#resourcerequirements-v1-core">
-Kubernetes core/v1.ResourceRequirements
-</a>
-</em>
-</td>
-<td>
-<p>Resources determines the compute resources reserved for each orchestrator replica.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>extraFlags</code></br>
-<em>
-map[string]string
-</em>
-</td>
-<td>
-<p>ExtraFlags can optionally be used to override default flags set by the
-operator, or pass additional flags to orchestrator. All entries must be
-key-value string pairs of the form &ldquo;flag&rdquo;: &ldquo;value&rdquo;. The flag name should
-not have any prefix (just &ldquo;flag&rdquo;, not &ldquo;-flag&rdquo;). To set a boolean flag,
-set the string value to either &ldquo;true&rdquo; or &ldquo;false&rdquo;.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>extraEnv</code></br>
-<em>
-<a href="https://v1-16.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#envvar-v1-core">
-[]Kubernetes core/v1.EnvVar
-</a>
-</em>
-</td>
-<td>
-<p>ExtraEnv can optionally be used to override default environment variables
-set by the operator, or pass additional environment variables.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>extraVolumes</code></br>
-<em>
-<a href="https://v1-16.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#volume-v1-core">
-[]Kubernetes core/v1.Volume
-</a>
-</em>
-</td>
-<td>
-<p>ExtraVolumes can optionally be used to override default Pod volumes
-defined by the operator, or provide additional volumes to the Pod.
-Note that when adding a new volume, you should usually also add a
-volumeMount to specify where in each container&rsquo;s filesystem the volume
-should be mounted.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>extraVolumeMounts</code></br>
-<em>
-<a href="https://v1-16.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#volumemount-v1-core">
-[]Kubernetes core/v1.VolumeMount
-</a>
-</em>
-</td>
-<td>
-<p>ExtraVolumeMounts can optionally be used to override default Pod
-volumeMounts defined by the operator, or specify additional mounts.
-Typically, these are used to mount volumes defined through extraVolumes.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>initContainers</code></br>
-<em>
-<a href="https://v1-16.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#container-v1-core">
-[]Kubernetes core/v1.Container
-</a>
-</em>
-</td>
-<td>
-<p>InitContainers can optionally be used to supply extra init containers
-that will be run to completion one after another before any app containers are started.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>sidecarContainers</code></br>
-<em>
-<a href="https://v1-16.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#container-v1-core">
-[]Kubernetes core/v1.Container
-</a>
-</em>
-</td>
-<td>
-<p>SidecarContainers can optionally be used to supply extra containers
-that run alongside the main containers.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>affinity</code></br>
-<em>
-<a href="https://v1-16.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#affinity-v1-core">
-Kubernetes core/v1.Affinity
-</a>
-</em>
-</td>
-<td>
-<p>Affinity allows you to set rules that constrain the scheduling of
-your orchestrator pods. WARNING: These affinity rules will override all default affinities
-that we set; in turn, we can&rsquo;t guarantee optimal scheduling of your pods if you
-choose to set this field.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>annotations</code></br>
-<em>
-map[string]string
-</em>
-</td>
-<td>
-<p>Annotations can optionally be used to attach custom annotations to Pods
-created for this component. These will be attached to the underlying
-Pods that the orchestrator Deployment creates.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>extraLabels</code></br>
-<em>
-map[string]string
-</em>
-</td>
-<td>
-<p>ExtraLabels can optionally be used to attach custom labels to Pods
-created for this component. These will be attached to the underlying
-Pods that the orchestrator Deployment creates.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>service</code></br>
-<em>
-<a href="#planetscale.com/v2.ServiceOverrides">
-ServiceOverrides
-</a>
-</em>
-</td>
-<td>
-<p>Service can optionally be used to customize the orchestrator Service.</p>
-</td>
-</tr>
-</tbody>
-</table>
-<h3 id="planetscale.com/v2.OrchestratorStatus">OrchestratorStatus
-</h3>
-<p>
-(<em>Appears on:</em>
-<a href="#planetscale.com/v2.VitessShardStatus">VitessShardStatus</a>)
-</p>
-<p>
-<p>OrchestratorStatus is a summary of the status of the orchestrator deployment.</p>
-</p>
-<table class="table table-striped">
-<thead class="thead-dark">
-<tr>
-<th>Field</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<code>available</code></br>
-<em>
-<a href="https://v1-16.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#conditionstatus-v1-core">
-Kubernetes core/v1.ConditionStatus
-</a>
-</em>
-</td>
-<td>
-<p>Available indicates whether the vtctld service has available endpoints.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>serviceName</code></br>
-<em>
-string
-</em>
-</td>
-<td>
-<p>ServiceName is the name of the Service for this cluster&rsquo;s vtctld.</p>
-</td>
-</tr>
-</tbody>
-</table>
 <h3 id="planetscale.com/v2.OrphanStatus">OrphanStatus
 </h3>
 <p>
@@ -1900,10 +1666,10 @@ Default: Use the default credentials of the Node.</p>
 <a href="#planetscale.com/v2.AzblobBackupLocation">AzblobBackupLocation</a>, 
 <a href="#planetscale.com/v2.ExternalDatastore">ExternalDatastore</a>, 
 <a href="#planetscale.com/v2.GCSBackupLocation">GCSBackupLocation</a>, 
-<a href="#planetscale.com/v2.OrchestratorSpec">OrchestratorSpec</a>, 
 <a href="#planetscale.com/v2.S3BackupLocation">S3BackupLocation</a>, 
 <a href="#planetscale.com/v2.VitessGatewayStaticAuthentication">VitessGatewayStaticAuthentication</a>, 
 <a href="#planetscale.com/v2.VitessGatewayTLSSecureTransport">VitessGatewayTLSSecureTransport</a>, 
+<a href="#planetscale.com/v2.VitessOrchestratorSpec">VitessOrchestratorSpec</a>, 
 <a href="#planetscale.com/v2.VitessShardTemplate">VitessShardTemplate</a>)
 </p>
 <p>
@@ -1970,10 +1736,10 @@ within that Volume.</p>
 <p>
 (<em>Appears on:</em>
 <a href="#planetscale.com/v2.EtcdLockserverTemplate">EtcdLockserverTemplate</a>, 
-<a href="#planetscale.com/v2.OrchestratorSpec">OrchestratorSpec</a>, 
 <a href="#planetscale.com/v2.VitessCellGatewaySpec">VitessCellGatewaySpec</a>, 
 <a href="#planetscale.com/v2.VitessClusterSpec">VitessClusterSpec</a>, 
-<a href="#planetscale.com/v2.VitessDashboardSpec">VitessDashboardSpec</a>)
+<a href="#planetscale.com/v2.VitessDashboardSpec">VitessDashboardSpec</a>, 
+<a href="#planetscale.com/v2.VitessOrchestratorSpec">VitessOrchestratorSpec</a>)
 </p>
 <p>
 <p>ServiceOverrides allows customization of an arbitrary Service object.</p>
@@ -3686,7 +3452,7 @@ map[string]string
 </td>
 <td>
 <p>ExtraVitessFlags can optionally be used to pass flags to all Vitess components.
-WARNING: Any flags passed here must be flags that can be accepted by vtgate, vtctld, orchestrator and vttablet.
+WARNING: Any flags passed here must be flags that can be accepted by vtgate, vtctld, vtorc, and vttablet.
 An example use-case would be topo flags.</p>
 <p>All entries must be key-value string pairs of the form &ldquo;flag&rdquo;: &ldquo;value&rdquo;. The flag name should
 not have any prefix (just &ldquo;flag&rdquo;, not &ldquo;-flag&rdquo;). To set a boolean flag,
@@ -4400,7 +4166,7 @@ Kubernetes core/v1.PullPolicy
 </tr>
 <tr>
 <td>
-<code>orchestrator</code></br>
+<code>vtorc</code></br>
 <em>
 <a href="https://v1-16.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#pullpolicy-v1-core">
 Kubernetes core/v1.PullPolicy
@@ -4408,7 +4174,7 @@ Kubernetes core/v1.PullPolicy
 </em>
 </td>
 <td>
-<p>Orchestrator is the container image pull policy to use for Vitess Orchestrator instances.</p>
+<p>Vtorc is the container image pull policy to use for Vitess Orchestrator instances.</p>
 </td>
 </tr>
 <tr>
@@ -4508,13 +4274,13 @@ string
 </tr>
 <tr>
 <td>
-<code>orchestrator</code></br>
+<code>vtorc</code></br>
 <em>
 string
 </em>
 </td>
 <td>
-<p>Orchestrator is the container image (including version tag) to use for Vitess Orchestrator instances.</p>
+<p>Vtorc is the container image (including version tag) to use for Vitess Orchestrator instances.</p>
 </td>
 </tr>
 <tr>
@@ -5045,13 +4811,13 @@ string
 </tr>
 <tr>
 <td>
-<code>orchestrator</code></br>
+<code>vtorc</code></br>
 <em>
 string
 </em>
 </td>
 <td>
-<p>Orchestrator is the container image (including version tag) to use for Vitess Orchestrator instances.</p>
+<p>Vtorc is the container image (including version tag) to use for Vitess Orchestrator instances.</p>
 </td>
 </tr>
 <tr>
@@ -5777,17 +5543,17 @@ this to be the same as the keyspace name to reduce confusion.</p>
 </tr>
 <tr>
 <td>
-<code>orchestrator</code></br>
+<code>vitessOrchestrator</code></br>
 <em>
-<a href="#planetscale.com/v2.OrchestratorSpec">
-OrchestratorSpec
+<a href="#planetscale.com/v2.VitessOrchestratorSpec">
+VitessOrchestratorSpec
 </a>
 </em>
 </td>
 <td>
-<p>Orchestrator deploys a set of Orchestrator servers for the Keyspace.
+<p>VitessOrchestrator deploys a set of Vitess Orchestrator (vtorc) servers for the Keyspace.
 It is highly recommended that you set disable_active_reparents=true
-and enable_semi_sync=false for the vtablets if enabling Orchestrator.
+and enable_semi_sync=false for the vtablets if enabling vtorc.
 THIS API IS EXPERIMENTAL: NOT TO BE USED IN PRODUCTION.</p>
 </td>
 </tr>
@@ -5930,6 +5696,253 @@ string
 <td>
 <p>RootPath is a path prefix for all lockserver data belonging to a given Vitess cluster.
 Multiple Vitess clusters can share a lockserver as long as they have unique root paths.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="planetscale.com/v2.VitessOrchestratorSpec">VitessOrchestratorSpec
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#planetscale.com/v2.VitessKeyspaceTemplate">VitessKeyspaceTemplate</a>, 
+<a href="#planetscale.com/v2.VitessShardSpec">VitessShardSpec</a>)
+</p>
+<p>
+<p>VitessOrchestratorSpec specifies deployment parameters for vtorc.
+THIS API IS EXPERIMENTAL: NOT TO BE USED IN PRODUCTION.</p>
+</p>
+<table class="table table-striped">
+<thead class="thead-dark">
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>configSecret</code></br>
+<em>
+<a href="#planetscale.com/v2.SecretSource">
+SecretSource
+</a>
+</em>
+</td>
+<td>
+<p>ConfigSecret contains the config file (with passwords) for vtorc.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>resources</code></br>
+<em>
+<a href="https://v1-16.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#resourcerequirements-v1-core">
+Kubernetes core/v1.ResourceRequirements
+</a>
+</em>
+</td>
+<td>
+<p>Resources determines the compute resources reserved for each vtorc replica.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>extraFlags</code></br>
+<em>
+map[string]string
+</em>
+</td>
+<td>
+<p>ExtraFlags can optionally be used to override default flags set by the
+operator, or pass additional flags to vtorc. All entries must be
+key-value string pairs of the form &ldquo;flag&rdquo;: &ldquo;value&rdquo;. The flag name should
+not have any prefix (just &ldquo;flag&rdquo;, not &ldquo;-flag&rdquo;). To set a boolean flag,
+set the string value to either &ldquo;true&rdquo; or &ldquo;false&rdquo;.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>extraEnv</code></br>
+<em>
+<a href="https://v1-16.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#envvar-v1-core">
+[]Kubernetes core/v1.EnvVar
+</a>
+</em>
+</td>
+<td>
+<p>ExtraEnv can optionally be used to override default environment variables
+set by the operator, or pass additional environment variables.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>extraVolumes</code></br>
+<em>
+<a href="https://v1-16.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#volume-v1-core">
+[]Kubernetes core/v1.Volume
+</a>
+</em>
+</td>
+<td>
+<p>ExtraVolumes can optionally be used to override default Pod volumes
+defined by the operator, or provide additional volumes to the Pod.
+Note that when adding a new volume, you should usually also add a
+volumeMount to specify where in each container&rsquo;s filesystem the volume
+should be mounted.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>extraVolumeMounts</code></br>
+<em>
+<a href="https://v1-16.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#volumemount-v1-core">
+[]Kubernetes core/v1.VolumeMount
+</a>
+</em>
+</td>
+<td>
+<p>ExtraVolumeMounts can optionally be used to override default Pod
+volumeMounts defined by the operator, or specify additional mounts.
+Typically, these are used to mount volumes defined through extraVolumes.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>initContainers</code></br>
+<em>
+<a href="https://v1-16.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#container-v1-core">
+[]Kubernetes core/v1.Container
+</a>
+</em>
+</td>
+<td>
+<p>InitContainers can optionally be used to supply extra init containers
+that will be run to completion one after another before any app containers are started.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>sidecarContainers</code></br>
+<em>
+<a href="https://v1-16.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#container-v1-core">
+[]Kubernetes core/v1.Container
+</a>
+</em>
+</td>
+<td>
+<p>SidecarContainers can optionally be used to supply extra containers
+that run alongside the main containers.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>affinity</code></br>
+<em>
+<a href="https://v1-16.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#affinity-v1-core">
+Kubernetes core/v1.Affinity
+</a>
+</em>
+</td>
+<td>
+<p>Affinity allows you to set rules that constrain the scheduling of
+your vtorc pods. WARNING: These affinity rules will override all default affinities
+that we set; in turn, we can&rsquo;t guarantee optimal scheduling of your pods if you
+choose to set this field.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>annotations</code></br>
+<em>
+map[string]string
+</em>
+</td>
+<td>
+<p>Annotations can optionally be used to attach custom annotations to Pods
+created for this component. These will be attached to the underlying
+Pods that the vtorc Deployment creates.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>extraLabels</code></br>
+<em>
+map[string]string
+</em>
+</td>
+<td>
+<p>ExtraLabels can optionally be used to attach custom labels to Pods
+created for this component. These will be attached to the underlying
+Pods that the vtorc Deployment creates.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>service</code></br>
+<em>
+<a href="#planetscale.com/v2.ServiceOverrides">
+ServiceOverrides
+</a>
+</em>
+</td>
+<td>
+<p>Service can optionally be used to customize the vtorc Service.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>tolerations</code></br>
+<em>
+<a href="https://v1-16.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#toleration-v1-core">
+[]Kubernetes core/v1.Toleration
+</a>
+</em>
+</td>
+<td>
+<p>Tolerations allow you to schedule pods onto nodes with matching taints.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="planetscale.com/v2.VitessOrchestratorStatus">VitessOrchestratorStatus
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#planetscale.com/v2.VitessShardStatus">VitessShardStatus</a>)
+</p>
+<p>
+<p>VitessOrchestratorStatus is a summary of the status of the vtorc deployment.</p>
+</p>
+<table class="table table-striped">
+<thead class="thead-dark">
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>available</code></br>
+<em>
+<a href="https://v1-16.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#conditionstatus-v1-core">
+Kubernetes core/v1.ConditionStatus
+</a>
+</em>
+</td>
+<td>
+<p>Available indicates whether the vtctld service has available endpoints.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>serviceName</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>ServiceName is the name of the Service for this cluster&rsquo;s vtorc.</p>
 </td>
 </tr>
 </tbody>
@@ -6186,15 +6199,15 @@ VitessLockserverParams
 </tr>
 <tr>
 <td>
-<code>orchestrator</code></br>
+<code>vitessOrchestrator</code></br>
 <em>
-<a href="#planetscale.com/v2.OrchestratorSpec">
-OrchestratorSpec
+<a href="#planetscale.com/v2.VitessOrchestratorSpec">
+VitessOrchestratorSpec
 </a>
 </em>
 </td>
 <td>
-<p>Orchestrator is inherited from the parent&rsquo;s VitessKeyspace.</p>
+<p>VitessOrchestrator is inherited from the parent&rsquo;s VitessKeyspace.</p>
 </td>
 </tr>
 <tr>
@@ -6495,15 +6508,15 @@ VitessLockserverParams
 </tr>
 <tr>
 <td>
-<code>orchestrator</code></br>
+<code>vitessOrchestrator</code></br>
 <em>
-<a href="#planetscale.com/v2.OrchestratorSpec">
-OrchestratorSpec
+<a href="#planetscale.com/v2.VitessOrchestratorSpec">
+VitessOrchestratorSpec
 </a>
 </em>
 </td>
 <td>
-<p>Orchestrator is inherited from the parent&rsquo;s VitessKeyspace.</p>
+<p>VitessOrchestrator is inherited from the parent&rsquo;s VitessKeyspace.</p>
 </td>
 </tr>
 <tr>
@@ -6638,15 +6651,15 @@ map[string]planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus
 </tr>
 <tr>
 <td>
-<code>orchestrator</code></br>
+<code>vitessOrchestrator</code></br>
 <em>
-<a href="#planetscale.com/v2.OrchestratorStatus">
-OrchestratorStatus
+<a href="#planetscale.com/v2.VitessOrchestratorStatus">
+VitessOrchestratorStatus
 </a>
 </em>
 </td>
 <td>
-<p>Orchestrator is a summary of the status of the orchestrator deployment.</p>
+<p>VitessOrchestrator is a summary of the status of the vtorc deployment.</p>
 </td>
 </tr>
 <tr>

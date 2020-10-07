@@ -29,34 +29,34 @@ import (
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 	"planetscale.dev/vitess-operator/pkg/operator/conditions"
-	"planetscale.dev/vitess-operator/pkg/operator/orchestrator"
 	"planetscale.dev/vitess-operator/pkg/operator/reconciler"
 	"planetscale.dev/vitess-operator/pkg/operator/results"
+	"planetscale.dev/vitess-operator/pkg/operator/vtorc"
 )
 
-func (r *ReconcileVitessShard) reconcileOrchestrator(ctx context.Context, vts *planetscalev2.VitessShard) (reconcile.Result, error) {
+func (r *ReconcileVitessShard) reconcileVtorc(ctx context.Context, vts *planetscalev2.VitessShard) (reconcile.Result, error) {
 	resultBuilder := results.Builder{}
 	clusterName := vts.Labels[planetscalev2.ClusterLabel]
 
 	labels := map[string]string{
-		planetscalev2.ComponentLabel: planetscalev2.OrcComponentName,
+		planetscalev2.ComponentLabel: planetscalev2.VtorcComponentName,
 		planetscalev2.ClusterLabel:   clusterName,
 		planetscalev2.KeyspaceLabel:  vts.Labels[planetscalev2.KeyspaceLabel],
 		planetscalev2.ShardLabel:     vts.Spec.KeyRange.SafeName(),
 	}
 
-	// Reconcile orchestrator Deployments.
-	specs := r.orchestratorSpecs(vts, labels)
+	// Reconcile vtorc Deployments.
+	specs := r.vtorcSpecs(vts, labels)
 
-	// Generate keys (object names) for all desired orchestrator Deployments.
-	// Keep a map back from generated names to the orchestrator specs.
+	// Generate keys (object names) for all desired vtorc Deployments.
+	// Keep a map back from generated names to the vtorc specs.
 	keys := make([]client.ObjectKey, 0, len(specs))
-	specMap := make(map[client.ObjectKey]*orchestrator.Spec, len(specs))
+	specMap := make(map[client.ObjectKey]*vtorc.Spec, len(specs))
 	for _, spec := range specs {
-		key := client.ObjectKey{Namespace: vts.Namespace, Name: orchestrator.DeploymentName(
+		key := client.ObjectKey{Namespace: vts.Namespace, Name: vtorc.DeploymentName(
 			vts.Name,
 			labels[planetscalev2.KeyspaceLabel],
-			labels[planetscalev2.ShardLabel],
+			vts.Spec.KeyRange,
 			spec.Cell,
 		)}
 		keys = append(keys, key)
@@ -67,31 +67,31 @@ func (r *ReconcileVitessShard) reconcileOrchestrator(ctx context.Context, vts *p
 		Kind: &appsv1.Deployment{},
 
 		New: func(key client.ObjectKey) runtime.Object {
-			return orchestrator.NewDeployment(key, specMap[key])
+			return vtorc.NewDeployment(key, specMap[key])
 		},
 		UpdateInPlace: func(key client.ObjectKey, obj runtime.Object) {
 			newObj := obj.(*appsv1.Deployment)
 			if *vts.Spec.UpdateStrategy.Type == planetscalev2.ImmediateVitessClusterUpdateStrategyType {
-				orchestrator.UpdateDeployment(newObj, specMap[key])
+				vtorc.UpdateDeployment(newObj, specMap[key])
 				return
 			}
-			orchestrator.UpdateDeploymentImmediate(newObj, specMap[key])
+			vtorc.UpdateDeploymentImmediate(newObj, specMap[key])
 		},
 		UpdateRollingInPlace: func(key client.ObjectKey, obj runtime.Object) {
 			newObj := obj.(*appsv1.Deployment)
-			orchestrator.UpdateDeployment(newObj, specMap[key])
+			vtorc.UpdateDeployment(newObj, specMap[key])
 		},
 		Status: func(key client.ObjectKey, obj runtime.Object) {
 			// This function will get called once for each Deployment.
-			// Aggregate as we go to build an overall status for orchestrator.
+			// Aggregate as we go to build an overall status for vtorc.
 			curObj := obj.(*appsv1.Deployment)
 
 			// We'll say orchestrator is Available overall if any of the Deployments is available.
 			// The important thing is that somebody will answer when a client hits the Service.
 			if available := conditions.Deployment(curObj.Status.Conditions, appsv1.DeploymentAvailable); available != nil {
 				// Update the overall status if either we found one that's True, or we previously knew nothing at all (Unknown).
-				if available.Status == corev1.ConditionTrue || vts.Status.Orchestrator.Available == corev1.ConditionUnknown {
-					vts.Status.Orchestrator.Available = available.Status
+				if available.Status == corev1.ConditionTrue || vts.Status.VitessOrchestrator.Available == corev1.ConditionUnknown {
+					vts.Status.VitessOrchestrator.Available = available.Status
 				}
 			}
 		},
@@ -103,12 +103,12 @@ func (r *ReconcileVitessShard) reconcileOrchestrator(ctx context.Context, vts *p
 	return resultBuilder.Result()
 }
 
-func (r *ReconcileVitessShard) orchestratorSpecs(vts *planetscalev2.VitessShard, parentLabels map[string]string) []*orchestrator.Spec {
-	if vts.Spec.Orchestrator == nil {
+func (r *ReconcileVitessShard) vtorcSpecs(vts *planetscalev2.VitessShard, parentLabels map[string]string) []*vtorc.Spec {
+	if vts.Spec.VitessOrchestrator == nil {
 		return nil
 	}
 
-	specs := make([]*orchestrator.Spec, 0, len(vts.Spec.TabletPools))
+	specs := make([]*vtorc.Spec, 0, len(vts.Spec.TabletPools))
 
 	// Deploy no more than one orchestrator per cell.
 	cellMap := make(map[string]bool)
@@ -133,29 +133,30 @@ func (r *ReconcileVitessShard) orchestratorSpecs(vts *planetscalev2.VitessShard,
 		// Merge ExtraVitessFlags and ExtraFlags into a new map.
 		extraFlags := make(map[string]string)
 		update.StringMap(&extraFlags, vts.Spec.ExtraVitessFlags)
-		update.StringMap(&extraFlags, vts.Spec.Orchestrator.ExtraFlags)
+		update.StringMap(&extraFlags, vts.Spec.VitessOrchestrator.ExtraFlags)
 
-		specs = append(specs, &orchestrator.Spec{
+		specs = append(specs, &vtorc.Spec{
 			GlobalLockserver:  vts.Spec.GlobalLockserver,
-			ConfigSecret:      vts.Spec.Orchestrator.ConfigSecret,
-			Image:             vts.Spec.Images.Orchestrator,
-			ImagePullPolicy:   vts.Spec.ImagePullPolicies.Orchestrator,
+			ConfigSecret:      vts.Spec.VitessOrchestrator.ConfigSecret,
+			Image:             vts.Spec.Images.Vtorc,
+			ImagePullPolicy:   vts.Spec.ImagePullPolicies.Vtorc,
 			ImagePullSecrets:  vts.Spec.ImagePullSecrets,
 			Keyspace:          parentLabels[planetscalev2.KeyspaceLabel],
 			Shard:             vts.Spec.KeyRange.String(),
 			Cell:              tabletPool.Cell,
 			Zone:              vts.Spec.ZoneMap[tabletPool.Cell],
 			Labels:            labels,
-			Resources:         vts.Spec.Orchestrator.Resources,
-			Affinity:          vts.Spec.Orchestrator.Affinity,
+			Resources:         vts.Spec.VitessOrchestrator.Resources,
+			Affinity:          vts.Spec.VitessOrchestrator.Affinity,
 			ExtraFlags:        extraFlags,
-			ExtraEnv:          vts.Spec.Orchestrator.ExtraEnv,
-			ExtraVolumes:      vts.Spec.Orchestrator.ExtraVolumes,
-			ExtraVolumeMounts: vts.Spec.Orchestrator.ExtraVolumeMounts,
-			InitContainers:    vts.Spec.Orchestrator.InitContainers,
-			SidecarContainers: vts.Spec.Orchestrator.SidecarContainers,
-			Annotations:       vts.Spec.Orchestrator.Annotations,
-			ExtraLabels:       vts.Spec.Orchestrator.ExtraLabels,
+			ExtraEnv:          vts.Spec.VitessOrchestrator.ExtraEnv,
+			ExtraVolumes:      vts.Spec.VitessOrchestrator.ExtraVolumes,
+			ExtraVolumeMounts: vts.Spec.VitessOrchestrator.ExtraVolumeMounts,
+			InitContainers:    vts.Spec.VitessOrchestrator.InitContainers,
+			SidecarContainers: vts.Spec.VitessOrchestrator.SidecarContainers,
+			Annotations:       vts.Spec.VitessOrchestrator.Annotations,
+			ExtraLabels:       vts.Spec.VitessOrchestrator.ExtraLabels,
+			Tolerations:       vts.Spec.VitessOrchestrator.Tolerations,
 		})
 	}
 	return specs
