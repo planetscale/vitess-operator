@@ -54,7 +54,7 @@ func (r *ReconcileVitessShard) reconcileVtorc(ctx context.Context, vts *planetsc
 	specMap := make(map[client.ObjectKey]*vtorc.Spec, len(specs))
 	for _, spec := range specs {
 		key := client.ObjectKey{Namespace: vts.Namespace, Name: vtorc.DeploymentName(
-			vts.Name,
+			clusterName,
 			labels[planetscalev2.KeyspaceLabel],
 			vts.Spec.KeyRange,
 			spec.Cell,
