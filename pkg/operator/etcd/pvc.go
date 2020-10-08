@@ -17,6 +17,7 @@ limitations under the License.
 package etcd
 
 import (
+	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -31,6 +32,7 @@ func NewPVC(key client.ObjectKey, spec *Spec) *corev1.PersistentVolumeClaim {
 	labels := map[string]string{}
 	update.Labels(&labels, spec.Labels)
 	update.Labels(&labels, spec.ExtraLabels)
+	logrus.Debug("label is %v", labels)
 	return &corev1.PersistentVolumeClaim{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: key.Namespace,
