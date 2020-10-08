@@ -32,7 +32,11 @@ func NewPVC(key client.ObjectKey, spec *Spec) *corev1.PersistentVolumeClaim {
 	labels := map[string]string{}
 	update.Labels(&labels, spec.Labels)
 	update.Labels(&labels, spec.ExtraLabels)
-	logrus.Debug("label is %v", labels)
+
+	logrus.WithFields(logrus.Fields{
+		"labels": labels,
+	}).Info("labels are here")
+
 	return &corev1.PersistentVolumeClaim{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: key.Namespace,
