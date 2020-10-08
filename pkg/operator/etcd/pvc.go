@@ -35,7 +35,7 @@ func NewPVC(key client.ObjectKey, spec *Spec) *corev1.PersistentVolumeClaim {
 
 	logrus.WithFields(logrus.Fields{
 		"labels": spec.ExtraLabels,
-	}).Info("labels are here")
+	}).Debug("labels are here")
 
 	return &corev1.PersistentVolumeClaim{
 		ObjectMeta: metav1.ObjectMeta{
@@ -53,6 +53,10 @@ func UpdatePVCInPlace(obj *corev1.PersistentVolumeClaim, spec *Spec) {
 	update.Labels(&obj.Labels, spec.Labels)
     // update extra labels
     update.Labels(&obj.Labels, spec.ExtraLabels)
+	logrus.WithFields(logrus.Fields{
+		"labels": spec.ExtraLabels,
+	}).Debug("vttablet are here")
+
 	// The only in-place spec update that's possible is volume expansion.
 	curSize := obj.Spec.Resources.Requests[corev1.ResourceStorage]
 	newSize := spec.DataVolumePVCSpec.Resources.Requests[corev1.ResourceStorage]
