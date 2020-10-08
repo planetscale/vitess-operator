@@ -26,15 +26,15 @@ import (
 // NewPVC creates a new vttablet PVC from a Spec.
 func NewPVC(key client.ObjectKey, spec *Spec) *corev1.PersistentVolumeClaim {
 	// Store labels in labels obj because we need to add extra label and avoid mutating spec.Labels value
-	Labels := map[string]string{}
-	update.Labels(&Labels, spec.Labels)
-	update.Labels(&Labels, spec.ExtraLabels)
+	labels := map[string]string{}
+	update.Labels(&labels, spec.Labels)
+	update.Labels(&labels, spec.ExtraLabels)
 
 	return &corev1.PersistentVolumeClaim{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: key.Namespace,
 			Name:      key.Name,
-			Labels:    Labels,
+			Labels:    labels,
 		},
 		Spec: *spec.DataVolumePVCSpec,
 	}
