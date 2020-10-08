@@ -26,11 +26,16 @@ import (
 
 // NewPVC creates a new PVC.
 func NewPVC(key client.ObjectKey, spec *Spec) *corev1.PersistentVolumeClaim {
+	// Store labels in labels obj because we need to add extra label and avoid mutating spec.Labels value
+	Labels := map[string]string{}
+	update.Labels(&Labels, spec.Labels)
+	update.Labels(&Labels, spec.ExtraLabels)
+
 	return &corev1.PersistentVolumeClaim{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: key.Namespace,
 			Name:      key.Name,
-			Labels:    spec.Labels,
+			Labels:    Labels,
 		},
 		Spec: *spec.DataVolumePVCSpec,
 	}
@@ -40,6 +45,9 @@ func NewPVC(key client.ObjectKey, spec *Spec) *corev1.PersistentVolumeClaim {
 func UpdatePVCInPlace(obj *corev1.PersistentVolumeClaim, spec *Spec) {
 	// Update labels, but ignore existing ones we don't set.
 	update.Labels(&obj.Labels, spec.Labels)
+	// update extra labels
+	// TODO: Handle the case when labels are removed from ExtraLabels
+	update.Labels(&obj.Labels, spec.ExtraLabels)
 
 	// The only in-place spec update that's possible is volume expansion.
 	curSize := obj.Spec.Resources.Requests[corev1.ResourceStorage]
