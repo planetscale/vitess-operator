@@ -19,6 +19,7 @@ package vitessbackupstorage
 import (
 	"context"
 	"fmt"
+	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	"strings"
 
 	corev1 "k8s.io/api/core/v1"
@@ -100,7 +101,33 @@ func (r *ReconcileVitessBackupStorage) reconcileSubcontroller(ctx context.Contex
 			// clear it out.
 			nodeName := pod.Spec.NodeName
 
-			pod.Spec = *spec
+			curSpec := pod.Spec
+			newSpec := spec.DeepCopy()
+			for _, volume := range curSpec.Volumes {
+				if strings.Index(volume.Name, curSpec.ServiceAccountName+"-token-") == 0 {
+					// copy the volume from the current pod to the replacement:
+					update.Volumes(&(newSpec.Volumes), []corev1.Volume{volume})
+				}
+			}
+			newSpec.Volumes = sortVolsSame(newSpec.Volumes, curSpec.Volumes)
+			for _, curContainer := range curSpec.Containers {
+				var newContainer *corev1.Container
+				for i, c := range newSpec.Containers {
+					if c.Name == curContainer.Name {
+						newContainer = &(newSpec.Containers[i])
+					}
+				}
+				if newContainer != nil {
+					for _, mount := range curContainer.VolumeMounts {
+						if strings.Index(mount.Name, curSpec.ServiceAccountName+"-token-") == 0 {
+							// copy the mount from the current container to the replacement:
+							update.VolumeMounts(&(newContainer.VolumeMounts), []corev1.VolumeMount{mount})
+						}
+					}
+					newContainer.VolumeMounts = sortMountsSame(newContainer.VolumeMounts, curContainer.VolumeMounts)
+				}
+			}
+			pod.Spec = *newSpec
 			pod.Spec.NodeName = nodeName
 		},
 	})
@@ -109,6 +136,44 @@ func (r *ReconcileVitessBackupStorage) reconcileSubcontroller(ctx context.Contex
 	}
 
 	return resultBuilder.Result()
+}
+
+func sortVolsSame(vols []corev1.Volume, order []corev1.Volume) []corev1.Volume {
+	res := make([]corev1.Volume, 0, len(vols))
+	found := make(map[string]struct{}, len(vols))
+	for _, ov := range order {
+		for _, iv := range vols {
+			if iv.Name == ov.Name {
+				res = append(res, ov)
+				found[iv.Name] = struct{}{}
+			}
+		}
+	}
+	for _, iv := range vols {
+		if _, ok := found[iv.Name]; !ok {
+			res = append(res, iv)
+		}
+	}
+	return res
+}
+
+func sortMountsSame(mounts []corev1.VolumeMount, order []corev1.VolumeMount) []corev1.VolumeMount {
+	res := make([]corev1.VolumeMount, 0, len(mounts))
+	found := make(map[string]struct{}, len(mounts))
+	for _, ov := range order {
+		for _, iv := range mounts {
+			if iv.Name == ov.Name {
+				res = append(res, ov)
+				found[iv.Name] = struct{}{}
+			}
+		}
+	}
+	for _, iv := range mounts {
+		if _, ok := found[iv.Name]; !ok {
+			res = append(res, iv)
+		}
+	}
+	return res
 }
 
 func (r *ReconcileVitessBackupStorage) newSubcontrollerPodSpec(ctx context.Context, vbs *planetscalev2.VitessBackupStorage) (*corev1.PodSpec, error) {
@@ -130,6 +195,34 @@ func (r *ReconcileVitessBackupStorage) newSubcontrollerPodSpec(ctx context.Conte
 		return nil, fmt.Errorf("can't find operator container (name containing %q) in my own Pod", operatorContainerNameSubstring)
 	}
 
+	if vbs.Spec.Subcontroller.ServiceAccountName != "" {
+		// allow the pod to be launched with a specific serviceaccount in the target namespace (which will be the same
+		// namespace as the VitessCluster itself)
+		spec.ServiceAccountName = vbs.Spec.Subcontroller.ServiceAccountName
+		spec.DeprecatedServiceAccount = vbs.Spec.Subcontroller.ServiceAccountName
+	}
+
+	// filter out the service account tokens (volumes and mounts):
+	var newVolumes []corev1.Volume
+	for _, volume := range spec.Volumes {
+		if strings.Index(volume.Name, spec.ServiceAccountName + "-token-") < 0 {
+			// skip volumes from the automounted token
+			newVolumes = append(newVolumes, volume)
+		}
+	}
+	spec.Volumes = newVolumes
+	for i := range spec.Containers {
+		var newMounts []corev1.VolumeMount
+		for _, mount := range spec.Containers[i].VolumeMounts {
+			if strings.Index(mount.Name, spec.ServiceAccountName + "-token-") < 0 {
+				// skip mounts from the automounted token
+				newMounts = append(newMounts, mount)
+			}
+		}
+		spec.Containers[i].VolumeMounts = newMounts
+	}
+
+
 	// Tell the subcontroller which VitessBackupStorage object to process.
 	update.Env(&container.Env, []corev1.EnvVar{
 		{
@@ -143,6 +236,10 @@ func (r *ReconcileVitessBackupStorage) newSubcontrollerPodSpec(ctx context.Conte
 		{
 			Name:  "HOME",
 			Value: vitessHomeDir,
+		},
+		{
+			Name: k8sutil.WatchNamespaceEnvVar,
+			Value: vbs.Namespace,
 		},
 	})
 

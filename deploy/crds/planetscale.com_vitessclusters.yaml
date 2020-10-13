@@ -132,6 +132,11 @@ spec:
                     type: object
                   minItems: 1
                   type: array
+                subcontroller:
+                  properties:
+                    serviceAccountName:
+                      type: string
+                  type: object
               required:
               - locations
               type: object

@@ -50,7 +50,7 @@ func (r *ReconcileVitessCluster) reconcileBackupStorage(ctx context.Context, vt 
 				Name:      vitessbackup.StorageObjectName(vt.Name, location.Name),
 			}
 			keys = append(keys, key)
-			vbsMap[key] = newVitessBackupStorage(key, labels, location)
+			vbsMap[key] = newVitessBackupStorage(key, labels, location, vt.Spec.Backup.Subcontroller)
 		}
 	}
 
@@ -72,7 +72,7 @@ func (r *ReconcileVitessCluster) reconcileBackupStorage(ctx context.Context, vt 
 	})
 }
 
-func newVitessBackupStorage(key client.ObjectKey, parentLabels map[string]string, location *planetscalev2.VitessBackupLocation) *planetscalev2.VitessBackupStorage {
+func newVitessBackupStorage(key client.ObjectKey, parentLabels map[string]string, location *planetscalev2.VitessBackupLocation, subcontroller *planetscalev2.VitessBackupSubcontrollerSpec) *planetscalev2.VitessBackupStorage {
 	// Copy parent labels and add child-specific labels.
 	labels := map[string]string{
 		vitessbackup.LocationLabel: location.Name,
@@ -89,6 +89,7 @@ func newVitessBackupStorage(key client.ObjectKey, parentLabels map[string]string
 		},
 		Spec: planetscalev2.VitessBackupStorageSpec{
 			Location: *location,
+			Subcontroller: subcontroller,
 		},
 	}
 }
