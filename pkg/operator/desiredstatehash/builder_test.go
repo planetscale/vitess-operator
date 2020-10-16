@@ -40,10 +40,14 @@ func TestEmptyValues(t *testing.T) {
 	// changes to the hashes of existing Pods.
 	b.AddStringMapKeys("nil StringMapKeys", nil)
 	b.AddStringMapKeys("empty StringMapKeys", map[string]string{})
+	b.AddStringList("nil StringList", nil)
+	b.AddStringList("empty StringList", []string{})
 	b.AddContainersUpdates("nil ContainersUpdates", nil)
 	b.AddContainersUpdates("empty ContainersUpdates", []corev1.Container{})
 	b.AddTolerations("nil Tolerations", nil)
 	b.AddTolerations("empty Tolerations", []corev1.Toleration{})
+	b.AddVolumeNames("nil VolumeNames", nil)
+	b.AddVolumeNames("empty VolumeNames", []corev1.Volume{})
 
 	if got := b.String(); got != want {
 		t.Errorf("b.String() = %q; want %q", got, want)
