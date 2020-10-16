@@ -85,6 +85,9 @@ type VitessBackupLocation struct {
 	// a shared host path for local testing.
 	// +kubebuilder:validation:EmbeddedResource
 	Volume *corev1.VolumeSource `json:"volume,omitempty"`
+	// VolumeSubPath gives the subpath in the volume to mount to the backups target.
+	// Only used for Volume-backed backup storage, ignored otherwise.
+	VolumeSubPath string `json:"volumeSubPath,omitempty"`
 	// Annotations can optionally be used to attach custom annotations to Pods
 	// that need access to this backup storage location.
 	Annotations map[string]string `json:"annotations,omitempty"`

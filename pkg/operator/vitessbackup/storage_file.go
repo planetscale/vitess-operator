@@ -37,11 +37,12 @@ func fileBackupVolumes(volume *corev1.VolumeSource) []corev1.Volume {
 	}
 }
 
-func fileBackupVolumeMounts() []corev1.VolumeMount {
+func fileBackupVolumeMounts(subPath string) []corev1.VolumeMount {
 	return []corev1.VolumeMount{
 		{
 			Name:      fileBackupStorageVolumeName,
 			MountPath: fileBackupStorageMountPath,
+			SubPath:   subPath,
 		},
 	}
 }
