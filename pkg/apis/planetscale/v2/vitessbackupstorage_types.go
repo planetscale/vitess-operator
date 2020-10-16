@@ -49,6 +49,15 @@ type VitessBackupStorageSpec struct {
 	// Location specifies the Vitess parameters for connecting to the backup
 	// storage location.
 	Location VitessBackupLocation `json:"location"`
+	// Subcontroller specifies any parameters needed for launching the VitessBackupStorage subcontroller pod.
+	Subcontroller *VitessBackupSubcontrollerSpec `json:"subcontroller,omitempty"`
+}
+
+type VitessBackupSubcontrollerSpec struct {
+	// ServiceAccountName specifies the ServiceAccount used to launch the VitessBackupStorage subcontroller pod in the
+	// namespace of the VitessCluster. If empty (the default), the same account as the operator will be reused. If your
+	// VitessCluster is in a different namespace than the operator, this account is unlikely to work.
+	ServiceAccountName string `json:"serviceAccountName,omitempty"`
 }
 
 // VitessBackupLocation defines a location where Vitess backups can be stored.
