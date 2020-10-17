@@ -127,13 +127,6 @@ func (r *ReconcileVitessBackupStorage) newSubcontrollerPodSpec(ctx context.Conte
 		return nil, fmt.Errorf("can't find operator container (name containing %q) in my own Pod", operatorContainerNameSubstring)
 	}
 
-	if scSpec := vbs.Spec.Subcontroller; scSpec != nil && scSpec.ServiceAccountName != "" {
-		// allow the pod to be launched with a specific serviceaccount in the target namespace (which will be the same
-		// namespace as the VitessCluster itself)
-		spec.ServiceAccountName = scSpec.ServiceAccountName
-		spec.DeprecatedServiceAccount = scSpec.ServiceAccountName
-	}
-
 	// Filter out the service account token (volume and mounts) and let the
 	// admission controller re-add them appropriately.
 	tokenNamePrefix := spec.ServiceAccountName + "-token-"
@@ -160,6 +153,13 @@ func (r *ReconcileVitessBackupStorage) newSubcontrollerPodSpec(ctx context.Conte
 		}
 
 		container.VolumeMounts = newMounts
+	}
+
+	if scSpec := vbs.Spec.Subcontroller; scSpec != nil && scSpec.ServiceAccountName != "" {
+		// allow the pod to be launched with a specific serviceaccount in the target namespace (which will be the same
+		// namespace as the VitessCluster itself)
+		spec.ServiceAccountName = scSpec.ServiceAccountName
+		spec.DeprecatedServiceAccount = scSpec.ServiceAccountName
 	}
 
 	// Tell the subcontroller which VitessBackupStorage object to process.
