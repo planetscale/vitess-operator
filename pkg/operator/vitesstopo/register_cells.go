@@ -21,6 +21,7 @@ import (
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -55,8 +56,13 @@ type RegisterCellsParams struct {
 func RegisterCells(ctx context.Context, c RegisterCellsParams) (reconcile.Result, error) {
 	resultBuilder := &results.Builder{}
 
+	objMeta, err := meta.Accessor(c.EventObj)
+	if err != nil {
+		return resultBuilder.Error(err)
+	}
+
 	for name, lockserverSpec := range c.DesiredCells {
-		params := lockserver.LocalConnectionParams(c.GlobalLockserver, lockserverSpec, c.ClusterName, name)
+		params := lockserver.LocalConnectionParams(c.GlobalLockserver, lockserverSpec, objMeta.GetNamespace(), c.ClusterName, name)
 		if params == nil {
 			c.Recorder.Eventf(c.EventObj, corev1.EventTypeWarning, "TopoInvalid", "no local lockserver is defined for cell %v", name)
 			continue
