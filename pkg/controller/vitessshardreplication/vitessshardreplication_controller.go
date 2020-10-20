@@ -220,7 +220,7 @@ func (r *ReconcileVitessShard) Reconcile(request reconcile.Request) (reconcile.R
 	return result, err
 }
 
-func (r *ReconcileVitessShard) initReplication(ctx context.Context, vts *planetscalev2.VitessShard, wr *wrangler.Wrangler) (reconcile.Result, error){
+func (r *ReconcileVitessShard) initReplication(ctx context.Context, vts *planetscalev2.VitessShard, wr *wrangler.Wrangler) (reconcile.Result, error) {
 	resultBuilder := &results.Builder{}
 
 	// If we have configured the operator to not initialize replication, bail.
