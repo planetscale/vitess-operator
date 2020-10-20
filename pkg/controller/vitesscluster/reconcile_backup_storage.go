@@ -88,7 +88,7 @@ func newVitessBackupStorage(key client.ObjectKey, parentLabels map[string]string
 			Labels:    labels,
 		},
 		Spec: planetscalev2.VitessBackupStorageSpec{
-			Location: *location,
+			Location:      *location,
 			Subcontroller: subcontroller,
 		},
 	}

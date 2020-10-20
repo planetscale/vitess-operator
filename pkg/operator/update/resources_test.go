@@ -272,7 +272,7 @@ partitionings:
                 requests:
                   storage: 2Gi
 `
-	)
+)
 
 // TestKeyspaceDiskSizeNoUpdates tests that applying the same keyspace template to a keyspace
 // template using KeyspaceDiskSize results in no updates.
@@ -348,7 +348,7 @@ func TestKeyspaceDiskSizeOtherChanges(t *testing.T) {
 	}
 }
 
-func vitessKeyspaceFromYAML(vtkYAML string) *planetscalev2.VitessKeyspaceTemplate{
+func vitessKeyspaceFromYAML(vtkYAML string) *planetscalev2.VitessKeyspaceTemplate {
 	vtk := &planetscalev2.VitessKeyspaceTemplate{}
 	mustDecodeYAML(vtkYAML, vtk)
 	return vtk

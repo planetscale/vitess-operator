@@ -17,9 +17,9 @@ limitations under the License.
 package vttablet
 
 import (
-	"planetscale.dev/vitess-operator/pkg/operator/update"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"planetscale.dev/vitess-operator/pkg/operator/update"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 

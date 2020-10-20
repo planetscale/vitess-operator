@@ -193,7 +193,7 @@ If the object does not have the annotation, this has no effect.
 Note that this only mutates the provided, in-memory object to add the
 annotation; the caller is responsible for sending the updated object to
 the server.
- */
+*/
 func Uncascade(obj metav1.Object) {
 	ann := obj.GetAnnotations()
 	delete(ann, CascadeAnnotation)
