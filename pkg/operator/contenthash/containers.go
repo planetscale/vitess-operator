@@ -46,9 +46,18 @@ func ContainersUpdates(in []corev1.Container) string {
 // update.PodContainers(), such as when things are removed from lists in which
 // extra items are usually tolerated because they might have been injected.
 func ContainerUpdates(in *corev1.Container) string {
-	return StringMap(map[string]string{
+	content := map[string]string{
 		"VolumeMounts": volumeMountUpdates(in.VolumeMounts),
-	})
+	}
+
+	if len(in.Resources.Limits) > 0 {
+		content["ResourceLimits"] = resourceListKeys(in.Resources.Limits)
+	}
+	if len(in.Resources.Requests) > 0 {
+		content["ResourceRequests"] = resourceListKeys(in.Resources.Requests)
+	}
+
+	return StringMap(content)
 }
 
 func volumeMountUpdates(in []corev1.VolumeMount) string {
@@ -62,4 +71,15 @@ func volumeMountUpdates(in []corev1.VolumeMount) string {
 	sort.Strings(mountPaths)
 
 	return StringList(mountPaths)
+}
+
+func resourceListKeys(in corev1.ResourceList) string {
+	keys := make([]string, 0, len(in))
+	for k := range in {
+		keys = append(keys, string(k))
+	}
+
+	sort.Strings(keys)
+
+	return StringList(keys)
 }
