@@ -173,9 +173,14 @@ type VitessShardTabletPool struct {
 	Cell string `json:"cell"`
 
 	// Type is the type of tablet contained in this tablet pool.
-	// The allowed types are "replica" for master-eligible replicas that serve
-	// transactional (OLTP) workloads; and "rdonly" for master-ineligible replicas
-	// (can never be promoted to master) that serve batch/analytical (OLAP) workloads.
+	//
+	// The allowed types are:
+	//
+	//   * replica - master-eligible tablets that serve transactional (OLTP) workloads
+	//   * rdonly - master-ineligible tablets (can never be promoted to master) that serve batch/analytical (OLAP) workloads
+	//   * externalmaster - tablets pointed at an external, read-write MySQL endpoint
+	//   * externalreplica - tablets pointed at an external, read-only MySQL endpoint that serve transactional (OLTP) workloads
+	//   * externalrdonly - tablets pointed at an external, read-only MySQL endpoint that serve batch/analytical (OLAP) workloads
 	// +kubebuilder:validation:Enum=replica;rdonly;externalmaster;externalreplica;externalrdonly
 	Type VitessTabletPoolType `json:"type"`
 
