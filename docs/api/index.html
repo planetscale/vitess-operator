@@ -617,6 +617,19 @@ will find that the latest backup was created with the wrong engine.
 Default: builtin</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>subcontroller</code></br>
+<em>
+<a href="#planetscale.com/v2.VitessBackupSubcontrollerSpec">
+VitessBackupSubcontrollerSpec
+</a>
+</em>
+</td>
+<td>
+<p>Subcontroller specifies any parameters needed for launching the VitessBackupStorage subcontroller pod.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="planetscale.com/v2.EtcdLockserverSpec">EtcdLockserverSpec
@@ -2251,6 +2264,19 @@ VitessBackupLocation
 storage location.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>subcontroller</code></br>
+<em>
+<a href="#planetscale.com/v2.VitessBackupSubcontrollerSpec">
+VitessBackupSubcontrollerSpec
+</a>
+</em>
+</td>
+<td>
+<p>Subcontroller specifies any parameters needed for launching the VitessBackupStorage subcontroller pod.</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -2299,6 +2325,19 @@ VitessBackupLocation
 storage location.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>subcontroller</code></br>
+<em>
+<a href="#planetscale.com/v2.VitessBackupSubcontrollerSpec">
+VitessBackupSubcontrollerSpec
+</a>
+</em>
+</td>
+<td>
+<p>Subcontroller specifies any parameters needed for launching the VitessBackupStorage subcontroller pod.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="planetscale.com/v2.VitessBackupStorageStatus">VitessBackupStorageStatus
@@ -2339,6 +2378,38 @@ int32
 <td>
 <p>TotalBackupCount is the total number of backups found in this storage
 location, across all keyspaces and shards.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="planetscale.com/v2.VitessBackupSubcontrollerSpec">VitessBackupSubcontrollerSpec
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#planetscale.com/v2.ClusterBackupSpec">ClusterBackupSpec</a>, 
+<a href="#planetscale.com/v2.VitessBackupStorageSpec">VitessBackupStorageSpec</a>)
+</p>
+<p>
+</p>
+<table class="table table-striped">
+<thead class="thead-dark">
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>serviceAccountName</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>ServiceAccountName specifies the ServiceAccount used to launch the VitessBackupStorage subcontroller pod in the
+namespace of the VitessCluster. If empty (the default), the same account as the operator will be reused. If your
+VitessCluster is in a different namespace than the operator, this account is unlikely to work.</p>
 </td>
 </tr>
 </tbody>
@@ -6479,10 +6550,15 @@ VitessTabletPoolType
 </em>
 </td>
 <td>
-<p>Type is the type of tablet contained in this tablet pool.
-The allowed types are &ldquo;replica&rdquo; for master-eligible replicas that serve
-transactional (OLTP) workloads; and &ldquo;rdonly&rdquo; for master-ineligible replicas
-(can never be promoted to master) that serve batch/analytical (OLAP) workloads.</p>
+<p>Type is the type of tablet contained in this tablet pool.</p>
+<p>The allowed types are:</p>
+<ul>
+<li>replica - master-eligible tablets that serve transactional (OLTP) workloads</li>
+<li>rdonly - master-ineligible tablets (can never be promoted to master) that serve batch/analytical (OLAP) workloads</li>
+<li>externalmaster - tablets pointed at an external, read-write MySQL endpoint</li>
+<li>externalreplica - tablets pointed at an external, read-only MySQL endpoint that serve transactional (OLTP) workloads</li>
+<li>externalrdonly - tablets pointed at an external, read-only MySQL endpoint that serve batch/analytical (OLAP) workloads</li>
+</ul>
 </td>
 </tr>
 <tr>
