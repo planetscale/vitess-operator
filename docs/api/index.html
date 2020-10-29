@@ -824,9 +824,9 @@ Kubernetes core/v1.PersistentVolumeClaimSpec
 <p>DataVolumeClaimTemplate configures the PersistentVolumeClaims that will be created
 for each etcd instance to store its data files.
 This field is required.</p>
-<p>IMPORTANT: For a cell-local lockserver, you must set a storageClassName
-here for a StorageClass that&rsquo;s configured to only provision volumes in
-the Availability Zone that corresponds to the Vitess cell.
+<p>IMPORTANT: For a cell-local lockserver in a Kubernetes cluster that spans
+multiple zones, you should ensure that <code>volumeBindingMode: WaitForFirstConsumer</code>
+is set on the StorageClass specified in the storageClassName field here.
 Default: Let the operator choose.</p>
 </td>
 </tr>
@@ -6588,9 +6588,9 @@ Kubernetes core/v1.PersistentVolumeClaimSpec
 for each tablet to store its database files.
 This field is required for local MySQL, but should be omitted in the case of externally
 managed MySQL.</p>
-<p>IMPORTANT: If your Kubernetes cluster is multi-zone, you must set a
-storageClassName here for a StorageClass that&rsquo;s configured to only
-provision volumes in the same zone as this tablet pool.</p>
+<p>IMPORTANT: For a tablet pool in a Kubernetes cluster that spans multiple
+zones, you should ensure that <code>volumeBindingMode: WaitForFirstConsumer</code>
+is set on the StorageClass specified in the storageClassName field here.</p>
 </td>
 </tr>
 <tr>

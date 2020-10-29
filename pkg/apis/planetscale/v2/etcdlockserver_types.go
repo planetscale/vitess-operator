@@ -82,9 +82,9 @@ type EtcdLockserverTemplate struct {
 	// for each etcd instance to store its data files.
 	// This field is required.
 	//
-	// IMPORTANT: For a cell-local lockserver, you must set a storageClassName
-	// here for a StorageClass that's configured to only provision volumes in
-	// the Availability Zone that corresponds to the Vitess cell.
+	// IMPORTANT: For a cell-local lockserver in a Kubernetes cluster that spans
+	// multiple zones, you should ensure that `volumeBindingMode: WaitForFirstConsumer`
+	// is set on the StorageClass specified in the storageClassName field here.
 	// Default: Let the operator choose.
 	DataVolumeClaimTemplate corev1.PersistentVolumeClaimSpec `json:"dataVolumeClaimTemplate,omitempty"`
 

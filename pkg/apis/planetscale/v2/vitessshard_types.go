@@ -195,9 +195,9 @@ type VitessShardTabletPool struct {
 	// This field is required for local MySQL, but should be omitted in the case of externally
 	// managed MySQL.
 	//
-	// IMPORTANT: If your Kubernetes cluster is multi-zone, you must set a
-	// storageClassName here for a StorageClass that's configured to only
-	// provision volumes in the same zone as this tablet pool.
+	// IMPORTANT: For a tablet pool in a Kubernetes cluster that spans multiple
+	// zones, you should ensure that `volumeBindingMode: WaitForFirstConsumer`
+	// is set on the StorageClass specified in the storageClassName field here.
 	DataVolumeClaimTemplate *corev1.PersistentVolumeClaimSpec `json:"dataVolumeClaimTemplate,omitempty"`
 
 	// BackupLocationName is the name of the backup location to use for this
