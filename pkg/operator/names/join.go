@@ -27,6 +27,12 @@ import (
 //   the output of any existing function, because that breaks determinism across
 //   version upgrades of the operator.
 
+const (
+	// hashBytes is the number of bytes included in the result of Hash().
+	// This must never be changed since it would break backwards compatibility.
+	hashBytes = 4
+)
+
 /*
 Join builds a name by concatenating a number of parts with '-' as the separator.
 
@@ -96,5 +102,21 @@ func Hash(parts []string) string {
 	// the concatenated parts without the hash match exactly.
 	// That leaves almost no degrees of freedom even if you're
 	// trying to collide on purpose.
-	return hex.EncodeToString(sum[:4])
+	return hex.EncodeToString(sum[:hashBytes])
+}
+
+// JoinLength computes the length of the output string you would get from
+// calling Join() with the same arguments.
+func JoinLength(parts ...string) int {
+	// Start with a separator after each part (including the last part, since
+	// it's followed by the hash), then add 2 chars for each hex-encoded byte of
+	// the hash suffix.
+	length := len(parts) + 2*hashBytes
+
+	// Then add the lengths of the actual parts
+	for _, part := range parts {
+		length += len(part)
+	}
+
+	return length
 }

@@ -169,7 +169,8 @@ type VitessReplicationSpec struct {
 type VitessShardTabletPool struct {
 	// Cell is the name of the Vitess cell in which to deploy this pool.
 	// +kubebuilder:validation:MinLength=1
-	// +kubebuilder:validation:Pattern=^[a-z0-9]([a-z0-9]*[a-z0-9])?$
+	// +kubebuilder:validation:MaxLength=63
+	// +kubebuilder:validation:Pattern=^[A-Za-z0-9]([_.A-Za-z0-9]*[A-Za-z0-9])?$
 	Cell string `json:"cell"`
 
 	// Type is the type of tablet contained in this tablet pool.

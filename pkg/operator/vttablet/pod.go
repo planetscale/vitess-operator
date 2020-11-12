@@ -40,7 +40,7 @@ import (
 
 // PodName returns the name of the Pod for a given vttablet.
 func PodName(clusterName string, tabletAlias topodatapb.TabletAlias) string {
-	return names.Join(clusterName, planetscalev2.VttabletComponentName, topoproto.TabletAliasString(&tabletAlias))
+	return names.JoinWithConstraints(names.DefaultConstraints, clusterName, planetscalev2.VttabletComponentName, topoproto.TabletAliasString(&tabletAlias))
 }
 
 // NewPod creates a new vttablet Pod from a Spec.

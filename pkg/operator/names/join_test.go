@@ -99,3 +99,13 @@ func TestJoinHash(t *testing.T) {
 		t.Fatalf("Join(%v) = %q, want %q", parts, got, want)
 	}
 }
+
+func TestJoinLength(t *testing.T) {
+	parts := []string{"hello", "world"}
+	want := len(Join(parts...))
+
+	got := JoinLength(parts...)
+	if got != want {
+		t.Fatalf("JoinLength(%v) = %q, want %q", parts, got, want)
+	}
+}

@@ -29,7 +29,7 @@ import (
 
 // ServiceName returns the name of the vttablet Service for a cluster.
 func ServiceName(clusterName string) string {
-	return names.Join(clusterName, planetscalev2.VttabletComponentName)
+	return names.JoinWithConstraints(names.ServiceConstraints, clusterName, planetscalev2.VttabletComponentName)
 }
 
 // NewService creates a new Service object for vtgate.

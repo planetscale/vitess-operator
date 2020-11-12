@@ -51,17 +51,17 @@ func ObjectName(clusterName, backupLocationName, keyspaceName string, shardkeyRa
 	timestamp := backupTime.Format(objectNameTimeFormat)
 
 	if backupLocationName == "" {
-		return names.Join(clusterName, keyspaceName, shardkeyRange.SafeName(), timestamp, uidStr)
+		return names.JoinWithConstraints(names.DefaultConstraints, clusterName, keyspaceName, shardkeyRange.SafeName(), timestamp, uidStr)
 	}
-	return names.Join(clusterName, backupLocationName, keyspaceName, shardkeyRange.SafeName(), timestamp, uidStr)
+	return names.JoinWithConstraints(names.DefaultConstraints, clusterName, backupLocationName, keyspaceName, shardkeyRange.SafeName(), timestamp, uidStr)
 }
 
 // StorageObjectName returns the name for a VitessBackupStorage object.
 func StorageObjectName(clusterName, backupLocationName string) string {
 	if backupLocationName == "" {
-		return names.Join(clusterName)
+		return names.JoinWithConstraints(names.DefaultConstraints, clusterName)
 	}
-	return names.Join(clusterName, backupLocationName)
+	return names.JoinWithConstraints(names.DefaultConstraints, clusterName, backupLocationName)
 }
 
 // ParseBackupName parses the name given by Vitess to each backup.

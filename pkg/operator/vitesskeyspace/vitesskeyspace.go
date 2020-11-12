@@ -22,5 +22,5 @@ import (
 
 // Name returns the VitessKeyspace metadata.name for a given keyspace.
 func Name(clusterName, keyspaceName string) string {
-	return names.Join(clusterName, keyspaceName)
+	return names.JoinWithConstraints(names.DefaultConstraints, clusterName, keyspaceName)
 }
