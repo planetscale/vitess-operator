@@ -44,7 +44,7 @@ const (
 
 // DeploymentName returns the name of the vtctld Deployment for a given cell.
 func DeploymentName(clusterName, cellName string) string {
-	return names.Join(clusterName, cellName, planetscalev2.VtctldComponentName)
+	return names.JoinWithConstraints(names.DefaultConstraints, clusterName, cellName, planetscalev2.VtctldComponentName)
 }
 
 // Spec specifies all the internal parameters needed to deploy vtctld,

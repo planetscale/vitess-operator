@@ -79,14 +79,14 @@ type BackupSpec struct {
 func BackupPodName(clusterName, keyspaceName string, keyRange planetscalev2.VitessKeyRange, backupLocationName string, lastBackupTime time.Time) string {
 	timestamp := strconv.FormatInt(lastBackupTime.Unix(), 16)
 	if backupLocationName == "" {
-		return names.Join(clusterName, keyspaceName, keyRange.SafeName(), planetscalev2.VtbackupComponentName, timestamp)
+		return names.JoinWithConstraints(names.DefaultConstraints, clusterName, keyspaceName, keyRange.SafeName(), planetscalev2.VtbackupComponentName, timestamp)
 	}
-	return names.Join(clusterName, keyspaceName, keyRange.SafeName(), planetscalev2.VtbackupComponentName, backupLocationName, timestamp)
+	return names.JoinWithConstraints(names.DefaultConstraints, clusterName, keyspaceName, keyRange.SafeName(), planetscalev2.VtbackupComponentName, backupLocationName, timestamp)
 }
 
 // InitialBackupPodName returns the name of the Pod for an initial vtbackup job.
 func InitialBackupPodName(clusterName, keyspaceName string, keyRange planetscalev2.VitessKeyRange) string {
-	return names.Join(clusterName, keyspaceName, keyRange.SafeName(), planetscalev2.VtbackupComponentName, "init")
+	return names.JoinWithConstraints(names.DefaultConstraints, clusterName, keyspaceName, keyRange.SafeName(), planetscalev2.VtbackupComponentName, "init")
 }
 
 // NewBackupPod creates a new vtbackup Pod, which is like a special kind of

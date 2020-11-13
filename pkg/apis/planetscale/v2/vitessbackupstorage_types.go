@@ -71,8 +71,8 @@ type VitessBackupLocation struct {
 	// This name must be unique among all backup locations defined in a given
 	// cluster. A backup location with an empty name defines the default
 	// location used when a tablet pool does not specify a backupLocationName.
-	// +kubebuilder:validation:MaxLength=25
-	// +kubebuilder:validation:Pattern=^[a-z0-9]([a-z0-9]*[a-z0-9])?$
+	// +kubebuilder:validation:MaxLength=63
+	// +kubebuilder:validation:Pattern=^[A-Za-z0-9]([A-Za-z0-9-_.]*[A-Za-z0-9])?$
 	Name string `json:"name,omitempty"`
 	// GCS specifies a backup location in Google Cloud Storage.
 	GCS *GCSBackupLocation `json:"gcs,omitempty"`

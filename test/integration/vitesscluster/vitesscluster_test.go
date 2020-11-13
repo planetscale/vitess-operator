@@ -26,6 +26,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
+	"planetscale.dev/vitess-operator/pkg/operator/lockserver"
 	"planetscale.dev/vitess-operator/pkg/operator/names"
 	"planetscale.dev/vitess-operator/test/integration/framework"
 )
@@ -126,22 +127,22 @@ func verifyBasicVitessCluster(f *framework.Fixture, ns, cluster string) {
 	verifyBasicEtcdLockserver(f, ns, cluster)
 
 	// VitessCluster creates global Services.
-	f.MustGet(ns, names.Join(cluster, "vtctld"), &corev1.Service{})
-	f.MustGet(ns, names.Join(cluster, "vtgate"), &corev1.Service{})
-	f.MustGet(ns, names.Join(cluster, "vttablet"), &corev1.Service{})
+	f.MustGet(ns, names.JoinWithConstraints(names.ServiceConstraints, cluster, "vtctld"), &corev1.Service{})
+	f.MustGet(ns, names.JoinWithConstraints(names.ServiceConstraints, cluster, "vtgate"), &corev1.Service{})
+	f.MustGet(ns, names.JoinWithConstraints(names.ServiceConstraints, cluster, "vttablet"), &corev1.Service{})
 
 	// VitessCluster creates vtctld Deployments.
-	f.MustGet(ns, names.Join(cluster, "cell1", "vtctld"), &appsv1.Deployment{})
-	f.MustGet(ns, names.Join(cluster, "cell2", "vtctld"), &appsv1.Deployment{})
-	f.MustGet(ns, names.Join(cluster, "cell3", "vtctld"), &appsv1.Deployment{})
+	f.MustGet(ns, names.JoinWithConstraints(names.DefaultConstraints, cluster, "cell1", "vtctld"), &appsv1.Deployment{})
+	f.MustGet(ns, names.JoinWithConstraints(names.DefaultConstraints, cluster, "cell2", "vtctld"), &appsv1.Deployment{})
+	f.MustGet(ns, names.JoinWithConstraints(names.DefaultConstraints, cluster, "cell3", "vtctld"), &appsv1.Deployment{})
 }
 
 func verifyBasicVitessBackupStorage(f *framework.Fixture, ns, cluster, location string) {
 	var vbsName string
 	if location == "" {
-		vbsName = names.Join(cluster)
+		vbsName = names.JoinWithConstraints(names.DefaultConstraints, cluster)
 	} else {
-		vbsName = names.Join(cluster, location)
+		vbsName = names.JoinWithConstraints(names.DefaultConstraints, cluster, location)
 	}
 
 	f.MustGet(ns, vbsName, &planetscalev2.VitessBackupStorage{})
@@ -151,7 +152,7 @@ func verifyBasicVitessBackupStorage(f *framework.Fixture, ns, cluster, location 
 }
 
 func verifyBasicEtcdLockserver(f *framework.Fixture, ns, cluster string) {
-	etcdName := names.Join(cluster, "etcd")
+	etcdName := names.JoinWithConstraints(lockserver.EtcdLockserverNameConstraints, cluster, "etcd")
 
 	f.MustGet(ns, etcdName, &planetscalev2.EtcdLockserver{})
 
@@ -169,15 +170,15 @@ func verifyBasicEtcdLockserver(f *framework.Fixture, ns, cluster string) {
 }
 
 func verifyBasicVitessCell(f *framework.Fixture, ns, cluster, cell string) {
-	f.MustGet(ns, names.Join(cluster, cell), &planetscalev2.VitessCell{})
+	f.MustGet(ns, names.JoinWithConstraints(names.DefaultConstraints, cluster, cell), &planetscalev2.VitessCell{})
 
 	// VitessCell creates vtgate Service/Deployment.
-	f.MustGet(ns, names.Join(cluster, cell, "vtgate"), &corev1.Service{})
-	f.MustGet(ns, names.Join(cluster, cell, "vtgate"), &appsv1.Deployment{})
+	f.MustGet(ns, names.JoinWithConstraints(names.ServiceConstraints, cluster, cell, "vtgate"), &corev1.Service{})
+	f.MustGet(ns, names.JoinWithConstraints(names.DefaultConstraints, cluster, cell, "vtgate"), &appsv1.Deployment{})
 }
 
 func verifyBasicVitessKeyspace(f *framework.Fixture, ns, cluster, keyspace string) {
-	f.MustGet(ns, names.Join(cluster, keyspace), &planetscalev2.VitessKeyspace{})
+	f.MustGet(ns, names.JoinWithConstraints(names.DefaultConstraints, cluster, keyspace), &planetscalev2.VitessKeyspace{})
 
 	// VitessKeyspaces create VitessShards.
 	verifyBasicVitessShard(f, ns, cluster, keyspace, "x-80", []int{3, 3, 0})
@@ -186,7 +187,7 @@ func verifyBasicVitessKeyspace(f *framework.Fixture, ns, cluster, keyspace strin
 }
 
 func verifyBasicVitessShard(f *framework.Fixture, ns, cluster, keyspace, shard string, expectedTabletCount []int) {
-	f.MustGet(ns, names.Join(cluster, keyspace, shard), &planetscalev2.VitessShard{})
+	f.MustGet(ns, names.JoinWithConstraints(names.DefaultConstraints, cluster, keyspace, shard), &planetscalev2.VitessShard{})
 
 	// VitessShard creates vttablet Pods.
 	cell1Pods := f.ExpectPods(&client.ListOptions{
@@ -214,8 +215,8 @@ func verifyBasicVitessShard(f *framework.Fixture, ns, cluster, keyspace, shard s
 	}
 
 	// VitessShard creates vtbackup-init Pod/PVC.
-	f.MustGet(ns, names.Join(cluster, keyspace, shard, "vtbackup", "init"), &corev1.Pod{})
-	f.MustGet(ns, names.Join(cluster, keyspace, shard, "vtbackup", "init"), &corev1.PersistentVolumeClaim{})
+	f.MustGet(ns, names.JoinWithConstraints(names.DefaultConstraints, cluster, keyspace, shard, "vtbackup", "init"), &corev1.Pod{})
+	f.MustGet(ns, names.JoinWithConstraints(names.DefaultConstraints, cluster, keyspace, shard, "vtbackup", "init"), &corev1.PersistentVolumeClaim{})
 }
 
 func tabletPodSelector(cluster, keyspace, shard, cell, tabletType string) apilabels.Selector {

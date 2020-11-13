@@ -29,12 +29,12 @@ import (
 
 // ServiceName returns the name of the vtgate Service for a cell.
 func ServiceName(clusterName, cellName string) string {
-	return names.Join(clusterName, cellName, planetscalev2.VtgateComponentName)
+	return names.JoinWithConstraints(names.ServiceConstraints, clusterName, cellName, planetscalev2.VtgateComponentName)
 }
 
 // ClusterServiceName returns the name of the vtgate Service for a cluster.
 func ClusterServiceName(clusterName string) string {
-	return names.Join(clusterName, planetscalev2.VtgateComponentName)
+	return names.JoinWithConstraints(names.ServiceConstraints, clusterName, planetscalev2.VtgateComponentName)
 }
 
 // NewService creates a new Service object for vtgate.
