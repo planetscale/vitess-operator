@@ -36,44 +36,20 @@ const (
 	hashLength = 2 * hashBytes
 )
 
-/*
-Join builds a name by concatenating a number of parts with '-' as the separator.
-
-It will append a hash at the end that depends only on the parts supplied.
-If the function is called again with the same parts, in the same order,
-the hash will also be the same. This determinism allows you to use the resulting
-name to ensure idempotency when creating objects.
-
-However, the hash will differ if the parts are rearranged, or if substrings
-within parts are moved to adjacent parts. The resulting generated name,
-while deterministic, is thus guaranteed to be unique for a given list of parts,
-even if the parts themselves are allowed to contain the separator.
-
-For example: Join("a-b", "c") != Join("a", "b-c")
-Although both will begin with "a-b-c-", the hash at the end will be different.
-
-Note that after objects are created with these hashes in their names,
-it's often unnecessary to compute the hash to subsequently look those objects up.
-Instead, objects should be labeled with key-value pairs corresponding to the
-parts that went into the name, allowing direct look-up by label selector.
-Since labels are stored as key-value pairs, there is no danger of those values
-causing confusion if they happen to contain the separator.
-*/
-func Join(parts ...string) string {
+// DeprecatedJoin is deprecated; use JoinWithConstraints instead.
+//
+// This function should be kept frozen since it's used to verify backwards compatibility.
+func DeprecatedJoin(parts ...string) string {
 	all := make([]string, 0, len(parts)+1)
 	all = append(all, parts...)
 	all = append(all, Hash(parts))
 	return strings.Join(all, "-")
 }
 
-// JoinSalt works like Join except the appended hash includes additional,
-// hidden salt values that don't get concatenated onto the name itself.
+// DeprecatedJoinSalt is deprecated; use JoinSaltWithConstraints instead.
 //
-// Unlike regular name components, hidden salt values don't have to consist
-// solely of characters that are valid in an object name. This can be used to
-// ensure generation of deterministic, unique names when some of the determining
-// input values are not safe to use in names.
-func JoinSalt(salt []string, parts ...string) string {
+// This function should be kept frozen since it's used to verify backwards compatibility.
+func DeprecatedJoinSalt(salt []string, parts ...string) string {
 	// Include both the salt and name parts in the hash.
 	hashParts := make([]string, 0, len(salt)+len(parts))
 	hashParts = append(hashParts, salt...)
@@ -106,20 +82,4 @@ func Hash(parts []string) string {
 	// That leaves almost no degrees of freedom even if you're
 	// trying to collide on purpose.
 	return hex.EncodeToString(sum[:hashBytes])
-}
-
-// JoinLength computes the length of the output string you would get from
-// calling Join() with the same arguments.
-func JoinLength(parts ...string) int {
-	// Start with a separator after each part (including the last part, since
-	// it's followed by the hash), then add 2 chars for each hex-encoded byte of
-	// the hash suffix.
-	length := len(parts) + hashLength
-
-	// Then add the lengths of the actual parts
-	for _, part := range parts {
-		length += len(part)
-	}
-
-	return length
 }

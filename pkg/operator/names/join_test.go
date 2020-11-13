@@ -21,10 +21,13 @@ import (
 	"testing"
 )
 
-// TestJoin checks that Join() has the properties we want.
+// TestJoin checks determinism and uniqueness.
 func TestJoin(t *testing.T) {
 	// Check that it starts with the parts joined by '-'.
-	if got, want := Join("one", "two", "three"), "one-two-three-"; !strings.HasPrefix(got, want) {
+	if got, want := DeprecatedJoin("one", "two", "three"), "one-two-three-"; !strings.HasPrefix(got, want) {
+		t.Errorf("got %q, want prefix %q", got, want)
+	}
+	if got, want := JoinWithConstraints(DefaultConstraints, "one", "two", "three"), "one-two-three-"; !strings.HasPrefix(got, want) {
 		t.Errorf("got %q, want prefix %q", got, want)
 	}
 
@@ -66,8 +69,11 @@ func TestJoin(t *testing.T) {
 		},
 	}
 	for _, test := range table {
-		if got := Join(test.a...) == Join(test.b...); got != test.shouldEqual {
-			t.Errorf("%s: got %v; want %v", test.name, got, test.shouldEqual)
+		if got := DeprecatedJoin(test.a...) == DeprecatedJoin(test.b...); got != test.shouldEqual {
+			t.Errorf("DeprecatedJoin: %s: got %v; want %v", test.name, got, test.shouldEqual)
+		}
+		if got := JoinWithConstraints(DefaultConstraints, test.a...) == JoinWithConstraints(DefaultConstraints, test.b...); got != test.shouldEqual {
+			t.Errorf("JoinWithConstraints: %s: got %v; want %v", test.name, got, test.shouldEqual)
 		}
 	}
 }
@@ -77,15 +83,21 @@ func TestJoinSalt(t *testing.T) {
 	salt := []string{"salt1", "salt2"}
 	parts := []string{"hello", "world"}
 	want := "hello-world-462f1b88"
-	if got := JoinSalt(salt, parts...); got != want {
-		t.Errorf("JoinSalt(%v, %v) = %q, want %q", salt, parts, got, want)
+	if got := DeprecatedJoinSalt(salt, parts...); got != want {
+		t.Errorf("DeprecatedJoinSalt(%v, %v) = %q, want %q", salt, parts, got, want)
+	}
+	if got := JoinSaltWithConstraints(DefaultConstraints, salt, parts...); got != want {
+		t.Errorf("JoinSaltWithConstraints(%v, %v) = %q, want %q", salt, parts, got, want)
 	}
 
 	salt = []string{"salt1-salt2"}
 	parts = []string{"hello", "world"}
 	want = "hello-world-c65378ee"
-	if got := JoinSalt(salt, parts...); got != want {
-		t.Errorf("JoinSalt(%v, %v) = %q, want %q", salt, parts, got, want)
+	if got := DeprecatedJoinSalt(salt, parts...); got != want {
+		t.Errorf("DeprecatedJoinSalt(%v, %v) = %q, want %q", salt, parts, got, want)
+	}
+	if got := JoinSaltWithConstraints(DefaultConstraints, salt, parts...); got != want {
+		t.Errorf("JoinSaltWithConstraints(%v, %v) = %q, want %q", salt, parts, got, want)
 	}
 }
 
@@ -95,17 +107,10 @@ func TestJoinHash(t *testing.T) {
 	// This is intentionally a change-detection test. If it breaks, you messed up.
 	parts := []string{"hello", "world"}
 	want := "hello-world-1dd41005"
-	if got := Join(parts...); got != want {
-		t.Fatalf("Join(%v) = %q, want %q", parts, got, want)
+	if got := DeprecatedJoin(parts...); got != want {
+		t.Fatalf("DeprecatedJoin(%v) = %q, want %q", parts, got, want)
 	}
-}
-
-func TestJoinLength(t *testing.T) {
-	parts := []string{"hello", "world"}
-	want := len(Join(parts...))
-
-	got := JoinLength(parts...)
-	if got != want {
-		t.Fatalf("JoinLength(%v) = %q, want %q", parts, got, want)
+	if got := JoinWithConstraints(DefaultConstraints, parts...); got != want {
+		t.Fatalf("JoinWithConstraints(%v) = %q, want %q", parts, got, want)
 	}
 }

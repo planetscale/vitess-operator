@@ -37,13 +37,16 @@ const (
 // Constraints specifies rules that the output of JoinWithConstraints must follow.
 type Constraints struct {
 	// MaxLength is the maximum length of the output, to be enforced after any
-	// transformations and including the hash suffix. This must be at least 12
-	// or else there won't be room for the separator and hash suffix for even
-	// the shortest possible input. Passing a value less than 12 will result in
-	// a panic.
+	// transformations and including the hash suffix. If a name has to be
+	// truncated to fit within this maximum length, the hash at the end will be
+	// preceded by a special truncation mark: "---" rather than the usual "-".
+	//
+	// MaxLength must be at least 12 because that's the shortest possible
+	// truncated value (1 char + truncation mark + hash). Passing a value less
+	// than 12 will result in a panic.
 	MaxLength int
 	// ValidFirstChar is a function that returns whether the given rune is
-	// allowed as the first byte in the output.
+	// allowed as the first character in the output.
 	ValidFirstChar func(r rune) bool
 }
 
@@ -61,16 +64,50 @@ var (
 	}
 )
 
-// JoinWithConstraints works like Join except it enforces some constraints on
-// the resulting name while maintaining uniqueness and determinism with respect
-// to the input values.
+/*
+JoinWithConstraints builds a name by concatenating a number of parts with '-' as
+the separator, and then enforcing some constraints on the resulting name while
+maintaining uniqueness and determinism with respect to the input values.
+
+It will append a hash at the end that depends only on the parts supplied.
+If the function is called again with the same parts, in the same order,
+the hash will also be the same. This determinism allows you to use the resulting
+name to ensure idempotency when creating objects.
+
+However, the hash will differ if the parts are rearranged, or if substrings
+within parts are moved to adjacent parts. The resulting generated name,
+while deterministic, is thus guaranteed to be unique for a given list of parts,
+even if the parts themselves are allowed to contain the separator.
+
+For example: JoinWithConstraints(cons, "a-b", "c") != JoinWithConstraints(cons, "a", "b-c")
+Although both will begin with "a-b-c-", the hash at the end will be different.
+
+The constraints passed in should be appropriate for the kind of object
+(e.g. Pod, Service) whose name is being generated, to ensure the name is
+accepted by Kubernetes validation. Most objects in Kubernetes accept any name
+that conforms to the DefaultConstraints, with the notable exception of Service
+objects which must conform to ServiceConstraints. Custom constraints, such as
+for a CRD that adds its own naming requirements, can be expressed by defining a
+new Constraints object.
+
+Note that after objects are created with these hashes in their names,
+it's often unnecessary to compute the hash to subsequently look those objects up.
+Instead, objects should be labeled with key-value pairs corresponding to the
+parts that went into the name, allowing direct look-up by label selector.
+Since labels are stored as key-value pairs, there is no danger of those values
+causing confusion if they happen to contain the separator.
+*/
 func JoinWithConstraints(cons Constraints, parts ...string) string {
 	return JoinSaltWithConstraints(cons, nil, parts...)
 }
 
-// JoinSaltWithConstraints works like JoinSalt except it enforces some
-// constraints on the resulting name while maintaining uniqueness and
-// determinism with respect to the input values.
+// JoinSaltWithConstraints works like JoinWithConstraints except the appended
+// hash includes additional, hidden salt values that don't get concatenated onto
+// the human-readable part of the name.
+//
+// This can be used to ensure generation of deterministic, unique names when
+// some of the determining input values are things that humans shouldn't need to
+// pay attention to.
 func JoinSaltWithConstraints(cons Constraints, salt []string, parts ...string) string {
 	// Always panic immediately if specified Constraints are invalid so we
 	// notice the programming error even if the inputs don't happen to trigger
@@ -116,10 +153,10 @@ func JoinSaltWithConstraints(cons Constraints, salt []string, parts ...string) s
 	}
 
 	// If the predicted length is ok, we just need to append the hash.
-	predictedLength := JoinLength(newParts...)
+	partialResult := strings.Join(newParts, "-")
+	predictedLength := len(partialResult) + 1 + len(hash)
 	if predictedLength <= cons.MaxLength {
-		newParts = append(newParts, hash)
-		return strings.Join(newParts, "-")
+		return partialResult + "-" + hash
 	}
 
 	// Otherwise, we need to truncate the partial result before appending the
@@ -127,7 +164,6 @@ func JoinSaltWithConstraints(cons Constraints, salt []string, parts ...string) s
 	// to MaxLength, and then a little extra to make room for the
 	// triple-separator mark we use to indicate that the name was truncated.
 	cutLength := predictedLength - cons.MaxLength + 2
-	partialResult := strings.Join(newParts, "-")
 	partialResult = partialResult[:len(partialResult)-cutLength]
 	return partialResult + truncationMark + hash
 }

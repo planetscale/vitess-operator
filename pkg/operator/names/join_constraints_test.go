@@ -109,7 +109,7 @@ func TestJoinWithConstraintsTransform(t *testing.T) {
 
 	// The outputs should also be different from what regular Join() produces
 	// for the transformed value.
-	control := Join("disallowed-symbol")
+	control := DeprecatedJoin("disallowed-symbol")
 	if out1 == control {
 		t.Errorf("got same output for two different inputs: %v", out1)
 	}
@@ -133,7 +133,7 @@ func TestJoinWithConstraintsCompatibility(t *testing.T) {
 		{"longnamepart1", "reallyreallyridiculouslylongnamepart2"},
 	}
 	for _, inputs := range table {
-		want := Join(inputs...)
+		want := DeprecatedJoin(inputs...)
 		got := JoinWithConstraints(cons, inputs...)
 		if got != want {
 			t.Errorf("JoinWithConstraints(%v) = %q; want %q", inputs, got, want)
@@ -157,7 +157,7 @@ func TestJoinSaltWithConstraintsCompatibility(t *testing.T) {
 		{"longnamepart1", "reallyreallyridiculouslylongnamepart2"},
 	}
 	for _, inputs := range table {
-		want := JoinSalt(salt, inputs...)
+		want := DeprecatedJoinSalt(salt, inputs...)
 		got := JoinSaltWithConstraints(cons, salt, inputs...)
 		if got != want {
 			t.Errorf("JoinSaltWithConstraints(%v) = %q; want %q", inputs, got, want)
