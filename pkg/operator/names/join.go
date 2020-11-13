@@ -31,6 +31,9 @@ const (
 	// hashBytes is the number of bytes included in the result of Hash().
 	// This must never be changed since it would break backwards compatibility.
 	hashBytes = 4
+
+	// hashLength is the number of characters in the hex-encoded string returned from Hash().
+	hashLength = 2 * hashBytes
 )
 
 /*
@@ -111,7 +114,7 @@ func JoinLength(parts ...string) int {
 	// Start with a separator after each part (including the last part, since
 	// it's followed by the hash), then add 2 chars for each hex-encoded byte of
 	// the hash suffix.
-	length := len(parts) + 2*hashBytes
+	length := len(parts) + hashLength
 
 	// Then add the lengths of the actual parts
 	for _, part := range parts {

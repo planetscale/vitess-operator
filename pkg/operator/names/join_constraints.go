@@ -17,8 +17,21 @@ limitations under the License.
 package names
 
 import (
+	"fmt"
 	"strings"
 	"unicode"
+)
+
+const (
+	// truncationMark is a special separator used when appending the hash to a
+	// truncated name to indicate that truncation occurred.
+	truncationMark = "---"
+
+	// minTruncatedLength is the shortest possible length of a name that had to
+	// be truncated. There has to be at least one character in front of the
+	// truncationMark since names can't start with '-', then the truncationMark
+	// itself, and finally the hash.
+	minTruncatedLength = 1 + len(truncationMark) + hashLength
 )
 
 // Constraints specifies rules that the output of JoinWithConstraints must follow.
@@ -26,7 +39,8 @@ type Constraints struct {
 	// MaxLength is the maximum length of the output, to be enforced after any
 	// transformations and including the hash suffix. This must be at least 12
 	// or else there won't be room for the separator and hash suffix for even
-	// the shortest possible input.
+	// the shortest possible input. Passing a value less than 12 will result in
+	// a panic.
 	MaxLength int
 	// ValidFirstChar is a function that returns whether the given rune is
 	// allowed as the first byte in the output.
@@ -58,6 +72,13 @@ func JoinWithConstraints(cons Constraints, parts ...string) string {
 // constraints on the resulting name while maintaining uniqueness and
 // determinism with respect to the input values.
 func JoinSaltWithConstraints(cons Constraints, salt []string, parts ...string) string {
+	// Always panic immediately if specified Constraints are invalid so we
+	// notice the programming error even if the inputs don't happen to trigger
+	// the constraints.
+	if cons.MaxLength < minTruncatedLength {
+		panic(fmt.Sprintf("MaxLength of %v is invalid; must be at least %v", cons.MaxLength, minTruncatedLength))
+	}
+
 	if len(parts) == 0 {
 		return ""
 	}
@@ -108,7 +129,7 @@ func JoinSaltWithConstraints(cons Constraints, salt []string, parts ...string) s
 	cutLength := predictedLength - cons.MaxLength + 2
 	partialResult := strings.Join(newParts, "-")
 	partialResult = partialResult[:len(partialResult)-cutLength]
-	return partialResult + "---" + hash
+	return partialResult + truncationMark + hash
 }
 
 func isLowercaseLetter(r rune) bool {
