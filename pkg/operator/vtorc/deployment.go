@@ -44,7 +44,7 @@ const (
 )
 
 func deploymentName(clusterName, keyspace, shardSafeName, cellName string) string {
-	return names.Join(clusterName, keyspace, shardSafeName, cellName, planetscalev2.VtorcComponentName)
+	return names.JoinWithConstraints(names.DefaultConstraints, clusterName, keyspace, shardSafeName, cellName, planetscalev2.VtorcComponentName)
 }
 
 // DeploymentName returns the name of the orchestrator Deployment for a given tablet pool.
