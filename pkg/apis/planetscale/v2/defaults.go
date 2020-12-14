@@ -67,6 +67,10 @@ const (
 	defaultVtctldCPUMillis   = 100
 	defaultVtctldMemoryBytes = 128 * Mi
 
+	defaultVtorcReplicas    = 0
+	defaultVtorcCPUMillis   = 100
+	defaultVtorcMemoryBytes = 128 * Mi
+
 	defaultVtgateReplicas    = 2
 	defaultVtgateCPUMillis   = 500
 	defaultVtgateMemoryBytes = 1 * Gi
@@ -82,6 +86,9 @@ const (
 	DefaultGrpcPort = 15999
 	// DefaultMysqlPort is the port for MySQL client connections.
 	DefaultMysqlPort = 3306
+
+	// DefaultVtorcWebPort is the default web port for vtorc.
+	DefaultVtorcWebPort = 3000
 
 	// DefaultWebPortName is the name for the web port.
 	DefaultWebPortName = "web"
@@ -106,6 +113,8 @@ var DefaultImages = &VitessImages{
 	// mysqlctld binary injected (copied from the vttablet image) at Pod
 	// initialization, since vtbackup is effectively a modified mysqlctl(d).
 	Vtbackup: defaultVitessLiteImage,
+
+	Vtorc: defaultVitessLiteImage,
 
 	// Note: We used to use a mysql-only image, but it's better to use the
 	// same image as the vttablet container since vttablet now uses the

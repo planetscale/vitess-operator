@@ -263,6 +263,8 @@ spec:
                   type: string
                 vtgate:
                   type: string
+                vtorc:
+                  type: string
                 vttablet:
                   type: string
               type: object

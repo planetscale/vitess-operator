@@ -55,6 +55,9 @@ func DefaultVitessImages(dst *VitessImages, src *VitessImages) {
 	if dst.Vtctld == "" {
 		dst.Vtctld = src.Vtctld
 	}
+	if dst.Vtorc == "" {
+		dst.Vtorc = src.Vtorc
+	}
 	if dst.Vtgate == "" {
 		dst.Vtgate = src.Vtgate
 	}

@@ -102,7 +102,7 @@ type VitessClusterSpec struct {
 	Keyspaces []VitessKeyspaceTemplate `json:"keyspaces,omitempty" patchStrategy:"merge" patchMergeKey:"name"`
 
 	// ExtraVitessFlags can optionally be used to pass flags to all Vitess components.
-	// WARNING: Any flags passed here must be flags that can be accepted by vtgate, vtctld and vttablet.
+	// WARNING: Any flags passed here must be flags that can be accepted by vtgate, vtctld, vtorc, and vttablet.
 	// An example use-case would be topo flags.
 	//
 	// All entries must be key-value string pairs of the form "flag": "value". The flag name should
@@ -221,6 +221,8 @@ type VitessImages struct {
 
 	// Vtctld is the container image (including version tag) to use for Vitess Dashboard instances.
 	Vtctld string `json:"vtctld,omitempty"`
+	// Vtorc is the container image (including version tag) to use for Vitess Orchestrator instances.
+	Vtorc string `json:"vtorc,omitempty"`
 	// Vtgate is the container image (including version tag) to use for Vitess Gateway instances.
 	Vtgate string `json:"vtgate,omitempty"`
 	// Vttablet is the container image (including version tag) to use for Vitess Tablet instances.
@@ -259,6 +261,8 @@ type MysqldImage struct {
 type VitessImagePullPolicies struct {
 	// Vtctld is the container image pull policy to use for Vitess Dashboard instances.
 	Vtctld corev1.PullPolicy `json:"vtctld,omitempty"`
+	// Vtorc is the container image pull policy to use for Vitess Orchestrator instances.
+	Vtorc corev1.PullPolicy `json:"vtorc,omitempty"`
 	// Vtgate is the container image pull policy to use for Vitess Gateway instances.
 	Vtgate corev1.PullPolicy `json:"vtgate,omitempty"`
 	// Vttablet is the container image pull policy to use for Vitess Tablet instances.
