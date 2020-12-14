@@ -297,6 +297,8 @@ type ClusterBackupSpec struct {
 	// Default: builtin
 	// +kubebuilder:validation:Enum=builtin;xtrabackup
 	Engine VitessBackupEngine `json:"engine,omitempty"`
+	// Subcontroller specifies any parameters needed for launching the VitessBackupStorage subcontroller pod.
+	Subcontroller *VitessBackupSubcontrollerSpec `json:"subcontroller,omitempty"`
 }
 
 // VitessBackupEngine is the backup implementation to use.

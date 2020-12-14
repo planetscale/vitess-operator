@@ -3,10 +3,10 @@ module planetscale.dev/vitess-operator
 go 1.13
 
 require (
+	github.com/Azure/azure-storage-blob-go v0.10.0 // indirect
 	github.com/ahmetb/gen-crd-api-reference-docs v0.1.5-0.20190629210212-52e137b8d003
 	github.com/klauspost/compress v1.7.5 // indirect
 	github.com/klauspost/cpuid v1.2.1 // indirect
-	github.com/kubernetes-sigs/kustomize v2.0.3+incompatible // indirect
 	github.com/operator-framework/operator-sdk v0.16.0
 	github.com/prometheus/client_golang v1.4.1
 	github.com/sirupsen/logrus v1.4.2
@@ -23,7 +23,7 @@ require (
 	sigs.k8s.io/controller-runtime v0.4.0
 	sigs.k8s.io/controller-tools v0.2.4
 	sigs.k8s.io/yaml v1.1.0
-	vitess.io/vitess v0.0.0-20200909224454-6a25895b6125
+	vitess.io/vitess v0.0.0-20201027135623-7e09d0c20ca1
 )
 
 // ****************************

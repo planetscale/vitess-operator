@@ -93,8 +93,8 @@ spec:
                     - bucket
                     type: object
                   name:
-                    maxLength: 25
-                    pattern: ^[a-z0-9]([a-z0-9]*[a-z0-9])?$
+                    maxLength: 63
+                    pattern: ^[A-Za-z0-9]([A-Za-z0-9-_.]*[A-Za-z0-9])?$
                     type: string
                   s3:
                     properties:
@@ -196,9 +196,9 @@ spec:
                   type: string
               type: object
             name:
-              maxLength: 25
+              maxLength: 63
               minLength: 1
-              pattern: ^[a-z0-9]([a-z0-9]*[a-z0-9])?$
+              pattern: ^[A-Za-z0-9]([A-Za-z0-9-_.]*[A-Za-z0-9])?$
               type: string
             partitionings:
               items:
@@ -256,8 +256,9 @@ spec:
                                   backupLocationName:
                                     type: string
                                   cell:
+                                    maxLength: 63
                                     minLength: 1
-                                    pattern: ^[a-z0-9]([a-z0-9]*[a-z0-9])?$
+                                    pattern: ^[A-Za-z0-9]([_.A-Za-z0-9]*[A-Za-z0-9])?$
                                     type: string
                                   dataVolumeClaimTemplate:
                                     properties:
@@ -566,8 +567,9 @@ spec:
                                 backupLocationName:
                                   type: string
                                 cell:
+                                  maxLength: 63
                                   minLength: 1
-                                  pattern: ^[a-z0-9]([a-z0-9]*[a-z0-9])?$
+                                  pattern: ^[A-Za-z0-9]([_.A-Za-z0-9]*[A-Za-z0-9])?$
                                   type: string
                                 dataVolumeClaimTemplate:
                                   properties:

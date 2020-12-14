@@ -86,8 +86,8 @@ spec:
                   - bucket
                   type: object
                 name:
-                  maxLength: 25
-                  pattern: ^[a-z0-9]([a-z0-9]*[a-z0-9])?$
+                  maxLength: 63
+                  pattern: ^[A-Za-z0-9]([A-Za-z0-9-_.]*[A-Za-z0-9])?$
                   type: string
                 s3:
                   properties:
@@ -121,6 +121,11 @@ spec:
                 volume:
                   type: object
                   x-kubernetes-preserve-unknown-fields: true
+              type: object
+            subcontroller:
+              properties:
+                serviceAccountName:
+                  type: string
               type: object
           required:
           - location

@@ -20,6 +20,7 @@ import (
 	"testing"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 )
 
 func TestContainersUpdates(t *testing.T) {
@@ -137,6 +138,44 @@ func TestContainersUpdates(t *testing.T) {
 				},
 			},
 			wantEqual: true,
+		},
+		{
+			description: "resource request removed",
+			before: []corev1.Container{
+				{
+					Name: "container",
+					Resources: corev1.ResourceRequirements{
+						Requests: corev1.ResourceList{
+							corev1.ResourceCPU: resource.MustParse("1"),
+						},
+					},
+				},
+			},
+			after: []corev1.Container{
+				{
+					Name: "container",
+				},
+			},
+			wantEqual: false,
+		},
+		{
+			description: "resource limit removed",
+			before: []corev1.Container{
+				{
+					Name: "container",
+					Resources: corev1.ResourceRequirements{
+						Limits: corev1.ResourceList{
+							corev1.ResourceCPU: resource.MustParse("1"),
+						},
+					},
+				},
+			},
+			after: []corev1.Container{
+				{
+					Name: "container",
+				},
+			},
+			wantEqual: false,
 		},
 	}
 

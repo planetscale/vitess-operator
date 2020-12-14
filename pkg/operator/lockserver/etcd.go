@@ -25,18 +25,28 @@ import (
 	"planetscale.dev/vitess-operator/pkg/operator/update"
 )
 
+// EtcdLockserverNameConstraints are special constraints for the generated name
+// of an EtcdLockserver. The EtcdLockserver controller creates Service names by
+// appending "-client" and "-peer" to the EtcdLockserver object name, so the
+// name must fit into the constraints for a Service while also leaving space for
+// the extra suffix.
+var EtcdLockserverNameConstraints = names.Constraints{
+	MaxLength:      names.ServiceConstraints.MaxLength - len("-client"),
+	ValidFirstChar: names.ServiceConstraints.ValidFirstChar,
+}
+
 // LocalEtcdName returns the name of the EtcdLockserver object used for a cell-local lockserver.
 func LocalEtcdName(clusterName, cellName string) string {
 	// It's important that "etcd" is in the name, even though we already know it's an EtcdCluster object,
 	// because etcd-operator uses that same name to create things like Services that might collide.
-	return names.Join(clusterName, cellName, planetscalev2.EtcdComponentName)
+	return names.JoinWithConstraints(EtcdLockserverNameConstraints, clusterName, cellName, planetscalev2.EtcdComponentName)
 }
 
 // GlobalEtcdName returns the name of the EtcdLockserver object used for a global lockserver.
 func GlobalEtcdName(clusterName string) string {
 	// It's important that "etcd" is in the name, even though we already know it's an EtcdCluster object,
 	// because etcd-operator uses that same name to create things like Services that might collide.
-	return names.Join(clusterName, planetscalev2.EtcdComponentName)
+	return names.JoinWithConstraints(EtcdLockserverNameConstraints, clusterName, planetscalev2.EtcdComponentName)
 }
 
 // NewEtcdLockserver generates an EtcdLockserver object for the given EtcdLockserverTemplate.

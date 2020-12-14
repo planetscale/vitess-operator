@@ -21,6 +21,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
+
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -30,6 +32,7 @@ import (
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 	"planetscale.dev/vitess-operator/pkg/controller/vitessbackupstorage/subcontroller"
+	"planetscale.dev/vitess-operator/pkg/operator/desiredstatehash"
 	"planetscale.dev/vitess-operator/pkg/operator/fork"
 	"planetscale.dev/vitess-operator/pkg/operator/reconciler"
 	"planetscale.dev/vitess-operator/pkg/operator/results"
@@ -83,9 +86,9 @@ func (r *ReconcileVitessBackupStorage) reconcileSubcontroller(ctx context.Contex
 					Name:      key.Name,
 					Labels:    labels,
 				},
-				Spec: *spec,
 			}
 			update.Annotations(&pod.Annotations, vbs.Spec.Location.Annotations)
+			updateSubcontrollerPod(pod, spec)
 			return pod
 		},
 		UpdateInPlace: func(key client.ObjectKey, newObj runtime.Object) {
@@ -95,13 +98,7 @@ func (r *ReconcileVitessBackupStorage) reconcileSubcontroller(ctx context.Contex
 		},
 		UpdateRecreate: func(key client.ObjectKey, newObj runtime.Object) {
 			pod := newObj.(*corev1.Pod)
-
-			// Remember the NodeName from the live object so we don't try to
-			// clear it out.
-			nodeName := pod.Spec.NodeName
-
-			pod.Spec = *spec
-			pod.Spec.NodeName = nodeName
+			updateSubcontrollerPod(pod, spec)
 		},
 	})
 	if err != nil {
@@ -130,6 +127,41 @@ func (r *ReconcileVitessBackupStorage) newSubcontrollerPodSpec(ctx context.Conte
 		return nil, fmt.Errorf("can't find operator container (name containing %q) in my own Pod", operatorContainerNameSubstring)
 	}
 
+	// Filter out the service account token (volume and mounts) and let the
+	// admission controller re-add them appropriately.
+	tokenNamePrefix := spec.ServiceAccountName + "-token-"
+	var newVolumes []corev1.Volume
+	for _, volume := range spec.Volumes {
+		// skip volumes from the automounted token
+		if strings.HasPrefix(volume.Name, tokenNamePrefix) {
+			continue
+		}
+		newVolumes = append(newVolumes, volume)
+	}
+	spec.Volumes = newVolumes
+
+	for i := range spec.Containers {
+		container := &spec.Containers[i]
+
+		var newMounts []corev1.VolumeMount
+		for _, mount := range container.VolumeMounts {
+			// skip mounts from the automounted token
+			if strings.HasPrefix(mount.Name, tokenNamePrefix) {
+				continue
+			}
+			newMounts = append(newMounts, mount)
+		}
+
+		container.VolumeMounts = newMounts
+	}
+
+	if scSpec := vbs.Spec.Subcontroller; scSpec != nil && scSpec.ServiceAccountName != "" {
+		// allow the pod to be launched with a specific serviceaccount in the target namespace (which will be the same
+		// namespace as the VitessCluster itself)
+		spec.ServiceAccountName = scSpec.ServiceAccountName
+		spec.DeprecatedServiceAccount = scSpec.ServiceAccountName
+	}
+
 	// Tell the subcontroller which VitessBackupStorage object to process.
 	update.Env(&container.Env, []corev1.EnvVar{
 		{
@@ -143,6 +175,10 @@ func (r *ReconcileVitessBackupStorage) newSubcontrollerPodSpec(ctx context.Conte
 		{
 			Name:  "HOME",
 			Value: vitessHomeDir,
+		},
+		{
+			Name:  k8sutil.WatchNamespaceEnvVar,
+			Value: vbs.Namespace,
 		},
 	})
 
@@ -165,4 +201,29 @@ func (r *ReconcileVitessBackupStorage) newSubcontrollerPodSpec(ctx context.Conte
 	update.Env(&container.Env, vitessbackup.StorageEnvVars(&vbs.Spec.Location))
 
 	return spec, nil
+}
+
+func updateSubcontrollerPod(pod *corev1.Pod, spec *corev1.PodSpec) {
+	newSpec := spec.DeepCopy()
+
+	// Use the NodeName from the live object so we don't try to clear it out.
+	newSpec.NodeName = pod.Spec.NodeName
+
+	// Start with the existing Pod's containers and volumes, then merge in our
+	// desired ones, so we preserve values that were injected by admission
+	// controllers.
+	newSpec.Containers = pod.Spec.Containers
+	newSpec.Volumes = pod.Spec.Volumes
+	update.PodContainers(&newSpec.Containers, spec.Containers)
+	update.Volumes(&newSpec.Volumes, spec.Volumes)
+
+	// Add an annotation that forces the Pod to be recreated if items of
+	// desired state are removed, which we otherwise might mistake for
+	// injected values.
+	desiredStateHash := desiredstatehash.NewBuilder()
+	desiredStateHash.AddContainersUpdates("containers", spec.Containers)
+	desiredStateHash.AddVolumeNames("volumes", spec.Volumes)
+	pod.Annotations[desiredstatehash.Annotation] = desiredStateHash.String()
+
+	pod.Spec = *newSpec
 }

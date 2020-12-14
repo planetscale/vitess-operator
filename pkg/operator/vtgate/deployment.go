@@ -56,7 +56,7 @@ const (
 
 // DeploymentName returns the name of the vtgate Deployment for a given cell.
 func DeploymentName(clusterName, cellName string) string {
-	return names.Join(clusterName, cellName, planetscalev2.VtgateComponentName)
+	return names.JoinWithConstraints(names.DefaultConstraints, clusterName, cellName, planetscalev2.VtgateComponentName)
 }
 
 // Spec specifies all the internal parameters needed to deploy vtgate,

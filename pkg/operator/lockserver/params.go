@@ -33,14 +33,14 @@ const (
 
 // GlobalConnectionParams returns the Vitess connection parameters for a
 // VitessCluster's global lockserver.
-func GlobalConnectionParams(lockSpec *planetscalev2.LockserverSpec, clusterName string) *planetscalev2.VitessLockserverParams {
+func GlobalConnectionParams(lockSpec *planetscalev2.LockserverSpec, namespace, clusterName string) *planetscalev2.VitessLockserverParams {
 	switch {
 	case lockSpec.External != nil:
 		return lockSpec.External
 	case lockSpec.Etcd != nil:
 		return &planetscalev2.VitessLockserverParams{
 			Implementation: VitessEtcdImplementationName,
-			Address:        fmt.Sprintf("%s-client:%d", GlobalEtcdName(clusterName), EtcdClientPort),
+			Address:        fmt.Sprintf("%s-client.%s.svc:%d", GlobalEtcdName(clusterName), namespace, EtcdClientPort),
 			RootPath:       fmt.Sprintf("/vitess/%s/global", clusterName),
 		}
 	default:
@@ -50,7 +50,7 @@ func GlobalConnectionParams(lockSpec *planetscalev2.LockserverSpec, clusterName 
 
 // LocalConnectionParams returns the Vitess connection parameters for a
 // VitessCluster cell's local lockserver.
-func LocalConnectionParams(globalLockserverSpec, cellLockserverSpec *planetscalev2.LockserverSpec, clusterName, cellName string) *planetscalev2.VitessLockserverParams {
+func LocalConnectionParams(globalLockserverSpec, cellLockserverSpec *planetscalev2.LockserverSpec, namespace, clusterName, cellName string) *planetscalev2.VitessLockserverParams {
 	// The addition of "/local/" is important in case the cell name happens to be "global".
 	rootPath := fmt.Sprintf("/vitess/%s/local/%s", clusterName, cellName)
 
@@ -61,13 +61,13 @@ func LocalConnectionParams(globalLockserverSpec, cellLockserverSpec *planetscale
 		// Point to the client Service created by the local EtcdCluster.
 		return &planetscalev2.VitessLockserverParams{
 			Implementation: VitessEtcdImplementationName,
-			Address:        fmt.Sprintf("%s-client:%d", LocalEtcdName(clusterName, cellName), EtcdClientPort),
+			Address:        fmt.Sprintf("%s-client.%s.svc:%d", LocalEtcdName(clusterName, cellName), namespace, EtcdClientPort),
 			RootPath:       rootPath,
 		}
 	default:
 		// No local lockserver was specified.
 		// Share the global lockserver with a cell-specific RootPath.
-		globalParams := GlobalConnectionParams(globalLockserverSpec, clusterName)
+		globalParams := GlobalConnectionParams(globalLockserverSpec, namespace, clusterName)
 		if globalParams == nil {
 			return nil
 		}

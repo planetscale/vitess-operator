@@ -22,5 +22,5 @@ import (
 
 // Name returns the VitessCell metadata.name for a given cell.
 func Name(clusterName, cellName string) string {
-	return names.Join(clusterName, cellName)
+	return names.JoinWithConstraints(names.DefaultConstraints, clusterName, cellName)
 }

@@ -93,8 +93,8 @@ type VitessKeyspaceTemplate struct {
 	// Keyspaces cannot be renamed, so this will be interpreted as an
 	// instruction to delete the old keyspace and create a new one.
 	// +kubebuilder:validation:MinLength=1
-	// +kubebuilder:validation:MaxLength=25
-	// +kubebuilder:validation:Pattern=^[a-z0-9]([a-z0-9]*[a-z0-9])?$
+	// +kubebuilder:validation:MaxLength=63
+	// +kubebuilder:validation:Pattern=^[A-Za-z0-9]([A-Za-z0-9-_.]*[A-Za-z0-9])?$
 	Name string `json:"name"`
 
 	// DatabaseName is the name to use for the underlying, physical MySQL

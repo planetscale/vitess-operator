@@ -22,7 +22,7 @@ import (
 )
 
 func name(clusterName, keyspaceName, shardSafeName string) string {
-	return names.Join(clusterName, keyspaceName, shardSafeName)
+	return names.JoinWithConstraints(names.DefaultConstraints, clusterName, keyspaceName, shardSafeName)
 }
 
 // Name returns the VitessShard metadata.name for a given shard.

@@ -17,19 +17,24 @@ limitations under the License.
 package vttablet
 
 import (
-	"planetscale.dev/vitess-operator/pkg/operator/update"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"planetscale.dev/vitess-operator/pkg/operator/update"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // NewPVC creates a new vttablet PVC from a Spec.
 func NewPVC(key client.ObjectKey, spec *Spec) *corev1.PersistentVolumeClaim {
+	// Store labels in labels obj because we need to add extra label and avoid mutating spec.Labels value
+	labels := map[string]string{}
+	update.Labels(&labels, spec.Labels)
+	update.Labels(&labels, spec.ExtraLabels)
+
 	return &corev1.PersistentVolumeClaim{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: key.Namespace,
 			Name:      key.Name,
-			Labels:    spec.Labels,
+			Labels:    labels,
 		},
 		Spec: *spec.DataVolumePVCSpec,
 	}
@@ -39,6 +44,9 @@ func NewPVC(key client.ObjectKey, spec *Spec) *corev1.PersistentVolumeClaim {
 func UpdatePVCInPlace(obj *corev1.PersistentVolumeClaim, spec *Spec) {
 	// Update labels, but ignore existing ones we don't set.
 	update.Labels(&obj.Labels, spec.Labels)
+	// update extra labels
+	// TODO: Handle the case when labels are removed from ExtraLabels
+	update.Labels(&obj.Labels, spec.ExtraLabels)
 
 	// The only in-place spec update that's possible is volume expansion.
 	curSize := obj.Spec.Resources.Requests[corev1.ResourceStorage]

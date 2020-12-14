@@ -124,8 +124,7 @@ func externalDatastoreFlags(spec *Spec) vitess.Flags {
 		"db_port":                  spec.ExternalDatastore.Port,
 		"init_db_name_override":    spec.ExternalDatastore.Database,
 
-		// TODO: Should this be configurable?
-		"enable_replication_reporter": true,
+		"enable_replication_reporter": false,
 
 		"enforce_strict_trans_tables": false,
 		"vreplication_tablet_type":    vreplicationTabletType,

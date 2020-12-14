@@ -65,6 +65,17 @@ func (b *Builder) AddStringMapKeys(itemName string, value map[string]string) {
 	b.state[itemName] = contenthash.StringMapKeys(value)
 }
 
+// AddStringList adds an item of state based on a list of strings.
+func (b *Builder) AddStringList(itemName string, value []string) {
+	// Skip if the value is empty, so that defining new items doesn't cause any
+	// Pods to be updated until someone actually sets a value for the new field.
+	if len(value) == 0 {
+		return
+	}
+
+	b.state[itemName] = contenthash.StringList(value)
+}
+
 // AddContainersUpdates adds an item of state based on a list of containers.
 func (b *Builder) AddContainersUpdates(itemName string, value []corev1.Container) {
 	// Skip if the value is empty, so that defining new items doesn't cause any
@@ -85,4 +96,13 @@ func (b *Builder) AddTolerations(itemName string, value []corev1.Toleration) {
 	}
 
 	b.state[itemName] = contenthash.Tolerations(value)
+}
+
+// AddVolumeNames add an item of state based on a list of Volume names.
+func (b *Builder) AddVolumeNames(itemName string, vols []corev1.Volume) {
+	volNames := make([]string, 0, len(vols))
+	for i := range vols {
+		volNames = append(volNames, vols[i].Name)
+	}
+	b.AddStringList(itemName, volNames)
 }

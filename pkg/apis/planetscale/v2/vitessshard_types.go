@@ -172,13 +172,19 @@ type VitessReplicationSpec struct {
 type VitessShardTabletPool struct {
 	// Cell is the name of the Vitess cell in which to deploy this pool.
 	// +kubebuilder:validation:MinLength=1
-	// +kubebuilder:validation:Pattern=^[a-z0-9]([a-z0-9]*[a-z0-9])?$
+	// +kubebuilder:validation:MaxLength=63
+	// +kubebuilder:validation:Pattern=^[A-Za-z0-9]([_.A-Za-z0-9]*[A-Za-z0-9])?$
 	Cell string `json:"cell"`
 
 	// Type is the type of tablet contained in this tablet pool.
-	// The allowed types are "replica" for master-eligible replicas that serve
-	// transactional (OLTP) workloads; and "rdonly" for master-ineligible replicas
-	// (can never be promoted to master) that serve batch/analytical (OLAP) workloads.
+	//
+	// The allowed types are:
+	//
+	//   * replica - master-eligible tablets that serve transactional (OLTP) workloads
+	//   * rdonly - master-ineligible tablets (can never be promoted to master) that serve batch/analytical (OLAP) workloads
+	//   * externalmaster - tablets pointed at an external, read-write MySQL endpoint
+	//   * externalreplica - tablets pointed at an external, read-only MySQL endpoint that serve transactional (OLTP) workloads
+	//   * externalrdonly - tablets pointed at an external, read-only MySQL endpoint that serve batch/analytical (OLAP) workloads
 	// +kubebuilder:validation:Enum=replica;rdonly;externalmaster;externalreplica;externalrdonly
 	Type VitessTabletPoolType `json:"type"`
 
@@ -193,9 +199,9 @@ type VitessShardTabletPool struct {
 	// This field is required for local MySQL, but should be omitted in the case of externally
 	// managed MySQL.
 	//
-	// IMPORTANT: If your Kubernetes cluster is multi-zone, you must set a
-	// storageClassName here for a StorageClass that's configured to only
-	// provision volumes in the same zone as this tablet pool.
+	// IMPORTANT: For a tablet pool in a Kubernetes cluster that spans multiple
+	// zones, you should ensure that `volumeBindingMode: WaitForFirstConsumer`
+	// is set on the StorageClass specified in the storageClassName field here.
 	DataVolumeClaimTemplate *corev1.PersistentVolumeClaimSpec `json:"dataVolumeClaimTemplate,omitempty"`
 
 	// BackupLocationName is the name of the backup location to use for this

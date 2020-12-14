@@ -141,7 +141,7 @@ func (r *ReconcileVitessCluster) vtctldSpecs(vt *planetscalev2.VitessCluster, pa
 		}
 	}
 
-	glsParams := lockserver.GlobalConnectionParams(&vt.Spec.GlobalLockserver, vt.Name)
+	glsParams := lockserver.GlobalConnectionParams(&vt.Spec.GlobalLockserver, vt.Namespace, vt.Name)
 
 	// Make a vtctld Deployment spec for each cell.
 	specs := make([]*vtctld.Spec, 0, len(cells))

@@ -46,7 +46,7 @@ func (r *ReconcileVitessCluster) reconcileTopology(ctx context.Context, vt *plan
 	resultBuilder := &results.Builder{}
 
 	// Connect to the global lockserver.
-	globalParams := lockserver.GlobalConnectionParams(&vt.Spec.GlobalLockserver, vt.Name)
+	globalParams := lockserver.GlobalConnectionParams(&vt.Spec.GlobalLockserver, vt.Namespace, vt.Name)
 	if globalParams == nil {
 		// This is an invalid config. There's no reason to request a retry. Just wait for the next mutation to trigger us.
 		r.recorder.Event(vt, corev1.EventTypeWarning, "TopoInvalid", "no global lockserver is defined")
