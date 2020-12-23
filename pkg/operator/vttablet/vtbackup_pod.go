@@ -139,6 +139,7 @@ func NewBackupPod(key client.ObjectKey, backupSpec *BackupSpec) *corev1.Pod {
 			RestartPolicy:    corev1.RestartPolicyOnFailure,
 			Volumes:          tabletVolumes.Get(tabletSpec),
 			SecurityContext:  podSecurityContext,
+			Affinity:         tabletSpec.Affinity,
 			Tolerations:      tabletSpec.Tolerations,
 			InitContainers: []corev1.Container{
 				{
@@ -177,11 +178,6 @@ func NewBackupPod(key client.ObjectKey, backupSpec *BackupSpec) *corev1.Pod {
 
 	if planetscalev2.DefaultVitessServiceAccount != "" {
 		pod.Spec.ServiceAccountName = planetscalev2.DefaultVitessServiceAccount
-	}
-
-	// Allow users to inject their own affinities.
-	if tabletSpec.Affinity != nil {
-		pod.Spec.Affinity = tabletSpec.Affinity
 	}
 
 	update.PodContainers(&pod.Spec.InitContainers, backupSpec.TabletSpec.InitContainers)
