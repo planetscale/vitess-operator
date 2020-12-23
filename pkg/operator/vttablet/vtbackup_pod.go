@@ -179,6 +179,11 @@ func NewBackupPod(key client.ObjectKey, backupSpec *BackupSpec) *corev1.Pod {
 		pod.Spec.ServiceAccountName = planetscalev2.DefaultVitessServiceAccount
 	}
 
+	// Allow users to inject their own affinities.
+	if tabletSpec.Affinity != nil {
+		pod.Spec.Affinity = tabletSpec.Affinity
+	}
+
 	update.PodContainers(&pod.Spec.InitContainers, backupSpec.TabletSpec.InitContainers)
 	update.PodContainers(&pod.Spec.Containers, backupSpec.TabletSpec.SidecarContainers)
 	return pod
