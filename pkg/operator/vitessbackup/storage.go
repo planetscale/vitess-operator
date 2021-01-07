@@ -75,7 +75,7 @@ func StorageVolumeMounts(backupLocation *planetscalev2.VitessBackupLocation) []c
 	case backupLocation.Azblob != nil:
 		return azblobBackupVolumeMounts(backupLocation.Azblob)
 	case backupLocation.Volume != nil:
-		return fileBackupVolumeMounts()
+		return fileBackupVolumeMounts(backupLocation.VolumeSubPath)
 	}
 	return nil
 }

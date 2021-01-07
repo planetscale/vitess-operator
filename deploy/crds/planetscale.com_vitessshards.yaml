@@ -128,6 +128,8 @@ spec:
                   volume:
                     type: object
                     x-kubernetes-preserve-unknown-fields: true
+                  volumeSubPath:
+                    type: string
                 type: object
               type: array
             databaseInitScriptSecret:
