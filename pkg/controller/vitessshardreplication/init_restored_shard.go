@@ -257,7 +257,7 @@ func electInitialShardMaster(ctx context.Context, keyspaceName, shardName string
 		wg.Add(1)
 		go func(tablet *topo.TabletInfo) {
 			defer wg.Done()
-			err := wr.TabletManagerClient().SetMaster(ctx, tablet.Tablet, candidateMaster.tablet.Alias, 0 /* don't try to wait for a reparent journal entry */, "" /* don't wait for any position */, true /* forceSlaveStart */)
+			err := wr.TabletManagerClient().SetMaster(ctx, tablet.Tablet, candidateMaster.tablet.Alias, 0 /* don't try to wait for a reparent journal entry */, "" /* don't wait for any position */, true /* forceStartReplication */)
 			if err != nil {
 				log.Warningf("best-effort configuration of replication for tablet %v failed: %v", tablet.AliasString(), err)
 			}
@@ -282,14 +282,14 @@ func getTabletStatus(ctx context.Context, tmc tmclient.TabletManagerClient, tabl
 	}
 
 	// Get the replication status for each tablet.
-	_, err := tmc.SlaveStatus(ctx, tablet.Tablet)
+	_, err := tmc.ReplicationStatus(ctx, tablet.Tablet)
 	if err == nil {
-		// We got a real slave status, which means the tablet was already replicating at some point.
+		// We got a real replication status, which means the tablet was already replicating at some point.
 		status.replicationConfigured = true
 	} else if !isErrNotReplica(err) {
 		// We expect the error ErrNotReplica, which means "SHOW SLAVE STATUS" returned
 		// zero rows (replication is not configured at all).
-		// If SlaveStatus() failed for the wrong reason, we don't know
+		// If ReplicationStatus() failed for the wrong reason, we don't know
 		// whether replication is configured.
 		status.err = fmt.Errorf("couldn't determine whether tablet %v has replication configured: %v", tabletName, err)
 		return status

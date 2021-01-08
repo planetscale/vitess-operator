@@ -427,7 +427,7 @@ func candidateMaster(ctx context.Context, wr *wrangler.Wrangler, shard *topo.Sha
 	results := make(chan candidateInfo, len(candidates))
 	for _, tablet := range candidates {
 		go func(tablet *topo.TabletInfo) {
-			status, err := wr.TabletManagerClient().SlaveStatus(ctx, tablet.Tablet)
+			status, err := wr.TabletManagerClient().ReplicationStatus(ctx, tablet.Tablet)
 			result := candidateInfo{tablet: tablet, err: err}
 			if err == nil {
 				result.position, result.err = mysql.DecodePosition(status.Position)
