@@ -188,17 +188,17 @@ func readyForShardInit(ctx context.Context, ts *topo.Server, tmc tmclient.Tablet
 		return fmt.Errorf("failed to get topology record for tablet %v: %v", name, err)
 	}
 
-	// Get the slave status for each tablet.
-	_, err = tmc.SlaveStatus(ctx, ti.Tablet)
+	// Get the replication status for each tablet.
+	_, err = tmc.ReplicationStatus(ctx, ti.Tablet)
 	if err == nil {
-		// We got a real slave status, which means the tablet was already replicating at some point.
+		// We got a real replication status, which means the tablet was already replicating at some point.
 		return fmt.Errorf("replication was previously configured on tablet %v", name)
 	}
 	// We expect the error ErrNotReplica, which means "SHOW SLAVE STATUS" returned
 	// zero rows (replication is not configured at all).
 	if !isErrNotReplica(err) {
-		// SlaveStatus() failed for the wrong reason.
-		return fmt.Errorf("failed to get slave status for tablet %v: %v", name, err)
+		// ReplicationStatus() failed for the wrong reason.
+		return fmt.Errorf("failed to get replication status for tablet %v: %v", name, err)
 	}
 
 	// Now we know replication is not configured.

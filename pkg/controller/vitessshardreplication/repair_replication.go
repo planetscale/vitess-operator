@@ -211,7 +211,7 @@ func canRepairTablet(ctx context.Context, tabletAlias string, tabletInfo, master
 		return false
 	}
 	// Get the replication status of the tablet.
-	status, err := wr.TabletManagerClient().SlaveStatus(ctx, tabletInfo.Tablet)
+	status, err := wr.TabletManagerClient().ReplicationStatus(ctx, tabletInfo.Tablet)
 	if err != nil {
 		// We don't know how to fix this.
 		return false
@@ -285,7 +285,7 @@ func (r *ReconcileVitessShard) repairReplicationLocked(ctx context.Context, vts 
 			// Check replication status of the tablet. If we can't fetch status,
 			// or if replication is not configured at all, we rely on the tablet
 			// itself to fix that because we don't know whether it's ready.
-			status, err := wr.TabletManagerClient().SlaveStatus(ctx, tablet)
+			status, err := wr.TabletManagerClient().ReplicationStatus(ctx, tablet)
 			if err != nil {
 				return
 			}
@@ -294,10 +294,10 @@ func (r *ReconcileVitessShard) repairReplicationLocked(ctx context.Context, vts 
 				return
 			}
 			// Try to fix the master address.
-			// Only force slave start on replicas, not rdonly.
+			// Only force start replication on replicas, not rdonly.
 			// A rdonly might be stopped on purpose for a diff.
-			forceSlaveStart := tablet.Type == topodatapb.TabletType_REPLICA
-			err = wr.TabletManagerClient().SetMaster(ctx, tablet, masterTabletInfo.Alias, 0 /* don't try to wait for a reparent journal entry */, "" /* don't wait for any position */, forceSlaveStart)
+			forceStartReplication := tablet.Type == topodatapb.TabletType_REPLICA
+			err = wr.TabletManagerClient().SetMaster(ctx, tablet, masterTabletInfo.Alias, 0 /* don't try to wait for a reparent journal entry */, "" /* don't wait for any position */, forceStartReplication)
 			reparentTabletCount.WithLabelValues(metricLabels(vts, err)...).Inc()
 			if err != nil {
 				// Just log the error instead of failing the process, because fixing replicas is best-effort.
