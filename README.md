@@ -19,6 +19,7 @@ Vitess Operator Version | Recommended Vitess Versions | Recommended Kubernetes V
 `v2.0.*` | `v6.0.*` | `v1.13.*`, `v1.14.*`, or `v1.15.*`
 `v2.1.*` | `v7.0.*` | `v1.15.*`, `v1.16.*`, or `v1.17.*`
 `v2.2.*` | `v8.0.*` | `v1.15.*`, `v1.16.*`, or `v1.17.*`
+`v2.3.*` | `v9.0.*` | `v1.15.*`, `v1.16.*`, or `v1.17.*`
 `latest` | `latest` | `v1.15.*`, `v1.16.*`, or `v1.17.*`
 
 If for some reason you must attempt to use versions outside the recommend

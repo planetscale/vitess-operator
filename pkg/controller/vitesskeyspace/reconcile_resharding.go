@@ -42,7 +42,7 @@ func (r *reconcileHandler) reconcileResharding(ctx context.Context) (reconcile.R
 		return resultBuilder.RequeueAfter(topoRequeueDelay)
 	}
 
-	workflowList, err := r.wr.ListAllWorkflows(ctx, r.vtk.Spec.Name)
+	workflowList, err := r.wr.ListAllWorkflows(ctx, r.vtk.Spec.Name, true /* only list active workflows */)
 	if err != nil {
 		// The only reason this would fail is if runVExec fails. This could be a topo communication failure or any number
 		// of indeterminable failures. We probably want to requeu faster than the resync period to try again, but wait a bit in
