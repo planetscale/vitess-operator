@@ -80,6 +80,8 @@ type VitessBackupLocation struct {
 	S3 *S3BackupLocation `json:"s3,omitempty"`
 	// Azblob specifies a backup location in Azure Blob Storage.
 	Azblob *AzblobBackupLocation `json:"azblob,omitempty"`
+	// Ceph specifies a backup location in Ceph S3.
+	Ceph *CephBackupLocation `json:"ceph,omitempty"`
 	// Volume specifies a backup location as a Kubernetes Volume Source to mount.
 	// This can be used, for example, to store backups on an NFS mount, or on
 	// a shared host path for local testing.
@@ -157,6 +159,14 @@ type AzblobBackupLocation struct {
 	KeyPrefix string `json:"keyPrefix,omitempty"`
 	// AuthSecret is a reference to the Secret to use for Azure authentication.
 	AuthSecret SecretSource `json:"authSecret"`
+}
+
+// CephBackupLocation specifies a backup location in Ceph S3.
+type CephBackupLocation struct {
+	// AuthSecret is a reference to the Secret to use for Ceph S3 authentication.
+	// If set, this must point to a file in the format expected for the
+	// `https://github.com/vitessio/vitess/blob/master/examples/local/ceph_backup_config.json` file.
+	AuthSecret *SecretSource `json:"authSecret,omitempty"`
 }
 
 // VitessBackupStorageStatus defines the observed state of VitessBackupStorage.

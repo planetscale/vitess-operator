@@ -26,6 +26,9 @@ const (
 	azblobBackupStorageImplementationName = "azblob"
 	azblobAuthDirName                     = "azblob-backup-auth"
 
+	cephBackupStorageImplementationName = "ceph"
+	cephAuthDirName                     = "ceph-backup-auth"
+
 	fileBackupStorageImplementationName = "file"
 	fileBackupStorageVolumeName         = "vitess-backups"
 	fileBackupStorageMountPath          = "/vt/backups"

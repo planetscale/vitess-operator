@@ -738,6 +738,7 @@ github.com/miekg/dns v1.1.4/go.mod h1:W1PPwlIAgtquWBMBEV9nkV9Cazfe8ScdGz/Lj7v3Nr
 github.com/miekg/dns v1.1.26 h1:gPxPSwALAeHJSjarOs00QjVdV9QoBvc1D2ujQUr5BzU=
 github.com/miekg/dns v1.1.26/go.mod h1:bPDLeHnStXmXAq1m/Ch/hvfNHr14JKNPMBo3VZKjuso=
 github.com/mindprince/gonvml v0.0.0-20171110221305-fee913ce8fb2/go.mod h1:2eu9pRWp8mo84xCg6KswZ+USQHjwgRhNp06sozOdsTY=
+github.com/minio/minio-go v0.0.0-20190131015406-c8a261de75c1 h1:jw16EimP5oAEM/2wt+SiEUov/YDyTCTDuPtIKgQIvk0=
 github.com/minio/minio-go v0.0.0-20190131015406-c8a261de75c1/go.mod h1:vuvdOZLJuf5HmJAJrKV64MmozrSsk+or0PB5dzdfspg=
 github.com/mistifyio/go-zfs v2.1.1+incompatible/go.mod h1:8AuVvqP/mXw1px98n46wfvcGfQ4ci2FwoAjKYxuo3Z4=
 github.com/mitchellh/cli v1.0.0/go.mod h1:hNIlj7HEI86fIcpObd7a0FcrxTWetlwJDGcceTlRvqc=
