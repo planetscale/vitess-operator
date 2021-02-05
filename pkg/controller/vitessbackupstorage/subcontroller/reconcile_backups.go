@@ -33,6 +33,7 @@ import (
 	"vitess.io/vitess/go/vt/mysqlctl"
 	_ "vitess.io/vitess/go/vt/mysqlctl/azblobbackupstorage"
 	"vitess.io/vitess/go/vt/mysqlctl/backupstorage"
+	_ "vitess.io/vitess/go/vt/mysqlctl/cephbackupstorage"
 	_ "vitess.io/vitess/go/vt/mysqlctl/filebackupstorage"
 	_ "vitess.io/vitess/go/vt/mysqlctl/gcsbackupstorage"
 	_ "vitess.io/vitess/go/vt/mysqlctl/s3backupstorage"

@@ -562,6 +562,40 @@ SecretSource
 </tr>
 </tbody>
 </table>
+<h3 id="planetscale.com/v2.CephBackupLocation">CephBackupLocation
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#planetscale.com/v2.VitessBackupLocation">VitessBackupLocation</a>)
+</p>
+<p>
+<p>CephBackupLocation specifies a backup location in Ceph S3.</p>
+</p>
+<table class="table table-striped">
+<thead class="thead-dark">
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>authSecret</code></br>
+<em>
+<a href="#planetscale.com/v2.SecretSource">
+SecretSource
+</a>
+</em>
+</td>
+<td>
+<p>AuthSecret is a reference to the Secret to use for Ceph S3 authentication.
+If set, this must point to a file in the format expected for the
+<code>https://github.com/vitessio/vitess/blob/master/examples/local/ceph_backup_config.json</code> file.</p>
+</td>
+</tr>
+</tbody>
+</table>
 <h3 id="planetscale.com/v2.ClusterBackupSpec">ClusterBackupSpec
 </h3>
 <p>
@@ -1677,6 +1711,7 @@ Default: Use the default credentials of the Node.</p>
 <p>
 (<em>Appears on:</em>
 <a href="#planetscale.com/v2.AzblobBackupLocation">AzblobBackupLocation</a>, 
+<a href="#planetscale.com/v2.CephBackupLocation">CephBackupLocation</a>, 
 <a href="#planetscale.com/v2.ExternalDatastore">ExternalDatastore</a>, 
 <a href="#planetscale.com/v2.GCSBackupLocation">GCSBackupLocation</a>, 
 <a href="#planetscale.com/v2.S3BackupLocation">S3BackupLocation</a>, 
@@ -2064,6 +2099,19 @@ AzblobBackupLocation
 </tr>
 <tr>
 <td>
+<code>ceph</code></br>
+<em>
+<a href="#planetscale.com/v2.CephBackupLocation">
+CephBackupLocation
+</a>
+</em>
+</td>
+<td>
+<p>Ceph specifies a backup location in Ceph S3.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>volume</code></br>
 <em>
 <a href="https://v1-16.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.16/#volumesource-v1-core">
@@ -2075,6 +2123,18 @@ Kubernetes core/v1.VolumeSource
 <p>Volume specifies a backup location as a Kubernetes Volume Source to mount.
 This can be used, for example, to store backups on an NFS mount, or on
 a shared host path for local testing.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>volumeSubPath</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>VolumeSubPath gives the subpath in the volume to mount to the backups target.
+Only used for Volume-backed backup storage, ignored otherwise.</p>
 </td>
 </tr>
 <tr>
