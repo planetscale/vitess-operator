@@ -20,6 +20,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"io"
+	"sort"
 	"strconv"
 
 	corev1 "k8s.io/api/core/v1"
@@ -28,6 +29,10 @@ import (
 // Tolerations returns a hex-encoded hash of a list of Tolerations.
 func Tolerations(in []corev1.Toleration) string {
 	h := md5.New()
+
+	sort.Slice(in, func(i, j int) bool {
+		return in[i].Key < in[j].Key
+	})
 
 	for i := range in {
 		tol := &in[i]

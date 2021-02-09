@@ -24,6 +24,8 @@ limitations under the License.
 package desiredstatehash
 
 import (
+	"sort"
+
 	corev1 "k8s.io/api/core/v1"
 
 	"planetscale.dev/vitess-operator/pkg/operator/contenthash"
@@ -104,5 +106,6 @@ func (b *Builder) AddVolumeNames(itemName string, vols []corev1.Volume) {
 	for i := range vols {
 		volNames = append(volNames, vols[i].Name)
 	}
+	sort.Strings(volNames)
 	b.AddStringList(itemName, volNames)
 }
