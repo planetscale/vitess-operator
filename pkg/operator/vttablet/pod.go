@@ -176,12 +176,13 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 					ContainerPort: planetscalev2.DefaultMysqlPort,
 				},
 			},
-			Resources:       spec.Mysqld.Resources,
 			SecurityContext: securityContext,
 			// TODO(enisoc): Add readiness and liveness probes that make sense for mysqld.
 			Env:          env,
 			VolumeMounts: mysqldMounts,
 		}
+
+		update.ResourceRequirements(&mysqldContainer.Resources, &spec.Mysqld.Resources)
 
 		// TODO: Can/should we still run mysqld_exporter pointing at external mysql?
 		mysqldExporterContainer = &corev1.Container{
