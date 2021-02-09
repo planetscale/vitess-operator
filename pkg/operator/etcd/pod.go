@@ -184,7 +184,6 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 				ContainerPort: PeerPortNumber,
 			},
 		},
-		Resources: spec.Resources,
 		ReadinessProbe: &corev1.Probe{
 			Handler: corev1.Handler{
 				Exec: &corev1.ExecAction{
@@ -212,6 +211,8 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 		Env:          env,
 		VolumeMounts: volumeMounts,
 	}
+	// Make a copy of Resources since it contains pointers.
+	update.ResourceRequirements(&etcdContainer.Resources, &spec.Resources)
 
 	update.Volumes(&obj.Spec.Volumes, []corev1.Volume{
 		{
