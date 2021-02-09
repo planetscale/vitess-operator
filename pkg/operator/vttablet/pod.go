@@ -128,7 +128,6 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 				ContainerPort: planetscalev2.DefaultGrpcPort,
 			},
 		},
-		Resources:       spec.Vttablet.Resources,
 		SecurityContext: securityContext,
 		ReadinessProbe: &corev1.Probe{
 			Handler: corev1.Handler{
@@ -157,6 +156,8 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 		Env:          vttabletEnv,
 		VolumeMounts: vttabletMounts,
 	}
+	// Make a copy of Resources since it contains pointers.
+	update.ResourceRequirements(&vttabletContainer.Resources, &spec.Vttablet.Resources)
 
 	var mysqldContainer *corev1.Container
 	var mysqldExporterContainer *corev1.Container
