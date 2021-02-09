@@ -53,3 +53,98 @@ func TestEmptyValues(t *testing.T) {
 		t.Errorf("b.String() = %q; want %q", got, want)
 	}
 }
+
+func TestTolerations(t *testing.T) {
+	a := NewBuilder()
+	b := NewBuilder()
+
+	tolerations := []corev1.Toleration{
+		corev1.Toleration{
+			Key:               "key1",
+			Operator:          "",
+			Value:             "",
+			Effect:            "",
+			TolerationSeconds: nil,
+		},
+		corev1.Toleration{
+			Key:               "key2",
+			Operator:          "",
+			Value:             "",
+			Effect:            "",
+			TolerationSeconds: nil,
+		},
+		corev1.Toleration{
+			Key:               "key3",
+			Operator:          "",
+			Value:             "",
+			Effect:            "",
+			TolerationSeconds: nil,
+		},
+	}
+
+	a.AddTolerations("Tolerations1", tolerations)
+	tolerationsDiffOrder := []corev1.Toleration{
+		corev1.Toleration{
+			Key:               "key3",
+			Operator:          "",
+			Value:             "",
+			Effect:            "",
+			TolerationSeconds: nil,
+		},
+		corev1.Toleration{
+			Key:               "key2",
+			Operator:          "",
+			Value:             "",
+			Effect:            "",
+			TolerationSeconds: nil,
+		},
+		corev1.Toleration{
+			Key:               "key1",
+			Operator:          "",
+			Value:             "",
+			Effect:            "",
+			TolerationSeconds: nil,
+		},
+	}
+	b.AddTolerations("Tolerations1", tolerationsDiffOrder)
+
+	if a.String() != b.String() {
+		t.Errorf("tolerations are same, but generating different hashes.")
+	}
+}
+
+func TestAddVolumeNames(t *testing.T) {
+	a := NewBuilder()
+	b := NewBuilder()
+
+	volumes := []corev1.Volume{
+		corev1.Volume{
+			Name: "vol1",
+		},
+		corev1.Volume{
+			Name: "vol2",
+		},
+		corev1.Volume{
+			Name: "vol3",
+		},
+	}
+	a.AddVolumeNames("VolumeNames", volumes)
+
+	volumesReordered := []corev1.Volume{
+		corev1.Volume{
+			Name: "vol2",
+		},
+		corev1.Volume{
+			Name: "vol3",
+		},
+		corev1.Volume{
+			Name: "vol1",
+		},
+	}
+
+	b.AddVolumeNames("VolumeNames", volumesReordered)
+
+	if a.String() != b.String() {
+		t.Errorf("volumes are same, but generating different hashes.")
+	}
+}

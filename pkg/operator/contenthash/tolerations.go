@@ -22,6 +22,7 @@ import (
 	"io"
 	"sort"
 	"strconv"
+	"strings"
 
 	corev1 "k8s.io/api/core/v1"
 )
@@ -30,8 +31,24 @@ import (
 func Tolerations(in []corev1.Toleration) string {
 	h := md5.New()
 
+	tolStrings := make([]string, 0, len(in))
+	for _, toleration := range in {
+		var tolSec int64
+		if toleration.TolerationSeconds != nil {
+			tolSec = *toleration.TolerationSeconds
+		}
+		tolString := strings.Join([]string{
+			toleration.Key,
+			toleration.Value,
+			string(toleration.Operator),
+			string(toleration.Effect),
+			strconv.FormatInt(tolSec, 10),
+		}, ",")
+		tolStrings = append(tolStrings, tolString)
+	}
+
 	sort.Slice(in, func(i, j int) bool {
-		return in[i].Key < in[j].Key
+		return tolStrings[i] < tolStrings[j]
 	})
 
 	for i := range in {
