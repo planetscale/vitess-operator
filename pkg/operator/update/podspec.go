@@ -210,7 +210,6 @@ func ResourceList(dst, src *corev1.ResourceList) {
 	if *dst == nil {
 		// Allocate a new map to avoid sharing memory with src.
 		*dst = make(corev1.ResourceList)
-		return
 	}
 	for srcKey, srcVal := range *src {
 		(*dst)[srcKey] = srcVal
