@@ -145,6 +145,9 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 
 	update.PodTemplateContainers(&obj.Spec.Template.Spec.InitContainers, spec.InitContainers)
 	update.PodTemplateContainers(&obj.Spec.Template.Spec.Containers, spec.SidecarContainers)
+	// Make a copy of Resources since it contains pointers.
+	var containerResources corev1.ResourceRequirements
+	update.ResourceRequirements(&containerResources, &spec.Resources)
 	update.PodTemplateContainers(&obj.Spec.Template.Spec.Containers, []corev1.Container{
 		{
 			Name:            containerName,
@@ -164,7 +167,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 					ContainerPort: planetscalev2.DefaultGrpcPort,
 				},
 			},
-			Resources:       spec.Resources,
+			Resources:       containerResources,
 			SecurityContext: securityContext,
 			ReadinessProbe: &corev1.Probe{
 				Handler: corev1.Handler{
