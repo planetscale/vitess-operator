@@ -185,7 +185,6 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 				ContainerPort: planetscalev2.DefaultMysqlPort,
 			},
 		},
-		Resources:       spec.Resources,
 		SecurityContext: securityContext,
 		ReadinessProbe: &corev1.Probe{
 			Handler: corev1.Handler{
@@ -208,6 +207,8 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 		VolumeMounts: spec.ExtraVolumeMounts,
 		Env:          env,
 	}
+	// Make a copy of Resources since it contains pointers.
+	update.ResourceRequirements(&vtgateContainer.Resources, &spec.Resources)
 
 	// Get all the flags that don't need any logic.
 	flags := spec.baseFlags()

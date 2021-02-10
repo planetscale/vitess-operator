@@ -127,6 +127,10 @@ func NewBackupPod(key client.ObjectKey, backupSpec *BackupSpec) *corev1.Pod {
 		securityContext.RunAsUser = pointer.Int64Ptr(planetscalev2.DefaultVitessRunAsUser)
 	}
 
+	var containerResources corev1.ResourceRequirements
+	// Make a copy of Resources since it contains pointers.
+	update.ResourceRequirements(&containerResources, &tabletSpec.Mysqld.Resources)
+
 	pod := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace:   key.Namespace,
@@ -167,7 +171,7 @@ func NewBackupPod(key client.ObjectKey, backupSpec *BackupSpec) *corev1.Pod {
 					ImagePullPolicy: tabletSpec.ImagePullPolicies.Mysqld,
 					Command:         []string{vtbackupCommand},
 					Args:            vtbackupFlags.Get(backupSpec).FormatArgs(),
-					Resources:       tabletSpec.Mysqld.Resources,
+					Resources:       containerResources,
 					SecurityContext: securityContext,
 					Env:             env,
 					VolumeMounts:    volumeMounts,

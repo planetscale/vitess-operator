@@ -208,10 +208,8 @@ func ResourceRequirements(dst, src *corev1.ResourceRequirements) {
 // since those might be set by mutating admission webhooks or other controllers.
 func ResourceList(dst, src *corev1.ResourceList) {
 	if *dst == nil {
-		if len(*src) > 0 {
-			*dst = *src
-		}
-		return
+		// Allocate a new map to avoid sharing memory with src.
+		*dst = make(corev1.ResourceList)
 	}
 	for srcKey, srcVal := range *src {
 		(*dst)[srcKey] = srcVal

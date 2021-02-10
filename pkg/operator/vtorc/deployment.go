@@ -162,7 +162,6 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 				ContainerPort: planetscalev2.DefaultVtorcWebPort,
 			},
 		},
-		Resources:       spec.Resources,
 		SecurityContext: securityContext,
 		ReadinessProbe: &corev1.Probe{
 			Handler: corev1.Handler{
@@ -187,6 +186,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 		VolumeMounts: spec.ExtraVolumeMounts,
 		Env:          spec.ExtraEnv,
 	}
+	update.ResourceRequirements(&vtorcContainer.Resources, &spec.Resources)
 	updateConfig(spec, flags, vtorcContainer, &obj.Spec.Template.Spec)
 	vtorcContainer.Args = flags.FormatArgs()
 	update.PodTemplateContainers(&obj.Spec.Template.Spec.Containers, []corev1.Container{*vtorcContainer})
