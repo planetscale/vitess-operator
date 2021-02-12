@@ -49,9 +49,7 @@ for mycnf in $(find . -mindepth 2 -maxdepth 2 -path './vt_*/my.cnf'); do
 done
 `
 
-	initCPURequestMillis = 100
-	initCPULimitMillis   = 500
-
+	initCPURequestMillis   = 100
 	initMemoryRequestBytes = 32 * (1 << 20)  // 32 MiB
 	initMemoryLimitBytes   = 128 * (1 << 20) // 128 MiB
 )
@@ -98,10 +96,7 @@ func init() {
 						corev1.ResourceCPU:    *resource.NewMilliQuantity(initCPURequestMillis, resource.DecimalSI),
 						corev1.ResourceMemory: *resource.NewQuantity(initMemoryRequestBytes, resource.BinarySI),
 					},
-					// Set resource limits on init container for clusters that
-					// require it (e.g. when a limit is set in ResourceQuota)
 					Limits: corev1.ResourceList{
-						corev1.ResourceCPU:    *resource.NewMilliQuantity(initCPULimitMillis, resource.DecimalSI),
 						corev1.ResourceMemory: *resource.NewQuantity(initMemoryLimitBytes, resource.BinarySI),
 					},
 				},
@@ -132,10 +127,7 @@ func init() {
 						corev1.ResourceCPU:    *resource.NewMilliQuantity(initCPURequestMillis, resource.DecimalSI),
 						corev1.ResourceMemory: *resource.NewQuantity(initMemoryRequestBytes, resource.BinarySI),
 					},
-					// Set resource limits on init container for clusters that
-					// require it (e.g. when a limit is set in ResourceQuota)
 					Limits: corev1.ResourceList{
-						corev1.ResourceCPU:    *resource.NewMilliQuantity(initCPULimitMillis, resource.DecimalSI),
 						corev1.ResourceMemory: *resource.NewQuantity(initMemoryLimitBytes, resource.BinarySI),
 					},
 				},
