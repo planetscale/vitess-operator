@@ -49,9 +49,9 @@ for mycnf in $(find . -mindepth 2 -maxdepth 2 -path './vt_*/my.cnf'); do
 done
 `
 
-	initCPURequestMillis   = 100
-	initMemoryRequestBytes = 32 * (1 << 20)  // 32 MiB
-	initMemoryLimitBytes   = 128 * (1 << 20) // 128 MiB
+	defaultInitCPURequestMillis   = 100
+	defaultInitMemoryRequestBytes = 32 * (1 << 20)  // 32 MiB
+	defaultInitMemoryLimitBytes   = 128 * (1 << 20) // 128 MiB
 )
 
 func init() {
@@ -93,11 +93,11 @@ func init() {
 				Args:    []string{vtRootInitScript},
 				Resources: corev1.ResourceRequirements{
 					Requests: corev1.ResourceList{
-						corev1.ResourceCPU:    *resource.NewMilliQuantity(initCPURequestMillis, resource.DecimalSI),
-						corev1.ResourceMemory: *resource.NewQuantity(initMemoryRequestBytes, resource.BinarySI),
+						corev1.ResourceCPU:    *resource.NewMilliQuantity(defaultInitCPURequestMillis, resource.DecimalSI),
+						corev1.ResourceMemory: *resource.NewQuantity(defaultInitMemoryRequestBytes, resource.BinarySI),
 					},
 					Limits: corev1.ResourceList{
-						corev1.ResourceMemory: *resource.NewQuantity(initMemoryLimitBytes, resource.BinarySI),
+						corev1.ResourceMemory: *resource.NewQuantity(defaultInitMemoryLimitBytes, resource.BinarySI),
 					},
 				},
 			},
@@ -124,11 +124,11 @@ func init() {
 				Args:    []string{mysqlSocketInitScript},
 				Resources: corev1.ResourceRequirements{
 					Requests: corev1.ResourceList{
-						corev1.ResourceCPU:    *resource.NewMilliQuantity(initCPURequestMillis, resource.DecimalSI),
-						corev1.ResourceMemory: *resource.NewQuantity(initMemoryRequestBytes, resource.BinarySI),
+						corev1.ResourceCPU:    *resource.NewMilliQuantity(defaultInitCPURequestMillis, resource.DecimalSI),
+						corev1.ResourceMemory: *resource.NewQuantity(defaultInitMemoryRequestBytes, resource.BinarySI),
 					},
 					Limits: corev1.ResourceList{
-						corev1.ResourceMemory: *resource.NewQuantity(initMemoryLimitBytes, resource.BinarySI),
+						corev1.ResourceMemory: *resource.NewQuantity(defaultInitMemoryLimitBytes, resource.BinarySI),
 					},
 				},
 			})
