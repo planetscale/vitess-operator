@@ -18,6 +18,7 @@ package vttablet
 
 import (
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/utils/pointer"
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
@@ -47,6 +48,12 @@ for mycnf in $(find . -mindepth 2 -maxdepth 2 -path './vt_*/my.cnf'); do
   sed -i -e 's,^socket[ \t]*=.*$,socket = ` + mysqlSocketPath + `,' "${mycnf}"
 done
 `
+
+	initCPURequestMillis = 100
+	initCPULimitMillis   = 500
+
+	initMemoryRequestBytes = 32 * (1 << 20)  // 32 MiB
+	initMemoryLimitBytes   = 128 * (1 << 20) // 128 MiB
 )
 
 func init() {
@@ -86,6 +93,18 @@ func init() {
 				},
 				Command: []string{"bash", "-c"},
 				Args:    []string{vtRootInitScript},
+				Resources: corev1.ResourceRequirements{
+					Requests: corev1.ResourceList{
+						corev1.ResourceCPU:    *resource.NewMilliQuantity(initCPURequestMillis, resource.DecimalSI),
+						corev1.ResourceMemory: *resource.NewQuantity(initMemoryRequestBytes, resource.BinarySI),
+					},
+					// Set resource limits on init container for clusters that
+					// require it (e.g. when a limit is set in ResourceQuota)
+					Limits: corev1.ResourceList{
+						corev1.ResourceCPU:    *resource.NewMilliQuantity(initCPULimitMillis, resource.DecimalSI),
+						corev1.ResourceMemory: *resource.NewQuantity(initMemoryLimitBytes, resource.BinarySI),
+					},
+				},
 			},
 		}
 
@@ -108,6 +127,18 @@ func init() {
 				},
 				Command: []string{"bash", "-c"},
 				Args:    []string{mysqlSocketInitScript},
+				Resources: corev1.ResourceRequirements{
+					Requests: corev1.ResourceList{
+						corev1.ResourceCPU:    *resource.NewMilliQuantity(initCPURequestMillis, resource.DecimalSI),
+						corev1.ResourceMemory: *resource.NewQuantity(initMemoryRequestBytes, resource.BinarySI),
+					},
+					// Set resource limits on init container for clusters that
+					// require it (e.g. when a limit is set in ResourceQuota)
+					Limits: corev1.ResourceList{
+						corev1.ResourceCPU:    *resource.NewMilliQuantity(initCPULimitMillis, resource.DecimalSI),
+						corev1.ResourceMemory: *resource.NewQuantity(initMemoryLimitBytes, resource.BinarySI),
+					},
+				},
 			})
 		}
 
