@@ -26,35 +26,26 @@ import (
 func cephBackupFlags(ceph *planetscalev2.CephBackupLocation) vitess.Flags {
 	flags := vitess.Flags{
 		"backup_storage_implementation": cephBackupStorageImplementationName,
-		"ceph_backup_storage_config":    secrets.Mount(ceph.AuthSecret, cephAuthDirName).FilePath(),
+		"ceph_backup_storage_config":    secrets.Mount(&ceph.AuthSecret, cephAuthDirName).FilePath(),
 	}
 	return flags
 }
 
 func cephBackupVolumes(ceph *planetscalev2.CephBackupLocation) []corev1.Volume {
-	if ceph.AuthSecret == nil {
-		return nil
-	}
-	return secrets.Mount(ceph.AuthSecret, cephAuthDirName).PodVolumes()
+	return secrets.Mount(&ceph.AuthSecret, cephAuthDirName).PodVolumes()
 }
 
 func cephBackupVolumeMounts(ceph *planetscalev2.CephBackupLocation) []corev1.VolumeMount {
-	if ceph.AuthSecret == nil {
-		return nil
-	}
 	return []corev1.VolumeMount{
-		secrets.Mount(ceph.AuthSecret, cephAuthDirName).ContainerVolumeMount(),
+		secrets.Mount(&ceph.AuthSecret, cephAuthDirName).ContainerVolumeMount(),
 	}
 }
 
 func cephBackupEnvVars(ceph *planetscalev2.CephBackupLocation) []corev1.EnvVar {
-	if ceph.AuthSecret == nil {
-		return nil
-	}
 	return []corev1.EnvVar{
 		{
 			Name:  "CEPH_CREDENTIALS_FILE",
-			Value: secrets.Mount(ceph.AuthSecret, cephAuthDirName).FilePath(),
+			Value: secrets.Mount(&ceph.AuthSecret, cephAuthDirName).FilePath(),
 		},
 	}
 }
