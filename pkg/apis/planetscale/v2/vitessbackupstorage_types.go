@@ -166,7 +166,7 @@ type CephBackupLocation struct {
 	// AuthSecret is a reference to the Secret to use for Ceph S3 authentication.
 	// If set, this must point to a file in the format expected for the
 	// `https://github.com/vitessio/vitess/blob/master/examples/local/ceph_backup_config.json` file.
-	AuthSecret *SecretSource `json:"authSecret,omitempty"`
+	AuthSecret SecretSource `json:"authSecret"`
 }
 
 // VitessBackupStorageStatus defines the observed state of VitessBackupStorage.
