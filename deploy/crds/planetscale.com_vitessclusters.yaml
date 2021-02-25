@@ -83,6 +83,8 @@ spec:
                             required:
                             - key
                             type: object
+                        required:
+                        - authSecret
                         type: object
                       gcs:
                         properties:
