@@ -27,6 +27,10 @@ require (
 	vitess.io/vitess v0.0.0-20210406131419-29a494f7b45f
 )
 
+// github.com/coreos/etcd/clientv3/balancer/picker depends on grpc <=v1.26 for
+// balancer.PickOptions from google.golang.org/grpc/balancer
+replace google.golang.org/grpc => google.golang.org/grpc v1.26.0
+
 // ****************************
 // BEGIN GENERATED OPERATOR-SDK
 // ****************************
