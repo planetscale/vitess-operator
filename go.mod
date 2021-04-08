@@ -6,6 +6,8 @@ require (
 	github.com/ahmetb/gen-crd-api-reference-docs v0.1.5-0.20190629210212-52e137b8d003
 	github.com/klauspost/compress v1.7.5 // indirect
 	github.com/klauspost/cpuid v1.2.1 // indirect
+	github.com/looplab/fsm v0.2.0 // indirect
+	github.com/mitchellh/go-ps v1.0.0 // indirect
 	github.com/operator-framework/operator-sdk v0.16.0
 	github.com/prometheus/client_golang v1.4.1
 	github.com/sirupsen/logrus v1.4.2
@@ -22,7 +24,7 @@ require (
 	sigs.k8s.io/controller-runtime v0.4.0
 	sigs.k8s.io/controller-tools v0.2.4
 	sigs.k8s.io/yaml v1.1.0
-	vitess.io/vitess v0.0.0-20210125161451-daa60859822f
+	vitess.io/vitess v0.0.0-20210406131419-29a494f7b45f
 )
 
 // github.com/coreos/etcd/clientv3/balancer/picker depends on grpc <=v1.26 for
@@ -64,6 +66,8 @@ replace (
 replace github.com/docker/docker => github.com/moby/moby v0.7.3-0.20190826074503-38ab9da00309 // Required by Helm
 
 replace github.com/openshift/api => github.com/openshift/api v0.0.0-20190924102528-32369d4db2ad // Required until https://github.com/operator-framework/operator-lifecycle-manager/pull/1241 is resolved
+
+replace github.com/skeema/tengo => github.com/planetscale/tengo v0.9.6-ps.v1 // Required by Vitess for declerative statements
 
 // ****************************
 // END GENERATED OPERATOR-SDK

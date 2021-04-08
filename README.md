@@ -16,11 +16,12 @@ compatible with certain Vitess and Kubernetes versions, as shown in this table:
 
 Vitess Operator Version | Recommended Vitess Versions | Recommended Kubernetes Versions
 --- | --- | ---
-`v2.0.*` | `v6.0.*` | `v1.13.*`, `v1.14.*`, or `v1.15.*`
-`v2.1.*` | `v7.0.*` | `v1.15.*`, `v1.16.*`, or `v1.17.*`
-`v2.2.*` | `v8.0.*` | `v1.15.*`, `v1.16.*`, or `v1.17.*`
-`v2.3.*` | `v9.0.*` | `v1.15.*`, `v1.16.*`, or `v1.17.*`
-`latest` | `latest` | `v1.15.*`, `v1.16.*`, or `v1.17.*`
+`v2.0.*` | `v6.0.*`  | `v1.13.*`, `v1.14.*`, or `v1.15.*`
+`v2.1.*` | `v7.0.*`  | `v1.15.*`, `v1.16.*`, or `v1.17.*`
+`v2.2.*` | `v8.0.*`  | `v1.15.*`, `v1.16.*`, or `v1.17.*`
+`v2.3.*` | `v9.0.*`  | `v1.15.*`, `v1.16.*`, or `v1.17.*`
+`v2.4.*` | `v10.0.*` | `v1.15.*`, `v1.16.*`, or `v1.17.*`
+`latest` | `latest`  | `v1.15.*`, `v1.16.*`, or `v1.17.*`
 
 If for some reason you must attempt to use versions outside the recommend
 window, we still welcome bug reports since a workaround might be possible.
