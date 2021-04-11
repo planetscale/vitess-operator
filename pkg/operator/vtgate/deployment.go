@@ -45,6 +45,7 @@ const (
 	bufferMasterTrafficDuringFailover = true
 	bufferMinTimeBetweenFailovers     = "20s"
 	bufferMaxFailoverDuration         = "10s"
+	bufferSize                        = 1000
 
 	grpcMaxMessageSize = 64 * 1024 * 1024
 
@@ -254,6 +255,7 @@ func (spec *Spec) baseFlags() vitess.Flags {
 		"enable_buffer":                     bufferMasterTrafficDuringFailover,
 		"buffer_min_time_between_failovers": bufferMinTimeBetweenFailovers,
 		"buffer_max_failover_duration":      bufferMaxFailoverDuration,
+		"buffer_size":                       bufferSize,
 
 		"grpc_max_message_size": grpcMaxMessageSize,
 
