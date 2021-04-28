@@ -22,7 +22,7 @@ require (
 	sigs.k8s.io/controller-runtime v0.4.0
 	sigs.k8s.io/controller-tools v0.2.4
 	sigs.k8s.io/yaml v1.1.0
-	vitess.io/vitess v0.0.0-20210406131419-29a494f7b45f
+	vitess.io/vitess v0.0.0-20210427070115-48dccf56282d
 )
 
 // github.com/coreos/etcd/clientv3/balancer/picker depends on grpc <=v1.26 for
