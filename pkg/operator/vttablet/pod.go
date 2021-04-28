@@ -109,6 +109,8 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 		securityContext.RunAsUser = pointer.Int64Ptr(planetscalev2.DefaultVitessRunAsUser)
 	}
 
+	vttabletLifecycle := &spec.Vttablet.Lifecycle
+
 	// Build the containers.
 	vttabletContainer := &corev1.Container{
 		Name:            vttabletContainerName,
@@ -153,6 +155,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 			InitialDelaySeconds: 300,
 			FailureThreshold:    30,
 		},
+		Lifecycle:    vttabletLifecycle,
 		Env:          vttabletEnv,
 		VolumeMounts: vttabletMounts,
 	}

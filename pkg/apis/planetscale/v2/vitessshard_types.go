@@ -284,6 +284,11 @@ type VttabletSpec struct {
 	// not have any prefix (just "flag", not "-flag"). To set a boolean flag,
 	// set the string value to either "true" or "false".
 	ExtraFlags map[string]string `json:"extraFlags,omitempty"`
+
+	// Lifecycle can optionally be used to add container lifecycle hooks
+	// to vttablet container
+	// *kubebuilder:validation:EmbeddedResource
+	Lifecycle corev1.Lifecycle `json:"lifecycle,omitempty"`
 }
 
 // MysqldSpec configures the local MySQL server within a tablet.
