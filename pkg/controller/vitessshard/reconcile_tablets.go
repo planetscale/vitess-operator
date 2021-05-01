@@ -27,8 +27,9 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	podutil "k8s.io/kubernetes/pkg/api/v1/pod"
+	"k8s.io/kubectl/pkg/util/podutils"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
@@ -44,12 +45,12 @@ import (
 )
 
 const (
-	// tabletAvailableTime is how long a tablet Pod must be consistently Ready
+	// tabletAvailableSeconds is how long a tablet Pod must be consistently Ready
 	// before it is considered Available. This accounts for the time it takes
 	// for vtgates to discover that the tablet is Ready and update their routing
 	// tables. If a tablet is Ready but vtgates don't know it yet, then it isn't
 	// actually available for serving queries yet.
-	tabletAvailableTime = 30 * time.Second
+	tabletAvailableSeconds = 30
 
 	// observedShardGenerationAnnotationKey is used to set the shard generation
 	// that is observed at the time an UpdateInPlace is called for a pod.
@@ -190,9 +191,9 @@ func (r *ReconcileVitessShard) reconcileTablets(ctx context.Context, vts *planet
 
 			tabletStatus := vts.Status.Tablets[tablet.AliasStr]
 			tabletStatus.Running = k8s.ConditionStatus(pod.Status.Phase == corev1.PodRunning)
-			if _, cond := podutil.GetPodCondition(&pod.Status, corev1.PodReady); cond != nil {
-				tabletStatus.Ready = cond.Status
-				tabletStatus.Available = tabletAvailableStatus(resultBuilder, pod, cond)
+			if podutils.IsPodReady(pod) {
+				tabletStatus.Ready = corev1.ConditionTrue
+				tabletStatus.Available = tabletAvailableStatus(resultBuilder, pod)
 			}
 			tabletStatus.PendingChanges = pod.Annotations[rollout.ScheduledAnnotation]
 			vts.Status.Tablets[tablet.AliasStr] = tabletStatus
@@ -366,15 +367,10 @@ func isTabletMaster(ctx context.Context, vts *planetscalev2.VitessShard, tabletA
 	return topoproto.TabletAliasEqual(shard.MasterAlias, &tabletAlias), nil
 }
 
-func tabletAvailableStatus(resultBuilder *results.Builder, pod *corev1.Pod, readyCond *corev1.PodCondition) corev1.ConditionStatus {
+func tabletAvailableStatus(resultBuilder *results.Builder, pod *corev1.Pod) corev1.ConditionStatus {
 	// If the Pod is being deleted, we immediately mark it unavailable even
 	// though it might not have transitioned to Unready yet.
 	if pod.DeletionTimestamp != nil {
-		return corev1.ConditionFalse
-	}
-
-	// If it's not Ready, it can't be Available.
-	if readyCond.Status != corev1.ConditionTrue {
 		return corev1.ConditionFalse
 	}
 
@@ -382,8 +378,7 @@ func tabletAvailableStatus(resultBuilder *results.Builder, pod *corev1.Pod, read
 	// Note that this is sensitive to clock skew between us and the k8s master,
 	// but it's the same trade-off that k8s controllers make to determine Pod
 	// availability.
-	readyDuration := time.Since(readyCond.LastTransitionTime.Time)
-	if readyDuration >= tabletAvailableTime {
+	if podutils.IsPodAvailable(pod, tabletAvailableSeconds, metav1.Now()) {
 		return corev1.ConditionTrue
 	}
 
@@ -391,7 +386,7 @@ func tabletAvailableStatus(resultBuilder *results.Builder, pod *corev1.Pod, read
 	// consider it Available. We need to request a manual requeue to check again
 	// later because we're just waiting for time to pass; we don't expect
 	// anything in the Pod status to change and trigger a watch event.
-	resultBuilder.RequeueAfter(tabletAvailableTime - readyDuration)
+	resultBuilder.RequeueAfter(time.Duration(tabletAvailableSeconds))
 	return corev1.ConditionFalse
 }
 

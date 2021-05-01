@@ -2548,6 +2548,7 @@ func (in *VttabletSpec) DeepCopyInto(out *VttabletSpec) {
 			(*out)[key] = val
 		}
 	}
+	in.Lifecycle.DeepCopyInto(&out.Lifecycle)
 	return
 }
 
