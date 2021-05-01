@@ -27,8 +27,9 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	podutil "k8s.io/kubernetes/pkg/api/v1/pod"
+	"k8s.io/kubectl/pkg/util/podutils"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
@@ -44,12 +45,12 @@ import (
 )
 
 const (
-	// tabletAvailableTime is how long a tablet Pod must be consistently Ready
+	// tabletAvailableSeconds is how long a tablet Pod must be consistently Ready
 	// before it is considered Available. This accounts for the time it takes
 	// for vtgates to discover that the tablet is Ready and update their routing
 	// tables. If a tablet is Ready but vtgates don't know it yet, then it isn't
 	// actually available for serving queries yet.
-	tabletAvailableTime = 30 * time.Second
+	tabletAvailableSeconds = 30
 
 	// observedShardGenerationAnnotationKey is used to set the shard generation
 	// that is observed at the time an UpdateInPlace is called for a pod.
@@ -190,9 +191,9 @@ func (r *ReconcileVitessShard) reconcileTablets(ctx context.Context, vts *planet
 
 			tabletStatus := vts.Status.Tablets[tablet.AliasStr]
 			tabletStatus.Running = k8s.ConditionStatus(pod.Status.Phase == corev1.PodRunning)
-			if _, cond := podutil.GetPodCondition(&pod.Status, corev1.PodReady); cond != nil {
-				tabletStatus.Ready = cond.Status
-				tabletStatus.Available = tabletAvailableStatus(resultBuilder, pod, cond)
+			if podutils.IsPodReady(pod) {
+				tabletStatus.Ready = corev1.ConditionTrue
+				tabletStatus.Available = tabletAvailableStatus(resultBuilder, pod)
 			}
 			tabletStatus.PendingChanges = pod.Annotations[rollout.ScheduledAnnotation]
 			vts.Status.Tablets[tablet.AliasStr] = tabletStatus
@@ -234,13 +235,13 @@ func (r *ReconcileVitessShard) reconcileTablets(ctx context.Context, vts *planet
 				return planetscalev2.NewOrphanStatus("Draining", "waiting for the tablet to be drained before turn-down")
 			}
 
-			// Make sure the tablet is not the master.
-			isMaster, err := isTabletMaster(ctx, vts, tabletAlias)
+			// Make sure the tablet is not the primary.
+			isPrimary, err := isTabletPrimary(ctx, vts, tabletAlias)
 			if err != nil {
-				return planetscalev2.NewOrphanStatus("MasterUnknown", "unable to determine whether this tablet is the master")
+				return planetscalev2.NewOrphanStatus("PrimaryUnknown", "unable to determine whether this tablet is the primary")
 			}
-			if isMaster {
-				return planetscalev2.NewOrphanStatus("Master", "this tablet is the master")
+			if isPrimary {
+				return planetscalev2.NewOrphanStatus("Primary", "this tablet is the primary")
 			}
 
 			// Make sure the desired tablets are healthy before removing one.
@@ -303,7 +304,7 @@ func vttabletSpecs(vts *planetscalev2.VitessShard, parentLabels map[string]strin
 			vttabletcpy.ExtraFlags = extraFlags
 
 			annotations := map[string]string{
-				drain.SupportedAnnotation: "ensure that the tablet is not a master",
+				drain.SupportedAnnotation: "ensure that the tablet is not a primary",
 			}
 			update.Annotations(&annotations, pool.Annotations)
 			if backupLocation != nil {
@@ -348,43 +349,37 @@ func vttabletSpecs(vts *planetscalev2.VitessShard, parentLabels map[string]strin
 	return tablets
 }
 
-func isTabletMaster(ctx context.Context, vts *planetscalev2.VitessShard, tabletAlias topodatapb.TabletAlias) (bool, error) {
+func isTabletPrimary(ctx context.Context, vts *planetscalev2.VitessShard, tabletAlias topodatapb.TabletAlias) (bool, error) {
 	ts, err := toposerver.Open(ctx, vts.Spec.GlobalLockserver)
 	if err != nil {
 		return true, err
 	}
 	defer ts.Close()
 
-	// Only check the global shard record for the master alias.
+	// Only check the global shard record for the primary alias.
 	// We don't check the individual tablet's record (what the tablet thinks it is)
-	// because it's important to allow deletion of false masters.
+	// because it's important to allow deletion of false primarys.
 	keyspaceName := vts.Labels[planetscalev2.KeyspaceLabel]
 	shard, err := ts.GetShard(ctx, keyspaceName, vts.Spec.Name)
 	if err != nil {
 		return true, err
 	}
 
-	return topoproto.TabletAliasEqual(shard.MasterAlias, &tabletAlias), nil
+	return topoproto.TabletAliasEqual(shard.PrimaryAlias, &tabletAlias), nil
 }
 
-func tabletAvailableStatus(resultBuilder *results.Builder, pod *corev1.Pod, readyCond *corev1.PodCondition) corev1.ConditionStatus {
+func tabletAvailableStatus(resultBuilder *results.Builder, pod *corev1.Pod) corev1.ConditionStatus {
 	// If the Pod is being deleted, we immediately mark it unavailable even
 	// though it might not have transitioned to Unready yet.
 	if pod.DeletionTimestamp != nil {
 		return corev1.ConditionFalse
 	}
 
-	// If it's not Ready, it can't be Available.
-	if readyCond.Status != corev1.ConditionTrue {
-		return corev1.ConditionFalse
-	}
-
 	// A tablet is Available if it's been consistently Ready for long enough.
-	// Note that this is sensitive to clock skew between us and the k8s master,
+	// Note that this is sensitive to clock skew between us and the k8s primary,
 	// but it's the same trade-off that k8s controllers make to determine Pod
 	// availability.
-	readyDuration := time.Since(readyCond.LastTransitionTime.Time)
-	if readyDuration >= tabletAvailableTime {
+	if podutils.IsPodAvailable(pod, tabletAvailableSeconds, metav1.Now()) {
 		return corev1.ConditionTrue
 	}
 
@@ -392,7 +387,7 @@ func tabletAvailableStatus(resultBuilder *results.Builder, pod *corev1.Pod, read
 	// consider it Available. We need to request a manual requeue to check again
 	// later because we're just waiting for time to pass; we don't expect
 	// anything in the Pod status to change and trigger a watch event.
-	resultBuilder.RequeueAfter(tabletAvailableTime - readyDuration)
+	resultBuilder.RequeueAfter(time.Duration(tabletAvailableSeconds))
 	return corev1.ConditionFalse
 }
 

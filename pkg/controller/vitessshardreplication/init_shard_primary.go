@@ -40,27 +40,27 @@ import (
 )
 
 const (
-	initShardMasterTimeout = 15 * time.Second
+	initShardPrimaryTimeout = 15 * time.Second
 )
 
-func (r *ReconcileVitessShard) initShardMaster(ctx context.Context, vts *planetscalev2.VitessShard, wr *wrangler.Wrangler) (reconcile.Result, error) {
-	// TODO(enisoc): Upstream changes to make an idempotent InitShardMaster and use that here instead.
+func (r *ReconcileVitessShard) initShardPrimary(ctx context.Context, vts *planetscalev2.VitessShard, wr *wrangler.Wrangler) (reconcile.Result, error) {
+	// TODO(enisoc): Upstream changes to make an idempotent InitShardPrimary and use that here instead.
 
 	keyspaceName := vts.Labels[planetscalev2.KeyspaceLabel]
 	resultBuilder := &results.Builder{}
 
-	// If backups are enabled for the shard, don't use the real InitShardMaster.
+	// If backups are enabled for the shard, don't use the real InitShardPrimary.
 	// Instead, we rely on the initial backup created with vtbackup, and treat
 	// this like a shard that's been restored from a cold backup
 	// (see initRestoredShard).
 	//
-	// If we're using external mysql then we should not ever call initShardMaster,
+	// If we're using external mysql then we should not ever call initShardPrimary,
 	// but should instead try to use tabletExternallyReparented.
 	if vts.Spec.UsingExternalDatastore() || vts.Spec.BackupsEnabled() {
 		return resultBuilder.Result()
 	}
 
-	ready := r.readyForMaster(vts, resultBuilder)
+	ready := r.readyForPrimary(vts, resultBuilder)
 	if !ready {
 		return resultBuilder.Result()
 	}
@@ -68,11 +68,11 @@ func (r *ReconcileVitessShard) initShardMaster(ctx context.Context, vts *planets
 	// Everything we can check through k8s and topology looks good to proceed.
 	// Now we start talking to the actual vttablet processes.
 	// Don't hold our slot in the reconcile work queue for too long.
-	ctx, cancel := context.WithTimeout(ctx, initShardMasterTimeout)
+	ctx, cancel := context.WithTimeout(ctx, initShardPrimaryTimeout)
 	defer cancel()
 
 	// Check that all desired tablets are ready to initialize replication.
-	var masterCandidate *topodatapb.TabletAlias
+	var primaryCandidate *topodatapb.TabletAlias
 	errs := make(chan error, len(vts.Status.Tablets))
 	for name, tablet := range vts.Status.Tablets {
 		tabletAlias, err := topoproto.ParseTabletAlias(name)
@@ -82,9 +82,9 @@ func (r *ReconcileVitessShard) initShardMaster(ctx context.Context, vts *planets
 			return resultBuilder.Result()
 		}
 
-		// Is this tablet eligible to be a master?
-		if masterCandidate == nil && tablet.Type == "replica" {
-			masterCandidate = tabletAlias
+		// Is this tablet eligible to be a primary?
+		if primaryCandidate == nil && tablet.Type == "replica" {
+			primaryCandidate = tabletAlias
 		}
 
 		go func(name string, tabletAlias *topodatapb.TabletAlias) {
@@ -110,37 +110,37 @@ func (r *ReconcileVitessShard) initShardMaster(ctx context.Context, vts *planets
 	}
 
 	// Now we know all the tablets are ready to be initialized.
-	// See if we have a candidate for master.
-	// TODO(enisoc): Allow configuration of which cell(s) to prefer to put masters in.
-	if masterCandidate == nil {
-		// We didn't find any "replica" (master-eligible) tablets.
+	// See if we have a candidate for primary.
+	// TODO(enisoc): Allow configuration of which cell(s) to prefer to put primarys in.
+	if primaryCandidate == nil {
+		// We didn't find any "replica" (primary-eligible) tablets.
 		// Return success because there's no point retrying this until someone adds the replicas.
-		r.recorder.Eventf(vts, corev1.EventTypeWarning, "InitShardBlocked", "can't initialize shard: no master-eligible tablets (type 'replica') deployed")
+		r.recorder.Eventf(vts, corev1.EventTypeWarning, "InitShardBlocked", "can't initialize shard: no primary-eligible tablets (type 'replica') deployed")
 		return resultBuilder.Result()
 	}
 
-	// All checks passed. Do InitShardMaster.
-	if err := wr.InitShardMaster(ctx, keyspaceName, vts.Spec.Name, masterCandidate, true /* force */, initShardMasterTimeout); err != nil {
+	// All checks passed. Do InitShardPrimary.
+	if err := wr.InitShardPrimary(ctx, keyspaceName, vts.Spec.Name, primaryCandidate, true /* force */, initShardPrimaryTimeout); err != nil {
 		r.recorder.Eventf(vts, corev1.EventTypeWarning, "InitShardFailed", "failed to initialize shard: %v", err)
 		resultBuilder.RequeueAfter(replicationRequeueDelay)
 	} else {
-		r.recorder.Eventf(vts, corev1.EventTypeNormal, "InitShardMaster", "initialized shard replication with master tablet %v", topoproto.TabletAliasString(masterCandidate))
+		r.recorder.Eventf(vts, corev1.EventTypeNormal, "InitShardPrimary", "initialized shard replication with primary tablet %v", topoproto.TabletAliasString(primaryCandidate))
 	}
 
 	return resultBuilder.Result()
 }
 
-func (r *ReconcileVitessShard) readyForMaster(vts *planetscalev2.VitessShard, resultBuilder *results.Builder) bool {
+func (r *ReconcileVitessShard) readyForPrimary(vts *planetscalev2.VitessShard, resultBuilder *results.Builder) bool {
 	switch vts.Status.HasMaster {
 	case corev1.ConditionTrue:
-		// The shard already has a master. Nothing to do.
+		// The shard already has a primary. Nothing to do.
 		return false
 	case corev1.ConditionUnknown:
 		// We don't know the topo status, so it's not safe to try. Check again later.
 		resultBuilder.RequeueAfter(replicationRequeueDelay)
 		return false
 	}
-	// The shard doesn't have a master yet.
+	// The shard doesn't have a primary yet.
 	// Are all the desired tablets ready to be initialized?
 	if len(vts.Status.Tablets) == 0 {
 		// It's not populated yet, or there are no tablets anyway.
@@ -157,10 +157,10 @@ func (r *ReconcileVitessShard) readyForMaster(vts *planetscalev2.VitessShard, re
 		}
 		// Check if the tablet has registered in topology.
 		if tablet.Type == "master" {
-			// One of the tablets is already claiming to be master,
-			// even though the shard record has no master listed.
+			// One of the tablets is already claiming to be primary,
+			// even though the shard record has no primary listed.
 			// This is a bad state, so it's not safe for us to try anything.
-			r.recorder.Eventf(vts, corev1.EventTypeWarning, "InitShardBlocked", "can't initialize shard: tablet %v is already claiming to be master", name)
+			r.recorder.Eventf(vts, corev1.EventTypeWarning, "InitShardBlocked", "can't initialize shard: tablet %v is already claiming to be primary", name)
 			return false
 		}
 		if tablet.Type == "" || tablet.Type == "unknown" {
@@ -216,7 +216,7 @@ func readyForShardInit(ctx context.Context, ts *topo.Server, tmc tmclient.Tablet
 	if dbExists {
 		// The shard was already initialized at some point before.
 		// This could happen if the tablet has restored from a backup.
-		// We must not do InitShardMaster again, because that would reset
+		// We must not do InitShardPrimary again, because that would reset
 		// replication positions (erase GTID history), which would make all
 		// existing backups for the shard invalid.
 		return fmt.Errorf("the database for keyspace %v was already created on tablet %v; not safe to assume shard is uninitialized", ti.Keyspace, name)

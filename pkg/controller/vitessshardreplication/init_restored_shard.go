@@ -48,7 +48,7 @@ const (
 /*
 initRestoredShard starts replication on a shard that's just been restored
 from a cold backup. That is, all the replicas were created just now and all
-restored from the same backup. We need to elect an initial master and start
+restored from the same backup. We need to elect an initial primary and start
 replication.
 
 When a shard is first bootstrapped, if backups are enabled, we will use vtbackup
@@ -65,10 +65,10 @@ func (r *ReconcileVitessShard) initRestoredShard(ctx context.Context, vts *plane
 		return resultBuilder.Result()
 	}
 
-	// Check if the shard has a master.
+	// Check if the shard has a primary.
 	switch vts.Status.HasMaster {
 	case corev1.ConditionTrue:
-		// The shard already has a master. Nothing to do.
+		// The shard already has a primary. Nothing to do.
 		return resultBuilder.Result()
 	case corev1.ConditionUnknown:
 		// We don't know the topo status, so it's not safe to try. Check again later.
@@ -84,9 +84,9 @@ func (r *ReconcileVitessShard) initRestoredShard(ctx context.Context, vts *plane
 		return resultBuilder.Result()
 	}
 
-	// Now wait for at least one master-eligible tablet to finish restoring.
-	// For now, we just elect whoever finishes restoring first as the master.
-	foundCandidateMaster := false
+	// Now wait for at least one primary-eligible tablet to finish restoring.
+	// For now, we just elect whoever finishes restoring first as the primary.
+	foundCandidatePrimary := false
 	for _, tablet := range vts.Status.Tablets {
 		// Check if the Pod is Running.
 		// Note that we don't expect it to be Ready because they can't be
@@ -94,17 +94,17 @@ func (r *ReconcileVitessShard) initRestoredShard(ctx context.Context, vts *plane
 		if tablet.Running != corev1.ConditionTrue {
 			continue
 		}
-		// Check if the tablet has type "replica", meaning it's master-eligible
-		// and is not in the middle of a restore, or type "master", meaning we
-		// already promoted a master, but failed to update the shard record.
+		// Check if the tablet has type "replica", meaning it's primary-eligible
+		// and is not in the middle of a restore, or type "primary", meaning we
+		// already promoted a primary, but failed to update the shard record.
 		if tablet.Type == "replica" || tablet.Type == "master" {
-			foundCandidateMaster = true
+			foundCandidatePrimary = true
 			break
 		}
 	}
-	if !foundCandidateMaster {
+	if !foundCandidatePrimary {
 		// Requeue to check if any tablets are done restoring yet.
-		r.recorder.Eventf(vts, corev1.EventTypeNormal, "InitShardWaiting", "can't initialize shard: no master-eligible replica tablet is ready to become master")
+		r.recorder.Eventf(vts, corev1.EventTypeNormal, "InitShardWaiting", "can't initialize shard: no primary-eligible replica tablet is ready to become primary")
 		return resultBuilder.RequeueAfter(replicationRequeueDelay)
 	}
 
@@ -113,72 +113,72 @@ func (r *ReconcileVitessShard) initRestoredShard(ctx context.Context, vts *plane
 	ctx, cancel := context.WithTimeout(ctx, initRestoredShardTimeout)
 	defer cancel()
 
-	// If we get here, there should in theory be at least one candidate master
+	// If we get here, there should in theory be at least one candidate primary
 	// that's done restoring, but we might have just caught it claiming to be a
 	// replica before it started the restore process. We'll check for sure while
 	// holding the shard lock, so just go ahead and try the election.
-	if masterAlias, err := electInitialShardMaster(ctx, keyspaceName, shardName, wr); err != nil {
+	if primaryAlias, err := electInitialShardPrimary(ctx, keyspaceName, shardName, wr); err != nil {
 		r.recorder.Eventf(vts, corev1.EventTypeWarning, "InitShardFailed", "failed to initialize shard: %v", err)
 		resultBuilder.RequeueAfter(replicationRequeueDelay)
 	} else {
-		r.recorder.Eventf(vts, corev1.EventTypeNormal, "InitShardMaster", "initialized shard replication with master tablet %v", topoproto.TabletAliasString(masterAlias))
+		r.recorder.Eventf(vts, corev1.EventTypeNormal, "InitShardPrimary", "initialized shard replication with primary tablet %v", topoproto.TabletAliasString(primaryAlias))
 	}
 
 	return resultBuilder.Result()
 }
 
-// electInitialShardMaster picks a replica in the shard and promotes it to
-// master, without trying to initialize the database. It assumes all replicas
+// electInitialShardPrimary picks a replica in the shard and promotes it to
+// primary, without trying to initialize the database. It assumes all replicas
 // already have synchronized replication positions and an initialized database
 // because they all restored from the same backup.
-func electInitialShardMaster(ctx context.Context, keyspaceName, shardName string, wr *wrangler.Wrangler) (masterAlias *topodatapb.TabletAlias, finalErr error) {
+func electInitialShardPrimary(ctx context.Context, keyspaceName, shardName string, wr *wrangler.Wrangler) (primaryAlias *topodatapb.TabletAlias, finalErr error) {
 	// Lock the shard to avoid running concurrently with other replication commands.
-	ctx, unlock, lockErr := wr.TopoServer().LockShard(ctx, keyspaceName, shardName, "electShardMaster")
+	ctx, unlock, lockErr := wr.TopoServer().LockShard(ctx, keyspaceName, shardName, "electShardPrimary")
 	if lockErr != nil {
 		return nil, lockErr
 	}
 	defer unlock(&finalErr)
 
 	// Now that we have the lock, verify the state is as we expect.
-	// There should be no shard master.
+	// There should be no shard primary.
 	shard, err := wr.TopoServer().GetShard(ctx, keyspaceName, shardName)
 	if err != nil {
 		return nil, err
 	}
-	if !topoproto.TabletAliasIsZero(shard.MasterAlias) {
-		return nil, fmt.Errorf("can't elect master: shard already has a master: %v", topoproto.TabletAliasString(shard.MasterAlias))
+	if !topoproto.TabletAliasIsZero(shard.PrimaryAlias) {
+		return nil, fmt.Errorf("can't elect primary: shard already has a primary: %v", topoproto.TabletAliasString(shard.PrimaryAlias))
 	}
 
-	// Check if any tablet has already been promoted to master.
+	// Check if any tablet has already been promoted to primary.
 	tablets, err := wr.TopoServer().GetTabletMapForShard(ctx, keyspaceName, shardName)
 	if err != nil {
 		return nil, fmt.Errorf("can't get tablets for shard: %v", err)
 	}
-	var existingMaster *topo.TabletInfo
+	var existingPrimary *topo.TabletInfo
 	for tabletName, tablet := range tablets {
-		if tablet.GetType() == topodatapb.TabletType_MASTER {
-			if existingMaster != nil {
-				// We found more than one existing master. That shouldn't happen.
-				return nil, fmt.Errorf("can't elect master: shard has multiple tablets that claim to be master: %v, %v", tabletName, existingMaster.AliasString())
+		if tablet.GetType() == topodatapb.TabletType_PRIMARY {
+			if existingPrimary != nil {
+				// We found more than one existing primary. That shouldn't happen.
+				return nil, fmt.Errorf("can't elect primary: shard has multiple tablets that claim to be primary: %v, %v", tabletName, existingPrimary.AliasString())
 			}
-			existingMaster = tablet
+			existingPrimary = tablet
 		}
 	}
-	if existingMaster != nil {
+	if existingPrimary != nil {
 		// Check we still have the topology lock.
 		if err := topo.CheckShardLocked(ctx, keyspaceName, shardName); err != nil {
 			return nil, fmt.Errorf("lost topology lock; aborting: %v", err)
 		}
-		// A tablet has already been promoted to master, but the shard record is
+		// A tablet has already been promoted to primary, but the shard record is
 		// stale. Make the shard record consistent.
 		_, err := wr.TopoServer().UpdateShardFields(ctx, keyspaceName, shardName, func(shard *topo.ShardInfo) error {
-			shard.MasterAlias = existingMaster.Alias
+			shard.PrimaryAlias = existingPrimary.Alias
 			return nil
 		})
 		if err != nil {
-			return nil, fmt.Errorf("failed to fix shard record for already-promoted master %v: %v", existingMaster.AliasString(), err)
+			return nil, fmt.Errorf("failed to fix shard record for already-promoted primary %v: %v", existingPrimary.AliasString(), err)
 		}
-		return existingMaster.Alias, nil
+		return existingPrimary.Alias, nil
 	}
 
 	// Check status of all tablets.
@@ -191,10 +191,10 @@ func electInitialShardMaster(ctx context.Context, keyspaceName, shardName string
 		}(tabletName, tablet)
 	}
 
-	// There should be at least one master-eligible replica that's done
+	// There should be at least one primary-eligible replica that's done
 	// restoring. For now, just pick the first one we find.
-	// TODO(enisoc): Allow configuration of which cell(s) to prefer to put masters in.
-	var candidateMaster *tabletStatus
+	// TODO(enisoc): Allow configuration of which cell(s) to prefer to put primarys in.
+	var candidatePrimary *tabletStatus
 	restoredReplicas := []*tabletStatus{}
 
 	// No one ever closes the statusChan, but we know how many to expect.
@@ -212,32 +212,32 @@ func electInitialShardMaster(ctx context.Context, keyspaceName, shardName string
 		case topodatapb.TabletType_REPLICA:
 			restoredReplicas = append(restoredReplicas, status)
 
-			// Set this as the candidate master, if we haven't found one yet,
+			// Set this as the candidate primary, if we haven't found one yet,
 			// or if this one is farther ahead.
-			if candidateMaster == nil || !candidateMaster.replicationPosition.AtLeast(status.replicationPosition) {
-				candidateMaster = status
+			if candidatePrimary == nil || !candidatePrimary.replicationPosition.AtLeast(status.replicationPosition) {
+				candidatePrimary = status
 			}
 		case topodatapb.TabletType_RDONLY:
 			restoredReplicas = append(restoredReplicas, status)
 		}
 	}
 
-	if candidateMaster == nil {
-		return nil, fmt.Errorf("can't elect master: didn't find any valid candidate")
+	if candidatePrimary == nil {
+		return nil, fmt.Errorf("can't elect primary: didn't find any valid candidate")
 	}
 
 	// Check we still have the topology lock.
 	if err := topo.CheckShardLocked(ctx, keyspaceName, shardName); err != nil {
 		return nil, fmt.Errorf("lost topology lock; aborting: %v", err)
 	}
-	// Promote the candidate to master.
-	_, err = wr.TabletManagerClient().PromoteReplica(ctx, candidateMaster.tablet.Tablet)
+	// Promote the candidate to primary.
+	_, err = wr.TabletManagerClient().PromoteReplica(ctx, candidatePrimary.tablet.Tablet)
 	if err != nil {
-		return nil, fmt.Errorf("failed to promote tablet %v to master: %v", candidateMaster.tablet.AliasString(), err)
+		return nil, fmt.Errorf("failed to promote tablet %v to primary: %v", candidatePrimary.tablet.AliasString(), err)
 	}
 	// Update the shard record.
 	_, err = wr.TopoServer().UpdateShardFields(ctx, keyspaceName, shardName, func(shard *topo.ShardInfo) error {
-		shard.MasterAlias = candidateMaster.tablet.Alias
+		shard.PrimaryAlias = candidatePrimary.tablet.Alias
 		return nil
 	})
 	if err != nil {
@@ -245,19 +245,19 @@ func electInitialShardMaster(ctx context.Context, keyspaceName, shardName string
 	}
 
 	// Try to reparent other replicas that are done restoring. The rest will see
-	// the master in the shard record and configure replication automatically.
+	// the primary in the shard record and configure replication automatically.
 	// Even for the replicas we do try, this is best-effort. If it fails, we'll
 	// try again later in the usual replication repair path.
 	wg := &sync.WaitGroup{}
 	for _, replicaStatus := range restoredReplicas {
-		if topoproto.TabletAliasEqual(replicaStatus.tablet.Alias, candidateMaster.tablet.Alias) {
-			// Skip the one we promoted to master.
+		if topoproto.TabletAliasEqual(replicaStatus.tablet.Alias, candidatePrimary.tablet.Alias) {
+			// Skip the one we promoted to primary.
 			continue
 		}
 		wg.Add(1)
 		go func(tablet *topo.TabletInfo) {
 			defer wg.Done()
-			err := wr.TabletManagerClient().SetMaster(ctx, tablet.Tablet, candidateMaster.tablet.Alias, 0 /* don't try to wait for a reparent journal entry */, "" /* don't wait for any position */, true /* forceStartReplication */)
+			err := wr.TabletManagerClient().SetMaster(ctx, tablet.Tablet, candidatePrimary.tablet.Alias, 0 /* don't try to wait for a reparent journal entry */, "" /* don't wait for any position */, true /* forceStartReplication */)
 			if err != nil {
 				log.Warningf("best-effort configuration of replication for tablet %v failed: %v", tablet.AliasString(), err)
 			}
@@ -265,7 +265,7 @@ func electInitialShardMaster(ctx context.Context, keyspaceName, shardName string
 	}
 	wg.Wait()
 
-	return candidateMaster.tablet.Alias, nil
+	return candidatePrimary.tablet.Alias, nil
 }
 
 type tabletStatus struct {
@@ -296,7 +296,7 @@ func getTabletStatus(ctx context.Context, tmc tmclient.TabletManagerClient, tabl
 	}
 
 	// Get the current position of each tablet.
-	positionStr, err := tmc.MasterPosition(ctx, tablet.Tablet)
+	positionStr, err := tmc.PrimaryPosition(ctx, tablet.Tablet)
 	if err != nil {
 		status.err = fmt.Errorf("couldn't get replicaiton position for tablet %v: %v", tabletName, err)
 		return status
@@ -321,7 +321,7 @@ func getTabletStatus(ctx context.Context, tmc tmclient.TabletManagerClient, tabl
 // errors Vitess sends to indicate that it successfully checked replication
 // status, but the answer is that replication is in a disabled state.
 // Replication could be in a disabled state either because the tablet is a
-// replica that has not been configured yet, or because it's acting as a master.
+// replica that has not been configured yet, or because it's acting as a primary.
 //
 // Unfortunately, the Vitess RPC to fetch replication status does not offer any
 // officially-supported way to distinguish between this case (replication disabled)

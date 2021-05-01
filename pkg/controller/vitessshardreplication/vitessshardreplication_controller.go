@@ -231,7 +231,7 @@ func (r *ReconcileVitessShard) initReplication(ctx context.Context, vts *planets
 	// Check if we need to initialize the shard.
 	// If it's already initialized, this will be a no-op.
 	// If we are using external MySQL we will bail out early.
-	ismResult, err := r.initShardMaster(ctx, vts, wr)
+	ismResult, err := r.initShardPrimary(ctx, vts, wr)
 	resultBuilder.Merge(ismResult, err)
 
 	// Check if we need to externally reparent

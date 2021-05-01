@@ -22,7 +22,7 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	podutil "k8s.io/kubernetes/pkg/api/v1/pod"
+	"k8s.io/kubectl/pkg/util/podutils"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
@@ -92,10 +92,8 @@ func (r *ReconcileEtcdLockserver) reconcileMembers(ctx context.Context, ls *plan
 		},
 		Status: func(key client.ObjectKey, obj runtime.Object) {
 			curObj := obj.(*corev1.Pod)
-			if _, cond := podutil.GetPodCondition(&curObj.Status, corev1.PodReady); cond != nil {
-				if cond.Status == corev1.ConditionTrue {
-					numPodsReady++
-				}
+			if podutils.IsPodReady(curObj) {
+				numPodsReady++
 			}
 		},
 	})
