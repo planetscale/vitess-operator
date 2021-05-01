@@ -29,7 +29,7 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	apilabels "k8s.io/apimachinery/pkg/labels"
-	podutil "k8s.io/kubernetes/pkg/api/v1/pod"
+	"k8s.io/kubectl/pkg/util/podutils"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
@@ -399,8 +399,7 @@ func candidateMaster(ctx context.Context, wr *wrangler.Wrangler, shard *topo.Sha
 			}
 		}
 
-		_, ready := podutil.GetPodCondition(&pod.Status, corev1.PodReady)
-		if ready == nil || ready.Status != corev1.ConditionTrue {
+		if !podutils.IsPodReady(pod) {
 			continue
 		}
 		// The Pod must not have a drain request, or have already entered the
