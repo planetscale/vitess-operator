@@ -1492,3 +1492,5 @@ vitess.io/vitess v0.0.0-20210406131419-29a494f7b45f h1:OJdTU4/SVyrRHyZMcSsAZgDaN
 vitess.io/vitess v0.0.0-20210406131419-29a494f7b45f/go.mod h1:w/n9EqyIp59en9oR6JyDHRkDQNg6Lp/uoNV9zpK7Vgo=
 vitess.io/vitess v0.0.0-20210427070115-48dccf56282d h1:HaHN5cbrXgR/Zq68CMPe54rUHrX9heYs/PSxRDqlKyo=
 vitess.io/vitess v0.0.0-20210427070115-48dccf56282d/go.mod h1:w/n9EqyIp59en9oR6JyDHRkDQNg6Lp/uoNV9zpK7Vgo=
+vitess.io/vitess v0.0.0-20210504115542-f7304cd1893a h1:eICDhJMGYe1i8zkfrPfUkzsExwwFxKo98gbMDuTljwU=
+vitess.io/vitess v0.0.0-20210504115542-f7304cd1893a/go.mod h1:w/n9EqyIp59en9oR6JyDHRkDQNg6Lp/uoNV9zpK7Vgo=
