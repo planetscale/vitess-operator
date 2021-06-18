@@ -36,6 +36,7 @@ import (
 	_ "vitess.io/vitess/go/vt/topo/consultopo"
 	_ "vitess.io/vitess/go/vt/topo/etcd2topo"
 	_ "vitess.io/vitess/go/vt/topo/zk2topo"
+	_ "vitess.io/vitess/go/vt/topo/k8stopo"
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 )
