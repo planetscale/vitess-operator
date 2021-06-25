@@ -50,7 +50,7 @@ settings until the new `vitess/lite` image tag is pushed.
 
 ### Update Compatibility Table
 
-Add a new entry for the planned minor version to the [compatibility table](https://github.com/planetscale/vitess-operator/blob/master/README.md#compatibility)
+Add a new entry for the planned minor version to the [compatibility table](https://github.com/planetscale/vitess-operator/blob/main/README.md#compatibility)
 in the README file.
 
 The recommended Kubernetes versions depend on the version of the Kubernetes
