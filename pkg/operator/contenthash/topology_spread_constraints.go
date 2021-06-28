@@ -1,5 +1,5 @@
 /*
-Copyright 2020 PlanetScale Inc.
+Copyright 2019 PlanetScale Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,33 +14,33 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+// Package contenthash hashes the content of various objects.
 package contenthash
 
 import (
 	"crypto/md5"
 	"encoding/hex"
-	"strconv"
 
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// Tolerations returns a hex-encoded hash of a list of Tolerations.
-func Tolerations(in []corev1.Toleration) string {
+// TopologySpreadConstraints returns a hex-encoded hash of a list of topologySpreadConstraints.
+func TopologySpreadConstraints(in []corev1.TopologySpreadConstraint) string {
 	h := md5.New()
 
 	for i := range in {
-		tol := &in[i]
+		tsc := &in[i]
 
-		writeStringHash(h, tol.Key)
-		writeStringHash(h, string(tol.Operator))
-		writeStringHash(h, tol.Value)
-		writeStringHash(h, string(tol.Effect))
-
-		tolerationSeconds := "nil"
-		if tol.TolerationSeconds != nil {
-			tolerationSeconds = strconv.FormatInt(*tol.TolerationSeconds, 10)
+		writeStringHash(h, string(tsc.MaxSkew))
+		writeStringHash(h, tsc.TopologyKey)
+		writeStringHash(h, string(tsc.WhenUnsatisfiable))
+		labelSelectors, err := metav1.LabelSelectorAsMap(tsc.LabelSelector)
+		if err == nil {
+			labelSelectors = map[string]string{}
 		}
-		writeStringHash(h, tolerationSeconds)
+		writeStringHash(h, StringMap(labelSelectors))
+
 	}
 
 	sum := h.Sum(nil)
