@@ -30,6 +30,9 @@ require (
 // balancer.PickOptions from google.golang.org/grpc/balancer
 replace google.golang.org/grpc => google.golang.org/grpc v1.26.0
 
+replace gomodules.xyz/jsonpatch/v2 => github.com/gomodules/jsonpatch/v2 v2.0.1  // Required by Kubernetes (sigs.k8s.io/controller-runtime)
+replace vbom.ml/util => github.com/fvbommel/util v0.0.0-20160121211510-db5cfe13f5cc   // Required by Kubernetes (k8s.io/kubernetes)
+
 // ****************************
 // BEGIN GENERATED OPERATOR-SDK
 // ****************************
