@@ -21,6 +21,7 @@ require (
 	k8s.io/utils v0.0.0-20191114184206-e782cd3c129f
 	sigs.k8s.io/controller-runtime v0.4.0
 	sigs.k8s.io/controller-tools v0.2.4
+	sigs.k8s.io/kustomize v2.0.3+incompatible
 	sigs.k8s.io/yaml v1.1.0
 	vitess.io/vitess v0.0.0-20210504115542-f7304cd1893a
 )
@@ -29,8 +30,9 @@ require (
 // balancer.PickOptions from google.golang.org/grpc/balancer
 replace google.golang.org/grpc => google.golang.org/grpc v1.26.0
 
-replace gomodules.xyz/jsonpatch/v2 => github.com/gomodules/jsonpatch/v2 v2.0.1  // Required by Kubernetes (sigs.k8s.io/controller-runtime)
-replace vbom.ml/util => github.com/fvbommel/util v0.0.0-20160121211510-db5cfe13f5cc   // Required by Kubernetes (k8s.io/kubernetes)
+replace gomodules.xyz/jsonpatch/v2 => github.com/gomodules/jsonpatch/v2 v2.0.1 // Required by Kubernetes (sigs.k8s.io/controller-runtime)
+
+replace vbom.ml/util => github.com/fvbommel/util v0.0.0-20160121211510-db5cfe13f5cc // Required by Kubernetes (k8s.io/kubernetes)
 
 // ****************************
 // BEGIN GENERATED OPERATOR-SDK
