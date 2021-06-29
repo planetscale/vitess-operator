@@ -1,0 +1,27 @@
+name: make-generate-and-diff
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+    branches:
+    - main
+jobs:
+  build:
+    name: Block generated files from becoming outdated
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: ~1.15.11
+      id: go
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v2
+      with:
+        path: src/planetscale.dev/vitess-operator
+
+    - name: make generate-and-diff
+      run: make -C src/planetscale.dev/vitess-operator generate-and-diff
