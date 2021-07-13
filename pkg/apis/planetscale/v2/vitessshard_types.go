@@ -272,7 +272,7 @@ type VitessShardTabletPool struct {
 
 	// TopologySpreadConstraint can optionally be used to
 	// specify how to spread vttablet pods among the given topology
-	// *kubebuilder:validation:EmbeddedResource
+	// +kubebuilder:validation:EmbeddedResource
 	TopologySpreadConstraints []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty"`
 }
 
@@ -292,7 +292,7 @@ type VttabletSpec struct {
 
 	// Lifecycle can optionally be used to add container lifecycle hooks
 	// to vttablet container
-	// *kubebuilder:validation:EmbeddedResource
+	// +kubebuilder:validation:EmbeddedResource
 	Lifecycle corev1.Lifecycle `json:"lifecycle,omitempty"`
 }
 

@@ -192,7 +192,7 @@ type VitessCellGatewaySpec struct {
 
 	// TopologySpreadConstraint can optionally be used to
 	// specify how to spread vtgate pods among the given topology
-	// *kubebuilder:validation:EmbeddedResource
+	// +kubebuilder:validation:EmbeddedResource
 	TopologySpreadConstraints []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty"`
 }
 

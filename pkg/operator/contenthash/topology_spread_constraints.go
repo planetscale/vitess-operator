@@ -36,7 +36,9 @@ func TopologySpreadConstraints(in []corev1.TopologySpreadConstraint) string {
 		writeStringHash(h, tsc.TopologyKey)
 		writeStringHash(h, string(tsc.WhenUnsatisfiable))
 		labelSelectors, err := metav1.LabelSelectorAsMap(tsc.LabelSelector)
-		if err == nil {
+		if err != nil {
+			// There is no return of error for this function
+			// or its callers, which makes this a bit of a hack
 			labelSelectors = map[string]string{}
 		}
 		writeStringHash(h, StringMap(labelSelectors))
