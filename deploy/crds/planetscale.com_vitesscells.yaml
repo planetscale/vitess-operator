@@ -237,6 +237,11 @@ spec:
                     type: object
                     x-kubernetes-preserve-unknown-fields: true
                   type: array
+                topologySpreadConstraints:
+                  items:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                  type: array
               type: object
             globalLockserver:
               properties:

@@ -28,37 +28,38 @@ import (
 
 // Spec specifies all the internal parameters needed to deploy a vttablet instance.
 type Spec struct {
-	Alias                    topodatapb.TabletAlias
-	AliasStr                 string
-	Type                     planetscalev2.VitessTabletPoolType
-	Zone                     string
-	Labels                   map[string]string
-	Images                   planetscalev2.VitessKeyspaceImages
-	ImagePullPolicies        planetscalev2.VitessImagePullPolicies
-	ImagePullSecrets         []corev1.LocalObjectReference
-	Index                    int32
-	KeyRange                 planetscalev2.VitessKeyRange
-	KeyspaceName             string
-	DatabaseName             string
-	Vttablet                 *planetscalev2.VttabletSpec
-	Mysqld                   *planetscalev2.MysqldSpec
-	ExternalDatastore        *planetscalev2.ExternalDatastore
-	DataVolumePVCSpec        *corev1.PersistentVolumeClaimSpec
-	DataVolumePVCName        string
-	GlobalLockserver         planetscalev2.VitessLockserverParams
-	DatabaseInitScriptSecret planetscalev2.SecretSource
-	EnableSemiSync           bool
-	Annotations              map[string]string
-	ExtraLabels              map[string]string
-	BackupLocation           *planetscalev2.VitessBackupLocation
-	BackupEngine             planetscalev2.VitessBackupEngine
-	Affinity                 *corev1.Affinity
-	ExtraEnv                 []corev1.EnvVar
-	ExtraVolumes             []corev1.Volume
-	ExtraVolumeMounts        []corev1.VolumeMount
-	InitContainers           []corev1.Container
-	SidecarContainers        []corev1.Container
-	Tolerations              []corev1.Toleration
+	Alias                     topodatapb.TabletAlias
+	AliasStr                  string
+	Type                      planetscalev2.VitessTabletPoolType
+	Zone                      string
+	Labels                    map[string]string
+	Images                    planetscalev2.VitessKeyspaceImages
+	ImagePullPolicies         planetscalev2.VitessImagePullPolicies
+	ImagePullSecrets          []corev1.LocalObjectReference
+	Index                     int32
+	KeyRange                  planetscalev2.VitessKeyRange
+	KeyspaceName              string
+	DatabaseName              string
+	Vttablet                  *planetscalev2.VttabletSpec
+	Mysqld                    *planetscalev2.MysqldSpec
+	ExternalDatastore         *planetscalev2.ExternalDatastore
+	DataVolumePVCSpec         *corev1.PersistentVolumeClaimSpec
+	DataVolumePVCName         string
+	GlobalLockserver          planetscalev2.VitessLockserverParams
+	DatabaseInitScriptSecret  planetscalev2.SecretSource
+	EnableSemiSync            bool
+	Annotations               map[string]string
+	ExtraLabels               map[string]string
+	BackupLocation            *planetscalev2.VitessBackupLocation
+	BackupEngine              planetscalev2.VitessBackupEngine
+	Affinity                  *corev1.Affinity
+	ExtraEnv                  []corev1.EnvVar
+	ExtraVolumes              []corev1.Volume
+	ExtraVolumeMounts         []corev1.VolumeMount
+	InitContainers            []corev1.Container
+	SidecarContainers         []corev1.Container
+	Tolerations               []corev1.Toleration
+	TopologySpreadConstraints []corev1.TopologySpreadConstraint
 }
 
 // localDatabaseName returns the MySQL database name for a tablet Spec in the case of locally managed MySQL.
