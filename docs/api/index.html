@@ -2883,7 +2883,8 @@ ServiceOverrides
 </em>
 </td>
 <td>
-<p>TopologySpreadConstraint specifies how to spread matching pods among the given topology.</p>
+<p>TopologySpreadConstraint can optionally be used to
+specify how to spread vtgate pods among the given topology</p>
 </td>
 </tr>
 </tbody>
@@ -7201,7 +7202,8 @@ that run alongside the main containers.</p>
 </em>
 </td>
 <td>
-<p>TopologySpreadConstraint specifies how to spread matching pods among the given topology.</p>
+<p>TopologySpreadConstraint can optionally be used to
+specify how to spread vttablet pods among the given topology</p>
 </td>
 </tr>
 </tbody>
@@ -7471,8 +7473,7 @@ Kubernetes core/v1.Lifecycle
 </td>
 <td>
 <p>Lifecycle can optionally be used to add container lifecycle hooks
-to vttablet container
-*kubebuilder:validation:EmbeddedResource</p>
+to vttablet container</p>
 </td>
 </tr>
 </tbody>
