@@ -98,6 +98,17 @@ func (b *Builder) AddTolerations(itemName string, value []corev1.Toleration) {
 	b.state[itemName] = contenthash.Tolerations(value)
 }
 
+// AddTopologySpreadConstraints adds an item of state based on a list of topologySpreadConstraints.
+func (b *Builder) AddTopologySpreadConstraints(itemName string, value []corev1.TopologySpreadConstraint) {
+	// Skip if the value is empty, so that defining new items doesn't cause any
+	// Pods to be updated until someone actually sets a value for the new field.
+	if len(value) == 0 {
+		return
+	}
+
+	b.state[itemName] = contenthash.TopologySpreadConstraints(value)
+}
+
 // AddVolumeNames add an item of state based on a list of Volume names.
 func (b *Builder) AddVolumeNames(itemName string, vols []corev1.Volume) {
 	volNames := make([]string, 0, len(vols))
