@@ -42,9 +42,14 @@ func (r *ReconcileVitessShard) tabletExternallyReparent(ctx context.Context, vts
 		return resultBuilder.Result()
 	}
 
-	// If we already have a master we can bail early.
+	// If we already have a healthy master externalmaster we can bail early.
 	if vts.Status.HasMaster == corev1.ConditionTrue {
-		return resultBuilder.Result()
+		for _, tablet := range vts.Status.Tablets {
+			if tablet.IsExternalMaster() && tablet.Type == "master" && tablet.IsAvailable() {
+				//We found the healthy externalmaster master, so we're done.
+				return resultBuilder.Result()
+			}
+		}
 	}
 
 	// Everything we can check through k8s and topology looks good to proceed.
@@ -53,11 +58,11 @@ func (r *ReconcileVitessShard) tabletExternallyReparent(ctx context.Context, vts
 	ctx, cancel := context.WithTimeout(ctx, externallyReparentTimeout)
 	defer cancel()
 
-	// Find the first external master that's running, if any.
+	// Find the first external master that's available, if any.
 	var masterCandidateAlias *topodatapb.TabletAlias
 	for name, tablet := range vts.Status.Tablets {
-		// If tablet is not of external pool type AND running, we can move on to the next tablet.
-		if !(tablet.IsExternalMaster() && tablet.IsRunning()) {
+		// If tablet is not of external pool type AND available, we can move on to the next tablet.
+		if !(tablet.IsExternalMaster() && tablet.IsAvailable()) {
 			continue
 		}
 

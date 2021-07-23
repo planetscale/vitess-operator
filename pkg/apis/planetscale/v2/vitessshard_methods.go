@@ -35,6 +35,11 @@ func (t *VitessTabletStatus) IsRunning() bool {
 	return t.Running == corev1.ConditionTrue
 }
 
+// IsAvailable indicates whether the tablet is known to be Available.
+func (t *VitessTabletStatus) IsAvailable() bool {
+	return t.Available == corev1.ConditionTrue
+}
+
 // InitTabletType returns a string representing what the initial tablet
 // type should be for a tablet in this type of pool.
 func (t *VitessTabletPoolType) InitTabletType() string {
