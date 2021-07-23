@@ -53,14 +53,6 @@ func (r *ReconcileVitessShard) tabletExternallyReparent(ctx context.Context, vts
 	ctx, cancel := context.WithTimeout(ctx, externallyReparentTimeout)
 	defer cancel()
 
-	// Check actual shard record in case we are out of sync
-	// and bail if shard record says we have a master already.
-	keyspaceName := vts.Labels[planetscalev2.KeyspaceLabel]
-	shard, err := wr.TopoServer().GetShard(ctx, keyspaceName, vts.Name)
-	if err == nil && shard.HasMaster() {
-		return resultBuilder.Result()
-	}
-
 	// Find the first external master that's running, if any.
 	var masterCandidateAlias *topodatapb.TabletAlias
 	for name, tablet := range vts.Status.Tablets {
