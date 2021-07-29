@@ -82,6 +82,8 @@ spec:
                         required:
                         - key
                         type: object
+                    required:
+                    - authSecret
                     type: object
                   gcs:
                     properties:
@@ -493,6 +495,15 @@ spec:
                                       type: object
                                       x-kubernetes-preserve-unknown-fields: true
                                     type: array
+                                  topologySpreadConstraints:
+                                    items:
+                                      required:
+                                      - maxSkew
+                                      - topologyKey
+                                      - whenUnsatisfiable
+                                      type: object
+                                      x-kubernetes-preserve-unknown-fields: true
+                                    type: array
                                   type:
                                     enum:
                                     - replica
@@ -507,6 +518,9 @@ spec:
                                         additionalProperties:
                                           type: string
                                         type: object
+                                      lifecycle:
+                                        type: object
+                                        x-kubernetes-preserve-unknown-fields: true
                                       resources:
                                         properties:
                                           limits:
@@ -804,6 +818,15 @@ spec:
                                     type: object
                                     x-kubernetes-preserve-unknown-fields: true
                                   type: array
+                                topologySpreadConstraints:
+                                  items:
+                                    required:
+                                    - maxSkew
+                                    - topologyKey
+                                    - whenUnsatisfiable
+                                    type: object
+                                    x-kubernetes-preserve-unknown-fields: true
+                                  type: array
                                 type:
                                   enum:
                                   - replica
@@ -818,6 +841,9 @@ spec:
                                       additionalProperties:
                                         type: string
                                       type: object
+                                    lifecycle:
+                                      type: object
+                                      x-kubernetes-preserve-unknown-fields: true
                                     resources:
                                       properties:
                                         limits:

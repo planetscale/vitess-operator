@@ -21,9 +21,18 @@ require (
 	k8s.io/utils v0.0.0-20191114184206-e782cd3c129f
 	sigs.k8s.io/controller-runtime v0.4.0
 	sigs.k8s.io/controller-tools v0.2.4
+	sigs.k8s.io/kustomize v2.0.3+incompatible
 	sigs.k8s.io/yaml v1.1.0
-	vitess.io/vitess v0.0.0-20210125161451-daa60859822f
+	vitess.io/vitess v0.0.0-20210504115542-f7304cd1893a
 )
+
+// github.com/coreos/etcd/clientv3/balancer/picker depends on grpc <=v1.26 for
+// balancer.PickOptions from google.golang.org/grpc/balancer
+replace google.golang.org/grpc => google.golang.org/grpc v1.26.0
+
+replace gomodules.xyz/jsonpatch/v2 => github.com/gomodules/jsonpatch/v2 v2.0.1 // Required by Kubernetes (sigs.k8s.io/controller-runtime)
+
+replace vbom.ml/util => github.com/fvbommel/util v0.0.0-20160121211510-db5cfe13f5cc // Required by Kubernetes (k8s.io/kubernetes)
 
 // ****************************
 // BEGIN GENERATED OPERATOR-SDK
@@ -60,6 +69,8 @@ replace (
 replace github.com/docker/docker => github.com/moby/moby v0.7.3-0.20190826074503-38ab9da00309 // Required by Helm
 
 replace github.com/openshift/api => github.com/openshift/api v0.0.0-20190924102528-32369d4db2ad // Required until https://github.com/operator-framework/operator-lifecycle-manager/pull/1241 is resolved
+
+replace github.com/skeema/tengo => github.com/planetscale/tengo v0.9.6-ps.v3 // Required by Vitess for declerative statements
 
 // ****************************
 // END GENERATED OPERATOR-SDK

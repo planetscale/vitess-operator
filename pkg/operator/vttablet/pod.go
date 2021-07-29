@@ -109,6 +109,8 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 		securityContext.RunAsUser = pointer.Int64Ptr(planetscalev2.DefaultVitessRunAsUser)
 	}
 
+	vttabletLifecycle := &spec.Vttablet.Lifecycle
+
 	// Build the containers.
 	vttabletContainer := &corev1.Container{
 		Name:            vttabletContainerName,
@@ -153,6 +155,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 			InitialDelaySeconds: 300,
 			FailureThreshold:    30,
 		},
+		Lifecycle:    vttabletLifecycle,
 		Env:          vttabletEnv,
 		VolumeMounts: vttabletMounts,
 	}
@@ -272,9 +275,10 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	desiredStateHash.AddContainersUpdates("init-containers", initContainers)
 	desiredStateHash.AddContainersUpdates("containers", containers)
 
-	// Record a hash of desired tolerations to force the Pod to be recreated if
-	// one disappears from the desired list.
+	// Record a hash of desired tolerations and topologySpreadConstraints
+	// to force the Pod to be recreated if one disappears from the desired list.
 	desiredStateHash.AddTolerations("tolerations", spec.Tolerations)
+	desiredStateHash.AddTopologySpreadConstraints("topologySpreadConstraints", spec.TopologySpreadConstraints)
 
 	// Add the final desired state hash annotation.
 	update.Annotations(&obj.Annotations, map[string]string{
@@ -293,6 +297,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	update.Volumes(&obj.Spec.Volumes, tabletVolumes.Get(spec))
 	update.Volumes(&obj.Spec.Volumes, spec.ExtraVolumes)
 	update.Tolerations(&obj.Spec.Tolerations, spec.Tolerations)
+	update.TopologySpreadConstraints(&obj.Spec.TopologySpreadConstraints, spec.TopologySpreadConstraints)
 
 	if obj.Spec.SecurityContext == nil {
 		obj.Spec.SecurityContext = &corev1.PodSecurityContext{}
