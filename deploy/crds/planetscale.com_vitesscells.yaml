@@ -239,6 +239,10 @@ spec:
                   type: array
                 topologySpreadConstraints:
                   items:
+                    required:
+                    - maxSkew
+                    - topologyKey
+                    - whenUnsatisfiable
                     type: object
                     x-kubernetes-preserve-unknown-fields: true
                   type: array

@@ -495,6 +495,15 @@ spec:
                                       type: object
                                       x-kubernetes-preserve-unknown-fields: true
                                     type: array
+                                  topologySpreadConstraints:
+                                    items:
+                                      required:
+                                      - maxSkew
+                                      - topologyKey
+                                      - whenUnsatisfiable
+                                      type: object
+                                      x-kubernetes-preserve-unknown-fields: true
+                                    type: array
                                   type:
                                     enum:
                                     - replica
@@ -510,108 +519,8 @@ spec:
                                           type: string
                                         type: object
                                       lifecycle:
-                                        properties:
-                                          postStart:
-                                            properties:
-                                              exec:
-                                                properties:
-                                                  command:
-                                                    items:
-                                                      type: string
-                                                    type: array
-                                                type: object
-                                              httpGet:
-                                                properties:
-                                                  host:
-                                                    type: string
-                                                  httpHeaders:
-                                                    items:
-                                                      properties:
-                                                        name:
-                                                          type: string
-                                                        value:
-                                                          type: string
-                                                      required:
-                                                      - name
-                                                      - value
-                                                      type: object
-                                                    type: array
-                                                  path:
-                                                    type: string
-                                                  port:
-                                                    anyOf:
-                                                    - type: integer
-                                                    - type: string
-                                                    x-kubernetes-int-or-string: true
-                                                  scheme:
-                                                    type: string
-                                                required:
-                                                - port
-                                                type: object
-                                              tcpSocket:
-                                                properties:
-                                                  host:
-                                                    type: string
-                                                  port:
-                                                    anyOf:
-                                                    - type: integer
-                                                    - type: string
-                                                    x-kubernetes-int-or-string: true
-                                                required:
-                                                - port
-                                                type: object
-                                            type: object
-                                          preStop:
-                                            properties:
-                                              exec:
-                                                properties:
-                                                  command:
-                                                    items:
-                                                      type: string
-                                                    type: array
-                                                type: object
-                                              httpGet:
-                                                properties:
-                                                  host:
-                                                    type: string
-                                                  httpHeaders:
-                                                    items:
-                                                      properties:
-                                                        name:
-                                                          type: string
-                                                        value:
-                                                          type: string
-                                                      required:
-                                                      - name
-                                                      - value
-                                                      type: object
-                                                    type: array
-                                                  path:
-                                                    type: string
-                                                  port:
-                                                    anyOf:
-                                                    - type: integer
-                                                    - type: string
-                                                    x-kubernetes-int-or-string: true
-                                                  scheme:
-                                                    type: string
-                                                required:
-                                                - port
-                                                type: object
-                                              tcpSocket:
-                                                properties:
-                                                  host:
-                                                    type: string
-                                                  port:
-                                                    anyOf:
-                                                    - type: integer
-                                                    - type: string
-                                                    x-kubernetes-int-or-string: true
-                                                required:
-                                                - port
-                                                type: object
-                                            type: object
                                         type: object
+                                        x-kubernetes-preserve-unknown-fields: true
                                       resources:
                                         properties:
                                           limits:
@@ -909,6 +818,15 @@ spec:
                                     type: object
                                     x-kubernetes-preserve-unknown-fields: true
                                   type: array
+                                topologySpreadConstraints:
+                                  items:
+                                    required:
+                                    - maxSkew
+                                    - topologyKey
+                                    - whenUnsatisfiable
+                                    type: object
+                                    x-kubernetes-preserve-unknown-fields: true
+                                  type: array
                                 type:
                                   enum:
                                   - replica
@@ -924,108 +842,8 @@ spec:
                                         type: string
                                       type: object
                                     lifecycle:
-                                      properties:
-                                        postStart:
-                                          properties:
-                                            exec:
-                                              properties:
-                                                command:
-                                                  items:
-                                                    type: string
-                                                  type: array
-                                              type: object
-                                            httpGet:
-                                              properties:
-                                                host:
-                                                  type: string
-                                                httpHeaders:
-                                                  items:
-                                                    properties:
-                                                      name:
-                                                        type: string
-                                                      value:
-                                                        type: string
-                                                    required:
-                                                    - name
-                                                    - value
-                                                    type: object
-                                                  type: array
-                                                path:
-                                                  type: string
-                                                port:
-                                                  anyOf:
-                                                  - type: integer
-                                                  - type: string
-                                                  x-kubernetes-int-or-string: true
-                                                scheme:
-                                                  type: string
-                                              required:
-                                              - port
-                                              type: object
-                                            tcpSocket:
-                                              properties:
-                                                host:
-                                                  type: string
-                                                port:
-                                                  anyOf:
-                                                  - type: integer
-                                                  - type: string
-                                                  x-kubernetes-int-or-string: true
-                                              required:
-                                              - port
-                                              type: object
-                                          type: object
-                                        preStop:
-                                          properties:
-                                            exec:
-                                              properties:
-                                                command:
-                                                  items:
-                                                    type: string
-                                                  type: array
-                                              type: object
-                                            httpGet:
-                                              properties:
-                                                host:
-                                                  type: string
-                                                httpHeaders:
-                                                  items:
-                                                    properties:
-                                                      name:
-                                                        type: string
-                                                      value:
-                                                        type: string
-                                                    required:
-                                                    - name
-                                                    - value
-                                                    type: object
-                                                  type: array
-                                                path:
-                                                  type: string
-                                                port:
-                                                  anyOf:
-                                                  - type: integer
-                                                  - type: string
-                                                  x-kubernetes-int-or-string: true
-                                                scheme:
-                                                  type: string
-                                              required:
-                                              - port
-                                              type: object
-                                            tcpSocket:
-                                              properties:
-                                                host:
-                                                  type: string
-                                                port:
-                                                  anyOf:
-                                                  - type: integer
-                                                  - type: string
-                                                  x-kubernetes-int-or-string: true
-                                              required:
-                                              - port
-                                              type: object
-                                          type: object
                                       type: object
+                                      x-kubernetes-preserve-unknown-fields: true
                                     resources:
                                       properties:
                                         limits:
