@@ -186,6 +186,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 						Port: intstr.FromInt(planetscalev2.DefaultMysqlPort),
 					},
 				},
+			PeriodSeconds: 2,
 			},
 			// TODO(enisoc): Add liveness probes that make sense for mysqld.
 			Env:          env,
