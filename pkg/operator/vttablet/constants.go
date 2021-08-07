@@ -122,4 +122,5 @@ var (
 	defaultExtraMyCnf = []string{
 		vtMycnfPath + "/rbr.cnf",
 	}
+	vtbackupExtraMyCnfFile = vtMycnfPath + "/vtbackup.cnf"
 )
