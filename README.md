@@ -2,10 +2,10 @@
 
 ## Docs
 
-- [Overview](https://docs.planetscale.com/vitess-operator/overview)
-- [Getting Started on AWS](https://docs.planetscale.com/vitess-operator/aws-quickstart)
-- [Getting Started on GCP](https://docs.planetscale.com/vitess-operator/gcp-quickstart)
-- [VitessCluster CRD API Reference](https://docs.planetscale.com/vitess-operator/api)
+- [Overview](docs/)
+- [Getting Started on AWS](docs/aws-quickstart.md)
+- [Getting Started on GCP](docs/gcp-quickstart.md)
+- [VitessCluster CRD API Reference](docs/api.md)
 
 ## Compatibility
 
