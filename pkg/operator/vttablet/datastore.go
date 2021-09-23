@@ -130,9 +130,5 @@ func externalDatastoreFlags(spec *Spec) vitess.Flags {
 		"vreplication_tablet_type":    vreplicationTabletType,
 	}
 
-	if spec.Type == planetscalev2.ExternalMasterPoolType {
-		flags["demote_master_type"] = "SPARE"
-	}
-
 	return flags
 }
