@@ -18,7 +18,6 @@ package vttablet
 
 import (
 	corev1 "k8s.io/api/core/v1"
-	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 	"planetscale.dev/vitess-operator/pkg/operator/lazy"
 	"planetscale.dev/vitess-operator/pkg/operator/secrets"
 	"planetscale.dev/vitess-operator/pkg/operator/vitess"
