@@ -489,6 +489,15 @@ spec:
                       type: object
                       x-kubernetes-preserve-unknown-fields: true
                     type: array
+                  topologySpreadConstraints:
+                    items:
+                      required:
+                      - maxSkew
+                      - topologyKey
+                      - whenUnsatisfiable
+                      type: object
+                      x-kubernetes-preserve-unknown-fields: true
+                    type: array
                   type:
                     enum:
                     - replica
@@ -503,6 +512,9 @@ spec:
                         additionalProperties:
                           type: string
                         type: object
+                      lifecycle:
+                        type: object
+                        x-kubernetes-preserve-unknown-fields: true
                       resources:
                         properties:
                           limits:
@@ -512,75 +524,6 @@ spec:
                           requests:
                             additionalProperties:
                               type: string
-                            type: object
-                        type: object
-                      lifecycle:
-                        properties:
-                          postStart:
-                            properties:
-                              exec:
-                                properties:
-                                  command:
-                                    items:
-                                      type: string
-                                    type: array
-                                type: object
-                              httpGet:
-                                properties:
-                                  host:
-                                    type: string
-                                  httpHeaders:
-                                    items:
-                                      properties:
-                                        name:
-                                          type: string
-                                        value:
-                                          type: string
-                                      type: object
-                                    type: array
-                                  path:
-                                    type: string
-                                  port:
-                                    format: int32
-                                    maximum: 65535
-                                    minimum: 1
-                                    type: integer
-                                  scheme:
-                                    type: string
-                                type: object
-                            type: object
-                          preStop:
-                            properties:
-                              exec:
-                                properties:
-                                  command:
-                                    items:
-                                      type: string
-                                    type: array
-                                type: object
-                              httpGet:
-                                properties:
-                                  host:
-                                    type: string
-                                  httpHeaders:
-                                    items:
-                                      properties:
-                                        name:
-                                          type: string
-                                        value:
-                                          type: string
-                                      type: object
-                                    type: array
-                                  path:
-                                    type: string
-                                  port:
-                                    format: int32
-                                    maximum: 65535
-                                    minimum: 1
-                                    type: integer
-                                  scheme:
-                                    type: string
-                                type: object
                             type: object
                         type: object
                     required:

@@ -1,5 +1,0 @@
-# Serve generated CRD API docs.
-[[redirects]]
-  from = "/api/"
-  to = "/docs/api/index.html"
-  status = 200
