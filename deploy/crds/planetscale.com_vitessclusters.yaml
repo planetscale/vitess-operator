@@ -435,6 +435,15 @@ spec:
                                       type: string
                                     type: object
                                 type: object
+                              dataSource:
+                                type: object
+                                properties:
+                                  apiGroup:
+                                    type: string
+                                  kind:
+                                    type: string
+                                  name:
+                                    type: sting
                               storageClassName:
                                 type: string
                               volumeMode:
@@ -699,6 +708,15 @@ spec:
                                 type: string
                               type: object
                           type: object
+                        dataSource:
+                          type: object
+                          properties:
+                            apiGroup:
+                              type: string
+                            kind:
+                              type: string
+                            name:
+                              type: sting
                         storageClassName:
                           type: string
                         volumeMode:
@@ -1031,6 +1049,15 @@ spec:
                                                     type: string
                                                   type: object
                                               type: object
+                                            dataSource:
+                                              type: object
+                                              properties:
+                                                apiGroup:
+                                                  type: string
+                                                kind:
+                                                  type: string
+                                                name:
+                                                  type: sting
                                             storageClassName:
                                               type: string
                                             volumeMode:
@@ -1342,6 +1369,15 @@ spec:
                                                   type: string
                                                 type: object
                                             type: object
+                                          dataSource:
+                                            type: object
+                                            properties:
+                                              apiGroup:
+                                                type: string
+                                              kind:
+                                                type: string
+                                              name:
+                                                type: sting
                                           storageClassName:
                                             type: string
                                           volumeMode:
