@@ -21,6 +21,7 @@ import (
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	apilabels "k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -109,9 +110,34 @@ func (r *ReconcileVitessShard) reconcileBackupJob(ctx context.Context, vts *plan
 		vts.Status.HasInitialBackup = corev1.ConditionTrue
 	}
 
+	// Reconcile vtbackup PVCs. Use the same key as the corresponding Pod,
+	// but only if the Pod expects a PVC.
+	err := r.reconciler.ReconcileObjectSet(ctx, vts, pvcKeys, labels, reconciler.Strategy{
+		Kind: &corev1.PersistentVolumeClaim{},
+
+		New: func(key client.ObjectKey) runtime.Object {
+			return vttablet.NewPVC(key, specMap[key].TabletSpec)
+		},
+		PrepareForTurndown: func(key client.ObjectKey, obj runtime.Object) *planetscalev2.OrphanStatus {
+			// Same as reconcileTablets, keep PVCs of Pods in any Phase
+			pod := &corev1.Pod{}
+			if getErr := r.client.Get(ctx, key, pod); getErr == nil || !apierrors.IsNotFound(getErr) {
+				// If the get was successful, the Pod exists and we shouldn't delete the PVC.
+				// If the get failed for any reason other than NotFound, we don't know if it's safe.
+				return &planetscalev2.OrphanStatus{
+					Reason:  "BackupRunning",
+					Message: "Not deleting vtbackup PVC because vtbackup Pod still exists",
+				}
+			}
+			return nil
+		},
+	})
+	if err != nil {
+		resultBuilder.Error(err)
+	}
+
 	// Reconcile vtbackup Pods.
-	orphanPods := map[client.ObjectKey]*corev1.Pod{}
-	err := r.reconciler.ReconcileObjectSet(ctx, vts, podKeys, labels, reconciler.Strategy{
+	err = r.reconciler.ReconcileObjectSet(ctx, vts, podKeys, labels, reconciler.Strategy{
 		Kind: &corev1.Pod{},
 
 		New: func(key client.ObjectKey) runtime.Object {
@@ -140,33 +166,9 @@ func (r *ReconcileVitessShard) reconcileBackupJob(ctx context.Context, vts *plan
 			// pruning of old backups after the new backup is complete.
 			pod := obj.(*corev1.Pod)
 			if pod.Status.Phase == corev1.PodRunning {
-				orphanPods[key] = pod
 				return &planetscalev2.OrphanStatus{
 					Reason:  "BackupRunning",
 					Message: "Not deleting vtbackup Pod while it's still running",
-				}
-			}
-			return nil
-		},
-	})
-	if err != nil {
-		resultBuilder.Error(err)
-	}
-
-	// Reconcile vtbackup PVCs. Use the same key as the corresponding Pod,
-	// but only if the Pod expects a PVC.
-	err = r.reconciler.ReconcileObjectSet(ctx, vts, pvcKeys, labels, reconciler.Strategy{
-		Kind: &corev1.PersistentVolumeClaim{},
-
-		New: func(key client.ObjectKey) runtime.Object {
-			return vttablet.NewPVC(key, specMap[key].TabletSpec)
-		},
-		PrepareForTurndown: func(key client.ObjectKey, obj runtime.Object) *planetscalev2.OrphanStatus {
-			// Don't delete a PVC until we're done with the corresponding Pod.
-			if orphanPods[key] != nil {
-				return &planetscalev2.OrphanStatus{
-					Reason:  "BackupRunning",
-					Message: "Not deleting vtbackup PVC while it's still running",
 				}
 			}
 			return nil
