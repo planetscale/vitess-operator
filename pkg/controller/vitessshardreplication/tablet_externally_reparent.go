@@ -37,12 +37,12 @@ func (r *ReconcileVitessShard) tabletExternallyReparent(ctx context.Context, vts
 	resultBuilder := &results.Builder{}
 
 	// If we're using local MySQL then we should not call externallyReparent,
-	// but should instead try to use initShardMaster.
+	// but should instead try to use initShardPrimary.
 	if !vts.Spec.UsingExternalDatastore() {
 		return resultBuilder.Result()
 	}
 
-	// If we already have a master we can bail early.
+	// If we already have a primary we can bail early.
 	if vts.Status.HasMaster == corev1.ConditionTrue {
 		return resultBuilder.Result()
 	}
@@ -54,15 +54,15 @@ func (r *ReconcileVitessShard) tabletExternallyReparent(ctx context.Context, vts
 	defer cancel()
 
 	// Check actual shard record in case we are out of sync
-	// and bail if shard record says we have a master already.
+	// and bail if shard record says we have a primary already.
 	keyspaceName := vts.Labels[planetscalev2.KeyspaceLabel]
 	shard, err := wr.TopoServer().GetShard(ctx, keyspaceName, vts.Name)
-	if err == nil && shard.HasMaster() {
+	if err == nil && shard.HasPrimary() {
 		return resultBuilder.Result()
 	}
 
-	// Find the first external master that's running, if any.
-	var masterCandidateAlias *topodatapb.TabletAlias
+	// Find the first external primary that's running, if any.
+	var primaryCandidateAlias *topodatapb.TabletAlias
 	for name, tablet := range vts.Status.Tablets {
 		// If tablet is not of external pool type AND running, we can move on to the next tablet.
 		if !(tablet.IsExternalMaster() && tablet.IsRunning()) {
@@ -76,27 +76,27 @@ func (r *ReconcileVitessShard) tabletExternallyReparent(ctx context.Context, vts
 			return resultBuilder.Result()
 		}
 
-		masterCandidateAlias = tabletAlias
+		primaryCandidateAlias = tabletAlias
 		break
 	}
 
-	// We found an external master tablet that's running. It might be ready to be marked as master,
+	// We found an external primary tablet that's running. It might be ready to be marked as primary,
 	// but it also might not be yet. For now, we don't bother to check anything else because we believe
 	// it's always safe to attempt TER. If it fails, we will try again later.
-	if masterCandidateAlias == nil {
-		// We didn't find any tablets in the external master pool that are eligible for external reparent.
+	if primaryCandidateAlias == nil {
+		// We didn't find any tablets in the external primary pool that are eligible for external reparent.
 		// Return success because there's no point retrying this until tablet status changes.
-		r.recorder.Eventf(vts, corev1.EventTypeWarning, "ExternalMasterShardBlocked", "can't externally reparent shard: no master-eligible tablets (pool type 'externalmaster') deployed")
+		r.recorder.Eventf(vts, corev1.EventTypeWarning, "ExternalPrimaryShardBlocked", "can't externally reparent shard: no primary-eligible tablets (pool type 'externalprimary') deployed")
 		return resultBuilder.Result()
 	}
 
 	// All checks passed. Do TabletExternallyReparented.
 
-	if err := wr.TabletExternallyReparented(ctx, masterCandidateAlias); err != nil {
+	if err := wr.TabletExternallyReparented(ctx, primaryCandidateAlias); err != nil {
 		r.recorder.Eventf(vts, corev1.EventTypeWarning, "TabletExternallyReparentedFailed", "failed to externally reparent shard: %v", err)
 		return resultBuilder.RequeueAfter(replicationRequeueDelay)
 	}
 
-	r.recorder.Eventf(vts, corev1.EventTypeNormal, "TabletExternallyReparented", "Externally reparented tablet %v", topoproto.TabletAliasString(masterCandidateAlias))
+	r.recorder.Eventf(vts, corev1.EventTypeNormal, "TabletExternallyReparented", "Externally reparented tablet %v", topoproto.TabletAliasString(primaryCandidateAlias))
 	return resultBuilder.Result()
 }

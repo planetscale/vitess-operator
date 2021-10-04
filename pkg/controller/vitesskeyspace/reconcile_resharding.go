@@ -104,7 +104,7 @@ func (r *reconcileHandler) reconcileResharding(ctx context.Context) (reconcile.R
 	// we have an error in resharding somewhere that needs to be surfaced.
 	var errorMsgs []string
 	for _, status := range reshardingWorkflow.ShardStatuses {
-		for _, vReplRow := range status.MasterReplicationStatuses {
+		for _, vReplRow := range status.PrimaryReplicationStatuses {
 			if vReplRow.State == "Error" {
 				workflowStatus.State = planetscalev2.WorkflowError
 				errorMsgs = append(errorMsgs, vReplRow.Message)
@@ -181,10 +181,10 @@ func (r *reconcileHandler) shardsRowCount(ctx context.Context, shardNames []stri
 		if err != nil {
 			return 0, fmt.Errorf("failed to get tablets for shard %v: %v", shardName, err)
 		}
-		if shardInfo.MasterAlias == nil {
-			return 0, fmt.Errorf("could not find master tablet alias for determining row count of shard %v", shardName)
+		if shardInfo.PrimaryAlias == nil {
+			return 0, fmt.Errorf("could not find primary tablet alias for determining row count of shard %v", shardName)
 		}
-		schema, err := r.wr.GetSchema(ctx, shardInfo.MasterAlias, nil, nil, false)
+		schema, err := r.wr.GetSchema(ctx, shardInfo.PrimaryAlias, nil, nil, false)
 		if err != nil {
 			return 0, fmt.Errorf("failed to get schema for shard %v: %v", shardName, err)
 		}
