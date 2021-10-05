@@ -4,25 +4,29 @@ go 1.15
 
 require (
 	github.com/ahmetb/gen-crd-api-reference-docs v0.1.5-0.20190629210212-52e137b8d003
+	github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd // indirect
+	github.com/coreos/go-systemd v0.0.0-20190719114852-fd7a80b32e1f // indirect
+	github.com/cyberdelia/go-metrics-graphite v0.0.0-20161219230853-39f87cc3b432 // indirect
 	github.com/klauspost/compress v1.7.5 // indirect
 	github.com/klauspost/cpuid v1.2.1 // indirect
+	github.com/onsi/ginkgo v1.10.3 // indirect
 	github.com/operator-framework/operator-sdk v0.16.0
-	github.com/prometheus/client_golang v1.4.1
-	github.com/sirupsen/logrus v1.4.2
+	github.com/prometheus/client_golang v1.11.0
+	github.com/sirupsen/logrus v1.6.0
+	github.com/skeema/tengo v0.0.0-00010101000000-000000000000 // indirect
 	github.com/spf13/pflag v1.0.5
-	github.com/stretchr/testify v1.4.0
+	github.com/stretchr/testify v1.7.0
 	gopkg.in/yaml.v2 v2.4.0
-	k8s.io/api v0.0.0
-	k8s.io/apimachinery v0.17.3
+	k8s.io/api v0.18.19
+	k8s.io/apimachinery v0.18.19
 	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/klog v1.0.0
-	k8s.io/kube-openapi v0.0.0-20191107075043-30be4d16710a // indirect
 	k8s.io/kubernetes v1.16.2
-	k8s.io/utils v0.0.0-20191114184206-e782cd3c129f
+	k8s.io/utils v0.0.0-20200324210504-a9aa75ae1b89
 	sigs.k8s.io/controller-runtime v0.4.0
 	sigs.k8s.io/controller-tools v0.2.4
-	sigs.k8s.io/yaml v1.1.0
-	vitess.io/vitess v0.0.0-20210504115542-f7304cd1893a
+	sigs.k8s.io/yaml v1.2.0
+	vitess.io/vitess v0.10.3-0.20211005103321-bd0a4eda151d
 )
 
 // github.com/coreos/etcd/clientv3/balancer/picker depends on grpc <=v1.26 for
