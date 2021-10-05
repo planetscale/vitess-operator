@@ -19,7 +19,6 @@ package contenthash
 import (
 	"crypto/md5"
 	"encoding/hex"
-	"io"
 	"strconv"
 
 	corev1 "k8s.io/api/core/v1"
@@ -46,9 +45,4 @@ func Tolerations(in []corev1.Toleration) string {
 
 	sum := h.Sum(nil)
 	return hex.EncodeToString(sum)
-}
-
-func writeStringHash(w io.Writer, value string) {
-	hash := md5.Sum([]byte(value))
-	w.Write(hash[:])
 }

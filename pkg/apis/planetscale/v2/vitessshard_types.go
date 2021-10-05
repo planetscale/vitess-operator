@@ -269,6 +269,11 @@ type VitessShardTabletPool struct {
 	// Tolerations allow you to schedule pods onto nodes with matching taints.
 	// +kubebuilder:validation:EmbeddedResource
 	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
+
+	// TopologySpreadConstraint can optionally be used to
+	// specify how to spread vttablet pods among the given topology
+	// +kubebuilder:validation:EmbeddedResource
+	TopologySpreadConstraints []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty"`
 }
 
 // VttabletSpec configures the vttablet server within a tablet.
@@ -287,7 +292,7 @@ type VttabletSpec struct {
 
 	// Lifecycle can optionally be used to add container lifecycle hooks
 	// to vttablet container
-	// *kubebuilder:validation:EmbeddedResource
+	// +kubebuilder:validation:EmbeddedResource
 	Lifecycle corev1.Lifecycle `json:"lifecycle,omitempty"`
 }
 

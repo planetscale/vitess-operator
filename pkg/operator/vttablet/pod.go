@@ -180,7 +180,15 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 				},
 			},
 			SecurityContext: securityContext,
-			// TODO(enisoc): Add readiness and liveness probes that make sense for mysqld.
+			ReadinessProbe:  &corev1.Probe{
+				Handler:             corev1.Handler{
+					TCPSocket: &corev1.TCPSocketAction{
+						Port: intstr.FromInt(planetscalev2.DefaultMysqlPort),
+					},
+				},
+			PeriodSeconds: 2,
+			},
+			// TODO(enisoc): Add liveness probes that make sense for mysqld.
 			Env:          env,
 			VolumeMounts: mysqldMounts,
 		}
@@ -233,9 +241,18 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 		}
 	}
 
+	// Set the resource requirements on each of the default vttablet init
+	// containers to the same values as the vttablet container itself in
+	// case the cluster requires them.
+	defaultTabletInitContainers := tabletInitContainers.Get(spec)
+	for i := range defaultTabletInitContainers {
+		c := &defaultTabletInitContainers[i]
+		update.ResourceRequirements(&c.Resources, &spec.Vttablet.Resources)
+	}
+
 	// Make the final list of desired containers and init containers.
 	initContainers := []corev1.Container{}
-	initContainers = append(initContainers, tabletInitContainers.Get(spec)...)
+	initContainers = append(initContainers, defaultTabletInitContainers...)
 	initContainers = append(initContainers, spec.InitContainers...)
 
 	sidecarContainers := []corev1.Container{}
@@ -266,9 +283,10 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	desiredStateHash.AddContainersUpdates("init-containers", initContainers)
 	desiredStateHash.AddContainersUpdates("containers", containers)
 
-	// Record a hash of desired tolerations to force the Pod to be recreated if
-	// one disappears from the desired list.
+	// Record a hash of desired tolerations and topologySpreadConstraints
+	// to force the Pod to be recreated if one disappears from the desired list.
 	desiredStateHash.AddTolerations("tolerations", spec.Tolerations)
+	desiredStateHash.AddTopologySpreadConstraints("topologySpreadConstraints", spec.TopologySpreadConstraints)
 
 	// Add the final desired state hash annotation.
 	update.Annotations(&obj.Annotations, map[string]string{
@@ -287,6 +305,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	update.Volumes(&obj.Spec.Volumes, tabletVolumes.Get(spec))
 	update.Volumes(&obj.Spec.Volumes, spec.ExtraVolumes)
 	update.Tolerations(&obj.Spec.Tolerations, spec.Tolerations)
+	update.TopologySpreadConstraints(&obj.Spec.TopologySpreadConstraints, spec.TopologySpreadConstraints)
 
 	if obj.Spec.SecurityContext == nil {
 		obj.Spec.SecurityContext = &corev1.PodSecurityContext{}

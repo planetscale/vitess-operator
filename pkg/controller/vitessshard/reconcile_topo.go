@@ -65,11 +65,11 @@ func (r *ReconcileVitessShard) reconcileTopology(ctx context.Context, vts *plane
 
 	// Get the shard record.
 	if shard, err := ts.GetShard(ctx, keyspaceName, vts.Spec.Name); err == nil {
-		vts.Status.HasMaster = k8s.ConditionStatus(shard.HasMaster())
-		if shard.MasterAlias != nil {
-			vts.Status.MasterAlias = topoproto.TabletAliasString(shard.MasterAlias)
+		vts.Status.HasMaster = k8s.ConditionStatus(shard.HasPrimary())
+		if shard.PrimaryAlias != nil {
+			vts.Status.MasterAlias = topoproto.TabletAliasString(shard.PrimaryAlias)
 		}
-		vts.Status.ServingWrites = k8s.ConditionStatus(shard.IsMasterServing)
+		vts.Status.ServingWrites = k8s.ConditionStatus(shard.IsPrimaryServing)
 
 		// Is the shard in the serving partition for any cell or tablet type?
 		if servingCells, err := ts.GetShardServingCells(ctx, shard); err == nil {
@@ -131,7 +131,7 @@ func (r *ReconcileVitessShard) pruneTablets(ctx context.Context, vts *planetscal
 			// It's also not being kept around by a blocked turn-down.
 			// We use the Vitess wrangler (multi-step command executor) to delete the tablet.
 			// This is equivalent to `vtctl DeleteTablet`.
-			if err := wr.DeleteTablet(ctx, tabletInfo.Alias, false /* allowMaster */); err != nil {
+			if err := wr.DeleteTablet(ctx, tabletInfo.Alias, false /* allowPrimary */); err != nil {
 				r.recorder.Eventf(vts, corev1.EventTypeWarning, "TopoCleanupFailed", "unable to remove tablet %s from topology: %v", name, err)
 				resultBuilder.RequeueAfter(topoRequeueDelay)
 			} else {

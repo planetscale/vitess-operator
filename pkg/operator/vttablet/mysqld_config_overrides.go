@@ -41,7 +41,12 @@ func init() {
 		if spec.Mysqld == nil || len(spec.Mysqld.ConfigOverrides) == 0 {
 			return nil
 		}
-		return []string{"/pod-config/mysqld-config-overrides"}
+		// Append an extra config file for vtbackup at the end to override any
+		// settings from the custom ones; will be empty for normal vttablet
+		return []string{
+			"/pod-config/mysqld-config-overrides",
+			vtbackupExtraMyCnfFile,
+		}
 	})
 	tabletVolumes.Add(func(s lazy.Spec) []corev1.Volume {
 		spec := s.(*Spec)

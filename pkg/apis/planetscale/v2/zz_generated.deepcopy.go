@@ -990,6 +990,13 @@ func (in *VitessCellGatewaySpec) DeepCopyInto(out *VitessCellGatewaySpec) {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
+	if in.TopologySpreadConstraints != nil {
+		in, out := &in.TopologySpreadConstraints, &out.TopologySpreadConstraints
+		*out = make([]v1.TopologySpreadConstraint, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
+	}
 	return
 }
 
@@ -2476,6 +2483,13 @@ func (in *VitessShardTabletPool) DeepCopyInto(out *VitessShardTabletPool) {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
+	if in.TopologySpreadConstraints != nil {
+		in, out := &in.TopologySpreadConstraints, &out.TopologySpreadConstraints
+		*out = make([]v1.TopologySpreadConstraint, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
+	}
 	return
 }
 
@@ -2548,6 +2562,7 @@ func (in *VttabletSpec) DeepCopyInto(out *VttabletSpec) {
 			(*out)[key] = val
 		}
 	}
+	in.Lifecycle.DeepCopyInto(&out.Lifecycle)
 	return
 }
 

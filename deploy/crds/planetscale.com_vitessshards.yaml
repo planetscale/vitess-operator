@@ -2,7 +2,7 @@ apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.2.4
+    controller-gen.kubebuilder.io/version: v0.3.0
   creationTimestamp: null
   name: vitessshards.planetscale.com
 spec:
@@ -273,11 +273,19 @@ spec:
                         properties:
                           limits:
                             additionalProperties:
-                              type: string
+                              anyOf:
+                              - type: integer
+                              - type: string
+                              pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                              x-kubernetes-int-or-string: true
                             type: object
                           requests:
                             additionalProperties:
-                              type: string
+                              anyOf:
+                              - type: integer
+                              - type: string
+                              pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                              x-kubernetes-int-or-string: true
                             type: object
                         type: object
                       selector:
@@ -386,7 +394,11 @@ spec:
                                 containerName:
                                   type: string
                                 divisor:
-                                  type: string
+                                  anyOf:
+                                  - type: integer
+                                  - type: string
+                                  pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                  x-kubernetes-int-or-string: true
                                 resource:
                                   type: string
                               required:
@@ -454,11 +466,19 @@ spec:
                         properties:
                           limits:
                             additionalProperties:
-                              type: string
+                              anyOf:
+                              - type: integer
+                              - type: string
+                              pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                              x-kubernetes-int-or-string: true
                             type: object
                           requests:
                             additionalProperties:
-                              type: string
+                              anyOf:
+                              - type: integer
+                              - type: string
+                              pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                              x-kubernetes-int-or-string: true
                             type: object
                         type: object
                     required:
@@ -480,6 +500,15 @@ spec:
                       type: object
                       x-kubernetes-preserve-unknown-fields: true
                     type: array
+                  topologySpreadConstraints:
+                    items:
+                      required:
+                      - maxSkew
+                      - topologyKey
+                      - whenUnsatisfiable
+                      type: object
+                      x-kubernetes-preserve-unknown-fields: true
+                    type: array
                   type:
                     enum:
                     - replica
@@ -494,84 +523,26 @@ spec:
                         additionalProperties:
                           type: string
                         type: object
+                      lifecycle:
+                        type: object
+                        x-kubernetes-preserve-unknown-fields: true
                       resources:
                         properties:
                           limits:
                             additionalProperties:
-                              type: string
+                              anyOf:
+                              - type: integer
+                              - type: string
+                              pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                              x-kubernetes-int-or-string: true
                             type: object
                           requests:
                             additionalProperties:
-                              type: string
-                            type: object
-                        type: object
-                      lifecycle:
-                        properties:
-                          postStart:
-                            properties:
-                              exec:
-                                properties:
-                                  command:
-                                    items:
-                                      type: string
-                                    type: array
-                                type: object
-                              httpGet:
-                                properties:
-                                  host:
-                                    type: string
-                                  httpHeaders:
-                                    items:
-                                      properties:
-                                        name:
-                                          type: string
-                                        value:
-                                          type: string
-                                      type: object
-                                    type: array
-                                  path:
-                                    type: string
-                                  port:
-                                    format: int32
-                                    maximum: 65535
-                                    minimum: 1
-                                    type: integer
-                                  scheme:
-                                    type: string
-                                type: object
-                            type: object
-                          preStop:
-                            properties:
-                              exec:
-                                properties:
-                                  command:
-                                    items:
-                                      type: string
-                                    type: array
-                                type: object
-                              httpGet:
-                                properties:
-                                  host:
-                                    type: string
-                                  httpHeaders:
-                                    items:
-                                      properties:
-                                        name:
-                                          type: string
-                                        value:
-                                          type: string
-                                      type: object
-                                    type: array
-                                  path:
-                                    type: string
-                                  port:
-                                    format: int32
-                                    maximum: 65535
-                                    minimum: 1
-                                    type: integer
-                                  scheme:
-                                    type: string
-                                type: object
+                              anyOf:
+                              - type: integer
+                              - type: string
+                              pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                              x-kubernetes-int-or-string: true
                             type: object
                         type: object
                     required:
@@ -584,6 +555,10 @@ spec:
                 - vttablet
                 type: object
               type: array
+              x-kubernetes-list-map-keys:
+              - type
+              - cell
+              x-kubernetes-list-type: map
             topologyReconciliation:
               properties:
                 pruneCells:
@@ -672,7 +647,11 @@ spec:
                               containerName:
                                 type: string
                               divisor:
-                                type: string
+                                anyOf:
+                                - type: integer
+                                - type: string
+                                pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                x-kubernetes-int-or-string: true
                               resource:
                                 type: string
                             required:
@@ -740,11 +719,19 @@ spec:
                   properties:
                     limits:
                       additionalProperties:
-                        type: string
+                        anyOf:
+                        - type: integer
+                        - type: string
+                        pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                        x-kubernetes-int-or-string: true
                       type: object
                     requests:
                       additionalProperties:
-                        type: string
+                        anyOf:
+                        - type: integer
+                        - type: string
+                        pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                        x-kubernetes-int-or-string: true
                       type: object
                   type: object
                 service:

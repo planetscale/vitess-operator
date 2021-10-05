@@ -2,10 +2,10 @@
 
 ## Docs
 
-- [Overview](https://docs.planetscale.com/vitess-operator/overview)
-- [Getting Started on AWS](https://docs.planetscale.com/vitess-operator/aws-quickstart)
-- [Getting Started on GCP](https://docs.planetscale.com/vitess-operator/gcp-quickstart)
-- [VitessCluster CRD API Reference](https://docs.planetscale.com/vitess-operator/api)
+- [Overview](docs/)
+- [Getting Started on AWS](docs/aws-quickstart.md)
+- [Getting Started on GCP](docs/gcp-quickstart.md)
+- [VitessCluster CRD API Reference](docs/api.md)
 
 ## Compatibility
 
@@ -21,7 +21,8 @@ Vitess Operator Version | Recommended Vitess Versions | Recommended Kubernetes V
 `v2.2.*` | `v8.0.*`  | `v1.15.*`, `v1.16.*`, or `v1.17.*`
 `v2.3.*` | `v9.0.*`  | `v1.15.*`, `v1.16.*`, or `v1.17.*`
 `v2.4.*` | `v10.0.*` | `v1.15.*`, `v1.16.*`, or `v1.17.*`
-`latest` | `latest`  | `v1.15.*`, `v1.16.*`, or `v1.17.*`
+`v2.5.*` | `v12.0.*` | `v1.17.*`, `v1.18.*`, or `v1.19.*`
+`latest` | `latest`  | `v1.17.*`, `v1.18.*`, or `v1.19.*`
 
 If for some reason you must attempt to use versions outside the recommend
 window, we still welcome bug reports since a workaround might be possible.

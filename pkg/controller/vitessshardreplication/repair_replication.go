@@ -52,11 +52,11 @@ const (
 repairReplication check if any replica tablets have broken replication,
 and tries to fix them if it's safe to do so automatically.
 
-For example, one scenario this handles is if the replica has the wrong master
-address, which could happen if it missed the message the last time the master
+For example, one scenario this handles is if the replica has the wrong primary
+address, which could happen if it missed the message the last time the primary
 changed. This periodic repair ensures such missed messages are eventually
-corrected. This also handles when a master restarts and comes up read-only,
-which is a safety mechanism to wait for confirmation that it's still the master,
+corrected. This also handles when a primary restarts and comes up read-only,
+which is a safety mechanism to wait for confirmation that it's still the primary,
 which we provide here.
 
 If any repair is attempted, it will be done while holding the shard lock, so it
@@ -72,7 +72,7 @@ func (r *ReconcileVitessShard) repairReplication(ctx context.Context, vts *plane
 		other tablets are also broken. To avoid a thundering herd of tablets
 		trying to acquire the shard lock and perform reparent operations all at
 		once (such as would happen when all tablets are broken at once due to a
-		master going down) requires a "global" component that polls all tablets.
+		primary going down) requires a "global" component that polls all tablets.
 		Vitess does not yet have such a component, so for now we do this in the
 		Kubernetes operator.
 	*/
@@ -90,16 +90,16 @@ func (r *ReconcileVitessShard) repairReplication(ctx context.Context, vts *plane
 		return resultBuilder.Result()
 	}
 
-	// If the current master is in a cell that this VitessCluster doesn't
+	// If the current primary is in a cell that this VitessCluster doesn't
 	// manage, skip replication repair and assume another instance will do it.
 	if vts.Status.HasMaster != corev1.ConditionTrue {
 		return resultBuilder.Result()
 	}
-	masterAlias, err := topoproto.ParseTabletAlias(vts.Status.MasterAlias)
+	primaryAlias, err := topoproto.ParseTabletAlias(vts.Status.MasterAlias)
 	if err != nil {
 		return resultBuilder.Result()
 	}
-	if !vts.Spec.CellInCluster(masterAlias.GetCell()) {
+	if !vts.Spec.CellInCluster(primaryAlias.GetCell()) {
 		return resultBuilder.Result()
 	}
 
@@ -142,34 +142,34 @@ especially in the "happy path" when replication is healthy. If any repair is
 needed, we will re-check everything after acquiring the shard lock.
 */
 func (r *ReconcileVitessShard) canRepairReplication(ctx context.Context, vts *planetscalev2.VitessShard, wr *wrangler.Wrangler) (bool, error) {
-	// Check who the master is according to the shard record.
+	// Check who the primary is according to the shard record.
 	if vts.Status.MasterAlias == "" {
-		// The shard has no master, or we weren't able to read topo.
+		// The shard has no primary, or we weren't able to read topo.
 		// Either way, there's nothing we can do.
-		return false, fmt.Errorf("no master for shard")
+		return false, fmt.Errorf("no primary for shard")
 	}
-	masterAlias, err := topoproto.ParseTabletAlias(vts.Status.MasterAlias)
+	primaryAlias, err := topoproto.ParseTabletAlias(vts.Status.MasterAlias)
 	if err != nil {
 		// This should never happen. There's no point retrying.
-		return false, fmt.Errorf("invalid master alias: %v", err)
+		return false, fmt.Errorf("invalid primary alias: %v", err)
 	}
-	masterTabletInfo, err := wr.TopoServer().GetTablet(ctx, masterAlias)
+	primaryTabletInfo, err := wr.TopoServer().GetTablet(ctx, primaryAlias)
 	if err != nil {
-		return false, fmt.Errorf("failed to get record for master tablet %v: %v", vts.Status.MasterAlias, err)
+		return false, fmt.Errorf("failed to get record for primary tablet %v: %v", vts.Status.MasterAlias, err)
 	}
-	if masterTabletInfo.Type != topodatapb.TabletType_MASTER {
-		// The shard record says this is the master, but the tablet doesn't agree.
+	if primaryTabletInfo.Type != topodatapb.TabletType_PRIMARY {
+		// The shard record says this is the primary, but the tablet doesn't agree.
 		// We don't know how to recover this automatically.
-		return false, fmt.Errorf("shard record has tablet %v as the master, but the tablet is not of type master", vts.Status.MasterAlias)
+		return false, fmt.Errorf("shard record has tablet %v as the primary, but the tablet is not of type primary", vts.Status.MasterAlias)
 	}
 
-	// Check if the master is read-only. This could happen if it restarted and
-	// is waiting for confirmation that it's still the master.
-	masterReadOnly, err := isTabletReadOnly(ctx, wr.TabletManagerClient(), masterTabletInfo.Tablet)
+	// Check if the primary is read-only. This could happen if it restarted and
+	// is waiting for confirmation that it's still the primary.
+	primaryReadOnly, err := isTabletReadOnly(ctx, wr.TabletManagerClient(), primaryTabletInfo.Tablet)
 	if err != nil {
-		return false, fmt.Errorf("failed to execute query against master tablet %v: %v", vts.Status.MasterAlias, err)
+		return false, fmt.Errorf("failed to execute query against primary tablet %v: %v", vts.Status.MasterAlias, err)
 	}
-	if masterReadOnly {
+	if primaryReadOnly {
 		return true, nil
 	}
 
@@ -187,7 +187,7 @@ func (r *ReconcileVitessShard) canRepairReplication(ctx context.Context, vts *pl
 	results := make(chan bool, len(tablets))
 	for tabletAlias, tabletInfo := range tablets {
 		go func(tabletAlias string, tabletInfo *topo.TabletInfo) {
-			results <- canRepairTablet(checkCtx, tabletAlias, tabletInfo, masterTabletInfo, wr)
+			results <- canRepairTablet(checkCtx, tabletAlias, tabletInfo, primaryTabletInfo, wr)
 		}(tabletAlias, tabletInfo)
 	}
 	// No one ever closes the results chan, but we know how many to expect.
@@ -206,8 +206,8 @@ func (r *ReconcileVitessShard) canRepairReplication(ctx context.Context, vts *pl
 	return foundFixableTablet, nil
 }
 
-func canRepairTablet(ctx context.Context, tabletAlias string, tabletInfo, masterTabletInfo *topo.TabletInfo, wr *wrangler.Wrangler) bool {
-	if !shouldCheckTablet(tabletInfo, masterTabletInfo) {
+func canRepairTablet(ctx context.Context, tabletAlias string, tabletInfo, primaryTabletInfo *topo.TabletInfo, wr *wrangler.Wrangler) bool {
+	if !shouldCheckTablet(tabletInfo, primaryTabletInfo) {
 		return false
 	}
 	// Get the replication status of the tablet.
@@ -216,8 +216,8 @@ func canRepairTablet(ctx context.Context, tabletAlias string, tabletInfo, master
 		// We don't know how to fix this.
 		return false
 	}
-	// Check if the master address needs to be fixed.
-	if netutil.JoinHostPort(status.MasterHost, status.MasterPort) != topoproto.MysqlAddr(masterTabletInfo.Tablet) {
+	// Check if the primary address needs to be fixed.
+	if netutil.JoinHostPort(status.SourceHost, status.SourcePort) != topoproto.MysqlAddr(primaryTabletInfo.Tablet) {
 		return true
 	}
 	// We didn't find any problems we know how to fix.
@@ -234,31 +234,31 @@ func (r *ReconcileVitessShard) repairReplicationLocked(ctx context.Context, vts 
 	if err != nil {
 		return err
 	}
-	if topoproto.TabletAliasIsZero(shardInfo.MasterAlias) {
-		return fmt.Errorf("shard has no master")
+	if topoproto.TabletAliasIsZero(shardInfo.PrimaryAlias) {
+		return fmt.Errorf("shard has no primary")
 	}
-	masterAlias := topoproto.TabletAliasString(shardInfo.MasterAlias)
+	primaryAlias := topoproto.TabletAliasString(shardInfo.PrimaryAlias)
 
-	// Get the master tablet record.
-	masterTabletInfo, err := wr.TopoServer().GetTablet(ctx, shardInfo.MasterAlias)
+	// Get the primary tablet record.
+	primaryTabletInfo, err := wr.TopoServer().GetTablet(ctx, shardInfo.PrimaryAlias)
 	if err != nil {
-		return fmt.Errorf("failed to get tablet record for master %v", masterAlias)
+		return fmt.Errorf("failed to get tablet record for primary %v", primaryAlias)
 	}
-	if masterTabletInfo.Type != topodatapb.TabletType_MASTER {
-		// The shard record says this is the master, but the tablet doesn't agree.
+	if primaryTabletInfo.Type != topodatapb.TabletType_PRIMARY {
+		// The shard record says this is the primary, but the tablet doesn't agree.
 		// We don't know how to recover this automatically.
-		return fmt.Errorf("shard record has tablet %v as the master, but the tablet is not of type master", masterAlias)
+		return fmt.Errorf("shard record has tablet %v as the primary, but the tablet is not of type primary", primaryAlias)
 	}
 
-	// Check if the master's mysqld is read-only. This could happen if it
-	// restarted and is waiting for confirmation that it's still the master.
-	masterReadOnly, err := isTabletReadOnly(ctx, wr.TabletManagerClient(), masterTabletInfo.Tablet)
+	// Check if the primary's mysqld is read-only. This could happen if it
+	// restarted and is waiting for confirmation that it's still the primary.
+	primaryReadOnly, err := isTabletReadOnly(ctx, wr.TabletManagerClient(), primaryTabletInfo.Tablet)
 	if err != nil {
-		return fmt.Errorf("failed to execute query against master tablet %v: %v", masterAlias, err)
+		return fmt.Errorf("failed to execute query against primary tablet %v: %v", primaryAlias, err)
 	}
-	if masterReadOnly {
-		if err := r.recoverRestartedMasterLocked(ctx, vts, wr, masterTabletInfo.Tablet, masterAlias); err != nil {
-			return fmt.Errorf("failed to recover restarted master: %v", err)
+	if primaryReadOnly {
+		if err := r.recoverRestartedPrimaryLocked(ctx, vts, wr, primaryTabletInfo.Tablet, primaryAlias); err != nil {
+			return fmt.Errorf("failed to recover restarted primary: %v", err)
 		}
 	}
 
@@ -271,10 +271,10 @@ func (r *ReconcileVitessShard) repairReplicationLocked(ctx context.Context, vts 
 		return fmt.Errorf("failed to get tablet map for shard: %v", err)
 	}
 
-	// Try to fix any replica/rdonly tablets that have the wrong master address.
+	// Try to fix any replica/rdonly tablets that have the wrong primary address.
 	wg := &sync.WaitGroup{}
 	for tabletAlias, tablet := range tablets {
-		if !shouldCheckTablet(tablet, masterTabletInfo) {
+		if !shouldCheckTablet(tablet, primaryTabletInfo) {
 			continue
 		}
 
@@ -289,22 +289,22 @@ func (r *ReconcileVitessShard) repairReplicationLocked(ctx context.Context, vts 
 			if err != nil {
 				return
 			}
-			if netutil.JoinHostPort(status.MasterHost, status.MasterPort) == topoproto.MysqlAddr(masterTabletInfo.Tablet) {
-				// The master address is already correct.
+			if netutil.JoinHostPort(status.SourceHost, status.SourcePort) == topoproto.MysqlAddr(primaryTabletInfo.Tablet) {
+				// The primary address is already correct.
 				return
 			}
-			// Try to fix the master address.
+			// Try to fix the primary address.
 			// Only force start replication on replicas, not rdonly.
 			// A rdonly might be stopped on purpose for a diff.
 			forceStartReplication := tablet.Type == topodatapb.TabletType_REPLICA
-			err = wr.TabletManagerClient().SetMaster(ctx, tablet, masterTabletInfo.Alias, 0 /* don't try to wait for a reparent journal entry */, "" /* don't wait for any position */, forceStartReplication)
+			err = wr.TabletManagerClient().SetMaster(ctx, tablet, primaryTabletInfo.Alias, 0 /* don't try to wait for a reparent journal entry */, "" /* don't wait for any position */, forceStartReplication)
 			reparentTabletCount.WithLabelValues(metricLabels(vts, err)...).Inc()
 			if err != nil {
 				// Just log the error instead of failing the process, because fixing replicas is best-effort.
-				log.Warningf("failed to reparent tablet %v to master %v: %v", tabletAlias, masterAlias, err)
+				log.Warningf("failed to reparent tablet %v to primary %v: %v", tabletAlias, primaryAlias, err)
 			}
-			// Note this is still a Warning. A tablet with the wrong master address is not Normal.
-			r.recorder.Eventf(vts, corev1.EventTypeWarning, "ReparentTablet", "reparented tablet %v to current master %v", tabletAlias, masterAlias)
+			// Note this is still a Warning. A tablet with the wrong primary address is not Normal.
+			r.recorder.Eventf(vts, corev1.EventTypeWarning, "ReparentTablet", "reparented tablet %v to current primary %v", tabletAlias, primaryAlias)
 		}(tabletAlias, tablet.Tablet)
 	}
 	wg.Wait()
@@ -312,40 +312,40 @@ func (r *ReconcileVitessShard) repairReplicationLocked(ctx context.Context, vts 
 	return nil
 }
 
-func (r *ReconcileVitessShard) recoverRestartedMasterLocked(ctx context.Context, vts *planetscalev2.VitessShard, wr *wrangler.Wrangler, masterTablet *topodatapb.Tablet, masterAlias string) error {
+func (r *ReconcileVitessShard) recoverRestartedPrimaryLocked(ctx context.Context, vts *planetscalev2.VitessShard, wr *wrangler.Wrangler, primaryTablet *topodatapb.Tablet, primaryAlias string) error {
 	keyspaceName := vts.Labels[planetscalev2.KeyspaceLabel]
 	shardName := vts.Spec.Name
 
-	// Get all tablets. When recovering a restarted master, we currently require
+	// Get all tablets. When recovering a restarted primary, we currently require
 	// that all tablets are visible, so we don't allow partial results.
 	tablets, err := wr.TopoServer().GetTabletMapForShard(ctx, keyspaceName, shardName)
 	if err != nil {
 		return fmt.Errorf("failed to get tablet map for shard: %v", err)
 	}
 
-	// Check that this is the only potential master.
-	// We already checked that the global shard record and the master
-	// tablet record agree that this tablet is the master, and we currently
-	// hold the shard lock so no one else is allowed to change the master.
-	// Make sure none of the other tablets we can see claim to be master.
+	// Check that this is the only potential primary.
+	// We already checked that the global shard record and the primary
+	// tablet record agree that this tablet is the primary, and we currently
+	// hold the shard lock so no one else is allowed to change the primary.
+	// Make sure none of the other tablets we can see claim to be primary.
 	for tabletAlias, tabletInfo := range tablets {
-		if tabletInfo.Type == topodatapb.TabletType_MASTER && tabletAlias != masterAlias {
-			// Another tablet also claims to be master. We don't know how to
+		if tabletInfo.Type == topodatapb.TabletType_PRIMARY && tabletAlias != primaryAlias {
+			// Another tablet also claims to be primary. We don't know how to
 			// repair this automatically.
-			return fmt.Errorf("tablet %v also claims to be master", tabletAlias)
+			return fmt.Errorf("tablet %v also claims to be primary", tabletAlias)
 		}
 	}
 
-	// Check that no other replicas are ahead of this master.
-	posStr, err := wr.TabletManagerClient().MasterPosition(ctx, masterTablet)
+	// Check that no other replicas are ahead of this primary.
+	posStr, err := wr.TabletManagerClient().PrimaryPosition(ctx, primaryTablet)
 	if err != nil {
-		return fmt.Errorf("can't get master position: %v", err)
+		return fmt.Errorf("can't get primary position: %v", err)
 	}
-	masterPos, err := mysql.DecodePosition(posStr)
+	primaryPos, err := mysql.DecodePosition(posStr)
 	if err != nil {
 		return err
 	}
-	if err := checkReplicaPositions(ctx, wr.TabletManagerClient(), tablets, masterPos); err != nil {
+	if err := checkReplicaPositions(ctx, wr.TabletManagerClient(), tablets, primaryPos); err != nil {
 		return err
 	}
 
@@ -353,14 +353,14 @@ func (r *ReconcileVitessShard) recoverRestartedMasterLocked(ctx context.Context,
 	if err := topo.CheckShardLocked(ctx, keyspaceName, shardName); err != nil {
 		return fmt.Errorf("lost topology lock, aborting: %v", err)
 	}
-	// Set the master read-write.
-	err = wr.TabletManagerClient().SetReadWrite(ctx, masterTablet)
+	// Set the primary read-write.
+	err = wr.TabletManagerClient().SetReadWrite(ctx, primaryTablet)
 	recoverRestartedMasterCount.WithLabelValues(metricLabels(vts, err)...).Inc()
 	if err != nil {
-		return fmt.Errorf("failed to set master read-write: %v", err)
+		return fmt.Errorf("failed to set primary read-write: %v", err)
 	}
-	// Note this is still a Warning. A tablet that restarted while it was still master is not Normal.
-	r.recorder.Eventf(vts, corev1.EventTypeWarning, "RecoverMaster", "recovered restarted master tablet %v", masterAlias)
+	// Note this is still a Warning. A tablet that restarted while it was still primary is not Normal.
+	r.recorder.Eventf(vts, corev1.EventTypeWarning, "RecoverPrimary", "recovered restarted primary tablet %v", primaryAlias)
 	return nil
 }
 
@@ -391,23 +391,23 @@ func tabletTypeRepairable(tabletType topodatapb.TabletType) bool {
 	return false
 }
 
-func shouldCheckTablet(tabletInfo, masterTabletInfo *topo.TabletInfo) bool {
+func shouldCheckTablet(tabletInfo, primaryTabletInfo *topo.TabletInfo) bool {
 	// We only try to repair certain types of tablets.
 	if !tabletTypeRepairable(tabletInfo.GetType()) {
 		return false
 	}
-	// We can't repair a replica tablet if it's still listed as the shard master.
+	// We can't repair a replica tablet if it's still listed as the shard primary.
 	// We would end up trying to reparent the tablet to itself.
-	// If the shard master is updated later, we'll try again then.
-	if topoproto.TabletAliasEqual(tabletInfo.GetAlias(), masterTabletInfo.GetAlias()) {
+	// If the shard primary is updated later, we'll try again then.
+	if topoproto.TabletAliasEqual(tabletInfo.GetAlias(), primaryTabletInfo.GetAlias()) {
 		return false
 	}
 	return true
 }
 
 // checkReplicaPositions returns success only if all replicas are equal to or
-// behind the given master position.
-func checkReplicaPositions(ctx context.Context, tmc tmclient.TabletManagerClient, tablets map[string]*topo.TabletInfo, masterPos mysql.Position) error {
+// behind the given primary position.
+func checkReplicaPositions(ctx context.Context, tmc tmclient.TabletManagerClient, tablets map[string]*topo.TabletInfo, primaryPos mysql.Position) error {
 	checkCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
@@ -425,9 +425,9 @@ func checkReplicaPositions(ctx context.Context, tmc tmclient.TabletManagerClient
 				resultChan <- err
 			}()
 
-			// We use the poorly-named MasterPosition RPC to get the current
+			// We use the poorly-named PrimaryPosition RPC to get the current
 			// position independent of whether replication is configured.
-			replicaPosStr, err := tmc.MasterPosition(checkCtx, tablet)
+			replicaPosStr, err := tmc.PrimaryPosition(checkCtx, tablet)
 			if err != nil {
 				return fmt.Errorf("can't check replica position: %v", err)
 			}
@@ -435,9 +435,9 @@ func checkReplicaPositions(ctx context.Context, tmc tmclient.TabletManagerClient
 			if err != nil {
 				return fmt.Errorf("can't decode replica position: %v", err)
 			}
-			// Check that the master is equal to or ahead of this replica.
-			if !masterPos.AtLeast(replicaPos) {
-				return fmt.Errorf("replica %v position (%v) is ahead of master position (%v)", tabletAlias, replicaPos, masterPos)
+			// Check that the primary is equal to or ahead of this replica.
+			if !primaryPos.AtLeast(replicaPos) {
+				return fmt.Errorf("replica %v position (%v) is ahead of primary position (%v)", tabletAlias, replicaPos, primaryPos)
 			}
 
 			return nil

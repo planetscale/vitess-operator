@@ -29,7 +29,7 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	apilabels "k8s.io/apimachinery/pkg/labels"
-	podutil "k8s.io/kubernetes/pkg/api/v1/pod"
+	"k8s.io/kubectl/pkg/util/podutils"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
@@ -49,8 +49,8 @@ const (
 	reconcileDrainReadTimeout = 10 * time.Second
 	// plannedReparentTimeout is the timeout for executing PlannedReparentShard.
 	plannedReparentTimeout = 30 * time.Second
-	// candidateMasterTimeout is the timeout for contacting candidate masters to decide which one to choose.
-	candidateMasterTimeout = 2 * time.Second
+	// candidatePrimaryTimeout is the timeout for contacting candidate primarys to decide which one to choose.
+	candidatePrimaryTimeout = 2 * time.Second
 )
 
 /*
@@ -62,8 +62,8 @@ This operates in four phases:
 
 1. Check shard health.  Do not take any action if shard is unhealthy.
 2. Load current drain state.  Clear annotations from aborted drains.
-3. Handle updating annotations.  Do not mark current master as finished.
-4. Reparent draining masters only if marked/will be marked as "Finished".
+3. Handle updating annotations.  Do not mark current primary as finished.
+4. Reparent draining primarys only if marked/will be marked as "Finished".
 
 ## CAVEATS AND EDGE CASES ##
 
@@ -78,7 +78,7 @@ This has implications to these situations:
 
 - If the shard becomes unhealthy, anything marked as "finished" will stay
   "finished".
-- If the master is reparented to a "finished" tablet, that tablet will stay
+- If the primary is reparented to a "finished" tablet, that tablet will stay
   "finished".
 
 These are necessary because if we ever remove the "finished" annotation we could
@@ -125,7 +125,7 @@ func (r *ReconcileVitessShard) reconcileDrain(ctx context.Context, vts *planetsc
 		return resultBuilder.Error(err)
 	}
 
-	// Get the shard record to check who the master is.
+	// Get the shard record to check who the primary is.
 	shard, err := wr.TopoServer().GetShard(readCtx, keyspaceName, vts.Spec.Name)
 	if err != nil {
 		r.recorder.Eventf(vts, corev1.EventTypeWarning, "TopoGetFailed", "failed to get shard record: %v", err)
@@ -161,10 +161,10 @@ func (r *ReconcileVitessShard) reconcileDrain(ctx context.Context, vts *planetsc
 		return resultBuilder.Result()
 	}
 
-	// If this shard does not have a master, bail out and do nothing.
-	if !shard.HasMaster() {
+	// If this shard does not have a primary, bail out and do nothing.
+	if !shard.HasPrimary() {
 		r.recorder.Eventf(vts, corev1.EventTypeWarning,
-			"NotReconcilingDrain", "Shard does not have a master")
+			"NotReconcilingDrain", "Shard does not have a primary")
 		return resultBuilder.Result()
 	}
 
@@ -228,17 +228,17 @@ func (r *ReconcileVitessShard) reconcileDrain(ctx context.Context, vts *planetsc
 	}
 
 	//
-	// 3. Handle updating annotations.  Do not mark current master as finished.
+	// 3. Handle updating annotations.  Do not mark current primary as finished.
 	//
 
-	// Find our master so we don't accidentally mark the master as finished.
-	masterAliasStr := topoproto.TabletAliasString(shard.MasterAlias)
+	// Find our primary so we don't accidentally mark the primary as finished.
+	primaryAliasStr := topoproto.TabletAliasString(shard.PrimaryAlias)
 
 	// Update all the new tablet states based on the state machine output.
 	transitions := drain.StateTransitions(drains)
 	for tabletAliasStr, state := range transitions {
-		// Do not mark the master as finished.
-		if state == drain.FinishedState && tabletAliasStr == masterAliasStr {
+		// Do not mark the primary as finished.
+		if state == drain.FinishedState && tabletAliasStr == primaryAliasStr {
 			continue
 		}
 
@@ -256,38 +256,38 @@ func (r *ReconcileVitessShard) reconcileDrain(ctx context.Context, vts *planetsc
 	}
 
 	//
-	// 4. Reparent draining masters only if marked/will be marked as "Finished".
+	// 4. Reparent draining primarys only if marked/will be marked as "Finished".
 	//
 
-	// If we have acknowledged a drain and haven't already marked the master as
+	// If we have acknowledged a drain and haven't already marked the primary as
 	// finished, don't do a reparent.
 	//
-	// This is because even if we are trying to mark the master as "Finished" on
+	// This is because even if we are trying to mark the primary as "Finished" on
 	// this loop, that may change in the next loop because of the tablet we have
 	// just marked as acknowledged.  Wait for things to settle before
 	// continuing.
 	//
-	// However, if the master is already marked as finished, we either messed up
+	// However, if the primary is already marked as finished, we either messed up
 	// or it was reparented by something else, so we should actually do a
 	// reparent away from it if we can.
-	if acknowledgedDrain && drains[masterAliasStr] != drain.FinishedState {
+	if acknowledgedDrain && drains[primaryAliasStr] != drain.FinishedState {
 		r.recorder.Eventf(vts, corev1.EventTypeNormal,
-			"NotReparentingMaster", "We have acknowledged a drain this loop")
+			"NotReparentingPrimary", "We have acknowledged a drain this loop")
 		return resultBuilder.Result()
 	}
 
-	// If we haven't already marked the master as finished and aren't trying to,
+	// If we haven't already marked the primary as finished and aren't trying to,
 	// there is no need to do a reparent.
-	if drains[masterAliasStr] != drain.FinishedState && transitions[masterAliasStr] != drain.FinishedState {
+	if drains[primaryAliasStr] != drain.FinishedState && transitions[primaryAliasStr] != drain.FinishedState {
 		r.recorder.Eventf(vts, corev1.EventTypeNormal,
-			"NotReparentingMaster", "We are not marking master as finished")
+			"NotReparentingPrimary", "We are not marking primary as finished")
 		return resultBuilder.Result()
 	}
 
-	// See if there's a candidate master for a planned reparent.
-	newMaster := candidateMaster(ctx, wr, shard, tablets, pods, vts.Spec.UsingExternalDatastore())
-	if newMaster == nil {
-		r.recorder.Eventf(vts, corev1.EventTypeWarning, "DrainBlocked", "unable to drain master tablet %v: no other tablet is a suitable master candidate", masterAliasStr)
+	// See if there's a candidate primary for a planned reparent.
+	newPrimary := candidatePrimary(ctx, wr, shard, tablets, pods, vts.Spec.UsingExternalDatastore())
+	if newPrimary == nil {
+		r.recorder.Eventf(vts, corev1.EventTypeWarning, "DrainBlocked", "unable to drain primary tablet %v: no other tablet is a suitable primary candidate", primaryAliasStr)
 		return resultBuilder.RequeueAfter(replicationRequeueDelay)
 	}
 
@@ -297,15 +297,15 @@ func (r *ReconcileVitessShard) reconcileDrain(ctx context.Context, vts *planetsc
 
 	var reparentErr error
 	if vts.Spec.UsingExternalDatastore() {
-		reparentErr = r.handleExternalReparent(ctx, vts, wr, newMaster.Alias, shard.MasterAlias)
+		reparentErr = r.handleExternalReparent(ctx, vts, wr, newPrimary.Alias, shard.PrimaryAlias)
 	} else {
-		reparentErr = wr.PlannedReparentShard(reparentCtx, keyspaceName, vts.Spec.Name, newMaster.Alias, nil, plannedReparentTimeout)
+		reparentErr = wr.PlannedReparentShard(reparentCtx, keyspaceName, vts.Spec.Name, newPrimary.Alias, nil, plannedReparentTimeout)
 	}
 
 	if reparentErr != nil {
-		r.recorder.Eventf(vts, corev1.EventTypeWarning, "PlannedReparentFailed", "planned reparent from current master %v to candidate master %v failed: %v", masterAliasStr, newMaster.AliasString(), reparentErr)
+		r.recorder.Eventf(vts, corev1.EventTypeWarning, "PlannedReparentFailed", "planned reparent from current primary %v to candidate primary %v failed: %v", primaryAliasStr, newPrimary.AliasString(), reparentErr)
 	} else {
-		r.recorder.Eventf(vts, corev1.EventTypeNormal, "PlannedReparent", "planned reparent from old master %v to new master %v succeeded", masterAliasStr, newMaster.AliasString())
+		r.recorder.Eventf(vts, corev1.EventTypeNormal, "PlannedReparent", "planned reparent from old primary %v to new primary %v succeeded", primaryAliasStr, newPrimary.AliasString())
 	}
 
 	plannedReparentCount.WithLabelValues(metricLabels(vts, reparentErr)...).Inc()
@@ -313,13 +313,13 @@ func (r *ReconcileVitessShard) reconcileDrain(ctx context.Context, vts *planetsc
 	return resultBuilder.Result()
 }
 
-func (r *ReconcileVitessShard) handleExternalReparent(ctx context.Context, vts *planetscalev2.VitessShard, wr *wrangler.Wrangler, newMasterAlias, oldMasterAlias *topodatapb.TabletAlias) error {
-	err := wr.TabletExternallyReparented(ctx, newMasterAlias)
+func (r *ReconcileVitessShard) handleExternalReparent(ctx context.Context, vts *planetscalev2.VitessShard, wr *wrangler.Wrangler, newPrimaryAlias, oldPrimaryAlias *topodatapb.TabletAlias) error {
+	err := wr.TabletExternallyReparented(ctx, newPrimaryAlias)
 
 	if err == nil {
-		// TODO: Remove this after all externalmaster tablets have been updated
-		// to set the -demote_master_type=SPARE flag.
-		err = wr.ChangeTabletType(ctx, oldMasterAlias, topodatapb.TabletType_SPARE)
+		// TODO: Remove this after all externalprimary tablets have been updated
+		// to set the -demote_primary_type=SPARE flag.
+		err = wr.ChangeTabletType(ctx, oldPrimaryAlias, topodatapb.TabletType_SPARE)
 	}
 
 	return err
@@ -368,13 +368,13 @@ func isShardHealthy(vts *planetscalev2.VitessShard) error {
 	return nil
 }
 
-// candidateMaster chooses a candidate tablet to be the new master in a planned
-// reparent (when the current master is still healthy).
-func candidateMaster(ctx context.Context, wr *wrangler.Wrangler, shard *topo.ShardInfo, tablets map[string]*topo.TabletInfo, pods map[string]*corev1.Pod, usingExternal bool) *topo.TabletInfo {
+// candidatePrimary chooses a candidate tablet to be the new primary in a planned
+// reparent (when the current primary is still healthy).
+func candidatePrimary(ctx context.Context, wr *wrangler.Wrangler, shard *topo.ShardInfo, tablets map[string]*topo.TabletInfo, pods map[string]*corev1.Pod, usingExternal bool) *topo.TabletInfo {
 	candidates := []*topo.TabletInfo{}
 	for tabletAliasStr, tablet := range tablets {
-		// It must not be the current master.
-		if topoproto.TabletAliasEqual(tablet.Alias, shard.MasterAlias) {
+		// It must not be the current primary.
+		if topoproto.TabletAliasEqual(tablet.Alias, shard.PrimaryAlias) {
 			continue
 		}
 
@@ -384,13 +384,13 @@ func candidateMaster(ctx context.Context, wr *wrangler.Wrangler, shard *topo.Sha
 			continue
 		}
 
-		// It must be a "replica" type for local MySQL, or any type for external master pools.
+		// It must be a "replica" type for local MySQL, or any type for external primary pools.
 		if usingExternal {
 			if pod.Labels[planetscalev2.TabletTypeLabel] != planetscalev2.ExternalMasterTabletPoolName {
 				continue
 			}
-			// Because we aren't handling MySQL replication, if a tablet thinks it's master then it should be safe.
-			if tablet.Type != topodatapb.TabletType_SPARE && tablet.Type != topodatapb.TabletType_MASTER {
+			// Because we aren't handling MySQL replication, if a tablet thinks it's primary then it should be safe.
+			if tablet.Type != topodatapb.TabletType_SPARE && tablet.Type != topodatapb.TabletType_PRIMARY {
 				continue
 			}
 		} else {
@@ -399,8 +399,7 @@ func candidateMaster(ctx context.Context, wr *wrangler.Wrangler, shard *topo.Sha
 			}
 		}
 
-		_, ready := podutil.GetPodCondition(&pod.Status, corev1.PodReady)
-		if ready == nil || ready.Status != corev1.ConditionTrue {
+		if !podutils.IsPodReady(pod) {
 			continue
 		}
 		// The Pod must not have a drain request, or have already entered the
@@ -408,7 +407,7 @@ func candidateMaster(ctx context.Context, wr *wrangler.Wrangler, shard *topo.Sha
 		if drain.Started(pod) || drain.Acknowledged(pod) || drain.Finished(pod) {
 			continue
 		}
-		// TODO(enisoc): Add other criteria, such as perferred master cells.
+		// TODO(enisoc): Add other criteria, such as perferred primary cells.
 		// For now, this is good enough to be a candidate.
 		candidates = append(candidates, tablet)
 	}
@@ -420,7 +419,7 @@ func candidateMaster(ctx context.Context, wr *wrangler.Wrangler, shard *topo.Sha
 	// position is farthest ahead, to minimize the time to catch up. We do this
 	// on a best-effort basis with a short timeout. Any candidate that doesn't
 	// respond in time is disqualified, unless no one responds in time.
-	ctx, cancel := context.WithTimeout(ctx, candidateMasterTimeout)
+	ctx, cancel := context.WithTimeout(ctx, candidatePrimaryTimeout)
 	defer cancel()
 
 	// Send results to results channel.
