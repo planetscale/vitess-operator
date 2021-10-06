@@ -7,6 +7,16 @@ This doc describes the process to cut a new release of Vitess Operator.
 Before creating a release tag, send a PR to ensure the following are updated on
 HEAD of the main branch, if necessary.
 
+### Update GO Version
+
+If Vitess's Go version has been updated since the last release update following files with the corresponding new version used at Vitess. 
+```console
+build/Dockerfile.release
+.github/workflows/integration-test.yaml
+.github/workflows/make-generate-and-diff.yaml
+.github/workflows/unit-test.yaml
+go.mod
+```
 ### Update Vitess Dependency
 
 Each Vitess Operator minor version (`vX.Y.*`) is intended to correspond to a
@@ -92,3 +102,6 @@ gets baked into the binary:
 https://github.com/planetscale/vitess-operator/blob/111ac173e1c473853e66e270486ba8a9a47ecc54/version/version.go#L20
 
 This version should be one minor version above the release you just cut.
+```console
+2.5.0 --> 2.6.0
+```
