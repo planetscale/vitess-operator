@@ -122,6 +122,32 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	// Update desired annotations.
 	update.Annotations(&obj.Annotations, spec.Annotations)
 
+	// Use static bootstrapping.
+	initialClusterToken := spec.LockserverName
+	subdomain := PeerServiceName(spec.LockserverName)
+	advertisePeerURLs := spec.AdvertisePeerURLs
+
+	// If peer URLs were not explicitly specified, generate them.
+	if len(advertisePeerURLs) != NumReplicas {
+		advertisePeerURLs = make([]string, 0, NumReplicas)
+		for i := 0; i < NumReplicas; i++ {
+			peerIndex := i + 1
+			peerName := PodName(spec.LockserverName, peerIndex)
+			advertisePeerURLs = append(advertisePeerURLs, fmt.Sprintf("http://%s.%s:%d", peerName, subdomain, PeerPortNumber))
+		}
+	}
+
+	// Set the address that this peer will advertise for itself.
+	initialAdvertisePeerURLs := advertisePeerURLs[spec.Index-1]
+
+	// Create list of peer addresses.
+	initialCluster := make([]string, 0, NumReplicas)
+	for i := 0; i < NumReplicas; i++ {
+		peerIndex := i + 1
+		peerName := PodName(spec.LockserverName, peerIndex)
+		initialCluster = append(initialCluster, fmt.Sprintf("%s=%s", peerName, advertisePeerURLs[i]))
+	}
+
 	// Compute default environment variables first.
 	env := []corev1.EnvVar{
 		// Reference Values: https://github.com/etcd-io/etcd/blob/master/Documentation/op-guide/maintenance.md#auto-compaction
@@ -144,6 +170,18 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 		{
 			Name:  "ETCDCTL_API",
 			Value: "3",
+		},
+		{
+			Name:  "ETCD_INITIAL_CLUSTER",
+			Value: strings.Join(initialCluster, ","),
+		},
+		{
+			Name:  "ETCD_INITIAL_ADVERTISE_PEER_URLS",
+			Value: initialAdvertisePeerURLs,
+		},
+		{
+			Name:  "ETCD_INITIAL_CLUSTER_TOKEN",
+			Value: initialClusterToken,
 		},
 	}
 	// Apply user-provided environment variable overrides.
@@ -355,31 +393,6 @@ func (spec *Spec) Args() []string {
 	listenClientURLs := fmt.Sprintf("http://0.0.0.0:%d", ClientPortNumber)
 	advertiseClientURLs := fmt.Sprintf("http://%s.%s:%d", hostname, subdomain, ClientPortNumber)
 
-	// Use static bootstrapping.
-	initialClusterToken := spec.LockserverName
-	advertisePeerURLs := spec.AdvertisePeerURLs
-
-	// If peer URLs were not explicitly specified, generate them.
-	if len(advertisePeerURLs) != NumReplicas {
-		advertisePeerURLs = make([]string, 0, NumReplicas)
-		for i := 0; i < NumReplicas; i++ {
-			peerIndex := i + 1
-			peerName := PodName(spec.LockserverName, peerIndex)
-			advertisePeerURLs = append(advertisePeerURLs, fmt.Sprintf("http://%s.%s:%d", peerName, subdomain, PeerPortNumber))
-		}
-	}
-
-	// Set the address that this peer will advertise for itself.
-	initialAdvertisePeerURLs := advertisePeerURLs[spec.Index-1]
-
-	// Create list of peer addresses.
-	initialCluster := make([]string, 0, NumReplicas)
-	for i := 0; i < NumReplicas; i++ {
-		peerIndex := i + 1
-		peerName := PodName(spec.LockserverName, peerIndex)
-		initialCluster = append(initialCluster, fmt.Sprintf("%s=%s", peerName, advertisePeerURLs[i]))
-	}
-
 	flags := vitess.Flags{
 		"data-dir":              dataVolumeMountPath,
 		"name":                  hostname,
@@ -388,10 +401,7 @@ func (spec *Spec) Args() []string {
 		"advertise-client-urls": advertiseClientURLs,
 
 		// All "initial-*" flags are ignored after bootstrapping.
-		"initial-cluster-state":       "new",
-		"initial-cluster-token":       initialClusterToken,
-		"initial-advertise-peer-urls": initialAdvertisePeerURLs,
-		"initial-cluster":             strings.Join(initialCluster, ","),
+		"initial-cluster-state": "new",
 	}
 
 	// Apply user-supplied extra flags last so they take precedence.
