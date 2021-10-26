@@ -2139,3 +2139,5 @@ sourcegraph.com/sqs/pbtypes v0.0.0-20180604144634-d3ebe8f20ae4/go.mod h1:ketZ/q3
 storj.io/drpc v0.0.21/go.mod h1:OSJH7wvH3yKlhnMHwblKJioaaeyI6X8xbXT1SG9woe8=
 vitess.io/vitess v0.10.3-0.20211005103321-bd0a4eda151d h1:YBxO6F9XS0nGVK03WMpYNYnIlielw0yg58S5Rcl3ZAw=
 vitess.io/vitess v0.10.3-0.20211005103321-bd0a4eda151d/go.mod h1:QKt1VKLbuFqSi39giZa3z2i+ZG7/uSasnahoYjSB/go=
+vitess.io/vitess v0.12.0 h1:pzQpNHLqBG/3JZnZ5A0U25017b81CuxeR+s6ry9/wl4=
+vitess.io/vitess v0.12.0/go.mod h1:QKt1VKLbuFqSi39giZa3z2i+ZG7/uSasnahoYjSB/go=
