@@ -61,6 +61,36 @@ From this directory, run:
 make build IMAGE_NAME=your.registry/vitess/operator
 ```
 
+### Vitess Images
+
+Operator uses compatible Vitess version for default configuration.
+For MySQL5.7 use:
+
+```
+spec:
+  images:
+    vtctld: vitess/lite:v12.0.0
+    vtgate: vitess/lite:v12.0.0
+    vttablet: vitess/lite:v12.0.0
+    vtbackup: vitess/lite:v12.0.0
+    mysqld:
+      mysql56Compatible: vitess/lite:v12.0.0
+    mysqldExporter: prom/mysqld-exporter:v0.11.0
+```
+For MySQL8.0 use:
+
+```
+spec:
+  images:
+    vtctld: vitess/lite:v12.0.0-mysql80
+    vtgate: vitess/lite:v12.0.0-mysql80
+    vttablet: vitess/lite:v12.0.0-mysql80
+    vtbackup: vitess/lite:v12.0.0-mysql80
+    mysqld:
+      mysql80Compatible: vitess/lite:v12.0.0-mysql80
+    mysqldExporter: prom/mysqld-exporter:v0.11.0
+```
+
 ## Contributing
 
 If you would like to contribute to this project, please refer to the
