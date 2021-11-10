@@ -297,7 +297,7 @@ func (r *ReconcileVitessShard) repairReplicationLocked(ctx context.Context, vts 
 			// Only force start replication on replicas, not rdonly.
 			// A rdonly might be stopped on purpose for a diff.
 			forceStartReplication := tablet.Type == topodatapb.TabletType_REPLICA
-			err = wr.TabletManagerClient().SetMaster(ctx, tablet, primaryTabletInfo.Alias, 0 /* don't try to wait for a reparent journal entry */, "" /* don't wait for any position */, forceStartReplication)
+			err = wr.TabletManagerClient().SetReplicationSource(ctx, tablet, primaryTabletInfo.Alias, 0 /* don't try to wait for a reparent journal entry */, "" /* don't wait for any position */, forceStartReplication)
 			reparentTabletCount.WithLabelValues(metricLabels(vts, err)...).Inc()
 			if err != nil {
 				// Just log the error instead of failing the process, because fixing replicas is best-effort.

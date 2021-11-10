@@ -257,7 +257,7 @@ func electInitialShardPrimary(ctx context.Context, keyspaceName, shardName strin
 		wg.Add(1)
 		go func(tablet *topo.TabletInfo) {
 			defer wg.Done()
-			err := wr.TabletManagerClient().SetMaster(ctx, tablet.Tablet, candidatePrimary.tablet.Alias, 0 /* don't try to wait for a reparent journal entry */, "" /* don't wait for any position */, true /* forceStartReplication */)
+			err := wr.TabletManagerClient().SetReplicationSource(ctx, tablet.Tablet, candidatePrimary.tablet.Alias, 0 /* don't try to wait for a reparent journal entry */, "" /* don't wait for any position */, true /* forceStartReplication */)
 			if err != nil {
 				log.Warningf("best-effort configuration of replication for tablet %v failed: %v", tablet.AliasString(), err)
 			}
