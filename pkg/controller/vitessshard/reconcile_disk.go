@@ -105,7 +105,9 @@ func (r *ReconcileVitessShard) reconcileDisk(ctx context.Context, vts *planetsca
 
 	// If disk size has changed and the changes are all ready, mark the shard as ready to cascade. Otherwise, skip this.
 	if anythingChanged {
-		rollout.Cascade(vts)
+		if !*onlineFileSystemExpansion {
+			rollout.Cascade(vts)
+		}
 		err := r.client.Update(ctx, vts)
 		if err != nil {
 			return resultBuilder.Error(err)

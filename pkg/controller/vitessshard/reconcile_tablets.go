@@ -182,7 +182,9 @@ func (r *ReconcileVitessShard) reconcileTablets(ctx context.Context, vts *planet
 		UpdateRollingRecreate: func(key client.ObjectKey, obj runtime.Object) {
 			newObj := obj.(*corev1.Pod)
 			tablet := tabletMap[key]
-			r.updatePVCFilesystemResizeAnnotation(ctx, tablet, newObj)
+			if !*onlineFileSystemExpansion {
+				r.updatePVCFilesystemResizeAnnotation(ctx, tablet, newObj)
+			}
 			vttablet.UpdatePod(newObj, tablet)
 		},
 		Status: func(key client.ObjectKey, obj runtime.Object) {

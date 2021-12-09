@@ -50,6 +50,7 @@ const (
 var (
 	maxConcurrentReconciles = flag.Int("vitessshard_concurrent_reconciles", 10, "the maximum number of different vitessshards to reconcile concurrently")
 	resyncPeriod            = flag.Duration("vitessshard_resync_period", 30*time.Second, "reconcile vitessshards with this period even if no Kubernetes events occur")
+	onlineFileSystemExpansion = flag.Bool("enable_online_fs_expansion", true, "if true, pod referencing the resized volume do not need to be restarted, but provided that the volume plug-in supports, such as GCE-PD, AWS-EBS, Cinder, and Ceph RBD")
 )
 
 var log = logrus.WithField("controller", "VitessShard")
