@@ -130,6 +130,7 @@ In particular, the following settings should be disabled:
 - `registerCellsAliases`
 - `pruneCells`
 - `pruneKeyspaces`
+- `pruneSrvKeyspaces` — if you want to query any keyspace from any cell (most importantly this must be disabled in the VitessCell CRD)
 - `pruneShards`
 
 With these features off, you may need to manually clean up Vitess topology when
