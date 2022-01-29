@@ -1,0 +1,58 @@
+---
+- - :permit
+  - bsd-2-clause
+  - :who:
+    :why:
+    :versions: []
+    :when: 2022-01-29 15:02:34.519397000 Z
+- - :permit
+  - bsd-3-clause
+  - :who:
+    :why:
+    :versions: []
+    :when: 2022-01-29 15:02:34.824928000 Z
+- - :permit
+  - apache-2.0
+  - :who:
+    :why:
+    :versions: []
+    :when: 2022-01-29 15:02:35.089549000 Z
+- - :permit
+  - MIT
+  - :who:
+    :why:
+    :versions: []
+    :when: 2022-01-29 15:02:35.347666000 Z
+- - :permit
+  - ISC
+  - :who:
+    :why:
+    :versions: []
+    :when: 2022-01-29 15:02:35.609294000 Z
+- - :permit
+  - mpl-2.0
+  - :who:
+    :why:
+    :versions: []
+    :when: 2022-01-29 15:02:35.877058000 Z
+- - :license
+  - github.com/jmespath/go-jmespath
+  - apache-2.0
+  - :who:
+    :why:
+    :versions: []
+    :when: 2022-01-29 15:08:51.759998000 Z
+- - :license
+  - github.com/opentracing-contrib/go-grpc
+  - apache-2.0
+  - :who:
+    :why:
+    :versions: []
+    :when: 2022-01-29 15:10:00.045661000 Z
+- - :license
+  - github.com/rcrowley/go-metrics
+  - bsd-2-clause
+  - :who:
+    :why:
+    :versions: []
+    :when: 2022-01-29 15:10:21.898605000 Z
