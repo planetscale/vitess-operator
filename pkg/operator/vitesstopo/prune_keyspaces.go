@@ -18,18 +18,17 @@ package vitesstopo
 
 import (
 	"context"
+	"vitess.io/vitess/go/vt/proto/vtctldata"
+	"vitess.io/vitess/go/vt/vtctl/grpcvtctldserver"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/tools/record"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"vitess.io/vitess/go/vt/logutil"
-	"vitess.io/vitess/go/vt/topo"
-	"vitess.io/vitess/go/vt/wrangler"
-
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 	"planetscale.dev/vitess-operator/pkg/operator/results"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"vitess.io/vitess/go/vt/topo"
 )
 
 type PruneKeyspacesParams struct {
@@ -89,9 +88,9 @@ func KeyspacesToPrune(keyspaceNames []string, desiredKeyspaces sets.String, orph
 func DeleteKeyspaces(ctx context.Context, ts *topo.Server, recorder record.EventRecorder, eventObj runtime.Object, keyspaceNames []string) (reconcile.Result, error) {
 	resultBuilder := &results.Builder{}
 
-	// We use the Vitess wrangler (multi-step command executor) to recursively delete the keyspace.
+	// We use the new vtctld server to recursively delete the keyspace.
 	// This is equivalent to `vtctl DeleteKeyspace -recursive`.
-	wr := wrangler.New(logutil.NewConsoleLogger(), ts, nil)
+	srv := grpcvtctldserver.NewVtctldServer(ts)
 
 	for _, name := range keyspaceNames {
 		// Before we delete a keyspace, we must delete vschema for this operation to be idempotent.
@@ -105,7 +104,7 @@ func DeleteKeyspaces(ctx context.Context, ts *topo.Server, recorder record.Event
 		recorder.Eventf(eventObj, corev1.EventTypeNormal, "TopoCleanup", "removed unwanted keyspace %s vschema from topology", name)
 
 		// topo.NoNode is the error type returned if we can't find the keyspace when deleting. This ensures that this operation is idempotent.
-		if err := wr.DeleteKeyspace(ctx, name, true); err != nil && !topo.IsErrType(err, topo.NoNode) {
+		if _, err := srv.DeleteKeyspace(ctx, &vtctldata.DeleteKeyspaceRequest{Keyspace:  name, Recursive: true}); err != nil && !topo.IsErrType(err, topo.NoNode) {
 			recorder.Eventf(eventObj, corev1.EventTypeWarning, "TopoCleanupFailed", "unable to remove keyspace %s from topology: %v", name, err)
 			resultBuilder.RequeueAfter(topoRequeueDelay)
 		} else {

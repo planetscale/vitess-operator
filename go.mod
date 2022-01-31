@@ -5,7 +5,6 @@ go 1.17
 require (
 	github.com/ahmetb/gen-crd-api-reference-docs v0.1.5-0.20190629210212-52e137b8d003
 	github.com/klauspost/compress v1.11.13 // indirect
-	github.com/klauspost/cpuid v1.2.1 // indirect
 	github.com/operator-framework/operator-sdk v0.18.2
 	github.com/prometheus/client_golang v1.11.0
 	github.com/sirupsen/logrus v1.6.0
