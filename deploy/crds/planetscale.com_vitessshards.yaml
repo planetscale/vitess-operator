@@ -132,6 +132,8 @@ spec:
                           type: string
                         endpoint:
                           type: string
+                        forcePathStyle:
+                          type: boolean
                         keyPrefix:
                           maxLength: 256
                           pattern: ^[^\r\n]*$
