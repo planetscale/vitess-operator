@@ -1128,6 +1128,8 @@ github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINE
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pkg/sftp v1.10.1/go.mod h1:lYOWFsE0bwd1+KfKJaKeuokY15vzFx25BLbzYYoAxZI=
+github.com/planetscale/operator-sdk-libs v0.0.0-20211214214625-80ea15787a60 h1:v3EzYVvhh6+CtJmoGhJKBYNzuGyWex1Y74cqA1cMbFs=
+github.com/planetscale/operator-sdk-libs v0.0.0-20211214214625-80ea15787a60/go.mod h1:8bfv5h15q1QE08aUOIUQWHhXHgAcCKNtFcg4SfOJVjg=
 github.com/planetscale/pargzip v0.0.0-20201116224723-90c7fc03ea8a h1:y0OpQ4+5tKxeh9+H+2cVgASl9yMZYV9CILinKOiKafA=
 github.com/planetscale/pargzip v0.0.0-20201116224723-90c7fc03ea8a/go.mod h1:GJFUzQuXIoB2Kjn1ZfDhJr/42D5nWOqRcIQVgCxTuIE=
 github.com/planetscale/tengo v0.10.1-ps.v4 h1:mGJxWVsLGg+dDAboz+xiBs4IjvCtRm+QORsLRJocC7Q=
@@ -2137,7 +2139,5 @@ sigs.k8s.io/yaml v1.2.0 h1:kr/MCeFWJWTwyaHoR9c8EjH9OumOmoF9YGiZd7lFm/Q=
 sigs.k8s.io/yaml v1.2.0/go.mod h1:yfXDCHCao9+ENCvLSE62v9VSji2MKu5jeNfTrofGhJc=
 sourcegraph.com/sqs/pbtypes v0.0.0-20180604144634-d3ebe8f20ae4/go.mod h1:ketZ/q3QxT9HOBeFhu6RdvsftgpsbFHBF5Cas6cDKZ0=
 storj.io/drpc v0.0.21/go.mod h1:OSJH7wvH3yKlhnMHwblKJioaaeyI6X8xbXT1SG9woe8=
-vitess.io/vitess v0.10.3-0.20211005103321-bd0a4eda151d h1:YBxO6F9XS0nGVK03WMpYNYnIlielw0yg58S5Rcl3ZAw=
-vitess.io/vitess v0.10.3-0.20211005103321-bd0a4eda151d/go.mod h1:QKt1VKLbuFqSi39giZa3z2i+ZG7/uSasnahoYjSB/go=
 vitess.io/vitess v0.12.0 h1:pzQpNHLqBG/3JZnZ5A0U25017b81CuxeR+s6ry9/wl4=
 vitess.io/vitess v0.12.0/go.mod h1:QKt1VKLbuFqSi39giZa3z2i+ZG7/uSasnahoYjSB/go=
