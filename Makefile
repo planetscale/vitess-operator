@@ -30,15 +30,10 @@ integration-test:
 	go test -i ./test/integration/...
 	PATH="$(PWD)/tools/_bin:$(PATH)" go test -v -timeout 5m ./test/integration/... -args --logtostderr -v=6
 
-# Hack GOPATH: this works only if $GOPATH/src/planetscale.dev/vitess-operator computes to the current directory.
-# operator-sdk needs GOPATH to be set.
-export GOPATH=$(shell realpath ../../..)
-
 generate:
-	go run github.com/operator-framework/operator-sdk/cmd/operator-sdk generate k8s
-	go run sigs.k8s.io/controller-tools/cmd/controller-gen crd:trivialVersions=true,maxDescLen=0 paths="./pkg/apis/planetscale/v2" output:crd:artifacts:config=./deploy/crds
+	go run sigs.k8s.io/controller-tools/cmd/controller-gen object crd:trivialVersions=true,maxDescLen=0 paths="./pkg/apis/planetscale/v2" output:crd:artifacts:config=./deploy/crds
 	find deploy/crds -name '*.yaml' | xargs go run ./cmd/trim-crd
-	go run github.com/ahmetb/gen-crd-api-reference-docs -api-dir ./pkg/apis -config docs/api/config.json -template-dir docs/api/template -out-file docs/api/index.html
+	go run github.com/ahmetb/gen-crd-api-reference-docs -api-dir planetscale.dev/vitess-operator/pkg/apis/planetscale/v2 -config ./docs/api/config.json -template-dir ./docs/api/template -out-file ./docs/api/index.html
 
 generate-and-diff: generate
 	git add --all
