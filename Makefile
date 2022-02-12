@@ -10,10 +10,8 @@ IMAGE_NAME:=$(IMAGE_REGISTRY)/$(IMAGE)
 # Enable Go modules
 export GO111MODULE=on
 
-# Regular operator-sdk build is good for development because it does the actual
-# build outside Docker, so it uses your cached modules.
 build:
-	go run github.com/operator-framework/operator-sdk/cmd/operator-sdk build $(IMAGE_NAME):$(IMAGE_TAG) --image-build-args '--no-cache'
+	go build -o build/_output/bin/vitess-operator ./cmd/manager
 
 # Release build is slow but self-contained (doesn't depend on anything in your
 # local machine). We use this for automated builds that we publish.
