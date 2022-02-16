@@ -7,7 +7,7 @@ require (
 	github.com/klauspost/compress v1.7.5 // indirect
 	github.com/klauspost/cpuid v1.2.1 // indirect
 	github.com/operator-framework/operator-sdk v0.18.2
-	github.com/planetscale/operator-sdk-libs v0.0.0-20211214214625-80ea15787a60
+	github.com/planetscale/operator-sdk-libs v0.0.0-20220216002626-1af183733234
 	github.com/prometheus/client_golang v1.11.0
 	github.com/sirupsen/logrus v1.6.0
 	github.com/spf13/pflag v1.0.5
