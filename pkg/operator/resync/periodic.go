@@ -33,6 +33,7 @@ import (
 	"math/rand"
 	"time"
 
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/event"
@@ -119,8 +120,14 @@ func (p *Periodic) run() {
 			heap.Pop(&queue)
 			delete(objTimers, objKey)
 
+			// GenericEvent takes a real client.Object, so need to give it one
+			// handler.EnqueueRequestForObject will only grab NamespacedName off of it though
+			obj := &corev1.ConfigMap{
+				ObjectMeta: metav1.ObjectMeta{Namespace: objKey.Namespace, Name: objKey.Name},
+			}
+
 			p.trigger <- event.GenericEvent{
-				Meta: &metav1.ObjectMeta{Namespace: objKey.Namespace, Name: objKey.Name},
+				Object: obj,
 			}
 		}
 

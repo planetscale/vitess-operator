@@ -50,7 +50,7 @@ func (r *Reconciler) ReconcileObjectSet(ctx context.Context, owner runtime.Objec
 	}
 
 	// Get a list of objects of that kind.
-	listObj, err := r.scheme.New(schema.GroupVersionKind{
+	obj, err := r.scheme.New(schema.GroupVersionKind{
 		Group:   gvk.Group,
 		Version: gvk.Version,
 		// This only works if everyone follows the convention of the list kind for "Kind" being named "KindList".
@@ -61,6 +61,8 @@ func (r *Reconciler) ReconcileObjectSet(ctx context.Context, owner runtime.Objec
 		r.recorder.Eventf(owner, corev1.EventTypeWarning, "ListFailed", "failed to list %v objects: %v", gvk.Kind, err)
 		return err
 	}
+	listObj := obj.(client.ObjectList)
+
 	ownerMeta, err := meta.Accessor(owner)
 	if err != nil {
 		return err
