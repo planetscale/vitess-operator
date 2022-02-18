@@ -75,7 +75,7 @@ var (
 var log = logrus.WithField("subcontroller", "VitessBackupStorage")
 
 // watchResources should contain all the resource types that this controller creates.
-var watchResources = []runtime.Object{
+var watchResources = []client.Object{
 	&planetscalev2.VitessBackup{},
 }
 
@@ -173,8 +173,8 @@ type ReconcileVitessBackupStorage struct {
 // Note:
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
-func (r *ReconcileVitessBackupStorage) Reconcile(request reconcile.Request) (reconcile.Result, error) {
-	ctx, cancel := context.WithTimeout(context.TODO(), *reconcileTimeout)
+func (r *ReconcileVitessBackupStorage) Reconcile(cctx context.Context, request reconcile.Request) (reconcile.Result, error) {
+	ctx, cancel := context.WithTimeout(cctx, *reconcileTimeout)
 	defer cancel()
 	resultBuilder := &results.Builder{}
 

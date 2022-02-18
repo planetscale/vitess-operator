@@ -85,7 +85,8 @@ type VitessBackupLocation struct {
 	// Volume specifies a backup location as a Kubernetes Volume Source to mount.
 	// This can be used, for example, to store backups on an NFS mount, or on
 	// a shared host path for local testing.
-	// +kubebuilder:validation:EmbeddedResource
+	// +kubebuilder:validation:Schemaless
+	// +kubebuilder:pruning:PreserveUnknownFields
 	Volume *corev1.VolumeSource `json:"volume,omitempty"`
 	// VolumeSubPath gives the subpath in the volume to mount to the backups target.
 	// Only used for Volume-backed backup storage, ignored otherwise.

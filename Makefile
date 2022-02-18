@@ -30,7 +30,6 @@ integration-test:
 
 generate:
 	go run sigs.k8s.io/controller-tools/cmd/controller-gen object crd:trivialVersions=true,maxDescLen=0 paths="./pkg/apis/planetscale/v2" output:crd:artifacts:config=./deploy/crds
-	find deploy/crds -name '*.yaml' | xargs go run ./cmd/trim-crd
 	go run github.com/ahmetb/gen-crd-api-reference-docs -api-dir planetscale.dev/vitess-operator/pkg/apis/planetscale/v2 -config ./docs/api/config.json -template-dir ./docs/api/template -out-file ./docs/api/index.html
 
 generate-and-diff: generate
