@@ -209,7 +209,7 @@ func testMain(tests func() int) error {
 	if err != nil {
 		return fmt.Errorf("cannot create controller-manager: %v", err)
 	}
-	ctx, cancel := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	go func() {
 		if err := mgr.Start(ctx); err != nil {
