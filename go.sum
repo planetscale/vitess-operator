@@ -754,8 +754,8 @@ github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINE
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pkg/sftp v1.10.1/go.mod h1:lYOWFsE0bwd1+KfKJaKeuokY15vzFx25BLbzYYoAxZI=
-github.com/planetscale/operator-sdk-libs v0.0.0-20211214214625-80ea15787a60 h1:v3EzYVvhh6+CtJmoGhJKBYNzuGyWex1Y74cqA1cMbFs=
-github.com/planetscale/operator-sdk-libs v0.0.0-20211214214625-80ea15787a60/go.mod h1:8bfv5h15q1QE08aUOIUQWHhXHgAcCKNtFcg4SfOJVjg=
+github.com/planetscale/operator-sdk-libs v0.0.0-20220216002626-1af183733234 h1:eZq30n4fQQitUxpq7bQgS/+76UNTiHyZZs+FWrp4l7E=
+github.com/planetscale/operator-sdk-libs v0.0.0-20220216002626-1af183733234/go.mod h1:8bfv5h15q1QE08aUOIUQWHhXHgAcCKNtFcg4SfOJVjg=
 github.com/planetscale/pargzip v0.0.0-20201116224723-90c7fc03ea8a h1:y0OpQ4+5tKxeh9+H+2cVgASl9yMZYV9CILinKOiKafA=
 github.com/planetscale/pargzip v0.0.0-20201116224723-90c7fc03ea8a/go.mod h1:GJFUzQuXIoB2Kjn1ZfDhJr/42D5nWOqRcIQVgCxTuIE=
 github.com/planetscale/tengo v0.10.1-ps.v4 h1:mGJxWVsLGg+dDAboz+xiBs4IjvCtRm+QORsLRJocC7Q=
