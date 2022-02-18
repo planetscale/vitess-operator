@@ -182,7 +182,7 @@ func (f *Fixture) WaitFor(condition string, check func() error) {
 
 // MustGet waits up to a default timeout for the named object to exist and then returns it.
 // If the timeout expires before the object appears, the test is aborted.
-func (f *Fixture) MustGet(namespace, name string, obj runtime.Object) {
+func (f *Fixture) MustGet(namespace, name string, obj client.Object) {
 	key := client.ObjectKey{
 		Namespace: namespace,
 		Name:      name,

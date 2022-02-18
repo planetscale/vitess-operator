@@ -19,6 +19,7 @@ limitations under the License.
 package framework
 
 import (
+	"context"
 	"errors"
 	"flag"
 	"fmt"
@@ -208,10 +209,10 @@ func testMain(tests func() int) error {
 	if err != nil {
 		return fmt.Errorf("cannot create controller-manager: %v", err)
 	}
-	stop := make(chan struct{})
-	defer close(stop)
+	ctx, cancel := context.Background()
+	defer cancel()
 	go func() {
-		if err := mgr.Start(stop); err != nil {
+		if err := mgr.Start(ctx); err != nil {
 			klog.Errorf("cannot start controller-manager: %v", err)
 		}
 	}()
