@@ -25,7 +25,6 @@ import (
 	apilabels "k8s.io/apimachinery/pkg/labels"
 	apitypes "k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
@@ -34,12 +33,10 @@ import (
 	"planetscale.dev/vitess-operator/pkg/operator/vitesscell"
 )
 
-type keyspaceCellsMapper struct{}
-
 // Map maps a VitessKeyspace to a list of requests for VitessCells
 // in which the keyspace is deployed.
-func (*keyspaceCellsMapper) Map(obj handler.MapObject) []reconcile.Request {
-	vtk := obj.Object.(*planetscalev2.VitessKeyspace)
+func keyspaceCellsMapper(obj client.Object) []reconcile.Request {
+	vtk := obj.(*planetscalev2.VitessKeyspace)
 
 	// Request reconciliation for all the VitessCells to which this VitessKeyspace is deployed.
 	var requests []reconcile.Request

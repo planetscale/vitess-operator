@@ -24,7 +24,9 @@
         "k8s.io/api/": "Kubernetes ",
         "k8s.io/apimachinery/pkg/apis/": "Kubernetes ",
         "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.": "",
-        "[]planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.": ""
+        "*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.": "",
+        "[]planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.": "",
+        "[]*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.": ""
     },
     "markdownDisabled": false
 }

@@ -7,8 +7,7 @@ import (
 
 	"k8s.io/klog"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
-
-	"github.com/operator-framework/operator-sdk/pkg/log/zap"
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	"planetscale.dev/vitess-operator/pkg/operator/environment"
 )
@@ -16,7 +15,10 @@ import (
 func InitFlags() {
 	// Add the zap logger flag set to the CLI. The flag set must
 	// be added before calling pflag.Parse().
-	pflag.CommandLine.AddFlagSet(zap.FlagSet())
+	var zapFlagSet flag.FlagSet
+	zapOpts := zap.Options{}
+	zapOpts.BindFlags(&zapFlagSet)
+	pflag.CommandLine.AddGoFlagSet(&zapFlagSet)
 
 	// Add the operator flag set to the CLI.
 	pflag.CommandLine.AddFlagSet(environment.FlagSet())
@@ -51,5 +53,5 @@ func InitFlags() {
 	// implementing the logr.Logger interface. This logger will
 	// be propagated through the whole operator, generating
 	// uniform and structured logs.
-	logf.SetLogger(zap.Logger())
+	logf.SetLogger(zap.New(zap.UseFlagOptions(&zapOpts)))
 }
