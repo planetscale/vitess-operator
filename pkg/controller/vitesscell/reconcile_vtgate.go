@@ -24,7 +24,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	apitypes "k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
@@ -42,8 +41,8 @@ type secretCellsMapper struct {
 
 // Map maps a Secret to a list of requests for VitessCells
 // that reference the secret.
-func (m *secretCellsMapper) Map(obj handler.MapObject) []reconcile.Request {
-	secret := obj.Object.(*corev1.Secret)
+func (m *secretCellsMapper) Map(obj client.Object) []reconcile.Request {
+	secret := obj.(*corev1.Secret)
 	secretName := secret.Name
 
 	cellList := &planetscalev2.VitessCellList{}
