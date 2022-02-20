@@ -27,7 +27,6 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/yaml"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
@@ -182,7 +181,7 @@ func (f *Fixture) WaitFor(condition string, check func() error) {
 
 // MustGet waits up to a default timeout for the named object to exist and then returns it.
 // If the timeout expires before the object appears, the test is aborted.
-func (f *Fixture) MustGet(namespace, name string, obj runtime.Object) {
+func (f *Fixture) MustGet(namespace, name string, obj client.Object) {
 	key := client.ObjectKey{
 		Namespace: namespace,
 		Name:      name,

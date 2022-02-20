@@ -1,8 +1,10 @@
-apiVersion: apiextensions.k8s.io/v1beta1
+
+---
+apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.3.0
+    controller-gen.kubebuilder.io/version: v0.6.2
   creationTimestamp: null
   name: vitessshards.planetscale.com
 spec:
@@ -15,350 +17,586 @@ spec:
     - vts
     singular: vitessshard
   scope: Namespaced
-  subresources:
-    status: {}
-  validation:
-    openAPIV3Schema:
-      properties:
-        apiVersion:
-          type: string
-        kind:
-          type: string
-        metadata:
-          type: object
-        spec:
-          properties:
-            annotations:
-              additionalProperties:
-                type: string
-              type: object
-            backupEngine:
-              type: string
-            backupLocations:
-              items:
-                properties:
-                  annotations:
-                    additionalProperties:
-                      type: string
-                    type: object
-                  azblob:
-                    properties:
-                      account:
-                        minLength: 1
-                        type: string
-                      authSecret:
-                        properties:
-                          key:
-                            type: string
-                          name:
-                            type: string
-                          volumeName:
-                            type: string
-                        required:
-                        - key
-                        type: object
-                      container:
-                        minLength: 1
-                        type: string
-                      keyPrefix:
-                        maxLength: 256
-                        pattern: ^[^\r\n]*$
-                        type: string
-                    required:
-                    - account
-                    - authSecret
-                    - container
-                    type: object
-                  ceph:
-                    properties:
-                      authSecret:
-                        properties:
-                          key:
-                            type: string
-                          name:
-                            type: string
-                          volumeName:
-                            type: string
-                        required:
-                        - key
-                        type: object
-                    required:
-                    - authSecret
-                    type: object
-                  gcs:
-                    properties:
-                      authSecret:
-                        properties:
-                          key:
-                            type: string
-                          name:
-                            type: string
-                          volumeName:
-                            type: string
-                        required:
-                        - key
-                        type: object
-                      bucket:
-                        minLength: 1
-                        type: string
-                      keyPrefix:
-                        maxLength: 256
-                        pattern: ^[^\r\n]*$
-                        type: string
-                    required:
-                    - bucket
-                    type: object
-                  name:
-                    maxLength: 63
-                    pattern: ^[A-Za-z0-9]([A-Za-z0-9-_.]*[A-Za-z0-9])?$
-                    type: string
-                  s3:
-                    properties:
-                      authSecret:
-                        properties:
-                          key:
-                            type: string
-                          name:
-                            type: string
-                          volumeName:
-                            type: string
-                        required:
-                        - key
-                        type: object
-                      bucket:
-                        minLength: 1
-                        type: string
-                      endpoint:
-                        type: string
-                      keyPrefix:
-                        maxLength: 256
-                        pattern: ^[^\r\n]*$
-                        type: string
-                      region:
-                        minLength: 1
-                        type: string
-                    required:
-                    - bucket
-                    - region
-                    type: object
-                  volume:
-                    type: object
-                    x-kubernetes-preserve-unknown-fields: true
-                  volumeSubPath:
-                    type: string
+  versions:
+  - name: v2
+    schema:
+      openAPIV3Schema:
+        properties:
+          apiVersion:
+            type: string
+          kind:
+            type: string
+          metadata:
+            type: object
+          spec:
+            properties:
+              annotations:
+                additionalProperties:
+                  type: string
                 type: object
-              type: array
-            databaseInitScriptSecret:
-              properties:
-                key:
-                  type: string
-                name:
-                  type: string
-                volumeName:
-                  type: string
-              required:
-              - key
-              type: object
-            databaseName:
-              type: string
-            extraVitessFlags:
-              additionalProperties:
+              backupEngine:
                 type: string
-              type: object
-            globalLockserver:
-              properties:
-                address:
-                  type: string
-                implementation:
-                  type: string
-                rootPath:
-                  type: string
-              required:
-              - address
-              - implementation
-              - rootPath
-              type: object
-            imagePullPolicies:
-              properties:
-                mysqld:
-                  type: string
-                mysqldExporter:
-                  type: string
-                vtbackup:
-                  type: string
-                vtctld:
-                  type: string
-                vtgate:
-                  type: string
-                vtorc:
-                  type: string
-                vttablet:
-                  type: string
-              type: object
-            imagePullSecrets:
-              items:
-                properties:
-                  name:
-                    type: string
-                type: object
-              type: array
-            images:
-              properties:
-                mysqld:
+              backupLocations:
+                items:
                   properties:
-                    mariadb103Compatible:
+                    annotations:
+                      additionalProperties:
+                        type: string
+                      type: object
+                    azblob:
+                      properties:
+                        account:
+                          minLength: 1
+                          type: string
+                        authSecret:
+                          properties:
+                            key:
+                              type: string
+                            name:
+                              type: string
+                            volumeName:
+                              type: string
+                          required:
+                          - key
+                          type: object
+                        container:
+                          minLength: 1
+                          type: string
+                        keyPrefix:
+                          maxLength: 256
+                          pattern: ^[^\r\n]*$
+                          type: string
+                      required:
+                      - account
+                      - authSecret
+                      - container
+                      type: object
+                    ceph:
+                      properties:
+                        authSecret:
+                          properties:
+                            key:
+                              type: string
+                            name:
+                              type: string
+                            volumeName:
+                              type: string
+                          required:
+                          - key
+                          type: object
+                      required:
+                      - authSecret
+                      type: object
+                    gcs:
+                      properties:
+                        authSecret:
+                          properties:
+                            key:
+                              type: string
+                            name:
+                              type: string
+                            volumeName:
+                              type: string
+                          required:
+                          - key
+                          type: object
+                        bucket:
+                          minLength: 1
+                          type: string
+                        keyPrefix:
+                          maxLength: 256
+                          pattern: ^[^\r\n]*$
+                          type: string
+                      required:
+                      - bucket
+                      type: object
+                    name:
+                      maxLength: 63
+                      pattern: ^[A-Za-z0-9]([A-Za-z0-9-_.]*[A-Za-z0-9])?$
                       type: string
-                    mariadbCompatible:
-                      type: string
-                    mysql56Compatible:
-                      type: string
-                    mysql80Compatible:
+                    s3:
+                      properties:
+                        authSecret:
+                          properties:
+                            key:
+                              type: string
+                            name:
+                              type: string
+                            volumeName:
+                              type: string
+                          required:
+                          - key
+                          type: object
+                        bucket:
+                          minLength: 1
+                          type: string
+                        endpoint:
+                          type: string
+                        keyPrefix:
+                          maxLength: 256
+                          pattern: ^[^\r\n]*$
+                          type: string
+                        region:
+                          minLength: 1
+                          type: string
+                      required:
+                      - bucket
+                      - region
+                      type: object
+                    volume:
+                      x-kubernetes-preserve-unknown-fields: true
+                    volumeSubPath:
                       type: string
                   type: object
-                mysqldExporter:
-                  type: string
-                vtbackup:
-                  type: string
-                vtorc:
-                  type: string
-                vttablet:
-                  type: string
-              type: object
-            keyRange:
-              properties:
-                end:
-                  pattern: ^([0-9a-f][0-9a-f])*$
-                  type: string
-                start:
-                  pattern: ^([0-9a-f][0-9a-f])*$
-                  type: string
-              type: object
-            name:
-              type: string
-            replication:
-              properties:
-                enforceSemiSync:
-                  type: boolean
-                initializeBackup:
-                  type: boolean
-                initializeMaster:
-                  type: boolean
-                recoverRestartedMaster:
-                  type: boolean
-              type: object
-            tabletPools:
-              items:
+                type: array
+              databaseInitScriptSecret:
                 properties:
-                  affinity:
-                    type: object
-                    x-kubernetes-preserve-unknown-fields: true
-                  annotations:
-                    additionalProperties:
+                  key:
+                    type: string
+                  name:
+                    type: string
+                  volumeName:
+                    type: string
+                required:
+                - key
+                type: object
+              databaseName:
+                type: string
+              extraVitessFlags:
+                additionalProperties:
+                  type: string
+                type: object
+              globalLockserver:
+                properties:
+                  address:
+                    type: string
+                  implementation:
+                    type: string
+                  rootPath:
+                    type: string
+                required:
+                - address
+                - implementation
+                - rootPath
+                type: object
+              imagePullPolicies:
+                properties:
+                  mysqld:
+                    type: string
+                  mysqldExporter:
+                    type: string
+                  vtbackup:
+                    type: string
+                  vtctld:
+                    type: string
+                  vtgate:
+                    type: string
+                  vtorc:
+                    type: string
+                  vttablet:
+                    type: string
+                type: object
+              imagePullSecrets:
+                items:
+                  properties:
+                    name:
                       type: string
-                    type: object
-                  backupLocationName:
-                    type: string
-                  cell:
-                    maxLength: 63
-                    minLength: 1
-                    pattern: ^[A-Za-z0-9]([_.A-Za-z0-9]*[A-Za-z0-9])?$
-                    type: string
-                  dataVolumeClaimTemplate:
+                  type: object
+                type: array
+              images:
+                properties:
+                  mysqld:
                     properties:
-                      accessModes:
+                      mariadb103Compatible:
+                        type: string
+                      mariadbCompatible:
+                        type: string
+                      mysql56Compatible:
+                        type: string
+                      mysql80Compatible:
+                        type: string
+                    type: object
+                  mysqldExporter:
+                    type: string
+                  vtbackup:
+                    type: string
+                  vtorc:
+                    type: string
+                  vttablet:
+                    type: string
+                type: object
+              keyRange:
+                properties:
+                  end:
+                    pattern: ^([0-9a-f][0-9a-f])*$
+                    type: string
+                  start:
+                    pattern: ^([0-9a-f][0-9a-f])*$
+                    type: string
+                type: object
+              name:
+                type: string
+              replication:
+                properties:
+                  enforceSemiSync:
+                    type: boolean
+                  initializeBackup:
+                    type: boolean
+                  initializeMaster:
+                    type: boolean
+                  recoverRestartedMaster:
+                    type: boolean
+                type: object
+              tabletPools:
+                items:
+                  properties:
+                    affinity:
+                      x-kubernetes-preserve-unknown-fields: true
+                    annotations:
+                      additionalProperties:
+                        type: string
+                      type: object
+                    backupLocationName:
+                      type: string
+                    cell:
+                      maxLength: 63
+                      minLength: 1
+                      pattern: ^[A-Za-z0-9]([_.A-Za-z0-9]*[A-Za-z0-9])?$
+                      type: string
+                    dataVolumeClaimTemplate:
+                      properties:
+                        accessModes:
+                          items:
+                            type: string
+                          type: array
+                        dataSource:
+                          properties:
+                            apiGroup:
+                              type: string
+                            kind:
+                              type: string
+                            name:
+                              type: string
+                          required:
+                          - kind
+                          - name
+                          type: object
+                        resources:
+                          properties:
+                            limits:
+                              additionalProperties:
+                                anyOf:
+                                - type: integer
+                                - type: string
+                                pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                x-kubernetes-int-or-string: true
+                              type: object
+                            requests:
+                              additionalProperties:
+                                anyOf:
+                                - type: integer
+                                - type: string
+                                pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                x-kubernetes-int-or-string: true
+                              type: object
+                          type: object
+                        selector:
+                          properties:
+                            matchExpressions:
+                              items:
+                                properties:
+                                  key:
+                                    type: string
+                                  operator:
+                                    type: string
+                                  values:
+                                    items:
+                                      type: string
+                                    type: array
+                                required:
+                                - key
+                                - operator
+                                type: object
+                              type: array
+                            matchLabels:
+                              additionalProperties:
+                                type: string
+                              type: object
+                          type: object
+                        storageClassName:
+                          type: string
+                        volumeMode:
+                          type: string
+                        volumeName:
+                          type: string
+                      type: object
+                    externalDatastore:
+                      properties:
+                        credentialsSecret:
+                          properties:
+                            key:
+                              type: string
+                            name:
+                              type: string
+                            volumeName:
+                              type: string
+                          required:
+                          - key
+                          type: object
+                        database:
+                          type: string
+                        host:
+                          type: string
+                        port:
+                          format: int32
+                          maximum: 65535
+                          minimum: 1
+                          type: integer
+                        serverCACertSecret:
+                          properties:
+                            key:
+                              type: string
+                            name:
+                              type: string
+                            volumeName:
+                              type: string
+                          required:
+                          - key
+                          type: object
+                        user:
+                          type: string
+                      required:
+                      - credentialsSecret
+                      - database
+                      - host
+                      - port
+                      - user
+                      type: object
+                    extraEnv:
+                      items:
+                        properties:
+                          name:
+                            type: string
+                          value:
+                            type: string
+                          valueFrom:
+                            properties:
+                              configMapKeyRef:
+                                properties:
+                                  key:
+                                    type: string
+                                  name:
+                                    type: string
+                                  optional:
+                                    type: boolean
+                                required:
+                                - key
+                                type: object
+                              fieldRef:
+                                properties:
+                                  apiVersion:
+                                    type: string
+                                  fieldPath:
+                                    type: string
+                                required:
+                                - fieldPath
+                                type: object
+                              resourceFieldRef:
+                                properties:
+                                  containerName:
+                                    type: string
+                                  divisor:
+                                    anyOf:
+                                    - type: integer
+                                    - type: string
+                                    pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                    x-kubernetes-int-or-string: true
+                                  resource:
+                                    type: string
+                                required:
+                                - resource
+                                type: object
+                              secretKeyRef:
+                                properties:
+                                  key:
+                                    type: string
+                                  name:
+                                    type: string
+                                  optional:
+                                    type: boolean
+                                required:
+                                - key
+                                type: object
+                            type: object
+                        required:
+                        - name
+                        type: object
+                      type: array
+                    extraLabels:
+                      additionalProperties:
+                        type: string
+                      type: object
+                    extraVolumeMounts:
+                      items:
+                        properties:
+                          mountPath:
+                            type: string
+                          mountPropagation:
+                            type: string
+                          name:
+                            type: string
+                          readOnly:
+                            type: boolean
+                          subPath:
+                            type: string
+                          subPathExpr:
+                            type: string
+                        required:
+                        - mountPath
+                        - name
+                        type: object
+                      type: array
+                    extraVolumes:
+                      x-kubernetes-preserve-unknown-fields: true
+                    initContainers:
+                      x-kubernetes-preserve-unknown-fields: true
+                    mysqld:
+                      properties:
+                        configOverrides:
+                          type: string
+                        resources:
+                          properties:
+                            limits:
+                              additionalProperties:
+                                anyOf:
+                                - type: integer
+                                - type: string
+                                pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                x-kubernetes-int-or-string: true
+                              type: object
+                            requests:
+                              additionalProperties:
+                                anyOf:
+                                - type: integer
+                                - type: string
+                                pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                x-kubernetes-int-or-string: true
+                              type: object
+                          type: object
+                      required:
+                      - resources
+                      type: object
+                    replicas:
+                      format: int32
+                      minimum: 0
+                      type: integer
+                    sidecarContainers:
+                      x-kubernetes-preserve-unknown-fields: true
+                    tolerations:
+                      x-kubernetes-preserve-unknown-fields: true
+                    topologySpreadConstraints:
+                      x-kubernetes-preserve-unknown-fields: true
+                    type:
+                      enum:
+                      - replica
+                      - rdonly
+                      - externalmaster
+                      - externalreplica
+                      - externalrdonly
+                      type: string
+                    vttablet:
+                      properties:
+                        extraFlags:
+                          additionalProperties:
+                            type: string
+                          type: object
+                        lifecycle:
+                          x-kubernetes-preserve-unknown-fields: true
+                        resources:
+                          properties:
+                            limits:
+                              additionalProperties:
+                                anyOf:
+                                - type: integer
+                                - type: string
+                                pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                x-kubernetes-int-or-string: true
+                              type: object
+                            requests:
+                              additionalProperties:
+                                anyOf:
+                                - type: integer
+                                - type: string
+                                pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                x-kubernetes-int-or-string: true
+                              type: object
+                          type: object
+                      required:
+                      - resources
+                      type: object
+                  required:
+                  - cell
+                  - replicas
+                  - type
+                  - vttablet
+                  type: object
+                type: array
+                x-kubernetes-list-map-keys:
+                - type
+                - cell
+                x-kubernetes-list-type: map
+              topologyReconciliation:
+                properties:
+                  pruneCells:
+                    type: boolean
+                  pruneKeyspaces:
+                    type: boolean
+                  pruneShardCells:
+                    type: boolean
+                  pruneShards:
+                    type: boolean
+                  pruneSrvKeyspaces:
+                    type: boolean
+                  pruneTablets:
+                    type: boolean
+                  registerCells:
+                    type: boolean
+                  registerCellsAliases:
+                    type: boolean
+                type: object
+              updateStrategy:
+                properties:
+                  external:
+                    properties:
+                      allowResourceChanges:
                         items:
                           type: string
                         type: array
-                      resources:
-                        properties:
-                          limits:
-                            additionalProperties:
-                              anyOf:
-                              - type: integer
-                              - type: string
-                              pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                              x-kubernetes-int-or-string: true
-                            type: object
-                          requests:
-                            additionalProperties:
-                              anyOf:
-                              - type: integer
-                              - type: string
-                              pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                              x-kubernetes-int-or-string: true
-                            type: object
-                        type: object
-                      selector:
-                        properties:
-                          matchExpressions:
-                            items:
-                              properties:
-                                key:
-                                  type: string
-                                operator:
-                                  type: string
-                                values:
-                                  items:
-                                    type: string
-                                  type: array
-                              required:
-                              - key
-                              - operator
-                              type: object
-                            type: array
-                          matchLabels:
-                            additionalProperties:
-                              type: string
-                            type: object
-                        type: object
-                      storageClassName:
+                    type: object
+                  type:
+                    enum:
+                    - External
+                    - Immediate
+                    type: string
+                type: object
+              vitessOrchestrator:
+                properties:
+                  affinity:
+                    x-kubernetes-preserve-unknown-fields: true
+                  annotations:
+                    additionalProperties:
+                      type: string
+                    type: object
+                  configSecret:
+                    properties:
+                      key:
                         type: string
-                      volumeMode:
+                      name:
                         type: string
                       volumeName:
                         type: string
-                    type: object
-                  externalDatastore:
-                    properties:
-                      credentialsSecret:
-                        properties:
-                          key:
-                            type: string
-                          name:
-                            type: string
-                          volumeName:
-                            type: string
-                        required:
-                        - key
-                        type: object
-                      database:
-                        type: string
-                      host:
-                        type: string
-                      port:
-                        format: int32
-                        maximum: 65535
-                        minimum: 1
-                        type: integer
-                      serverCACertSecret:
-                        properties:
-                          key:
-                            type: string
-                          name:
-                            type: string
-                          volumeName:
-                            type: string
-                        required:
-                        - key
-                        type: object
-                      user:
-                        type: string
                     required:
-                    - credentialsSecret
-                    - database
-                    - host
-                    - port
-                    - user
+                    - key
                     type: object
                   extraEnv:
                     items:
@@ -420,6 +658,10 @@ spec:
                       - name
                       type: object
                     type: array
+                  extraFlags:
+                    additionalProperties:
+                      type: string
+                    type: object
                   extraLabels:
                     additionalProperties:
                       type: string
@@ -445,440 +687,164 @@ spec:
                       type: object
                     type: array
                   extraVolumes:
-                    items:
-                      required:
-                      - name
-                      type: object
-                      x-kubernetes-preserve-unknown-fields: true
-                    type: array
+                    x-kubernetes-preserve-unknown-fields: true
                   initContainers:
-                    items:
-                      required:
-                      - name
-                      type: object
-                      x-kubernetes-preserve-unknown-fields: true
-                    type: array
-                  mysqld:
+                    x-kubernetes-preserve-unknown-fields: true
+                  resources:
                     properties:
-                      configOverrides:
-                        type: string
-                      resources:
-                        properties:
-                          limits:
-                            additionalProperties:
-                              anyOf:
-                              - type: integer
-                              - type: string
-                              pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                              x-kubernetes-int-or-string: true
-                            type: object
-                          requests:
-                            additionalProperties:
-                              anyOf:
-                              - type: integer
-                              - type: string
-                              pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                              x-kubernetes-int-or-string: true
-                            type: object
+                      limits:
+                        additionalProperties:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                          x-kubernetes-int-or-string: true
                         type: object
-                    required:
-                    - resources
+                      requests:
+                        additionalProperties:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                          x-kubernetes-int-or-string: true
+                        type: object
                     type: object
-                  replicas:
-                    format: int32
-                    minimum: 0
-                    type: integer
-                  sidecarContainers:
-                    items:
-                      required:
-                      - name
-                      type: object
-                      x-kubernetes-preserve-unknown-fields: true
-                    type: array
-                  tolerations:
-                    items:
-                      type: object
-                      x-kubernetes-preserve-unknown-fields: true
-                    type: array
-                  topologySpreadConstraints:
-                    items:
-                      required:
-                      - maxSkew
-                      - topologyKey
-                      - whenUnsatisfiable
-                      type: object
-                      x-kubernetes-preserve-unknown-fields: true
-                    type: array
-                  type:
-                    enum:
-                    - replica
-                    - rdonly
-                    - externalmaster
-                    - externalreplica
-                    - externalrdonly
-                    type: string
-                  vttablet:
+                  service:
                     properties:
-                      extraFlags:
+                      annotations:
                         additionalProperties:
                           type: string
                         type: object
-                      lifecycle:
-                        type: object
-                        x-kubernetes-preserve-unknown-fields: true
-                      resources:
-                        properties:
-                          limits:
-                            additionalProperties:
-                              anyOf:
-                              - type: integer
-                              - type: string
-                              pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                              x-kubernetes-int-or-string: true
-                            type: object
-                          requests:
-                            additionalProperties:
-                              anyOf:
-                              - type: integer
-                              - type: string
-                              pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                              x-kubernetes-int-or-string: true
-                            type: object
-                        type: object
-                    required:
-                    - resources
-                    type: object
-                required:
-                - cell
-                - replicas
-                - type
-                - vttablet
-                type: object
-              type: array
-              x-kubernetes-list-map-keys:
-              - type
-              - cell
-              x-kubernetes-list-type: map
-            topologyReconciliation:
-              properties:
-                pruneCells:
-                  type: boolean
-                pruneKeyspaces:
-                  type: boolean
-                pruneShardCells:
-                  type: boolean
-                pruneShards:
-                  type: boolean
-                pruneSrvKeyspaces:
-                  type: boolean
-                pruneTablets:
-                  type: boolean
-                registerCells:
-                  type: boolean
-                registerCellsAliases:
-                  type: boolean
-              type: object
-            updateStrategy:
-              properties:
-                external:
-                  properties:
-                    allowResourceChanges:
-                      items:
+                      clusterIP:
                         type: string
-                      type: array
-                  type: object
-                type:
-                  enum:
-                  - External
-                  - Immediate
+                    type: object
+                  sidecarContainers:
+                    x-kubernetes-preserve-unknown-fields: true
+                  tolerations:
+                    x-kubernetes-preserve-unknown-fields: true
+                required:
+                - configSecret
+                type: object
+              zoneMap:
+                additionalProperties:
                   type: string
-              type: object
-            vitessOrchestrator:
-              properties:
-                affinity:
-                  type: object
-                  x-kubernetes-preserve-unknown-fields: true
-                annotations:
-                  additionalProperties:
-                    type: string
-                  type: object
-                configSecret:
+                type: object
+            required:
+            - databaseInitScriptSecret
+            - globalLockserver
+            - images
+            - keyRange
+            - name
+            - zoneMap
+            type: object
+          status:
+            properties:
+              backupLocations:
+                items:
                   properties:
-                    key:
+                    completeBackups:
+                      format: int32
+                      type: integer
+                    incompleteBackups:
+                      format: int32
+                      type: integer
+                    latestCompleteBackupTime:
+                      format: date-time
                       type: string
                     name:
                       type: string
-                    volumeName:
+                  required:
+                  - completeBackups
+                  - incompleteBackups
+                  type: object
+                type: array
+              cells:
+                items:
+                  type: string
+                type: array
+              conditions:
+                additionalProperties:
+                  properties:
+                    lastTransitionTime:
+                      format: date-time
+                      type: string
+                    message:
+                      type: string
+                    reason:
+                      type: string
+                    status:
+                      enum:
+                      - "True"
+                      - "False"
+                      - Unknown
                       type: string
                   required:
-                  - key
+                  - status
                   type: object
-                extraEnv:
-                  items:
-                    properties:
-                      name:
-                        type: string
-                      value:
-                        type: string
-                      valueFrom:
-                        properties:
-                          configMapKeyRef:
-                            properties:
-                              key:
-                                type: string
-                              name:
-                                type: string
-                              optional:
-                                type: boolean
-                            required:
-                            - key
-                            type: object
-                          fieldRef:
-                            properties:
-                              apiVersion:
-                                type: string
-                              fieldPath:
-                                type: string
-                            required:
-                            - fieldPath
-                            type: object
-                          resourceFieldRef:
-                            properties:
-                              containerName:
-                                type: string
-                              divisor:
-                                anyOf:
-                                - type: integer
-                                - type: string
-                                pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                                x-kubernetes-int-or-string: true
-                              resource:
-                                type: string
-                            required:
-                            - resource
-                            type: object
-                          secretKeyRef:
-                            properties:
-                              key:
-                                type: string
-                              name:
-                                type: string
-                              optional:
-                                type: boolean
-                            required:
-                            - key
-                            type: object
-                        type: object
-                    required:
-                    - name
-                    type: object
-                  type: array
-                extraFlags:
-                  additionalProperties:
-                    type: string
-                  type: object
-                extraLabels:
-                  additionalProperties:
-                    type: string
-                  type: object
-                extraVolumeMounts:
-                  items:
-                    properties:
-                      mountPath:
-                        type: string
-                      mountPropagation:
-                        type: string
-                      name:
-                        type: string
-                      readOnly:
-                        type: boolean
-                      subPath:
-                        type: string
-                      subPathExpr:
-                        type: string
-                    required:
-                    - mountPath
-                    - name
-                    type: object
-                  type: array
-                extraVolumes:
-                  items:
-                    required:
-                    - name
-                    type: object
-                    x-kubernetes-preserve-unknown-fields: true
-                  type: array
-                initContainers:
-                  items:
-                    required:
-                    - name
-                    type: object
-                    x-kubernetes-preserve-unknown-fields: true
-                  type: array
-                resources:
+                type: object
+              hasInitialBackup:
+                type: string
+              hasMaster:
+                type: string
+              idle:
+                type: string
+              lowestPodGeneration:
+                format: int64
+                type: integer
+              masterAlias:
+                type: string
+              observedGeneration:
+                format: int64
+                type: integer
+              orphanedTablets:
+                additionalProperties:
                   properties:
-                    limits:
-                      additionalProperties:
-                        anyOf:
-                        - type: integer
-                        - type: string
-                        pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                        x-kubernetes-int-or-string: true
-                      type: object
-                    requests:
-                      additionalProperties:
-                        anyOf:
-                        - type: integer
-                        - type: string
-                        pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
-                        x-kubernetes-int-or-string: true
-                      type: object
+                    message:
+                      type: string
+                    reason:
+                      type: string
+                  required:
+                  - message
+                  - reason
                   type: object
-                service:
+                type: object
+              servingWrites:
+                type: string
+              tablets:
+                additionalProperties:
                   properties:
-                    annotations:
-                      additionalProperties:
-                        type: string
-                      type: object
-                    clusterIP:
+                    available:
+                      type: string
+                    dataVolumeBound:
+                      type: string
+                    index:
+                      format: int32
+                      type: integer
+                    pendingChanges:
+                      type: string
+                    poolType:
+                      type: string
+                    ready:
+                      type: string
+                    running:
+                      type: string
+                    type:
                       type: string
                   type: object
-                sidecarContainers:
-                  items:
-                    required:
-                    - name
-                    type: object
-                    x-kubernetes-preserve-unknown-fields: true
-                  type: array
-                tolerations:
-                  items:
-                    type: object
-                    x-kubernetes-preserve-unknown-fields: true
-                  type: array
-              required:
-              - configSecret
-              type: object
-            zoneMap:
-              additionalProperties:
-                type: string
-              type: object
-          required:
-          - databaseInitScriptSecret
-          - globalLockserver
-          - images
-          - keyRange
-          - name
-          - zoneMap
-          type: object
-        status:
-          properties:
-            backupLocations:
-              items:
-                properties:
-                  completeBackups:
-                    format: int32
-                    type: integer
-                  incompleteBackups:
-                    format: int32
-                    type: integer
-                  latestCompleteBackupTime:
-                    format: date-time
-                    type: string
-                  name:
-                    type: string
-                required:
-                - completeBackups
-                - incompleteBackups
                 type: object
-              type: array
-            cells:
-              items:
-                type: string
-              type: array
-            conditions:
-              additionalProperties:
-                properties:
-                  lastTransitionTime:
-                    format: date-time
-                    type: string
-                  message:
-                    type: string
-                  reason:
-                    type: string
-                  status:
-                    enum:
-                    - "True"
-                    - "False"
-                    - Unknown
-                    type: string
-                required:
-                - status
-                type: object
-              type: object
-            hasInitialBackup:
-              type: string
-            hasMaster:
-              type: string
-            idle:
-              type: string
-            lowestPodGeneration:
-              format: int64
-              type: integer
-            masterAlias:
-              type: string
-            observedGeneration:
-              format: int64
-              type: integer
-            orphanedTablets:
-              additionalProperties:
-                properties:
-                  message:
-                    type: string
-                  reason:
-                    type: string
-                required:
-                - message
-                - reason
-                type: object
-              type: object
-            servingWrites:
-              type: string
-            tablets:
-              additionalProperties:
+              vitessOrchestrator:
                 properties:
                   available:
                     type: string
-                  dataVolumeBound:
-                    type: string
-                  index:
-                    format: int32
-                    type: integer
-                  pendingChanges:
-                    type: string
-                  poolType:
-                    type: string
-                  ready:
-                    type: string
-                  running:
-                    type: string
-                  type:
+                  serviceName:
                     type: string
                 type: object
-              type: object
-            vitessOrchestrator:
-              properties:
-                available:
-                  type: string
-                serviceName:
-                  type: string
-              type: object
-          type: object
-      type: object
-  version: v2
-  versions:
-  - name: v2
+            type: object
+        type: object
     served: true
     storage: true
+    subresources:
+      status: {}
 status:
   acceptedNames:
     kind: ""

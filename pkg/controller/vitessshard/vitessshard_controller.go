@@ -55,7 +55,7 @@ var (
 var log = logrus.WithField("controller", "VitessShard")
 
 // watchResources should contain all the resource types that this controller creates.
-var watchResources = []runtime.Object{
+var watchResources = []client.Object{
 	&corev1.Pod{},
 	&corev1.PersistentVolumeClaim{},
 }
@@ -109,9 +109,7 @@ func add(mgr manager.Manager, r *ReconcileVitessShard) error {
 	}
 
 	// Watch for changes in VitessBackups, which we don't own, and requeue associated VitessShards.
-	err = c.Watch(&source.Kind{Type: &planetscalev2.VitessBackup{}}, &handler.EnqueueRequestsFromMapFunc{
-		ToRequests: &shardBackupMapper{},
-	})
+	err = c.Watch(&source.Kind{Type: &planetscalev2.VitessBackup{}}, handler.EnqueueRequestsFromMapFunc(shardBackupMapper))
 	if err != nil {
 		return err
 	}
@@ -142,8 +140,8 @@ type ReconcileVitessShard struct {
 // Note:
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
-func (r *ReconcileVitessShard) Reconcile(request reconcile.Request) (reconcile.Result, error) {
-	ctx, cancel := context.WithTimeout(context.TODO(), environment.ReconcileTimeout())
+func (r *ReconcileVitessShard) Reconcile(cctx context.Context, request reconcile.Request) (reconcile.Result, error) {
+	ctx, cancel := context.WithTimeout(cctx, environment.ReconcileTimeout())
 	defer cancel()
 
 	resultBuilder := &results.Builder{}
@@ -227,11 +225,9 @@ func (r *ReconcileVitessShard) Reconcile(request reconcile.Request) (reconcile.R
 	return result, err
 }
 
-type shardBackupMapper struct{}
-
 // Map maps a VitessBackup to a list of requests for VitessShards.
-func (*shardBackupMapper) Map(obj handler.MapObject) []reconcile.Request {
-	vtb := obj.Object.(*planetscalev2.VitessBackup)
+func shardBackupMapper(obj client.Object) []reconcile.Request {
+	vtb := obj.(*planetscalev2.VitessBackup)
 
 	// Request reconciliation for the VitessShard that matches this VitessBackup.
 	return []reconcile.Request{

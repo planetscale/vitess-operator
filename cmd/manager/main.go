@@ -34,9 +34,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 
-	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
-	"github.com/operator-framework/operator-sdk/pkg/leader"
-	sdkVersion "github.com/operator-framework/operator-sdk/version"
+	"github.com/planetscale/operator-sdk-libs/pkg/k8sutil"
+	"github.com/planetscale/operator-sdk-libs/pkg/leader"
 
 	"planetscale.dev/vitess-operator/pkg/operator/controllermanager"
 	"planetscale.dev/vitess-operator/pkg/operator/fork"
@@ -58,7 +57,6 @@ func printVersion() {
 	log.Info(fmt.Sprintf("Operator Version: %s", version.Version))
 	log.Info(fmt.Sprintf("Go Version: %s", goruntime.Version()))
 	log.Info(fmt.Sprintf("Go OS/Arch: %s/%s", goruntime.GOOS, goruntime.GOARCH))
-	log.Info(fmt.Sprintf("Version of operator-sdk: %v", sdkVersion.Version))
 }
 
 func main() {

@@ -75,7 +75,7 @@ func (r *Reconciler) ReconcileObject(ctx context.Context, owner runtime.Object, 
 	// Note that this reads from the local cache, so it might be out of date.
 	// This is fine, since everything we do should be monotonic and idempotent.
 	// If we encounter any inconsistency, we just return an error so the reconcile gets requeued.
-	curObj := s.Kind.DeepCopyObject()
+	curObj := s.Kind.DeepCopyObject().(client.Object)
 	if err := r.client.Get(ctx, key, curObj); err != nil {
 		if apierrors.IsNotFound(err) {
 			curObj = nil
@@ -134,7 +134,7 @@ func (r *Reconciler) ReconcileObject(ctx context.Context, owner runtime.Object, 
 		}
 		// See if it's ok to delete the unwanted object.
 		if s.PrepareForTurndown != nil {
-			newObj := curObj.DeepCopyObject()
+			newObj := curObj.DeepCopyObject().(client.Object)
 			if orphanStatus := s.PrepareForTurndown(key, newObj); orphanStatus != nil {
 				// Record that we can't clean up, but don't necessarily return an error,
 				// because this is not a failure to reconcile; we're just waiting.
@@ -163,7 +163,7 @@ func (r *Reconciler) ReconcileObject(ctx context.Context, owner runtime.Object, 
 
 	if curObj == nil {
 		// The object we want doesn't exist, so create a new one.
-		newObj := s.New(key)
+		newObj := s.New(key).(client.Object)
 		newObjMeta, err := meta.Accessor(newObj)
 		if err != nil {
 			return err
@@ -209,7 +209,7 @@ func (r *Reconciler) ReconcileObject(ctx context.Context, owner runtime.Object, 
 
 	// Now see if we have any changes to apply.
 	// Update things that are safe to change immediately in-place.
-	updatedObjInPlace := curObj.DeepCopyObject()
+	updatedObjInPlace := curObj.DeepCopyObject().(client.Object)
 	if s.UpdateInPlace != nil {
 		s.UpdateInPlace(key, updatedObjInPlace)
 	}
@@ -232,7 +232,7 @@ func (r *Reconciler) ReconcileObject(ctx context.Context, owner runtime.Object, 
 			s.UpdateRollingInPlace(key, updatedObjInPlace)
 		}
 		if s.UpdateRollingRecreate != nil {
-			updatedObjRecreate := updatedObjInPlace.DeepCopyObject()
+			updatedObjRecreate := updatedObjInPlace.DeepCopyObject().(client.Object)
 			s.UpdateRollingRecreate(key, updatedObjRecreate)
 			if !deepEqual(r.scheme, updatedObjInPlace, updatedObjRecreate) {
 				// Even if we were to apply the immediate-in-place and rolling-in-place changes,
@@ -274,7 +274,7 @@ func (r *Reconciler) ReconcileObject(ctx context.Context, owner runtime.Object, 
 	return r.updateInPlace(ctx, owner, key, s, curObj, updatedObjInPlace)
 }
 
-func (r *Reconciler) updateInPlace(ctx context.Context, owner runtime.Object, key client.ObjectKey, s Strategy, curObj, newObj runtime.Object) error {
+func (r *Reconciler) updateInPlace(ctx context.Context, owner runtime.Object, key client.ObjectKey, s Strategy, curObj, newObj client.Object) error {
 	gvk, err := apiutil.GVKForObject(s.Kind, r.scheme)
 	if err != nil {
 		return err
@@ -319,7 +319,7 @@ func (r *Reconciler) updateInPlace(ctx context.Context, owner runtime.Object, ke
 	return nil
 }
 
-func (r *Reconciler) drainAndDelete(ctx context.Context, owner runtime.Object, key client.ObjectKey, s Strategy, curObj, updatedObjInPlace, updatedObjRecreate runtime.Object) error {
+func (r *Reconciler) drainAndDelete(ctx context.Context, owner runtime.Object, key client.ObjectKey, s Strategy, curObj, updatedObjInPlace, updatedObjRecreate client.Object) error {
 	// If we can't delete because we need to drain first,
 	// we'll try to at least do the in-place update.
 	newObj := updatedObjInPlace
@@ -345,7 +345,7 @@ func (r *Reconciler) drainAndDelete(ctx context.Context, owner runtime.Object, k
 	return r.delete(ctx, owner, key, s, curObj)
 }
 
-func (r *Reconciler) delete(ctx context.Context, owner runtime.Object, key client.ObjectKey, s Strategy, curObj runtime.Object) error {
+func (r *Reconciler) delete(ctx context.Context, owner runtime.Object, key client.ObjectKey, s Strategy, curObj client.Object) error {
 	gvk, err := apiutil.GVKForObject(s.Kind, r.scheme)
 	if err != nil {
 		return err

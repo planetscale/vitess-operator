@@ -19,7 +19,7 @@ limitations under the License.
 // Package v2 contains API Schema definitions for the planetscale v2 API group
 // +k8s:deepcopy-gen=package,register
 // +groupName=planetscale.com
-package v2
+package v2 // planetscale.dev/vitess-operator/pkg/apis/planetscale/v2
 
 import (
 	"k8s.io/apimachinery/pkg/runtime/schema"

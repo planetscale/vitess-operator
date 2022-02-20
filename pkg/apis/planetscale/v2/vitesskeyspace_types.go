@@ -202,7 +202,8 @@ type VitessOrchestratorSpec struct {
 	// Note that when adding a new volume, you should usually also add a
 	// volumeMount to specify where in each container's filesystem the volume
 	// should be mounted.
-	// +kubebuilder:validation:EmbeddedResource
+	// +kubebuilder:validation:Schemaless
+	// +kubebuilder:pruning:PreserveUnknownFields
 	ExtraVolumes []corev1.Volume `json:"extraVolumes,omitempty"`
 
 	// ExtraVolumeMounts can optionally be used to override default Pod
@@ -212,19 +213,22 @@ type VitessOrchestratorSpec struct {
 
 	// InitContainers can optionally be used to supply extra init containers
 	// that will be run to completion one after another before any app containers are started.
-	// +kubebuilder:validation:EmbeddedResource
+	// +kubebuilder:validation:Schemaless
+	// +kubebuilder:pruning:PreserveUnknownFields
 	InitContainers []corev1.Container `json:"initContainers,omitempty"`
 
 	// SidecarContainers can optionally be used to supply extra containers
 	// that run alongside the main containers.
-	// +kubebuilder:validation:EmbeddedResource
+	// +kubebuilder:validation:Schemaless
+	// +kubebuilder:pruning:PreserveUnknownFields
 	SidecarContainers []corev1.Container `json:"sidecarContainers,omitempty"`
 
 	// Affinity allows you to set rules that constrain the scheduling of
 	// your vtorc pods. WARNING: These affinity rules will override all default affinities
 	// that we set; in turn, we can't guarantee optimal scheduling of your pods if you
 	// choose to set this field.
-	// +kubebuilder:validation:EmbeddedResource
+	// +kubebuilder:validation:Schemaless
+	// +kubebuilder:pruning:PreserveUnknownFields
 	Affinity *corev1.Affinity `json:"affinity,omitempty"`
 
 	// Annotations can optionally be used to attach custom annotations to Pods
@@ -241,7 +245,8 @@ type VitessOrchestratorSpec struct {
 	Service *ServiceOverrides `json:"service,omitempty"`
 
 	// Tolerations allow you to schedule pods onto nodes with matching taints.
-	// +kubebuilder:validation:EmbeddedResource
+	// +kubebuilder:validation:Schemaless
+	// +kubebuilder:pruning:PreserveUnknownFields
 	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
 }
 

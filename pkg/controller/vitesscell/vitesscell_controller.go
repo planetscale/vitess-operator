@@ -56,7 +56,7 @@ var (
 var log = logrus.WithField("controller", "VitessCell")
 
 // watchResources should contain all the resource types that this controller creates.
-var watchResources = []runtime.Object{
+var watchResources = []client.Object{
 	&corev1.Service{},
 	&appsv1.Deployment{},
 
@@ -113,19 +113,16 @@ func add(mgr manager.Manager, r *ReconcileVitessCell) error {
 	}
 
 	// Watch for changes in VitessKeyspaces, which we don't own, and requeue associated VitessCells.
-	err = c.Watch(&source.Kind{Type: &planetscalev2.VitessKeyspace{}}, &handler.EnqueueRequestsFromMapFunc{
-		ToRequests: &keyspaceCellsMapper{},
-	})
+	err = c.Watch(&source.Kind{Type: &planetscalev2.VitessKeyspace{}}, handler.EnqueueRequestsFromMapFunc(keyspaceCellsMapper))
 	if err != nil {
 		return err
 	}
 
 	// Watch for changes in Secrets, which we don't own, and requeue associated VitessCells.
-	err = c.Watch(&source.Kind{Type: &corev1.Secret{}}, &handler.EnqueueRequestsFromMapFunc{
-		ToRequests: &secretCellsMapper{
-			client: mgr.GetClient(),
-		},
-	})
+	scm := &secretCellsMapper{
+		client: mgr.GetClient(),
+	}
+	err = c.Watch(&source.Kind{Type: &corev1.Secret{}}, handler.EnqueueRequestsFromMapFunc(scm.Map))
 	if err != nil {
 		return err
 	}
@@ -156,8 +153,8 @@ type ReconcileVitessCell struct {
 // Note:
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
-func (r *ReconcileVitessCell) Reconcile(request reconcile.Request) (reconcile.Result, error) {
-	ctx, cancel := context.WithTimeout(context.TODO(), environment.ReconcileTimeout())
+func (r *ReconcileVitessCell) Reconcile(cctx context.Context, request reconcile.Request) (reconcile.Result, error) {
+	ctx, cancel := context.WithTimeout(cctx, environment.ReconcileTimeout())
 	defer cancel()
 
 	resultBuilder := &results.Builder{}
