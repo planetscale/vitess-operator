@@ -1,4 +1,4 @@
-apiVersion: scheduling.k8s.io/v1beta1
+apiVersion: scheduling.k8s.io/v1
 kind: PriorityClass
 metadata:
   name: vitess-operator-control-plane
@@ -6,7 +6,7 @@ value: 5000
 globalDefault: false
 description: "The vitess-operator control plane."
 ---
-apiVersion: scheduling.k8s.io/v1beta1
+apiVersion: scheduling.k8s.io/v1
 kind: PriorityClass
 metadata:
   name: vitess
