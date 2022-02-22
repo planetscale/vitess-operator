@@ -97,7 +97,7 @@ const (
 	// DefaultMysqlPortName is the name for the MySQL port.
 	DefaultMysqlPortName = "mysql"
 
-	defaultVitessLiteImage = "vitess/lite:v12.0.0"
+	defaultVitessLiteImage = "vitess/lite:v13.0.0"
 )
 
 // DefaultImages are a set of images to use when the CRD doesn't specify.
