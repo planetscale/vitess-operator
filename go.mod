@@ -45,6 +45,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
 	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/coreos/go-systemd/v22 v22.3.2 // indirect
+	github.com/cyphar/filepath-securejoin v0.2.3 // indirect
 	github.com/daaku/go.zipexe v1.0.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/docker/distribution v2.7.1+incompatible // indirect
@@ -88,9 +89,7 @@ require (
 	github.com/json-iterator/go v1.1.11 // indirect
 	github.com/jstemmer/go-junit-report v0.9.1 // indirect
 	github.com/klauspost/compress v1.11.13 // indirect
-	github.com/klauspost/cpuid v1.2.1 // indirect
 	github.com/klauspost/pgzip v1.2.4 // indirect
-	github.com/kubernetes-sigs/kustomize v2.0.3+incompatible // indirect
 	github.com/mailru/easyjson v0.7.0 // indirect
 	github.com/mattn/go-colorable v0.1.8 // indirect
 	github.com/mattn/go-ieproxy v0.0.0-20191113090002-7c0f6868bffe // indirect
