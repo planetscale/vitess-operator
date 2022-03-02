@@ -18,6 +18,9 @@ build:
 release-build:
 	docker build -f build/Dockerfile.release -t $(IMAGE_NAME):$(IMAGE_TAG) .
 
+release-build.arm64:
+	docker buildx build --platform linux/arm64 --build-arg GOOS=linux --build-arg GOARCH=arm64 -f build/Dockerfile.release -t $(IMAGE_NAME):$(IMAGE_TAG) .
+
 unit-test:
 	pkgs="$$(go list ./... | grep -v '/test/integration/')" && \
 		go test -i $${pkgs} && \
