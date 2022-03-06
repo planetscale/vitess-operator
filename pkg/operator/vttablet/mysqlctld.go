@@ -18,6 +18,7 @@ package vttablet
 
 import (
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/utils/pointer"
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
@@ -47,6 +48,9 @@ for mycnf in $(find . -mindepth 2 -maxdepth 2 -path './vt_*/my.cnf'); do
   sed -i -e 's,^socket[ \t]*=.*$,socket = ` + mysqlSocketPath + `,' "${mycnf}"
 done
 `
+
+	defaultInitCPURequestMillis   = 100
+	defaultInitMemoryRequestBytes = 32 * (1 << 20) // 32 MiB
 )
 
 func init() {
@@ -86,6 +90,12 @@ func init() {
 				},
 				Command: []string{"bash", "-c"},
 				Args:    []string{vtRootInitScript},
+				Resources: corev1.ResourceRequirements{
+					Requests: corev1.ResourceList{
+						corev1.ResourceCPU:    *resource.NewMilliQuantity(defaultInitCPURequestMillis, resource.DecimalSI),
+						corev1.ResourceMemory: *resource.NewQuantity(defaultInitMemoryRequestBytes, resource.BinarySI),
+					},
+				},
 			},
 		}
 
@@ -108,6 +118,12 @@ func init() {
 				},
 				Command: []string{"bash", "-c"},
 				Args:    []string{mysqlSocketInitScript},
+				Resources: corev1.ResourceRequirements{
+					Requests: corev1.ResourceList{
+						corev1.ResourceCPU:    *resource.NewMilliQuantity(defaultInitCPURequestMillis, resource.DecimalSI),
+						corev1.ResourceMemory: *resource.NewQuantity(defaultInitMemoryRequestBytes, resource.BinarySI),
+					},
+				},
 			})
 		}
 
