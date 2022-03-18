@@ -38,9 +38,13 @@ func GlobalConnectionParams(lockSpec *planetscalev2.LockserverSpec, namespace, c
 	case lockSpec.External != nil:
 		return lockSpec.External
 	case lockSpec.Etcd != nil:
+		address := lockSpec.CellInfoAddress
+		if len(address) == 0 {
+			address = fmt.Sprintf("%s-client.%s.svc:%d", GlobalEtcdName(clusterName), namespace, EtcdClientPort)
+		}
 		return &planetscalev2.VitessLockserverParams{
 			Implementation: VitessEtcdImplementationName,
-			Address:        fmt.Sprintf("%s-client.%s.svc:%d", GlobalEtcdName(clusterName), namespace, EtcdClientPort),
+			Address:        address,
 			RootPath:       fmt.Sprintf("/vitess/%s/global", clusterName),
 		}
 	default:
@@ -58,10 +62,14 @@ func LocalConnectionParams(globalLockserverSpec, cellLockserverSpec *planetscale
 	case cellLockserverSpec.External != nil:
 		return cellLockserverSpec.External
 	case cellLockserverSpec.Etcd != nil:
-		// Point to the client Service created by the local EtcdCluster.
+		address := cellLockserverSpec.CellInfoAddress
+		if len(address) == 0 {
+			// Point to the client Service created by the local EtcdCluster.
+			address = fmt.Sprintf("%s-client.%s.svc:%d", LocalEtcdName(clusterName, cellName), namespace, EtcdClientPort)
+		}
 		return &planetscalev2.VitessLockserverParams{
 			Implementation: VitessEtcdImplementationName,
-			Address:        fmt.Sprintf("%s-client.%s.svc:%d", LocalEtcdName(clusterName, cellName), namespace, EtcdClientPort),
+			Address:        address,
 			RootPath:       rootPath,
 		}
 	default:

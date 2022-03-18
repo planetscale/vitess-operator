@@ -321,6 +321,10 @@ type LockserverSpec struct {
 
 	// Etcd deploys our own etcd cluster as a lockserver.
 	Etcd *EtcdLockserverTemplate `json:"etcd,omitempty"`
+
+	// CellInfoAddress is the host:port of topology service which will be saved to cell info.
+	// Default: etcd client service.
+	CellInfoAddress string `json:"cellInfoAddress,omitempty"`
 }
 
 // LockserverStatus is the lockserver component of status.
