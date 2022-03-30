@@ -34,6 +34,8 @@ import (
 	"planetscale.dev/vitess-operator/pkg/operator/k8s"
 	"planetscale.dev/vitess-operator/pkg/operator/results"
 	"planetscale.dev/vitess-operator/pkg/operator/toposerver"
+
+	vtctldatapb "vitess.io/vitess/go/vt/proto/vtctldata"
 )
 
 const (
@@ -162,7 +164,13 @@ func (r *ReconcileVitessShard) pruneShardCells(ctx context.Context, vts *planets
 		// The cell is listed in topo, but we don't deploy there anymore.
 		// We use the Vitess wrangler (multi-step command executor) to remove the cell from that shard.
 		// This is equivalent to `vtctl RemoveShardCell`.
-		if err := wr.RemoveShardCell(ctx, keyspaceName, vts.Spec.Name, cellName, false /* force*/, false /* recursive */); err != nil {
+		if _, err := wr.VtctldServer().RemoveShardCell(ctx, &vtctldatapb.RemoveShardCellRequest{
+			Keyspace:  keyspaceName,
+			ShardName: vts.Spec.Name,
+			Cell:      cellName,
+			Force:     false /* force */,
+			Recursive: false /* recursive */,
+		}); err != nil {
 			r.recorder.Eventf(vts, corev1.EventTypeWarning, "TopoCleanupFailed", "unable to remove cell %s from shard: %v", cellName, err)
 			resultBuilder.RequeueAfter(topoRequeueDelay)
 		} else {
