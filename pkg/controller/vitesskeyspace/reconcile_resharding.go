@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"reflect"
 	"sort"
+	vtctldatapb "vitess.io/vitess/go/vt/proto/vtctldata"
 
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -184,11 +185,18 @@ func (r *reconcileHandler) shardsRowCount(ctx context.Context, shardNames []stri
 		if shardInfo.PrimaryAlias == nil {
 			return 0, fmt.Errorf("could not find primary tablet alias for determining row count of shard %v", shardName)
 		}
-		schema, err := r.wr.GetSchema(ctx, shardInfo.PrimaryAlias, nil, nil, false)
+		resp, err := r.wr.VtctldServer().GetSchema(ctx, &vtctldatapb.GetSchemaRequest{
+			TabletAlias:    shardInfo.PrimaryAlias,
+			Tables:         nil,
+			ExcludeTables:  nil,
+			IncludeViews:   false,
+			TableNamesOnly: false,
+			TableSizesOnly: false,
+		})
 		if err != nil {
 			return 0, fmt.Errorf("failed to get schema for shard %v: %v", shardName, err)
 		}
-		for _, tabletDef := range schema.TableDefinitions {
+		for _, tabletDef := range resp.Schema.TableDefinitions {
 			rowCount += tabletDef.GetRowCount()
 		}
 	}
