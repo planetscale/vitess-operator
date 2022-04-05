@@ -54,3 +54,7 @@ push-only:
 
 push: build
 push: push-only
+
+upgrade-test:
+	tools/get-kube-binaries.sh
+	tools/get-kind.sh
