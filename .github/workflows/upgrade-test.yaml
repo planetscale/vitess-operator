@@ -1,5 +1,9 @@
 name: Upgrade Test
-on: [push, pull_request]
+on:
+  pull_request:
+  push:
+    branches:
+    - main
 
 concurrency:
   group: format('{0}-{1}', ${{ github.ref }}, 'Upgrade Test')
