@@ -43,7 +43,7 @@ jobs:
       run: kind load docker-image vitess-operator-pr:latest
 
     - name: Upgrade Test
-      run: sh ./test/upgrade/test.sh
+      run: ./test/upgrade/test.sh
 
     - name: Clean up Kind Cluster
       if: always()
