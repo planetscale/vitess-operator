@@ -2,6 +2,7 @@
 
 alias vtctlclient="vtctlclient -server=localhost:15999"
 alias mysql="mysql -h 127.0.0.1 -P 15306 -u user"
+shopt -s expand_aliases
 
 # checkPodStatusWithTimeout:
 # $1: regex used to match pod names
