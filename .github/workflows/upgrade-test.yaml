@@ -20,5 +20,22 @@ jobs:
     - name: Check out code
       uses: actions/checkout@v2
 
+    - name: Set VTOPROOT path
+      run: export VTOPROOT="$PWD"
+
+    - name: Build
+      run: make build
+
+    - name: Setup (Kubectl, Etcd and Kind)
+      run: make upgrade-test-setup
+
+    - name: Start Kind Cluster
+      run: kind create cluster --wait 30s
+
     - name: Upgrade Test
-      run: make upgrade-test
+      run: sh ./test/upgrade/test.sh
+
+    - name: Clean up Kind Cluster
+      if: always()
+      run: kind delete cluster
+
