@@ -24,9 +24,6 @@ jobs:
     - name: Check out code
       uses: actions/checkout@v2
 
-    - name: Set VTOPROOT path
-      run: export VTOPROOT="$PWD"
-
     - name: Build
       run: make build
 

@@ -330,7 +330,7 @@ COrder
 EOF
 }
 
-cd "$VTOPROOT/test/upgrade/operator"
+cd "$PWD/test/upgrade/operator"
 killall kubectl
 
 get_started
