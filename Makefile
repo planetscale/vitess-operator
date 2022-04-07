@@ -58,3 +58,15 @@ push: push-only
 upgrade-test-setup:
 	tools/get-kube-binaries.sh
 	tools/get-kind.sh
+
+upgrade-test: build upgrade-test-setup
+	echo "Building the docker image"
+	docker build -f build/Dockerfile.release -t vitess-operator-pr:latest .
+	echo "Creating Kind cluster"
+	kind create cluster --wait 30s
+	echo "Loading docker image into Kind cluster"
+	kind load docker-image vitess-operator-pr:latest
+	echo "Running Upgrade test"
+	test/upgrade/test.sh
+	echo "Deleting Kind cluster"
+	kind delete cluster

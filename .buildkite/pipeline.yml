@@ -1,0 +1,9 @@
+agents:
+  queue: "public"
+
+steps:
+- name: "Upgrade test"
+  command: make upgrade-test
+  plugins:
+    - docker-compose#v3.9.0:
+        run: app
