@@ -9,6 +9,14 @@ alias mysql="mysql -h 127.0.0.1 -P 15306 -u user"
 shopt -s expand_aliases
 
 
+function printMysqlErrorFiles() {
+  for vttablet in $(kubectl get pods --no-headers -o custom-columns=":metadata.name" | grep "vttablet") ; do
+    echo "Finding error.log file in $vttablet"
+    kubectl logs "$vttablet" -c mysqld
+    kubectl logs "$vttablet" -c vttablet
+  done
+}
+
 # checkPodStatusWithTimeout:
 # $1: regex used to match pod names
 # $2: number of pods to match (default: 1)
@@ -117,6 +125,7 @@ function get_started() {
     vtctlclient ApplyVSchema -vschema="$(cat vschema_commerce_initial.json)" commerce
     if [ $? -ne 0 ]; then
       echo "ApplySchema failed for initial commerce"
+      printMysqlErrorFiles
       exit 1
     fi
     sleep 5
@@ -124,12 +133,14 @@ function get_started() {
     echo "show databases;" | mysql | grep "commerce" > /dev/null 2>&1
     if [ $? -ne 0 ]; then
       echo "Could not find commerce database"
+      printMysqlErrorFiles
       exit 1
     fi
 
     echo "show tables;" | mysql commerce | grep -E 'corder|customer|product' | wc -l | grep 3 > /dev/null 2>&1
     if [ $? -ne 0 ]; then
       echo "Could not find commerce's tables"
+      printMysqlErrorFiles
       exit 1
     fi
 
@@ -192,6 +203,7 @@ function move_tables() {
   vtctlclient MoveTables -source commerce -tables 'customer,corder' Create customer.commerce2customer
   if [ $? -ne 0 ]; then
     echo "MoveTables failed"
+    printMysqlErrorFiles
     exit 1
   fi
 
@@ -201,24 +213,28 @@ function move_tables() {
   echo "$vdiff_out" | grep "ProcessedRows: 5" | wc -l | grep "2" > /dev/null
   if [ $? -ne 0 ]; then
     echo -e "VDiff output is invalid, got:\n$vdiff_out"
+    printMysqlErrorFiles
     exit 1
   fi
 
   vtctlclient MoveTables -tablet_types=rdonly,replica SwitchTraffic customer.commerce2customer
   if [ $? -ne 0 ]; then
     echo "SwitchTraffic for rdonly and replica failed"
+    printMysqlErrorFiles
     exit 1
   fi
 
   vtctlclient MoveTables -tablet_types=primary SwitchTraffic customer.commerce2customer
   if [ $? -ne 0 ]; then
     echo "SwitchTraffic for primary failed"
+    printMysqlErrorFiles
     exit 1
   fi
 
   vtctlclient MoveTables Complete customer.commerce2customer
   if [ $? -ne 0 ]; then
     echo "MoveTables Complete failed"
+    printMysqlErrorFiles
     exit 1
   fi
 
@@ -232,12 +248,14 @@ function resharding() {
   vtctlclient ApplyVSchema -vschema="$(cat vschema_commerce_seq.json)" commerce
   if [ $? -ne 0 ]; then
     echo "ApplyVschema commerce_seq during resharding failed"
+    printMysqlErrorFiles
     exit 1
   fi
   sleep 4
   vtctlclient ApplyVSchema -vschema="$(cat vschema_customer_sharded.json)" customer
   if [ $? -ne 0 ]; then
     echo "ApplyVschema customer_sharded during resharding failed"
+    printMysqlErrorFiles
     exit 1
   fi
   sleep 4
@@ -261,6 +279,7 @@ function resharding() {
   vtctlclient Reshard -source_shards '-' -target_shards '-80,80-' Create customer.cust2cust
   if [ $? -ne 0 ]; then
     echo "Reshard Create failed"
+    printMysqlErrorFiles
     exit 1
   fi
 
@@ -276,11 +295,13 @@ function resharding() {
   vtctlclient Reshard -tablet_types=rdonly,replica SwitchTraffic customer.cust2cust
   if [ $? -ne 0 ]; then
     echo "Reshard SwitchTraffic for replica,rdonly failed"
+    printMysqlErrorFiles
     exit 1
   fi
   vtctlclient Reshard -tablet_types=primary SwitchTraffic customer.cust2cust
   if [ $? -ne 0 ]; then
     echo "Reshard SwitchTraffic for primary failed"
+    printMysqlErrorFiles
     exit 1
   fi
 
