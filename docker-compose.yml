@@ -1,8 +1,0 @@
-version: '2'
-
-services:
-  app:
-    image: golang:1.17
-    volumes:
-      - .:/work
-    working_dir: /work

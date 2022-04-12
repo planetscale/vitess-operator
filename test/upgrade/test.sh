@@ -1,5 +1,9 @@
 #!/bin/bash
 
+source ./tools/test.env
+
+BUILDKITE_BUILD_ID=${BUILDKITE_BUILD_ID:-"0"}
+
 alias vtctlclient="vtctlclient -server=localhost:15999"
 alias mysql="mysql -h 127.0.0.1 -P 15306 -u user"
 shopt -s expand_aliases
@@ -331,8 +335,26 @@ COrder
 EOF
 }
 
+function setupKubectlAccessForCI() {
+  if [ "$BUILDKITE_BUILD_ID" != "0" ]; then
+    # The script is being run from buildkite, so we need to do stuff
+    dockerContainerName=$(docker container ls --filter "ancestor=docker" --format '{{.Names}}')
+    docker network connect kind $dockerContainerName
+    kind get kubeconfig --internal --name kind-${BUILDKITE_BUILD_ID} > $HOME/.kube/config
+  fi
+}
+
+# Test setup
+echo "Building the docker image"
+docker build -f build/Dockerfile.release -t vitess-operator-pr:latest .
+echo "Creating Kind cluster"
+kind create cluster --wait 30s --name kind-${BUILDKITE_BUILD_ID}
+echo "Loading docker image into Kind cluster"
+kind load docker-image vitess-operator-pr:latest --name kind-${BUILDKITE_BUILD_ID}
+
 cd "$PWD/test/upgrade/operator"
 killall kubectl
+setupKubectlAccessForCI
 
 get_started
 verifyVtGateVersion "12.0.3"
@@ -340,3 +362,7 @@ upgradeToLatest
 verifyVtGateVersion "13.0.0"
 move_tables
 resharding
+
+# Teardown
+echo "Deleting Kind cluster"
+kind delete cluster --name kind-${BUILDKITE_BUILD_ID}

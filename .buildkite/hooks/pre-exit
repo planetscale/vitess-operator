@@ -1,0 +1,2 @@
+docker container rm kind-${BUILDKITE_BUILD_ID}-control-plane -f
+docker image rm -f vitess-operator-pr:latest
