@@ -1,2 +1,4 @@
+# Remove the docker container on which kind is running
 docker container rm kind-${BUILDKITE_BUILD_ID}-control-plane -f
+# Remove the docker image created for the local PR code
 docker image rm -f vitess-operator-pr:latest

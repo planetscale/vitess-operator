@@ -1,6 +1,8 @@
 agents:
   queue: "public"
 
+# Mount the docker.sock as to the docker container, so that we are able to
+# run docker build command and kind is spawned as a sibling container.
 steps:
   - name: "Upgrade Test"
     command:

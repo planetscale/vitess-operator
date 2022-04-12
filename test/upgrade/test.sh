@@ -8,6 +8,8 @@ alias vtctlclient="vtctlclient -server=localhost:15999"
 alias mysql="mysql -h 127.0.0.1 -P 15306 -u user"
 shopt -s expand_aliases
 
+set -e
+
 # checkPodStatusWithTimeout:
 # $1: regex used to match pod names
 # $2: number of pods to match (default: 1)
@@ -338,6 +340,11 @@ EOF
 function setupKubectlAccessForCI() {
   if [ "$BUILDKITE_BUILD_ID" != "0" ]; then
     # The script is being run from buildkite, so we need to do stuff
+    # https://github.com/kubernetes-sigs/kind/issues/1846#issuecomment-691565834
+    # Since kind is running in a sibling container, communicating with it through kubectl is not trivial.
+    # To accomplish we need to add the current docker container in the same network as the kind container
+    # and change the kubectl configuration to use the port listed in the internal endpoint instead of the one
+    # that is exported to the localhost by kind.
     dockerContainerName=$(docker container ls --filter "ancestor=docker" --format '{{.Names}}')
     docker network connect kind $dockerContainerName
     kind get kubeconfig --internal --name kind-${BUILDKITE_BUILD_ID} > $HOME/.kube/config

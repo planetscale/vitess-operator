@@ -55,9 +55,11 @@ push-only:
 push: build
 push: push-only
 
+# Setup for the upgrade test
 upgrade-test-setup:
 	./tools/get-upgrade-test-deps.sh
 
+# Upgrade test
 upgrade-test: build upgrade-test-setup
 	echo "Running Upgrade test"
 	test/upgrade/test.sh
