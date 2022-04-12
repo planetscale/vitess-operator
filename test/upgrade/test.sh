@@ -8,7 +8,6 @@ alias vtctlclient="vtctlclient -server=localhost:15999"
 alias mysql="mysql -h 127.0.0.1 -P 15306 -u user"
 shopt -s expand_aliases
 
-set -e
 
 # checkPodStatusWithTimeout:
 # $1: regex used to match pod names
@@ -116,6 +115,10 @@ function get_started() {
 
     applySchemaWithRetry create_commerce_schema.sql commerce drop_all_commerce_tables.sql
     vtctlclient ApplyVSchema -vschema="$(cat vschema_commerce_initial.json)" commerce
+    if [ $? -ne 0 ]; then
+      echo "ApplySchema failed for initial commerce"
+      exit 1
+    fi
     sleep 5
 
     echo "show databases;" | mysql | grep "commerce" > /dev/null 2>&1
@@ -187,6 +190,12 @@ function move_tables() {
   sleep 10
 
   vtctlclient MoveTables -source commerce -tables 'customer,corder' Create customer.commerce2customer
+  if [ $? -ne 0 ]; then
+    echo "MoveTables failed"
+    exit 1
+  fi
+
+  sleep 10
 
   vdiff_out=$(vtctlclient VDiff customer.commerce2customer)
   echo "$vdiff_out" | grep "ProcessedRows: 5" | wc -l | grep "2" > /dev/null
@@ -196,8 +205,22 @@ function move_tables() {
   fi
 
   vtctlclient MoveTables -tablet_types=rdonly,replica SwitchTraffic customer.commerce2customer
+  if [ $? -ne 0 ]; then
+    echo "SwitchTraffic for rdonly and replica failed"
+    exit 1
+  fi
+
   vtctlclient MoveTables -tablet_types=primary SwitchTraffic customer.commerce2customer
+  if [ $? -ne 0 ]; then
+    echo "SwitchTraffic for primary failed"
+    exit 1
+  fi
+
   vtctlclient MoveTables Complete customer.commerce2customer
+  if [ $? -ne 0 ]; then
+    echo "MoveTables Complete failed"
+    exit 1
+  fi
 
   sleep 10
 }
@@ -207,8 +230,16 @@ function resharding() {
   applySchemaWithRetry create_commerce_seq.sql commerce
   sleep 4
   vtctlclient ApplyVSchema -vschema="$(cat vschema_commerce_seq.json)" commerce
+  if [ $? -ne 0 ]; then
+    echo "ApplyVschema commerce_seq during resharding failed"
+    exit 1
+  fi
   sleep 4
   vtctlclient ApplyVSchema -vschema="$(cat vschema_customer_sharded.json)" customer
+  if [ $? -ne 0 ]; then
+    echo "ApplyVschema customer_sharded during resharding failed"
+    exit 1
+  fi
   sleep 4
   applySchemaWithRetry create_customer_sharded.sql customer
   sleep 4
@@ -228,8 +259,12 @@ function resharding() {
   sleep 15
 
   vtctlclient Reshard -source_shards '-' -target_shards '-80,80-' Create customer.cust2cust
+  if [ $? -ne 0 ]; then
+    echo "Reshard Create failed"
+    exit 1
+  fi
 
-  sleep 5
+  sleep 15
 
   vdiff_out=$(vtctlclient VDiff customer.cust2cust)
   echo "$vdiff_out" | grep "ProcessedRows: 5" | wc -l | grep "2" > /dev/null
@@ -239,7 +274,15 @@ function resharding() {
   fi
 
   vtctlclient Reshard -tablet_types=rdonly,replica SwitchTraffic customer.cust2cust
+  if [ $? -ne 0 ]; then
+    echo "Reshard SwitchTraffic for replica,rdonly failed"
+    exit 1
+  fi
   vtctlclient Reshard -tablet_types=primary SwitchTraffic customer.cust2cust
+  if [ $? -ne 0 ]; then
+    echo "Reshard SwitchTraffic for primary failed"
+    exit 1
+  fi
 
   sleep 10
 
