@@ -66,7 +66,7 @@ spec:
               resources:
                 requests:
                   cpu: 100m
-                  memory: 256Mi
+                  memory: 512Mi
             dataVolumeClaimTemplate:
               accessModes: ["ReadWriteOnce"]
               resources:
@@ -98,7 +98,7 @@ spec:
               resources:
                 requests:
                   cpu: 100m
-                  memory: 256Mi
+                  memory: 512Mi
             dataVolumeClaimTemplate:
               accessModes: ["ReadWriteOnce"]
               resources:
