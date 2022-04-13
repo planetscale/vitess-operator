@@ -13,7 +13,7 @@ function get_started() {
     checkPodStatusWithTimeout "example-zone1-vtctld(.*)1/1(.*)Running(.*)"
     checkPodStatusWithTimeout "example-zone1-vtgate(.*)1/1(.*)Running(.*)"
     checkPodStatusWithTimeout "example-etcd(.*)1/1(.*)Running(.*)" 3
-    checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 2
+    checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 3
 
     sleep 10
     echo "Creating vschema and commerce SQL schema"
@@ -21,7 +21,7 @@ function get_started() {
     ./pf.sh > /dev/null 2>&1 &
     sleep 5
 
-    waitForKeyspaceToBeServing commerce - 1
+    waitForKeyspaceToBeServing commerce - 2
     sleep 5
 
     applySchemaWithRetry create_commerce_schema.sql commerce drop_all_commerce_tables.sql
@@ -84,12 +84,12 @@ EOF
 function move_tables() {
   echo "Apply 201_customer_tablets.yaml"
   kubectl apply -f 201_customer_tablets.yaml > /dev/null
-  checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 4
+  checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 6
 
   killall kubectl
   ./pf.sh > /dev/null 2>&1 &
 
-  waitForKeyspaceToBeServing customer - 1
+  waitForKeyspaceToBeServing customer - 2
 
   sleep 10
 
@@ -157,14 +157,14 @@ function resharding() {
 
   echo "Apply 302_new_shards.yaml"
   kubectl apply -f 302_new_shards.yaml
-  checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 8
+  checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 12
 
   killall kubectl
   ./pf.sh > /dev/null 2>&1 &
   sleep 5
 
-  waitForKeyspaceToBeServing customer -80 1
-  waitForKeyspaceToBeServing customer 80- 1
+  waitForKeyspaceToBeServing customer -80 2
+  waitForKeyspaceToBeServing customer 80- 2
 
   echo "Ready to reshard ..."
   sleep 15
@@ -239,9 +239,9 @@ COrder
 EOF
 
   kubectl apply -f 306_down_shard_0.yaml
-  checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 6
-  waitForKeyspaceToBeServing customer -80 1
-  waitForKeyspaceToBeServing customer 80- 1
+  checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 9
+  waitForKeyspaceToBeServing customer -80 2
+  waitForKeyspaceToBeServing customer 80- 2
 }
 
 function upgradeToLatest() {
@@ -255,7 +255,7 @@ function upgradeToLatest() {
   checkPodStatusWithTimeout "example-zone1-vtctld(.*)1/1(.*)Running(.*)"
   checkPodStatusWithTimeout "example-zone1-vtgate(.*)1/1(.*)Running(.*)"
   checkPodStatusWithTimeout "example-etcd(.*)1/1(.*)Running(.*)" 3
-  checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 2
+  checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 3
 
   killall kubectl
   ./pf.sh > /dev/null 2>&1 &
@@ -308,8 +308,10 @@ setupKubectlAccessForCI
 
 get_started
 verifyVtGateVersion "12.0.3"
+checkSemiSyncSetup
 upgradeToLatest
 verifyVtGateVersion "13.0.0"
+checkSemiSyncSetup
 move_tables
 resharding
 

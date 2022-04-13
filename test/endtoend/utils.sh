@@ -7,6 +7,17 @@ alias vtctlclient="vtctlclient -server=localhost:15999"
 alias mysql="mysql -h 127.0.0.1 -P 15306 -u user"
 BUILDKITE_BUILD_ID=${BUILDKITE_BUILD_ID:-"0"}
 
+function checkSemiSyncSetup() {
+  for vttablet in $(kubectl get pods --no-headers -o custom-columns=":metadata.name" | grep "vttablet") ; do
+    echo "Checking semi-sync in $vttablet"
+    kubectl exec "$vttablet" -c mysqld -- mysql -S "/vt/socket/mysql.sock" -u root -e "show variables like 'rpl_semi_sync_slave_enabled'" | grep "ON"
+    if [ $? -ne 0 ]; then
+      echo "Semi Sync not setup on $vttablet"
+      exit 1
+    fi
+  done
+}
+
 function printMysqlErrorFiles() {
   for vttablet in $(kubectl get pods --no-headers -o custom-columns=":metadata.name" | grep "vttablet") ; do
     echo "Finding error.log file in $vttablet"
