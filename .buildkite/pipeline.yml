@@ -1,0 +1,23 @@
+agents:
+  queue: "public"
+
+# Mount the docker.sock as to the docker container, so that we are able to
+# run docker build command and kind is spawned as a sibling container.
+steps:
+  - name: "Upgrade Test"
+    command:
+    - apk add g++ make bash curl mysql mysql-client
+    - wget https://golang.org/dl/go1.17.2.linux-amd64.tar.gz
+    - tar -C /usr/local -xzf go1.17.2.linux-amd64.tar.gz
+    - export PATH=$PATH:/usr/local/go/bin
+    - rm go1.17.2.linux-amd64.tar.gz
+    - make upgrade-test
+    concurrency: 1
+    concurrency_group: 'vtop/upgrade-downgrade-test'
+    timeout_in_minutes: 60
+    plugins:
+      - docker#v3.12.0:
+          image: "docker:latest"
+          propagate-environment: true
+          volumes:
+            - "/var/run/docker.sock:/var/run/docker.sock"
