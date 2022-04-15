@@ -87,7 +87,9 @@ function setupKindConfig() {
     # working directory to kind. The current directory in the docker is workdir
     # So if we try and mount that, we get an error. Instead we need to mount the
     # path where the code was checked out be buildkite
-    BACKUP_DIR="$BUILDKITE_BUILD_CHECKOUT_PATH/vitess-operator/vtdataroot/backup"
+    dockerContainerName=$(docker container ls --filter "ancestor=docker" --format '{{.Names}}')
+    CHECKOUT_PATH=$(docker container inspect -f '{{range .Mounts}}{{ if eq .Destination "/workdir" }}{{println .Source }}{{ end }}{{end}}' "$dockerContainerName")
+    BACKUP_DIR="$CHECKOUT_PATH/vtdataroot/backup"
   else
     BACKUP_DIR="$PWD/vtdataroot/backup"
   fi
