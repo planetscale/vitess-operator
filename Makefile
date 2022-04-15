@@ -64,3 +64,6 @@ upgrade-test: build e2e-test-setup
 	echo "Running Upgrade test"
 	test/endtoend/upgrade_test.sh
 
+backup-restore-test: build e2e-test-setup
+	echo "Running Backup-Restore test"
+	test/endtoend/backup_restore_test.sh
