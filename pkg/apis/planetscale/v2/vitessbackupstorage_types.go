@@ -127,6 +127,9 @@ type S3BackupLocation struct {
 	// Endpoint is the `host:port` (port is required) for the S3 backend.
 	// Default: Use the endpoint associated with `region` by the driver.
 	Endpoint string `json:"endpoint,omitempty"`
+	// ForcePathStyle is an optional param to force connection using <endpoint>/<bucket>
+	// Default: false By default the s3 client will try to connect to <bucket>.<endpoint>.
+	ForcePathStyle bool `json:"forcePathStyle,omitempty"`
 	// KeyPrefix is an optional prefix added to all object keys created by Vitess.
 	// This is only needed if the same bucket is also used for something other
 	// than backups for VitessClusters. Backups from different clusters,

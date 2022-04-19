@@ -30,6 +30,7 @@ func s3BackupFlags(s3 *planetscalev2.S3BackupLocation, clusterName string) vites
 		"s3_backup_aws_region":          s3.Region,
 		"s3_backup_storage_bucket":      s3.Bucket,
 		"s3_backup_storage_root":        rootKeyPrefix(s3.KeyPrefix, clusterName),
+		"s3_backup_force_path_style":    s3.ForcePathStyle,
 	}
 	if len(s3.Endpoint) > 0 {
 		flags["s3_backup_aws_endpoint"] = s3.Endpoint
