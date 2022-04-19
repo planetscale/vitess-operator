@@ -39,6 +39,15 @@ function printBackupLogFiles() {
   done
 }
 
+function removeBackupFiles() {
+  for vttablet in $(kubectl get pods --no-headers -o custom-columns=":metadata.name" | grep "vttablet") ; do
+    echo "Removing backup files using $vttablet"
+    kubectl exec "$vttablet" -c vttablet -- rm -rf /vt/backups/example
+    return 0
+  done
+}
+
+
 function dockerContainersInspect() {
   for container in $(docker container ls --format '{{.Names}}') ; do
     echo "Container - $container"
