@@ -99,7 +99,7 @@ function setupKindConfig() {
 # Test setup
 STARTING_DIR="$PWD"
 echo "Make temporary directory for the test"
-mkdir -p ./vtdataroot/backup
+mkdir -p -m 777 ./vtdataroot/backup
 echo "Building the docker image"
 docker build -f build/Dockerfile.release -t vitess-operator-pr:latest .
 echo "Setting up the kind config"

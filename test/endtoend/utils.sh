@@ -1,7 +1,9 @@
 #!/bin/bash
 
 # This file contains utility functions used in the end to end testing of the operator
-set -x
+
+# Use this to debug issues. It will print the commands as they run
+# set -x
 shopt -s expand_aliases
 alias vtctlclient="vtctlclient -server=localhost:15999"
 alias mysql="mysql -h 127.0.0.1 -P 15306 -u user"
@@ -23,6 +25,24 @@ function printMysqlErrorFiles() {
     echo "Finding error.log file in $vttablet"
     kubectl logs "$vttablet" -c mysqld
     kubectl logs "$vttablet" -c vttablet
+  done
+}
+
+function printBackupLogFiles() {
+  for vtbackup in $(kubectl get pods --no-headers -o custom-columns=":metadata.name" | grep "vtbackup") ; do
+    echo "Printing logs of $vtbackup"
+    kubectl logs "$vtbackup"
+    echo "Description of $vtbackup"
+    kubectl describe pod "$vtbackup"
+    echo "User in $vtbackup"
+    kubectl exec "$vtbackup" -- whoami
+  done
+}
+
+function dockerContainersInspect() {
+  for container in $(docker container ls --format '{{.Names}}') ; do
+    echo "Container - $container"
+    docker container inspect "$container"
   done
 }
 
