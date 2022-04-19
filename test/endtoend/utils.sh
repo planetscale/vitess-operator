@@ -82,7 +82,7 @@ function checkPodStatusWithTimeout() {
   regex=$1
   nb=$2
 
-  # Number of pods to match defaults to zero
+  # Number of pods to match defaults to one
   if [ -z "$nb" ]; then
     nb=1
   fi
