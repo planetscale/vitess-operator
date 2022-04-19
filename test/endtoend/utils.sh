@@ -47,6 +47,26 @@ function removeBackupFiles() {
   done
 }
 
+# takeBackup:
+# $1: keyspace-shard for which the backup needs to be taken
+function takeBackup() {
+  keyspaceShard=$1
+  initialBackupCount=$(kubectl get vtb --no-headers | wc -l)
+  finalBackupCount=$((initialBackupCount+1))
+
+  # issue the backupShard command to vtctlclient
+  vtctlclient BackupShard "$keyspaceShard"
+
+  for i in {1..600} ; do
+    out=$(kubectl get vtb --no-headers | wc -l)
+    echo "$out" | grep "$finalBackupCount" > /dev/null 2>&1
+    if [ $? -eq 0 ]; then
+      echo "Backup created"
+      return 0
+    fi
+    sleep 3
+  done
+}
 
 function dockerContainersInspect() {
   for container in $(docker container ls --format '{{.Names}}') ; do

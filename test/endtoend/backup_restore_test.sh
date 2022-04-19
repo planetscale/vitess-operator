@@ -116,6 +116,7 @@ setupKubectlAccessForCI
 get_started
 verifyVtGateVersion "13.0.0"
 checkSemiSyncSetup
+takeBackup "commerce/-"
 
 # Teardown
 echo "Removing the temporary directory"
