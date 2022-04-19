@@ -188,6 +188,10 @@ func SecurityContext(dst **corev1.SecurityContext, src *corev1.SecurityContext) 
 
 	// Save some original values.
 	dstProcMount := (*dst).ProcMount
+	dstAllowPrivilegeEscalation := (*dst).AllowPrivilegeEscalation
+	dstCapabilities := (*dst).Capabilities
+	dstReadOnlyRootFilesystem := (*dst).ReadOnlyRootFilesystem
+	dstRunAsGroup := (*dst).RunAsGroup
 
 	// Copy everything else.
 	**dst = *src
@@ -195,6 +199,18 @@ func SecurityContext(dst **corev1.SecurityContext, src *corev1.SecurityContext) 
 	// Restore saved values if the src didn't set them.
 	if (*dst).ProcMount == nil {
 		(*dst).ProcMount = dstProcMount
+	}
+	if (*dst).AllowPrivilegeEscalation == nil {
+		(*dst).AllowPrivilegeEscalation = dstAllowPrivilegeEscalation
+	}
+	if (*dst).Capabilities == nil {
+		(*dst).Capabilities = dstCapabilities
+	}
+	if (*dst).ReadOnlyRootFilesystem == nil {
+		(*dst).ReadOnlyRootFilesystem = dstReadOnlyRootFilesystem
+	}
+	if (*dst).RunAsGroup == nil {
+		(*dst).RunAsGroup = dstRunAsGroup
 	}
 }
 
