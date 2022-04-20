@@ -3,84 +3,6 @@
 source ./tools/test.env
 source ./test/endtoend/utils.sh
 
-function get_started() {
-    echo "Apply latest operator.yaml"
-    kubectl apply -f operator-latest.yaml
-    checkPodStatusWithTimeout "vitess-operator(.*)1/1(.*)Running(.*)"
-
-    echo "Apply 101_initial_cluster_backup.yaml"
-    kubectl apply -f 101_initial_cluster_backup.yaml
-    checkPodStatusWithTimeout "example-zone1-vtctld(.*)1/1(.*)Running(.*)"
-    checkPodStatusWithTimeout "example-zone1-vtgate(.*)1/1(.*)Running(.*)"
-    checkPodStatusWithTimeout "example-etcd(.*)1/1(.*)Running(.*)" 3
-    checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 3
-
-    sleep 10
-    echo "Creating vschema and commerce SQL schema"
-
-    ./pf.sh > /dev/null 2>&1 &
-    sleep 5
-
-    waitForKeyspaceToBeServing commerce - 2
-    sleep 5
-
-    applySchemaWithRetry create_commerce_schema.sql commerce drop_all_commerce_tables.sql
-    vtctlclient ApplyVSchema -vschema="$(cat vschema_commerce_initial.json)" commerce
-    if [ $? -ne 0 ]; then
-      echo "ApplySchema failed for initial commerce"
-      printMysqlErrorFiles
-      exit 1
-    fi
-    sleep 5
-
-    echo "show databases;" | mysql | grep "commerce" > /dev/null 2>&1
-    if [ $? -ne 0 ]; then
-      echo "Could not find commerce database"
-      printMysqlErrorFiles
-      exit 1
-    fi
-
-    echo "show tables;" | mysql commerce | grep -E 'corder|customer|product' | wc -l | grep 3 > /dev/null 2>&1
-    if [ $? -ne 0 ]; then
-      echo "Could not find commerce's tables"
-      printMysqlErrorFiles
-      exit 1
-    fi
-
-    insertWithRetry
-
-    assertSelect ../common/select_commerce_data.sql "commerce" << EOF
-Using commerce
-Customer
-+-------------+--------------------+
-| customer_id | email              |
-+-------------+--------------------+
-|           1 | alice@domain.com   |
-|           2 | bob@domain.com     |
-|           3 | charlie@domain.com |
-|           4 | dan@domain.com     |
-|           5 | eve@domain.com     |
-+-------------+--------------------+
-Product
-+----------+-------------+-------+
-| sku      | description | price |
-+----------+-------------+-------+
-| SKU-1001 | Monitor     |   100 |
-| SKU-1002 | Keyboard    |    30 |
-+----------+-------------+-------+
-COrder
-+----------+-------------+----------+-------+
-| order_id | customer_id | sku      | price |
-+----------+-------------+----------+-------+
-|        1 |           1 | SKU-1001 |   100 |
-|        2 |           2 | SKU-1002 |    30 |
-|        3 |           3 | SKU-1002 |    30 |
-|        4 |           4 | SKU-1002 |    30 |
-|        5 |           5 | SKU-1002 |    30 |
-+----------+-------------+----------+-------+
-EOF
-}
-
 function takedownShard() {
   echo "Apply 102_keyspace_teardown.yaml"
   kubectl apply -f 102_keyspace_teardown.yaml
@@ -180,7 +102,7 @@ cd "$PWD/test/endtoend/operator"
 killall kubectl
 setupKubectlAccessForCI
 
-get_started
+get_started "operator-latest.yaml" "101_initial_cluster_backup.yaml"
 verifyVtGateVersion "13.0.0"
 checkSemiSyncSetup
 takeBackup "commerce/-"
