@@ -7,13 +7,20 @@ kind: VitessCluster
 metadata:
   name: example
 spec:
+  backup:
+    engine: xtrabackup
+    locations:
+    - volume:
+        hostPath:
+          path: /backup
+          type: Directory
   images:
-    vtctld: vitess/lite:v12.0.3
-    vtgate: vitess/lite:v12.0.3
-    vttablet: vitess/lite:v12.0.3
-    vtbackup: vitess/lite:v12.0.3
+    vtctld: vitess/lite:v13.0.0
+    vtgate: vitess/lite:v13.0.0
+    vttablet: vitess/lite:v13.0.0
+    vtbackup: vitess/lite:v13.0.0
     mysqld:
-      mysql56Compatible: vitess/lite:v12.0.3
+      mysql56Compatible: vitess/lite:v13.0.0
     mysqldExporter: prom/mysqld-exporter:v0.11.0
   cells:
   - name: zone1
@@ -54,11 +61,11 @@ spec:
             name: example-cluster-config
             key: init_db.sql
           replication:
-            enforceSemiSync: false
+            enforceSemiSync: true
           tabletPools:
           - cell: zone1
             type: replica
-            replicas: 2
+            replicas: 3
             vttablet:
               extraFlags:
                 db_charset: utf8mb4

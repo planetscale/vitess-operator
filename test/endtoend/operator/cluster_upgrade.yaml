@@ -1,3 +1,7 @@
+# The following example is minimalist. The security policies
+# and resource specifications are not meant to be used in production.
+# Please refer to the operator documentation for recommendations on
+# production settings.
 apiVersion: planetscale.com/v2
 kind: VitessCluster
 metadata:
@@ -50,47 +54,11 @@ spec:
             name: example-cluster-config
             key: init_db.sql
           replication:
-            enforceSemiSync: false
+            enforceSemiSync: true
           tabletPools:
           - cell: zone1
             type: replica
-            replicas: 2
-            vttablet:
-              extraFlags:
-                db_charset: utf8mb4
-              resources:
-                limits:
-                  memory: 256Mi
-                requests:
-                  cpu: 100m
-                  memory: 256Mi
-            mysqld:
-              resources:
-                limits:
-                  memory: 512Mi
-                requests:
-                  cpu: 100m
-                  memory: 512Mi
-            dataVolumeClaimTemplate:
-              accessModes: ["ReadWriteOnce"]
-              resources:
-                requests:
-                  storage: 10Gi
-  - name: customer
-    turndownPolicy: Immediate
-    partitionings:
-    - equal:
-        parts: 1
-        shardTemplate:
-          databaseInitScriptSecret:
-            name: example-cluster-config
-            key: init_db.sql
-          replication:
-            enforceSemiSync: false
-          tabletPools:
-          - cell: zone1
-            type: replica
-            replicas: 2
+            replicas: 3
             vttablet:
               extraFlags:
                 db_charset: utf8mb4

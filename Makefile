@@ -55,12 +55,15 @@ push-only:
 push: build
 push: push-only
 
-# Setup for the upgrade test
-upgrade-test-setup:
-	./tools/get-upgrade-test-deps.sh
+# Setup for the end to end tests
+e2e-test-setup:
+	./tools/get-e2e-test-deps.sh
 
 # Upgrade test
-upgrade-test: build upgrade-test-setup
+upgrade-test: build e2e-test-setup
 	echo "Running Upgrade test"
-	test/upgrade/test.sh
+	test/endtoend/upgrade_test.sh
 
+backup-restore-test: build e2e-test-setup
+	echo "Running Backup-Restore test"
+	test/endtoend/backup_restore_test.sh
