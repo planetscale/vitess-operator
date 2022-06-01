@@ -233,6 +233,7 @@ func electInitialShardPrimary(ctx context.Context, keyspaceName, shardName strin
 	// Promote the candidate to primary.
 	// TODO (GuptaManan100): We are passing false for semiSync parameter since it is not being used currently.
 	// When we change this behaviour in Vitess, we should also revisit here.
+	// The associated release-14 PR is https://github.com/vitessio/vitess/pull/10375
 	_, err = wr.TabletManagerClient().PromoteReplica(ctx, candidatePrimary.tablet.Tablet, false /* semiSync */)
 	if err != nil {
 		return nil, fmt.Errorf("failed to promote tablet %v to primary: %v", candidatePrimary.tablet.AliasString(), err)
@@ -261,6 +262,7 @@ func electInitialShardPrimary(ctx context.Context, keyspaceName, shardName strin
 			defer wg.Done()
 			// TODO (GuptaManan100): We are passing false for semiSync parameter since it is not being used currently.
 			// When we change this behaviour in Vitess, we should also revisit here.
+			// The associated release-14 PR is https://github.com/vitessio/vitess/pull/10375
 			err := wr.TabletManagerClient().SetReplicationSource(ctx, tablet.Tablet, candidatePrimary.tablet.Alias, 0 /* don't try to wait for a reparent journal entry */, "" /* don't wait for any position */, true /* forceStartReplication */, false /* semiSync */)
 			if err != nil {
 				log.Warningf("best-effort configuration of replication for tablet %v failed: %v", tablet.AliasString(), err)

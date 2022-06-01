@@ -71,6 +71,7 @@ func main() {
 
 	// TODO (GuptaManan100): We need to set some durability policy so that when we call PRS we do not panic.
 	// This should be removed when we upgrade the Vitess dependency to release-14, wherein we will be using the keyspace information to find the durability_policy
+	// The associated release-14 PR is https://github.com/vitessio/vitess/pull/10375
 	reparentutil.SetDurabilityPolicy("none")
 
 	namespace, err := k8sutil.GetWatchNamespace()

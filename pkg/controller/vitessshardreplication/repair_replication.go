@@ -299,6 +299,7 @@ func (r *ReconcileVitessShard) repairReplicationLocked(ctx context.Context, vts 
 			forceStartReplication := tablet.Type == topodatapb.TabletType_REPLICA
 			// TODO (GuptaManan100): We are passing false for semiSync parameter since it is not being used currently.
 			// When we change this behaviour in Vitess, we should also revisit here.
+			// The associated release-14 PR is https://github.com/vitessio/vitess/pull/10375
 			err = wr.TabletManagerClient().SetReplicationSource(ctx, tablet, primaryTabletInfo.Alias, 0 /* don't try to wait for a reparent journal entry */, "" /* don't wait for any position */, forceStartReplication, false /* semiSync */)
 			reparentTabletCount.WithLabelValues(metricLabels(vts, err)...).Inc()
 			if err != nil {
