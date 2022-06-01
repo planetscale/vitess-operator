@@ -20,13 +20,13 @@ require (
 	sigs.k8s.io/controller-runtime v0.9.7
 	sigs.k8s.io/controller-tools v0.6.2
 	sigs.k8s.io/kustomize v2.0.3+incompatible
-	vitess.io/vitess v0.12.0
+	vitess.io/vitess v0.13.0
 )
 
 require (
 	cloud.google.com/go v0.81.0 // indirect
 	cloud.google.com/go/storage v1.10.0 // indirect
-	github.com/AdaLogics/go-fuzz-headers v0.0.0-20210330150358-dbd898e17899 // indirect
+	github.com/AdaLogics/go-fuzz-headers v0.0.0-20211102141018-f7be0cbad29c // indirect
 	github.com/Azure/azure-pipeline-go v0.2.2 // indirect
 	github.com/Azure/azure-storage-blob-go v0.10.0 // indirect
 	github.com/Azure/go-autorest v14.2.0+incompatible // indirect
@@ -45,6 +45,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
 	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/coreos/go-systemd/v22 v22.3.2 // indirect
+	github.com/cyphar/filepath-securejoin v0.2.3 // indirect
 	github.com/daaku/go.zipexe v1.0.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/docker/distribution v2.7.1+incompatible // indirect
@@ -69,7 +70,7 @@ require (
 	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/google/gofuzz v1.1.0 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
-	github.com/google/uuid v1.1.2 // indirect
+	github.com/google/uuid v1.2.0 // indirect
 	github.com/googleapis/gax-go/v2 v2.0.5 // indirect
 	github.com/googleapis/gnostic v0.5.5 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20191106031601-ce3c9ade29de // indirect
@@ -87,10 +88,8 @@ require (
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/json-iterator/go v1.1.11 // indirect
 	github.com/jstemmer/go-junit-report v0.9.1 // indirect
-	github.com/klauspost/compress v1.7.5 // indirect
-	github.com/klauspost/cpuid v1.2.1 // indirect
+	github.com/klauspost/compress v1.11.13 // indirect
 	github.com/klauspost/pgzip v1.2.4 // indirect
-	github.com/kubernetes-sigs/kustomize v2.0.3+incompatible // indirect
 	github.com/mailru/easyjson v0.7.0 // indirect
 	github.com/mattn/go-colorable v0.1.8 // indirect
 	github.com/mattn/go-ieproxy v0.0.0-20191113090002-7c0f6868bffe // indirect
@@ -108,7 +107,7 @@ require (
 	github.com/opentracing/opentracing-go v1.1.0 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	github.com/philhofer/fwd v1.0.0 // indirect
-	github.com/pires/go-proxyproto v0.0.0-20191211124218-517ecdf5bb2b // indirect
+	github.com/pires/go-proxyproto v0.6.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/planetscale/pargzip v0.0.0-20201116224723-90c7fc03ea8a // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect

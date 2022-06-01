@@ -297,7 +297,10 @@ func (r *ReconcileVitessShard) repairReplicationLocked(ctx context.Context, vts 
 			// Only force start replication on replicas, not rdonly.
 			// A rdonly might be stopped on purpose for a diff.
 			forceStartReplication := tablet.Type == topodatapb.TabletType_REPLICA
-			err = wr.TabletManagerClient().SetReplicationSource(ctx, tablet, primaryTabletInfo.Alias, 0 /* don't try to wait for a reparent journal entry */, "" /* don't wait for any position */, forceStartReplication)
+			// TODO (GuptaManan100): We are passing false for semiSync parameter since it is not being used currently.
+			// When we change this behaviour in Vitess, we should also revisit here.
+			// The associated release-14 PR is https://github.com/vitessio/vitess/pull/10375
+			err = wr.TabletManagerClient().SetReplicationSource(ctx, tablet, primaryTabletInfo.Alias, 0 /* don't try to wait for a reparent journal entry */, "" /* don't wait for any position */, forceStartReplication, false /* semiSync */)
 			reparentTabletCount.WithLabelValues(metricLabels(vts, err)...).Inc()
 			if err != nil {
 				// Just log the error instead of failing the process, because fixing replicas is best-effort.

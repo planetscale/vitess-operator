@@ -229,10 +229,10 @@ killall kubectl
 setupKubectlAccessForCI
 
 get_started "operator.yaml" "101_initial_cluster.yaml"
-verifyVtGateVersion "12.0.3"
+verifyVtGateVersion "13.0.0"
 checkSemiSyncSetup
 upgradeToLatest
-verifyVtGateVersion "13.0.0"
+verifyVtGateVersion "14.0.0"
 checkSemiSyncSetup
 move_tables
 resharding

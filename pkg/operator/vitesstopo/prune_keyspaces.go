@@ -30,6 +30,8 @@ import (
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 	"planetscale.dev/vitess-operator/pkg/operator/results"
+
+	vtctldatapb "vitess.io/vitess/go/vt/proto/vtctldata"
 )
 
 type PruneKeyspacesParams struct {
@@ -105,7 +107,10 @@ func DeleteKeyspaces(ctx context.Context, ts *topo.Server, recorder record.Event
 		recorder.Eventf(eventObj, corev1.EventTypeNormal, "TopoCleanup", "removed unwanted keyspace %s vschema from topology", name)
 
 		// topo.NoNode is the error type returned if we can't find the keyspace when deleting. This ensures that this operation is idempotent.
-		if err := wr.DeleteKeyspace(ctx, name, true); err != nil && !topo.IsErrType(err, topo.NoNode) {
+		if _, err := wr.VtctldServer().DeleteKeyspace(ctx, &vtctldatapb.DeleteKeyspaceRequest{
+			Keyspace:  name,
+			Recursive: true,
+		}); err != nil && !topo.IsErrType(err, topo.NoNode) {
 			recorder.Eventf(eventObj, corev1.EventTypeWarning, "TopoCleanupFailed", "unable to remove keyspace %s from topology: %v", name, err)
 			resultBuilder.RequeueAfter(topoRequeueDelay)
 		} else {
