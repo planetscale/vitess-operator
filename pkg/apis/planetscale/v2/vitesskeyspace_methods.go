@@ -18,32 +18,43 @@ package v2
 
 import (
 	"encoding/hex"
+	"fmt"
 	"sort"
+	"strings"
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
-	"planetscale.dev/vitess-operator/pkg/operator/partitioning"
+	"vitess.io/vitess/go/vt/key"
 	topodatapb "vitess.io/vitess/go/vt/proto/topodata"
 )
 
-/*
-KeyRanges returns the set of ranges for an equal partitioning.
-
-The business logic for figuring out the key ranges happens in `pkg/operator/partitioning`, and this method simply
-calls that function, which returns the key ranges as an array of raw vitess KeyRange type (start and end as []byte).
-This function then translates that into VitessKeyRanges (start and end as hex strings) and returns the []VitessKeyRange.
-*/
+// KeyRanges returns the set of ranges for an equal partitioning.
 func (p *VitessKeyspaceEqualPartitioning) KeyRanges() []VitessKeyRange {
-	byteKeyRanges := partitioning.EqualKeyRanges(uint64(p.Parts))
-	vitessKeyRanges := make([]VitessKeyRange, len(byteKeyRanges))
-
-	for i, byteKeyRange := range byteKeyRanges {
-		vitessKeyRanges[i].FillFromByteKeyRange(byteKeyRange)
+	// Invariant: number of parts must be between 1-65536. This is enforced via
+	// the CRD.
+	ranges, err := key.GenerateShardRanges(int(p.Parts))
+	if err != nil {
+		panic(fmt.Sprintf("could not generate shard range with %d parts: %v", p.Parts, err))
 	}
 
-	return vitessKeyRanges
+	out := make([]VitessKeyRange, 0, len(ranges))
+	for _, r := range ranges {
+		// Invariant: key ranges are always in a format such as: "-", "-20",
+		// "20-40", or "40-".
+		start, end, ok := strings.Cut(r, "-")
+		if !ok {
+			panic(fmt.Sprintf("cannot create VitessKeyRange from shard range %q", r))
+		}
+
+		out = append(out, VitessKeyRange{
+			Start: start,
+			End:   end,
+		})
+	}
+
+	return out
 }
 
 // FillFromByteKeyRange is a method to fill a VitessKeyRange from a topodatapb.KeyRange (encoding from []byte to

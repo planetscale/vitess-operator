@@ -1318,6 +1318,7 @@ spec:
                             properties:
                               parts:
                                 format: int32
+                                maximum: 65536
                                 minimum: 1
                                 type: integer
                               shardTemplate:

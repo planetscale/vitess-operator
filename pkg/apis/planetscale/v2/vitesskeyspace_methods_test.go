@@ -22,9 +22,6 @@ import (
 )
 
 func TestTranslationToVitessKeyRange(t *testing.T) {
-	// Quick test - calling KeyRanges method should call KeyRanges function in partitioning package, and then
-	// translate raw Vitess KeyRange to VitessKeyRange.  Most of business logic tests are unit tested within
-	// partitioning package.
 	table := []struct {
 		parts int32
 		want  []VitessKeyRange
@@ -39,6 +36,30 @@ func TestTranslationToVitessKeyRange(t *testing.T) {
 			parts: 3,
 			want: []VitessKeyRange{
 				{"", "55"}, {"55", "aa"}, {"aa", ""},
+			},
+		},
+		{
+			parts: 6,
+			want: []VitessKeyRange{
+				{"", "2a"},
+				{"2a", "55"},
+				{"55", "80"},
+				{"80", "aa"},
+				{"aa", "d5"},
+				{"d5", ""},
+			},
+		},
+		{
+			parts: 8,
+			want: []VitessKeyRange{
+				{"", "20"},
+				{"20", "40"},
+				{"40", "60"},
+				{"60", "80"},
+				{"80", "a0"},
+				{"a0", "c0"},
+				{"c0", "e0"},
+				{"e0", ""},
 			},
 		},
 	}
