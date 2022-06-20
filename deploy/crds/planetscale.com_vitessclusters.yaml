@@ -363,6 +363,8 @@ spec:
                       type: object
                     lockserver:
                       properties:
+                        cellInfoAddress:
+                          type: string
                         etcd:
                           properties:
                             advertisePeerURLs:
@@ -640,6 +642,8 @@ spec:
                 type: object
               globalLockserver:
                 properties:
+                  cellInfoAddress:
+                    type: string
                   etcd:
                     properties:
                       advertisePeerURLs:
