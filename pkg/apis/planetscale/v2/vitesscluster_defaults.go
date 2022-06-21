@@ -27,6 +27,7 @@ func DefaultVitessCluster(vt *VitessCluster) {
 	defaultGlobalLockserver(vt)
 	DefaultVitessImages(&vt.Spec.Images, DefaultImages)
 	DefaultVitessDashboard(&vt.Spec.VitessDashboard)
+	DefaultVtAdmin(&vt.Spec.VtAdmin)
 	DefaultVitessKeyspaceTemplates(vt.Spec.Keyspaces)
 	defaultClusterBackup(vt.Spec.Backup)
 	DefaultTopoReconcileConfig(&vt.Spec.TopologyReconciliation)
@@ -91,6 +92,28 @@ func DefaultVitessDashboard(dashboard **VitessDashboardSpec) {
 	if len((*dashboard).Resources.Limits) == 0 {
 		(*dashboard).Resources.Limits = corev1.ResourceList{
 			corev1.ResourceMemory: *resource.NewQuantity(defaultVtctldMemoryBytes, resource.BinarySI),
+		}
+	}
+	DefaultServiceOverrides(&(*dashboard).Service)
+}
+
+func DefaultVtAdmin(dashboard **VtAdminSpec) {
+	// Do not deploy vtadmin if not specified.
+	if *dashboard == nil {
+		return
+	}
+	if (*dashboard).Replicas == nil {
+		(*dashboard).Replicas = pointer.Int32Ptr(defaultVtadminReplicas)
+	}
+	if len((*dashboard).Resources.Requests) == 0 {
+		(*dashboard).Resources.Requests = corev1.ResourceList{
+			corev1.ResourceCPU:    *resource.NewMilliQuantity(defaultVtadminCPUMillis, resource.DecimalSI),
+			corev1.ResourceMemory: *resource.NewQuantity(defaultVtadminMemoryBytes, resource.BinarySI),
+		}
+	}
+	if len((*dashboard).Resources.Limits) == 0 {
+		(*dashboard).Resources.Limits = corev1.ResourceList{
+			corev1.ResourceMemory: *resource.NewQuantity(defaultVtadminMemoryBytes, resource.BinarySI),
 		}
 	}
 	DefaultServiceOverrides(&(*dashboard).Service)
