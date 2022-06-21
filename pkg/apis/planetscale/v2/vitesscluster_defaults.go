@@ -56,6 +56,9 @@ func DefaultVitessImages(dst *VitessImages, src *VitessImages) {
 	if dst.Vtctld == "" {
 		dst.Vtctld = src.Vtctld
 	}
+	if dst.Vtadmin == "" {
+		dst.Vtadmin = src.Vtadmin
+	}
 	if dst.Vtorc == "" {
 		dst.Vtorc = src.Vtorc
 	}
