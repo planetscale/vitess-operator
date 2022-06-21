@@ -86,6 +86,8 @@ const (
 
 	// DefaultWebPort is the port for debug status pages and dashboard UIs.
 	DefaultWebPort = 15000
+	// DefaultAPIPort is the port for API endpoint.
+	DefaultAPIPort = 15001
 	// DefaultGrpcPort is the port for RPCs.
 	DefaultGrpcPort = 15999
 	// DefaultMysqlPort is the port for MySQL client connections.
@@ -96,6 +98,8 @@ const (
 
 	// DefaultWebPortName is the name for the web port.
 	DefaultWebPortName = "web"
+	// DefaultAPIPortName is the name for the api port.
+	DefaultAPIPortName = "api"
 	// DefaultGrpcPortName is the name for the RPC port.
 	DefaultGrpcPortName = "grpc"
 	// DefaultMysqlPortName is the name for the MySQL port.

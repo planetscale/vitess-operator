@@ -3780,6 +3780,19 @@ VitessDashboardStatus
 </tr>
 <tr>
 <td>
+<code>vtadmin</code></br>
+<em>
+<a href="#planetscale.com/v2.VtadminStatus">
+VtadminStatus
+</a>
+</em>
+</td>
+<td>
+<p>Vtadmin is a summary of the status of the vtctld deployment.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>cells</code></br>
 <em>
 <a href="#planetscale.com/v2.VitessClusterCellStatus">
@@ -4363,6 +4376,19 @@ Kubernetes core/v1.PullPolicy
 </tr>
 <tr>
 <td>
+<code>vtadmin</code></br>
+<em>
+<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#pullpolicy-v1-core">
+Kubernetes core/v1.PullPolicy
+</a>
+</em>
+</td>
+<td>
+<p>Vtadmin is the container image pull policy to use for Vtadmin instances.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>vtorc</code></br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#pullpolicy-v1-core">
@@ -4467,6 +4493,17 @@ string
 </td>
 <td>
 <p>Vtctld is the container image (including version tag) to use for Vitess Dashboard instances.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>vtadmin</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Vtadmin is the container image (including version tag) to use for Vtadmin instances.</p>
 </td>
 </tr>
 <tr>
@@ -7690,6 +7727,49 @@ ServiceOverrides
 </td>
 <td>
 <p>Tolerations allow you to schedule pods onto nodes with matching taints.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="planetscale.com/v2.VtadminStatus">VtadminStatus
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#planetscale.com/v2.VitessClusterStatus">VitessClusterStatus</a>)
+</p>
+<p>
+<p>VtadminStatus is a summary of the status of the vtadmin deployment.</p>
+</p>
+<table class="table table-striped">
+<thead class="thead-dark">
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>available</code></br>
+<em>
+<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#conditionstatus-v1-core">
+Kubernetes core/v1.ConditionStatus
+</a>
+</em>
+</td>
+<td>
+<p>Available indicates whether the vtadmin service has available endpoints.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>serviceName</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>ServiceName is the name of the Service for this cluster&rsquo;s vtadmin.</p>
 </td>
 </tr>
 </tbody>

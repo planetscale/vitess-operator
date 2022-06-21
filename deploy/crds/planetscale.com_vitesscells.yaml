@@ -254,6 +254,8 @@ spec:
                     type: string
                   mysqldExporter:
                     type: string
+                  vtadmin:
+                    type: string
                   vtbackup:
                     type: string
                   vtctld:

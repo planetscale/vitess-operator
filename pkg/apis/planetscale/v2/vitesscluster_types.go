@@ -224,6 +224,8 @@ type VitessImages struct {
 
 	// Vtctld is the container image (including version tag) to use for Vitess Dashboard instances.
 	Vtctld string `json:"vtctld,omitempty"`
+	// Vtadmin is the container image (including version tag) to use for Vtadmin instances.
+	Vtadmin string `json:"vtadmin,omitempty"`
 	// Vtorc is the container image (including version tag) to use for Vitess Orchestrator instances.
 	Vtorc string `json:"vtorc,omitempty"`
 	// Vtgate is the container image (including version tag) to use for Vitess Gateway instances.
@@ -264,6 +266,8 @@ type MysqldImage struct {
 type VitessImagePullPolicies struct {
 	// Vtctld is the container image pull policy to use for Vitess Dashboard instances.
 	Vtctld corev1.PullPolicy `json:"vtctld,omitempty"`
+	// Vtadmin is the container image pull policy to use for Vtadmin instances.
+	Vtadmin corev1.PullPolicy `json:"vtadmin,omitempty"`
 	// Vtorc is the container image pull policy to use for Vitess Orchestrator instances.
 	Vtorc corev1.PullPolicy `json:"vtorc,omitempty"`
 	// Vtgate is the container image pull policy to use for Vitess Gateway instances.
@@ -528,6 +532,14 @@ type VitessDashboardStatus struct {
 	ServiceName string `json:"serviceName,omitempty"`
 }
 
+// VtadminStatus is a summary of the status of the vtadmin deployment.
+type VtadminStatus struct {
+	// Available indicates whether the vtadmin service has available endpoints.
+	Available corev1.ConditionStatus `json:"available,omitempty"`
+	// ServiceName is the name of the Service for this cluster's vtadmin.
+	ServiceName string `json:"serviceName,omitempty"`
+}
+
 // VitessClusterStatus defines the observed state of VitessCluster
 type VitessClusterStatus struct {
 	// The generation observed by the controller.
@@ -541,6 +553,9 @@ type VitessClusterStatus struct {
 
 	// VitessDashboard is a summary of the status of the vtctld deployment.
 	VitessDashboard VitessDashboardStatus `json:"vitessDashboard,omitempty"`
+
+	// Vtadmin is a summary of the status of the vtctld deployment.
+	Vtadmin VtadminStatus `json:"vtadmin,omitempty"`
 
 	// Cells is a summary of the status of desired cells.
 	Cells map[string]VitessClusterCellStatus `json:"cells,omitempty"`
@@ -557,6 +572,9 @@ type VitessClusterStatus struct {
 func NewVitessClusterStatus() VitessClusterStatus {
 	return VitessClusterStatus{
 		VitessDashboard: VitessDashboardStatus{
+			Available: corev1.ConditionUnknown,
+		},
+		Vtadmin: VtadminStatus{
 			Available: corev1.ConditionUnknown,
 		},
 		Cells:             make(map[string]VitessClusterCellStatus),

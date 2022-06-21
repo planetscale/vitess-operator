@@ -901,6 +901,8 @@ spec:
                     type: string
                   mysqldExporter:
                     type: string
+                  vtadmin:
+                    type: string
                   vtbackup:
                     type: string
                   vtctld:
@@ -933,6 +935,8 @@ spec:
                         type: string
                     type: object
                   mysqldExporter:
+                    type: string
+                  vtadmin:
                     type: string
                   vtbackup:
                     type: string
@@ -2232,6 +2236,13 @@ spec:
                   type: object
                 type: object
               vitessDashboard:
+                properties:
+                  available:
+                    type: string
+                  serviceName:
+                    type: string
+                type: object
+              vtadmin:
                 properties:
                   available:
                     type: string

@@ -206,6 +206,10 @@ func (r *ReconcileVitessCluster) Reconcile(cctx context.Context, request reconci
 	vtctldResult, err := r.reconcileVtctld(ctx, vt)
 	resultBuilder.Merge(vtctldResult, err)
 
+	// Create/update vtadmin deployments.
+	vtadminResult, err := r.reconcileVtadmin(ctx, vt)
+	resultBuilder.Merge(vtadminResult, err)
+
 	// Create/update Vitess topology records for cells as needed.
 	topoResult, err := r.reconcileTopology(ctx, vt)
 	resultBuilder.Merge(topoResult, err)
