@@ -242,7 +242,7 @@ func (r *ReconcileVitessCluster) createDiscoverySecret(ctx context.Context, vt *
 	}
 
 	// Find the IP address from the service. This is randomly assigned.
-	vtgateServiceIP := vtctldService.Spec.ClusterIP
+	vtgateServiceIP := vtgateService.Spec.ClusterIP
 	// The grpc port should be set to the default value planetscalev2.DefaultGrpcPort,
 	// but since we have the service, we can just read it.
 	var vtgateServiceGrpcPort int32
