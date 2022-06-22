@@ -85,7 +85,10 @@ EOF
 
 # verifyVtadminSetup verifies that we can query the vtadmin api end point
 function verifyVtadminSetup() {
+  # Verify the debug/env page can be curled and it contains the kubernetes environment variables like HOSTNAME
   curlRequestWithRetry "localhost:14001/debug/env" "HOSTNAME=example-zone1-vtadmin"
+  # Verify the api/keyspaces page can be curled and it contains the name of the keyspace created
+  curlRequestWithRetry "localhost:14001/api/keyspaces" "commerce"
 }
 
 function curlRequestWithRetry() {
