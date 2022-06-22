@@ -89,6 +89,9 @@ function verifyVtadminSetup() {
   curlRequestWithRetry "localhost:14001/debug/env" "HOSTNAME=example-zone1-vtadmin"
   # Verify the api/keyspaces page can be curled and it contains the name of the keyspace created
   curlRequestWithRetry "localhost:14001/api/keyspaces" "commerce"
+  # Verify the other APIs work as well
+  curlRequestWithRetry "localhost:14001/api/tablets" '"tablets":\[{"cluster":{"id":"zone1","name":"zone1"},"tablet":{"alias":{"cell":"zone1"'
+  curlRequestWithRetry "localhost:14001/api/schemas" '"keyspace":"commerce","table_definitions":\[{"name":"corder","schema":"CREATE TABLE `corder` (\\n  `order_id` bigint(20) NOT NULL AUTO_INCREMENT'
 }
 
 function curlRequestWithRetry() {
