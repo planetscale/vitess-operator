@@ -273,18 +273,8 @@ func (r *ReconcileVitessCluster) createDiscoverySecret(ctx context.Context, vt *
 }`, vtctldServiceIP, vtctldServiceWebPort, vtctldServiceIP, vtctldServiceGrpcPort, vtgateServiceIP, vtgateServiceGrpcPort)
 	secretName := vtadmin.DiscoverySecretName(vt.Name, cell.Name)
 
-	// Create the secret
-	secret := &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      secretName,
-			Namespace: vt.Namespace,
-		},
-		Type: corev1.SecretTypeOpaque,
-		StringData: map[string]string{
-			discoveryKey: discoveryVal,
-		},
-	}
-	err = r.client.Create(ctx, secret)
+	// Create or update the secret
+	err = r.createOrUpdateSecret(ctx, vt, secretName, discoveryKey, discoveryVal)
 	if err != nil {
 		return nil, err
 	}
@@ -294,4 +284,29 @@ func (r *ReconcileVitessCluster) createDiscoverySecret(ctx context.Context, vt *
 		Name: secretName,
 		Key:  discoveryKey,
 	}, nil
+}
+
+func (r *ReconcileVitessCluster) createOrUpdateSecret(ctx context.Context, vt *planetscalev2.VitessCluster, secretName, discoveryKey, discoveryVal string) error {
+	desiredSecret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      secretName,
+			Namespace: vt.Namespace,
+		},
+		Type: corev1.SecretTypeOpaque,
+		StringData: map[string]string{
+			discoveryKey: discoveryVal,
+		},
+	}
+
+	secret := corev1.Secret{}
+	err := r.client.Get(ctx, client.ObjectKey{
+		Name:      secretName,
+		Namespace: vt.Namespace,
+	}, &secret)
+	if err != nil {
+		// Create the secret
+		return r.client.Create(ctx, desiredSecret)
+	}
+	// Update the secret
+	return r.client.Update(ctx, desiredSecret)
 }

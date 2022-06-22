@@ -17,6 +17,7 @@ limitations under the License.
 package vtadmin
 
 import (
+	"fmt"
 	"planetscale.dev/vitess-operator/pkg/operator/secrets"
 	"strings"
 
@@ -40,8 +41,8 @@ const (
 	command = "/vt/bin/vtadmin"
 	//webDir  = "/vt/src/vitess.io/vitess/web/vtadmin"
 
-	rbacConfigDirName      = "rbac.yaml"
-	discoveryStatiFilePath = "discovery.json"
+	rbacConfigDirName      = "rbac-config"
+	discoveryStatiFilePath = "discovery-config"
 )
 
 // DeploymentName returns the name of the vtadmin Deployment for a given cell.
@@ -181,7 +182,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 				HTTPGet: &corev1.HTTPGetAction{
 					// TODO: find the correct end point for readiness check
 					Path: "/debug/env",
-					Port: intstr.FromString(planetscalev2.DefaultWebPortName),
+					Port: intstr.FromString(planetscalev2.DefaultAPIPortName),
 				},
 			},
 		},
@@ -190,7 +191,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 				HTTPGet: &corev1.HTTPGetAction{
 					// TODO: find the correct end point for liveness check
 					Path: "/debug/env",
-					Port: intstr.FromString(planetscalev2.DefaultWebPortName),
+					Port: intstr.FromString(planetscalev2.DefaultAPIPortName),
 				},
 			},
 			InitialDelaySeconds: 300,
@@ -233,8 +234,8 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 
 func (spec *Spec) flags() vitess.Flags {
 	return vitess.Flags{
-		"addr":         planetscalev2.DefaultAPIPort,
-		"http-origin":  planetscalev2.DefaultWebPort,
+		"addr":         fmt.Sprintf(":%d", planetscalev2.DefaultAPIPort),
+		"http-origin":  fmt.Sprintf("http://localhost:%d", planetscalev2.DefaultWebPort),
 		"tracer":       "opentracing-jaeger",
 		"grpc-tracing": true,
 		"http-tracing": true,
@@ -270,14 +271,18 @@ func updateDiscovery(spec *Spec, flags vitess.Flags, container *corev1.Container
 	// Mount the volume in the Container.
 	container.VolumeMounts = append(container.VolumeMounts, discoveryFile.ContainerVolumeMount())
 
-	clusterFlagVal := flags["cluster"]
-	clusterFlagString, isString := clusterFlagVal.(string)
-	if !isString {
-		return
+	clusterFlagVal, clusterFlagExists := flags["cluster"]
+	var clusterFlagStringProvided string
+	var isString bool
+	if clusterFlagExists {
+		clusterFlagStringProvided, isString = clusterFlagVal.(string)
+		if !isString {
+			return
+		}
 	}
-	if len(clusterFlagString) != 0 {
-		clusterFlagString = clusterFlagString + ","
+	clusterFlagString := fmt.Sprintf("id=%s,name=%s,discovery=staticfile,discovery-staticfile-path=%s", spec.Cell.Name, spec.Cell.Name, discoveryFile.FilePath())
+	if len(clusterFlagStringProvided) != 0 {
+		clusterFlagString += "," + clusterFlagStringProvided
 	}
-	clusterFlagString += "discovery=staticfile,discovery-staticfile-path=" + discoveryFile.FilePath()
 	flags["cluster"] = clusterFlagString
 }
