@@ -176,6 +176,7 @@ func (r *ReconcileVitessCluster) vtadminSpecs(ctx context.Context, vt *planetsca
 			Discovery:         discoverySecret,
 			Rbac:              vt.Spec.VtAdmin.Rbac,
 			Image:             vt.Spec.Images.Vtadmin,
+			ClusterName:       vt.ObjectMeta.Name,
 			ImagePullPolicy:   vt.Spec.ImagePullPolicies.Vtadmin,
 			ImagePullSecrets:  vt.Spec.ImagePullSecrets,
 			Labels:            labels,

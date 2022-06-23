@@ -86,19 +86,27 @@ EOF
 # verifyVtadminSetup verifies that we can query the vtadmin api end point
 function verifyVtadminSetup() {
   # Verify the debug/env page can be curled and it contains the kubernetes environment variables like HOSTNAME
-  curlRequestWithRetry "localhost:14001/debug/env" "HOSTNAME=example-zone1-vtadmin"
+  curlGetRequestWithRetry "localhost:14001/debug/env" "HOSTNAME=example-zone1-vtadmin"
   # Verify the api/keyspaces page can be curled and it contains the name of the keyspace created
-  curlRequestWithRetry "localhost:14001/api/keyspaces" "commerce"
+  curlGetRequestWithRetry "localhost:14001/api/keyspaces" "commerce"
   # Verify the other APIs work as well
-  curlRequestWithRetry "localhost:14001/api/tablets" '"tablets":\[{"cluster":{"id":"zone1","name":"zone1"},"tablet":{"alias":{"cell":"zone1"'
-  curlRequestWithRetry "localhost:14001/api/schemas" '"keyspace":"commerce","table_definitions":\[{"name":"corder","schema":"CREATE TABLE `corder` (\\n  `order_id` bigint(20) NOT NULL AUTO_INCREMENT'
+  curlGetRequestWithRetry "localhost:14001/api/tablets" '"tablets":\[{"cluster":{"id":"example","name":"example"},"tablet":{"alias":{"cell":"zone1"'
+  curlGetRequestWithRetry "localhost:14001/api/schemas" '"keyspace":"commerce","table_definitions":\[{"name":"corder","schema":"CREATE TABLE `corder` (\\n  `order_id` bigint(20) NOT NULL AUTO_INCREMENT'
+  # Verify that we are able to create a keyspace
+  curlPostRequest "localhost:14001/api/keyspace/example" '{"name":"testKeyspace"}'
+  if [ $? -ne 0 ]; then
+    echo -e "The couldn't create keyspace testKeyspace using the vtadmin API\n"
+    exit 1
+  fi
+  # List the keyspaces and check that we have them both
+  curlGetRequestWithRetry "localhost:14001/api/keyspaces" "commerce.*testKeyspace"
 }
 
-function curlRequestWithRetry() {
+function curlGetRequestWithRetry() {
   url=$1
   dataToAssert=$2
   for i in {1..600} ; do
-    res=$(curl "$1")
+    res=$(curl "$url")
     if [ $? -eq 0 ]; then
       echo "$res" | grep "$dataToAssert" > /dev/null 2>&1
       if [ $? -ne 0 ]; then
@@ -112,9 +120,15 @@ function curlRequestWithRetry() {
   done
 }
 
+function curlPostRequest() {
+  url=$1
+  data=$2
+  curl -X POST -d "$data" "$url"
+}
+
 # Test setup
 echo "Building the docker image"
-docker build -f build/Dockerfile.release -t vitess-operator-pr:latest .
+#docker build -f build/Dockerfile.release -t vitess-operator-pr:latest .
 echo "Creating Kind cluster"
 kind create cluster --wait 30s --name kind-${BUILDKITE_BUILD_ID}
 echo "Loading docker image into Kind cluster"
@@ -134,5 +148,5 @@ checkSemiSyncSetup
 verifyVtadminSetup
 
 # Teardown
-#echo "Deleting Kind cluster. This also deletes the volume associated with it"
+echo "Deleting Kind cluster. This also deletes the volume associated with it"
 kind delete cluster --name kind-${BUILDKITE_BUILD_ID}

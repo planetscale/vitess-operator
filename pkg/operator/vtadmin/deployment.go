@@ -64,6 +64,7 @@ type Spec struct {
 	Discovery         *planetscalev2.SecretSource
 	Rbac              *planetscalev2.SecretSource
 	Image             string
+	ClusterName       string
 	ImagePullPolicy   corev1.PullPolicy
 	ImagePullSecrets  []corev1.LocalObjectReference
 	Labels            map[string]string
@@ -280,7 +281,14 @@ func updateDiscovery(spec *Spec, flags vitess.Flags, container *corev1.Container
 			return
 		}
 	}
-	clusterFlagString := fmt.Sprintf("id=%s,name=%s,discovery=staticfile,discovery-staticfile-path=%s", spec.Cell.Name, spec.Cell.Name, discoveryFile.FilePath())
+
+	// We use the cluster name as the identifier
+	clusterIdentifier := spec.ClusterName
+	// If it is not provided, then we use "cluster"
+	if clusterIdentifier == "" {
+		clusterIdentifier = "cluster"
+	}
+	clusterFlagString := fmt.Sprintf("id=%s,name=%s,discovery=staticfile,discovery-staticfile-path=%s", clusterIdentifier, clusterIdentifier, discoveryFile.FilePath())
 	if len(clusterFlagStringProvided) != 0 {
 		clusterFlagString += "," + clusterFlagStringProvided
 	}
