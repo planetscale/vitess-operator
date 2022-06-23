@@ -433,7 +433,7 @@ type VitessDashboardSpec struct {
 type VtAdminSpec struct {
 	// Rbac contains the rbac config file for vtadmin.
 	// If it is omitted, then it is considered to disable rbac.
-	Rbac *SecretSource `json:"configSecret,omitempty"`
+	Rbac *SecretSource `json:"rbac,omitempty"`
 
 	// Cells is a list of cell names (as defined in the Cells list)
 	// in which to deploy vtadmin.

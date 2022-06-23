@@ -2005,17 +2005,6 @@ spec:
                     items:
                       type: string
                     type: array
-                  configSecret:
-                    properties:
-                      key:
-                        type: string
-                      name:
-                        type: string
-                      volumeName:
-                        type: string
-                    required:
-                    - key
-                    type: object
                   extraEnv:
                     items:
                       properties:
@@ -2108,6 +2097,17 @@ spec:
                     x-kubernetes-preserve-unknown-fields: true
                   initContainers:
                     x-kubernetes-preserve-unknown-fields: true
+                  rbac:
+                    properties:
+                      key:
+                        type: string
+                      name:
+                        type: string
+                      volumeName:
+                        type: string
+                    required:
+                    - key
+                    type: object
                   replicas:
                     format: int32
                     type: integer
