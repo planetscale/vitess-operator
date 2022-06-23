@@ -44,6 +44,9 @@ spec:
         cpu: 100m
         memory: 128Mi
   vtAdmin:
+    rbac:
+      name: example-cluster-config
+      key: rbac.yaml
     cells:
       - zone1
     replicas: 1
@@ -200,3 +203,20 @@ stringData:
 
     RESET SLAVE ALL;
     RESET MASTER;
+  rbac.yaml: |
+    rules:
+    - resource: "*"
+      actions:
+        - "get"
+        - "create"
+        - "put"
+        - "ping"
+      subjects: ["*"]
+      clusters: ["*"]
+    - resource: "Shard"
+      actions:
+        - "emergency_reparent_shard"
+        - "planned_reparent_shard"
+      subjects: ["*"]
+      clusters:
+        - "local"

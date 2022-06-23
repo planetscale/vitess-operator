@@ -94,12 +94,16 @@ function verifyVtadminSetup() {
   curlGetRequestWithRetry "localhost:14001/api/schemas" '"keyspace":"commerce","table_definitions":\[{"name":"corder","schema":"CREATE TABLE `corder` (\\n  `order_id` bigint(20) NOT NULL AUTO_INCREMENT'
   # Verify that we are able to create a keyspace
   curlPostRequest "localhost:14001/api/keyspace/example" '{"name":"testKeyspace"}'
-  if [ $? -ne 0 ]; then
-    echo -e "The couldn't create keyspace testKeyspace using the vtadmin API\n"
-    exit 1
-  fi
   # List the keyspaces and check that we have them both
   curlGetRequestWithRetry "localhost:14001/api/keyspaces" "commerce.*testKeyspace"
+  # Try and delete the keyspace but this should fail because of the rbac rules
+  curlDeleteRequest "localhost:14001/api/keyspace/example/testKeyspace" "unauthorized.*cannot.*delete.*keyspace"
+  # We should still have both the keyspaces
+  curlGetRequestWithRetry "localhost:14001/api/keyspaces" "commerce.*testKeyspace"
+  # Delete the keyspace by using the vtctlclient
+  vtctlclient DeleteKeyspace testKeyspace
+  # Verify we still have the commerce keyspace and no other keyspace
+  curlGetRequestWithRetry "localhost:14001/api/keyspaces" "commerce.*}}}}]"
 }
 
 function curlGetRequestWithRetry() {
@@ -120,15 +124,34 @@ function curlGetRequestWithRetry() {
   done
 }
 
+function curlDeleteRequest() {
+  url=$1
+  dataToAssert=$2
+  res=$(curl -X DELETE "$url")
+  if [ $? -ne 0 ]; then
+    echo -e "The DELETE request to $url failed\n"
+    exit 1
+  fi
+  echo "$res" | grep "$dataToAssert" > /dev/null 2>&1
+  if [ $? -ne 0 ]; then
+    echo -e "The data in delete request to $url is incorrect, got:\n$res"
+    exit 1
+  fi
+}
+
 function curlPostRequest() {
   url=$1
   data=$2
   curl -X POST -d "$data" "$url"
+  if [ $? -ne 0 ]; then
+    echo -e "The POST request to $url with data $data failed\n"
+    exit 1
+  fi
 }
 
 # Test setup
 echo "Building the docker image"
-#docker build -f build/Dockerfile.release -t vitess-operator-pr:latest .
+docker build -f build/Dockerfile.release -t vitess-operator-pr:latest .
 echo "Creating Kind cluster"
 kind create cluster --wait 30s --name kind-${BUILDKITE_BUILD_ID}
 echo "Loading docker image into Kind cluster"
