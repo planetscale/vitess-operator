@@ -9,7 +9,7 @@ metadata:
 spec:
   images:
     vtctld: vitess/lite:v14.0.0-rc1
-    vtadmin: vitess/lite:v14.0.0-rc1
+    vtadmin: vitess/vtadmin:latest
     vtgate: vitess/lite:v14.0.0-rc1
     vttablet: vitess/lite:v14.0.0-rc1
     vtbackup: vitess/lite:v14.0.0-rc1

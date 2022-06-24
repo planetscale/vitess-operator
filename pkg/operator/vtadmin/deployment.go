@@ -36,10 +36,11 @@ import (
 )
 
 const (
-	containerName = "vtadmin"
+	apiContainerName = "vtadmin-api"
+	webContainerName = "vtadmin-web"
 
-	command = "/vt/bin/vtadmin"
-	//webDir  = "/vt/src/vitess.io/vitess/web/vtadmin"
+	apiCommand = "/vt/bin/vtadmin"
+	webDir     = "/vt/web/vtadmin"
 
 	rbacConfigDirName      = "rbac-config"
 	discoveryStatiFilePath = "discovery-config"
@@ -133,12 +134,12 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 	obj.Spec.Template.Spec.Volumes = nil
 
 	// Apply user-provided flag overrides after generating base flags.
-	flags := spec.flags()
+	apiFlags := spec.apiFlags()
 	for key, value := range spec.ExtraFlags {
 		// We told users in the CRD API field doc not to put any leading '-',
 		// but people may not read that so we are liberal in what we accept.
 		key = strings.TrimLeft(key, "-")
-		flags[key] = value
+		apiFlags[key] = value
 	}
 
 	// Set only the Pod template fields we care about.
@@ -157,26 +158,22 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 
 	update.PodTemplateContainers(&obj.Spec.Template.Spec.InitContainers, spec.InitContainers)
 	update.PodTemplateContainers(&obj.Spec.Template.Spec.Containers, spec.SidecarContainers)
+
 	// Make a copy of Resources since it contains pointers.
-	var containerResources corev1.ResourceRequirements
-	vtadminContainer := &corev1.Container{
-		Name:            containerName,
+	var apiContainerResources corev1.ResourceRequirements
+	vtadminAPIContainer := &corev1.Container{
+		Name:            apiContainerName,
 		Image:           spec.Image,
 		ImagePullPolicy: spec.ImagePullPolicy,
-		Command:         []string{command},
+		Command:         []string{apiCommand},
 		Ports: []corev1.ContainerPort{
-			{
-				Name:          planetscalev2.DefaultWebPortName,
-				Protocol:      corev1.ProtocolTCP,
-				ContainerPort: planetscalev2.DefaultWebPort,
-			},
 			{
 				Name:          planetscalev2.DefaultAPIPortName,
 				Protocol:      corev1.ProtocolTCP,
 				ContainerPort: planetscalev2.DefaultAPIPort,
 			},
 		},
-		Resources:       containerResources,
+		Resources:       apiContainerResources,
 		SecurityContext: securityContext,
 		ReadinessProbe: &corev1.Probe{
 			Handler: corev1.Handler{
@@ -201,11 +198,60 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 		VolumeMounts: spec.ExtraVolumeMounts,
 		Env:          spec.ExtraEnv,
 	}
-	update.ResourceRequirements(&containerResources, &spec.Resources)
-	updateRbac(spec, flags, vtadminContainer, &obj.Spec.Template.Spec)
-	updateDiscovery(spec, flags, vtadminContainer, &obj.Spec.Template.Spec)
-	vtadminContainer.Args = flags.FormatArgs()
-	update.PodTemplateContainers(&obj.Spec.Template.Spec.Containers, []corev1.Container{*vtadminContainer})
+	update.ResourceRequirements(&apiContainerResources, &spec.Resources)
+	updateRbac(spec, apiFlags, vtadminAPIContainer, &obj.Spec.Template.Spec)
+	updateDiscovery(spec, apiFlags, vtadminAPIContainer, &obj.Spec.Template.Spec)
+	vtadminAPIContainer.Args = apiFlags.FormatArgs()
+
+	var webContainerResources corev1.ResourceRequirements
+	envWithAPIPort := spec.ExtraEnv
+	envWithAPIPort = append(envWithAPIPort, corev1.EnvVar{
+		Name:  "REACT_APP_VTADMIN_API_ADDRESS",
+		Value: fmt.Sprintf("http://localhost:%d", planetscalev2.DefaultAPIPort),
+	})
+	vtadminWebContainer := &corev1.Container{
+		Name:            webContainerName,
+		Image:           spec.Image,
+		ImagePullPolicy: spec.ImagePullPolicy,
+		Command:         []string{fmt.Sprintf("%s/node_modules/.bin/serve", webDir)},
+		Args: []string{"--no-clipboard",
+			"-l", fmt.Sprintf("%d", planetscalev2.DefaultWebPort),
+			"-s", fmt.Sprintf("%s/build", webDir)},
+		Ports: []corev1.ContainerPort{
+			{
+				Name:          planetscalev2.DefaultWebPortName,
+				Protocol:      corev1.ProtocolTCP,
+				ContainerPort: planetscalev2.DefaultWebPort,
+			},
+		},
+		Resources:       webContainerResources,
+		SecurityContext: securityContext,
+		ReadinessProbe: &corev1.Probe{
+			Handler: corev1.Handler{
+				HTTPGet: &corev1.HTTPGetAction{
+					// TODO: find the correct end point for readiness check
+					Path: "/",
+					Port: intstr.FromString(planetscalev2.DefaultWebPortName),
+				},
+			},
+		},
+		LivenessProbe: &corev1.Probe{
+			Handler: corev1.Handler{
+				HTTPGet: &corev1.HTTPGetAction{
+					// TODO: find the correct end point for liveness check
+					Path: "/",
+					Port: intstr.FromString(planetscalev2.DefaultWebPortName),
+				},
+			},
+			InitialDelaySeconds: 300,
+			FailureThreshold:    30,
+		},
+		VolumeMounts: spec.ExtraVolumeMounts,
+		Env:          envWithAPIPort,
+	}
+	// TODO: different resource requirements for web and api
+	update.ResourceRequirements(&webContainerResources, &spec.Resources)
+	update.PodTemplateContainers(&obj.Spec.Template.Spec.Containers, []corev1.Container{*vtadminAPIContainer, *vtadminWebContainer})
 
 	if spec.Affinity != nil {
 		obj.Spec.Template.Spec.Affinity = spec.Affinity
@@ -233,7 +279,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 	}
 }
 
-func (spec *Spec) flags() vitess.Flags {
+func (spec *Spec) apiFlags() vitess.Flags {
 	return vitess.Flags{
 		"addr":         fmt.Sprintf(":%d", planetscalev2.DefaultAPIPort),
 		"http-origin":  fmt.Sprintf("http://localhost:%d", planetscalev2.DefaultWebPort),
