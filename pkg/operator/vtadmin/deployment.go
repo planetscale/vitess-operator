@@ -40,7 +40,6 @@ const (
 	webContainerName = "vtadmin-web"
 
 	apiCommand = "/vt/bin/vtadmin"
-	webDir     = "/vt/web/vtadmin"
 
 	rbacConfigDirName      = "rbac-config"
 	discoveryStatiFilePath = "discovery-config"
@@ -208,15 +207,14 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 	envWithAPIPort = append(envWithAPIPort, corev1.EnvVar{
 		Name:  "REACT_APP_VTADMIN_API_ADDRESS",
 		Value: fmt.Sprintf("http://localhost:%d", planetscalev2.DefaultAPIPort),
+	}, corev1.EnvVar{
+		Name:  "VTADMIN_WEB_PORT",
+		Value: fmt.Sprintf("%d", planetscalev2.DefaultWebPort),
 	})
 	vtadminWebContainer := &corev1.Container{
 		Name:            webContainerName,
 		Image:           spec.Image,
 		ImagePullPolicy: spec.ImagePullPolicy,
-		Command:         []string{fmt.Sprintf("%s/node_modules/.bin/serve", webDir)},
-		Args: []string{"--no-clipboard",
-			"-l", fmt.Sprintf("%d", planetscalev2.DefaultWebPort),
-			"-s", fmt.Sprintf("%s/build", webDir)},
 		Ports: []corev1.ContainerPort{
 			{
 				Name:          planetscalev2.DefaultWebPortName,
@@ -224,6 +222,8 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 				ContainerPort: planetscalev2.DefaultWebPort,
 			},
 		},
+		// Don't need to specify the command or args because the vtadmin image
+		// has the correct entrypoint and commands already specified
 		Resources:       webContainerResources,
 		SecurityContext: securityContext,
 		ReadinessProbe: &corev1.Probe{
