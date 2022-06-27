@@ -77,7 +77,7 @@ type VitessClusterSpec struct {
 	VitessDashboard *VitessDashboardSpec `json:"vitessDashboard,omitempty"`
 
 	// VtAdmin deploys a set of Vitess Admin servers for the Vitess cluster.
-	VtAdmin *VtAdminSpec `json:"vtAdmin,omitempty"`
+	VtAdmin *VtAdminSpec `json:"vtadmin,omitempty"`
 
 	// Cells is a list of templates for VitessCells to create for this cluster.
 	//

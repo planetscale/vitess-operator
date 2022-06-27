@@ -1993,7 +1993,7 @@ spec:
                   tolerations:
                     x-kubernetes-preserve-unknown-fields: true
                 type: object
-              vtAdmin:
+              vtadmin:
                 properties:
                   affinity:
                     x-kubernetes-preserve-unknown-fields: true
