@@ -52,7 +52,7 @@ spec:
     apiAddresses:
       - http://localhost:14001
     replicas: 1
-    readOnly: true
+    readOnly: false
     apiResources:
       limits:
         memory: 128Mi

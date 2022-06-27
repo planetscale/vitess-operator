@@ -189,8 +189,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 		ReadinessProbe: &corev1.Probe{
 			Handler: corev1.Handler{
 				HTTPGet: &corev1.HTTPGetAction{
-					// TODO: find the correct end point for readiness check
-					Path: "/debug/env",
+					Path: "/health",
 					Port: intstr.FromString(planetscalev2.DefaultAPIPortName),
 				},
 			},
@@ -198,8 +197,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 		LivenessProbe: &corev1.Probe{
 			Handler: corev1.Handler{
 				HTTPGet: &corev1.HTTPGetAction{
-					// TODO: find the correct end point for liveness check
-					Path: "/debug/env",
+					Path: "/health",
 					Port: intstr.FromString(planetscalev2.DefaultAPIPortName),
 				},
 			},
@@ -226,14 +224,19 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 				ContainerPort: planetscalev2.DefaultWebPort,
 			},
 		},
-		Command:         []string{"bash", "-c"},
-		Args:            []string{fmt.Sprintf("%s/node_modules/.bin/serve --symlinks --no-clipboard -l %d -s %s/build", webDir, planetscalev2.DefaultWebPort, webDir)},
+		Command: []string{webDir + "/node_modules/.bin/serve"},
+		Args: []string{
+			"--symlinks",
+			"--no-clipboard",
+			"-l", fmt.Sprintf("%d", planetscalev2.DefaultWebPort),
+			"-s",
+			webDir + "/build",
+		},
 		Resources:       webContainerResources,
 		SecurityContext: securityContext,
 		ReadinessProbe: &corev1.Probe{
 			Handler: corev1.Handler{
 				HTTPGet: &corev1.HTTPGetAction{
-					// TODO: find the correct end point for readiness check
 					Path: "/",
 					Port: intstr.FromString(planetscalev2.DefaultWebPortName),
 				},
@@ -242,7 +245,6 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 		LivenessProbe: &corev1.Probe{
 			Handler: corev1.Handler{
 				HTTPGet: &corev1.HTTPGetAction{
-					// TODO: find the correct end point for liveness check
 					Path: "/",
 					Port: intstr.FromString(planetscalev2.DefaultWebPortName),
 				},
