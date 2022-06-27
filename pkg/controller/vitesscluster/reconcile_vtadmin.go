@@ -171,10 +171,16 @@ func (r *ReconcileVitessCluster) vtadminSpecs(ctx context.Context, vt *planetsca
 			return nil, err
 		}
 
+		webConfigSecret, err := r.createWebConfigSecret(ctx, vt, cell)
+		if err != nil {
+			return nil, err
+		}
+
 		specs = append(specs, &vtadmin.Spec{
 			Cell:              cell,
 			Discovery:         discoverySecret,
 			Rbac:              vt.Spec.VtAdmin.Rbac,
+			WebConfig:         webConfigSecret,
 			Image:             vt.Spec.Images.Vtadmin,
 			ClusterName:       vt.ObjectMeta.Name,
 			ImagePullPolicy:   vt.Spec.ImagePullPolicies.Vtadmin,
@@ -284,6 +290,33 @@ func (r *ReconcileVitessCluster) createDiscoverySecret(ctx context.Context, vt *
 	return &planetscalev2.SecretSource{
 		Name: secretName,
 		Key:  discoveryKey,
+	}, nil
+}
+
+func (r *ReconcileVitessCluster) createWebConfigSecret(ctx context.Context, vt *planetscalev2.VitessCluster, cell *planetscalev2.VitessCellTemplate) (*planetscalev2.SecretSource, error) {
+	// Variables to hold the key, value and secret name to use
+	configKey := "config.js"
+	// TODO: parameterize the values
+	configVal := fmt.Sprintf(`window.env = {
+     'REACT_APP_VTADMIN_API_ADDRESS': "%s",
+     'REACT_APP_FETCH_CREDENTIALS': "omit",
+     'REACT_APP_ENABLE_EXPERIMENTAL_TABLET_DEBUG_VARS': false,
+     'REACT_APP_BUGSNAG_API_KEY': "",
+     'REACT_APP_DOCUMENT_TITLE': "",
+     'REACT_APP_READONLY_MODE': false,
+ };`, fmt.Sprintf("http://localhost:14001"))
+	secretName := vtadmin.WebConfigSecretName(vt.Name, cell.Name)
+
+	// Create or update the secret
+	err := r.createOrUpdateSecret(ctx, vt, secretName, configKey, configVal)
+	if err != nil {
+		return nil, err
+	}
+
+	// return the secret source, which must align with the secret we created above
+	return &planetscalev2.SecretSource{
+		Name: secretName,
+		Key:  configKey,
 	}, nil
 }
 

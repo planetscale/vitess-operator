@@ -39,10 +39,14 @@ const (
 	apiContainerName = "vtadmin-api"
 	webContainerName = "vtadmin-web"
 
+	webDir     = "/vt/web/vtadmin"
 	apiCommand = "/vt/bin/vtadmin"
 
-	rbacConfigDirName      = "rbac-config"
-	discoveryStatiFilePath = "discovery-config"
+	rbacConfigDirName       = "rbac-config"
+	discoveryStaticFilePath = "discovery-config"
+
+	webConfigVolumeName = "config-js"
+	webConfigDirPath    = "/vt/web/vtadmin/build/config"
 )
 
 // DeploymentName returns the name of the vtadmin Deployment for a given cell.
@@ -55,6 +59,11 @@ func DiscoverySecretName(clusterName, cellName string) string {
 	return names.JoinWithConstraints(names.DefaultConstraints, clusterName, cellName, planetscalev2.VtadminComponentName, "discovery")
 }
 
+// WebConfigSecretName returns the name of the vtadmin web config sercret's name for a given cell.
+func WebConfigSecretName(clusterName, cellName string) string {
+	return names.JoinWithConstraints(names.DefaultConstraints, clusterName, cellName, planetscalev2.VtadminComponentName, "webConfig")
+}
+
 // Spec specifies all the internal parameters needed to deploy vtadmin,
 // as opposed to the API type planetscalev2.VtAdminSpec, which is the public API.
 type Spec struct {
@@ -63,6 +72,7 @@ type Spec struct {
 	// endpoints to use by vtadmin
 	Discovery         *planetscalev2.SecretSource
 	Rbac              *planetscalev2.SecretSource
+	WebConfig         *planetscalev2.SecretSource
 	Image             string
 	ClusterName       string
 	ImagePullPolicy   corev1.PullPolicy
@@ -203,14 +213,6 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 	vtadminAPIContainer.Args = apiFlags.FormatArgs()
 
 	var webContainerResources corev1.ResourceRequirements
-	envWithAPIPort := spec.ExtraEnv
-	envWithAPIPort = append(envWithAPIPort, corev1.EnvVar{
-		Name:  "REACT_APP_VTADMIN_API_ADDRESS",
-		Value: fmt.Sprintf("http://localhost:%d", planetscalev2.DefaultAPIPort),
-	}, corev1.EnvVar{
-		Name:  "VTADMIN_WEB_PORT",
-		Value: fmt.Sprintf("%d", planetscalev2.DefaultWebPort),
-	})
 	vtadminWebContainer := &corev1.Container{
 		Name:            webContainerName,
 		Image:           spec.Image,
@@ -222,8 +224,8 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 				ContainerPort: planetscalev2.DefaultWebPort,
 			},
 		},
-		// Don't need to specify the command or args because the vtadmin image
-		// has the correct entrypoint and commands already specified
+		Command:         []string{"bash", "-c"},
+		Args:            []string{fmt.Sprintf("%s/node_modules/.bin/serve --symlinks --no-clipboard -l %d -s %s/build", webDir, planetscalev2.DefaultWebPort, webDir)},
 		Resources:       webContainerResources,
 		SecurityContext: securityContext,
 		ReadinessProbe: &corev1.Probe{
@@ -247,8 +249,9 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 			FailureThreshold:    30,
 		},
 		VolumeMounts: spec.ExtraVolumeMounts,
-		Env:          envWithAPIPort,
+		Env:          spec.ExtraEnv,
 	}
+	updateWebConfig(spec, vtadminWebContainer, &obj.Spec.Template.Spec)
 	// TODO: different resource requirements for web and api
 	update.ResourceRequirements(&webContainerResources, &spec.Resources)
 	update.PodTemplateContainers(&obj.Spec.Template.Spec.Containers, []corev1.Container{*vtadminAPIContainer, *vtadminWebContainer})
@@ -282,7 +285,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 func (spec *Spec) apiFlags() vitess.Flags {
 	return vitess.Flags{
 		"addr":         fmt.Sprintf(":%d", planetscalev2.DefaultAPIPort),
-		"http-origin":  fmt.Sprintf("http://localhost:%d", planetscalev2.DefaultWebPort),
+		"http-origin":  "*",
 		"tracer":       "opentracing-jaeger",
 		"grpc-tracing": true,
 		"http-tracing": true,
@@ -312,7 +315,7 @@ func updateRbac(spec *Spec, flags vitess.Flags, container *corev1.Container, pod
 }
 
 func updateDiscovery(spec *Spec, flags vitess.Flags, container *corev1.Container, podSpec *corev1.PodSpec) {
-	discoveryFile := secrets.Mount(spec.Discovery, discoveryStatiFilePath)
+	discoveryFile := secrets.Mount(spec.Discovery, discoveryStaticFilePath)
 	// Add the volume to the Pod, if needed.
 	update.Volumes(&podSpec.Volumes, discoveryFile.PodVolumes())
 	// Mount the volume in the Container.
@@ -339,4 +342,18 @@ func updateDiscovery(spec *Spec, flags vitess.Flags, container *corev1.Container
 		clusterFlagString += "," + clusterFlagStringProvided
 	}
 	flags["cluster"] = clusterFlagString
+}
+
+func updateWebConfig(spec *Spec, container *corev1.Container, podSpec *corev1.PodSpec) {
+	webConfigFile := secrets.Mount(spec.WebConfig, webConfigVolumeName)
+	// Add the volume to the Pod, if needed.
+	update.Volumes(&podSpec.Volumes, webConfigFile.PodVolumes())
+	// Mount the volume in the Container.
+	// We aren't using the method ContainerVolumeMount, because we want to specify our own mount path
+	// instead of the one generated for us.
+	container.VolumeMounts = append(container.VolumeMounts, corev1.VolumeMount{
+		Name:      webConfigFile.VolumeName(),
+		MountPath: webConfigDirPath,
+		ReadOnly:  true,
+	})
 }
