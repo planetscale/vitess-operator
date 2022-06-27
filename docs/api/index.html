@@ -378,7 +378,7 @@ VtAdminSpec
 </em>
 </td>
 <td>
-<p>Vtadmin deploys a set of VtAdmin servers for the Vitess cluster.</p>
+<p>VtAdmin deploys a set of Vitess Admin servers for the Vitess cluster.</p>
 </td>
 </tr>
 <tr>
@@ -3600,7 +3600,7 @@ VtAdminSpec
 </em>
 </td>
 <td>
-<p>Vtadmin deploys a set of VtAdmin servers for the Vitess cluster.</p>
+<p>VtAdmin deploys a set of Vitess Admin servers for the Vitess cluster.</p>
 </td>
 </tr>
 <tr>
@@ -3788,7 +3788,7 @@ VtadminStatus
 </em>
 </td>
 <td>
-<p>Vtadmin is a summary of the status of the vtctld deployment.</p>
+<p>Vtadmin is a summary of the status of the vtadmin deployment.</p>
 </td>
 </tr>
 <tr>
@@ -4503,7 +4503,7 @@ string
 </em>
 </td>
 <td>
-<p>Vtadmin is the container image (including version tag) to use for Vtadmin instances.</p>
+<p>Vtadmin is the container image (including version tag) to use for Vitess Admin instances.</p>
 </td>
 </tr>
 <tr>
@@ -7550,6 +7550,21 @@ Default: Deploy to all defined cells.</p>
 </tr>
 <tr>
 <td>
+<code>apiAddresses</code></br>
+<em>
+[]string
+</em>
+</td>
+<td>
+<p>ApiAddresses is a list of vtadmin api addresses
+to be used by the vtadmin web for each cell
+Either there should be only 1 element in the list
+which is used by all the vtadmin-web deployments
+or it should match the length of the Cells list</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>replicas</code></br>
 <em>
 int32
@@ -7561,7 +7576,7 @@ int32
 </tr>
 <tr>
 <td>
-<code>resources</code></br>
+<code>webResources</code></br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#resourcerequirements-v1-core">
 Kubernetes core/v1.ResourceRequirements
@@ -7569,7 +7584,33 @@ Kubernetes core/v1.ResourceRequirements
 </em>
 </td>
 <td>
-<p>Resources determines the compute resources reserved for each vtadmin replica.</p>
+<p>WebResources determines the compute resources reserved for each vtadmin-web replica.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>apiResources</code></br>
+<em>
+<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#resourcerequirements-v1-core">
+Kubernetes core/v1.ResourceRequirements
+</a>
+</em>
+</td>
+<td>
+<p>APIResources determines the compute resources reserved for each vtadmin-api replica.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>readOnly</code></br>
+<em>
+bool
+</em>
+</td>
+<td>
+<p>ReadOnly specifies whether the web UI should be read-only
+or should it allow users to take actions</p>
+<p>Default: false.</p>
 </td>
 </tr>
 <tr>
@@ -7581,7 +7622,7 @@ map[string]string
 </td>
 <td>
 <p>ExtraFlags can optionally be used to override default flags set by the
-operator, or pass additional flags to vtadmin. All entries must be
+operator, or pass additional flags to vtadmin-api. All entries must be
 key-value string pairs of the form &ldquo;flag&rdquo;: &ldquo;value&rdquo;. The flag name should
 not have any prefix (just &ldquo;flag&rdquo;, not &ldquo;-flag&rdquo;). To set a boolean flag,
 set the string value to either &ldquo;true&rdquo; or &ldquo;false&rdquo;.</p>

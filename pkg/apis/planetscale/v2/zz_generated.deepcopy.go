@@ -2489,12 +2489,23 @@ func (in *VtAdminSpec) DeepCopyInto(out *VtAdminSpec) {
 		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}
+	if in.ApiAddresses != nil {
+		in, out := &in.ApiAddresses, &out.ApiAddresses
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
 	if in.Replicas != nil {
 		in, out := &in.Replicas, &out.Replicas
 		*out = new(int32)
 		**out = **in
 	}
-	in.Resources.DeepCopyInto(&out.Resources)
+	in.WebResources.DeepCopyInto(&out.WebResources)
+	in.APIResources.DeepCopyInto(&out.APIResources)
+	if in.ReadOnly != nil {
+		in, out := &in.ReadOnly, &out.ReadOnly
+		*out = new(bool)
+		**out = **in
+	}
 	if in.ExtraFlags != nil {
 		in, out := &in.ExtraFlags, &out.ExtraFlags
 		*out = make(map[string]string, len(*in))

@@ -76,7 +76,7 @@ type VitessClusterSpec struct {
 	// Dashboard deploys a set of Vitess Dashboard servers (vtctld) for the Vitess cluster.
 	VitessDashboard *VitessDashboardSpec `json:"vitessDashboard,omitempty"`
 
-	// Vtadmin deploys a set of VtAdmin servers for the Vitess cluster.
+	// VtAdmin deploys a set of Vitess Admin servers for the Vitess cluster.
 	VtAdmin *VtAdminSpec `json:"vtAdmin,omitempty"`
 
 	// Cells is a list of templates for VitessCells to create for this cluster.
@@ -224,7 +224,7 @@ type VitessImages struct {
 
 	// Vtctld is the container image (including version tag) to use for Vitess Dashboard instances.
 	Vtctld string `json:"vtctld,omitempty"`
-	// Vtadmin is the container image (including version tag) to use for Vtadmin instances.
+	// Vtadmin is the container image (including version tag) to use for Vitess Admin instances.
 	Vtadmin string `json:"vtadmin,omitempty"`
 	// Vtorc is the container image (including version tag) to use for Vitess Orchestrator instances.
 	Vtorc string `json:"vtorc,omitempty"`
@@ -440,14 +440,30 @@ type VtAdminSpec struct {
 	// Default: Deploy to all defined cells.
 	Cells []string `json:"cells,omitempty"`
 
+	// ApiAddresses is a list of vtadmin api addresses
+	// to be used by the vtadmin web for each cell
+	// Either there should be only 1 element in the list
+	// which is used by all the vtadmin-web deployments
+	// or it should match the length of the Cells list
+	ApiAddresses []string `json:"apiAddresses"`
+
 	// Replicas is the number of vtadmin instances to deploy in each cell.
 	Replicas *int32 `json:"replicas,omitempty"`
 
-	// Resources determines the compute resources reserved for each vtadmin replica.
-	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
+	// WebResources determines the compute resources reserved for each vtadmin-web replica.
+	WebResources corev1.ResourceRequirements `json:"webResources,omitempty"`
+
+	// APIResources determines the compute resources reserved for each vtadmin-api replica.
+	APIResources corev1.ResourceRequirements `json:"apiResources,omitempty"`
+
+	// ReadOnly specifies whether the web UI should be read-only
+	// or should it allow users to take actions
+	//
+	// Default: false.
+	ReadOnly *bool `json:"readOnly,omitempty"`
 
 	// ExtraFlags can optionally be used to override default flags set by the
-	// operator, or pass additional flags to vtadmin. All entries must be
+	// operator, or pass additional flags to vtadmin-api. All entries must be
 	// key-value string pairs of the form "flag": "value". The flag name should
 	// not have any prefix (just "flag", not "-flag"). To set a boolean flag,
 	// set the string value to either "true" or "false".
@@ -554,7 +570,7 @@ type VitessClusterStatus struct {
 	// VitessDashboard is a summary of the status of the vtctld deployment.
 	VitessDashboard VitessDashboardStatus `json:"vitessDashboard,omitempty"`
 
-	// Vtadmin is a summary of the status of the vtctld deployment.
+	// Vtadmin is a summary of the status of the vtadmin deployment.
 	Vtadmin VtadminStatus `json:"vtadmin,omitempty"`
 
 	// Cells is a summary of the status of desired cells.
