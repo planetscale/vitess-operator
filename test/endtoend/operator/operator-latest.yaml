@@ -3132,6 +3132,29 @@ spec:
                       additionalProperties:
                         type: string
                       type: object
+                    apiAddresses:
+                      items:
+                        type: string
+                      type: array
+                    apiResources:
+                      properties:
+                        limits:
+                          additionalProperties:
+                            anyOf:
+                              - type: integer
+                              - type: string
+                            pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                            x-kubernetes-int-or-string: true
+                          type: object
+                        requests:
+                          additionalProperties:
+                            anyOf:
+                              - type: integer
+                              - type: string
+                            pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                            x-kubernetes-int-or-string: true
+                          type: object
+                      type: object
                     cells:
                       items:
                         type: string
@@ -3239,10 +3262,25 @@ spec:
                       required:
                         - key
                       type: object
+                    readOnly:
+                      type: boolean
                     replicas:
                       format: int32
                       type: integer
-                    resources:
+                    service:
+                      properties:
+                        annotations:
+                          additionalProperties:
+                            type: string
+                          type: object
+                        clusterIP:
+                          type: string
+                      type: object
+                    sidecarContainers:
+                      x-kubernetes-preserve-unknown-fields: true
+                    tolerations:
+                      x-kubernetes-preserve-unknown-fields: true
+                    webResources:
                       properties:
                         limits:
                           additionalProperties:
@@ -3261,19 +3299,8 @@ spec:
                             x-kubernetes-int-or-string: true
                           type: object
                       type: object
-                    service:
-                      properties:
-                        annotations:
-                          additionalProperties:
-                            type: string
-                          type: object
-                        clusterIP:
-                          type: string
-                      type: object
-                    sidecarContainers:
-                      x-kubernetes-preserve-unknown-fields: true
-                    tolerations:
-                      x-kubernetes-preserve-unknown-fields: true
+                  required:
+                    - apiAddresses
                   type: object
               required:
                 - cells

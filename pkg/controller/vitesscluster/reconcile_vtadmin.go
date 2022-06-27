@@ -43,6 +43,19 @@ func (r *ReconcileVitessCluster) reconcileVtadmin(ctx context.Context, vt *plane
 		return resultBuilder.Result()
 	}
 
+	if len(vt.Spec.Images.Vtadmin) == 0 {
+		log.Error("Not deploying vtadmin since image is unspecified")
+		return resultBuilder.Result()
+	}
+
+	if len(vt.Spec.VtAdmin.APIAddresses) == 0 {
+		log.Errorf("Not deploying vtadmin since api addresses field is not specified. Atleast 1 value is required")
+	}
+
+	if len(vt.Spec.VtAdmin.APIAddresses) != 1 && len(vt.Spec.VtAdmin.APIAddresses) != len(vt.Spec.VtAdmin.Cells) {
+		log.Errorf("Not deploying vtadmin since api addresses field doesn't align with cells field")
+	}
+
 	key := client.ObjectKey{Namespace: vt.Namespace, Name: vtadmin.ServiceName(vt.Name)}
 	labels := map[string]string{
 		planetscalev2.ClusterLabel:   vt.Name,
@@ -154,7 +167,7 @@ func (r *ReconcileVitessCluster) vtadminSpecs(ctx context.Context, vt *planetsca
 
 	// Make a vtadmin Deployment spec for each cell.
 	specs := make([]*vtadmin.Spec, 0, len(cells))
-	for _, cell := range cells {
+	for idx, cell := range cells {
 		// Copy parent labels map and add cell-specific label.
 		labels := make(map[string]string, len(parentLabels)+1)
 		for k, v := range parentLabels {
@@ -171,7 +184,13 @@ func (r *ReconcileVitessCluster) vtadminSpecs(ctx context.Context, vt *planetsca
 			return nil, err
 		}
 
-		webConfigSecret, err := r.createWebConfigSecret(ctx, vt, cell)
+		// We have already checked that atleast 1 value should be available in APIAddresses
+		apiAddress := vt.Spec.VtAdmin.APIAddresses[0]
+		if len(vt.Spec.VtAdmin.APIAddresses) > 1 {
+			apiAddress = vt.Spec.VtAdmin.APIAddresses[idx]
+		}
+
+		webConfigSecret, err := r.createWebConfigSecret(ctx, vt, cell, apiAddress)
 		if err != nil {
 			return nil, err
 		}
@@ -187,7 +206,8 @@ func (r *ReconcileVitessCluster) vtadminSpecs(ctx context.Context, vt *planetsca
 			ImagePullSecrets:  vt.Spec.ImagePullSecrets,
 			Labels:            labels,
 			Replicas:          *vt.Spec.VtAdmin.Replicas,
-			Resources:         vt.Spec.VtAdmin.Resources,
+			APIResources:      vt.Spec.VtAdmin.APIResources,
+			WebResources:      vt.Spec.VtAdmin.WebResources,
 			Affinity:          vt.Spec.VtAdmin.Affinity,
 			ExtraFlags:        extraFlags,
 			ExtraEnv:          vt.Spec.VtAdmin.ExtraEnv,
@@ -293,18 +313,17 @@ func (r *ReconcileVitessCluster) createDiscoverySecret(ctx context.Context, vt *
 	}, nil
 }
 
-func (r *ReconcileVitessCluster) createWebConfigSecret(ctx context.Context, vt *planetscalev2.VitessCluster, cell *planetscalev2.VitessCellTemplate) (*planetscalev2.SecretSource, error) {
+func (r *ReconcileVitessCluster) createWebConfigSecret(ctx context.Context, vt *planetscalev2.VitessCluster, cell *planetscalev2.VitessCellTemplate, apiAddress string) (*planetscalev2.SecretSource, error) {
 	// Variables to hold the key, value and secret name to use
-	configKey := "config.js"
-	// TODO: parameterize the values
+	configKey := vtadmin.WebConfigFileName
 	configVal := fmt.Sprintf(`window.env = {
      'REACT_APP_VTADMIN_API_ADDRESS': "%s",
      'REACT_APP_FETCH_CREDENTIALS': "omit",
      'REACT_APP_ENABLE_EXPERIMENTAL_TABLET_DEBUG_VARS': false,
      'REACT_APP_BUGSNAG_API_KEY': "",
      'REACT_APP_DOCUMENT_TITLE': "",
-     'REACT_APP_READONLY_MODE': false,
- };`, fmt.Sprintf("http://localhost:14001"))
+     'REACT_APP_READONLY_MODE': %s,
+ };`, apiAddress, convertReadOnlyFieldToString(vt.Spec.VtAdmin.ReadOnly))
 	secretName := vtadmin.WebConfigSecretName(vt.Name, cell.Name)
 
 	// Create or update the secret
@@ -318,6 +337,13 @@ func (r *ReconcileVitessCluster) createWebConfigSecret(ctx context.Context, vt *
 		Name: secretName,
 		Key:  configKey,
 	}, nil
+}
+
+func convertReadOnlyFieldToString(readOnly *bool) string {
+	if readOnly != nil && *readOnly {
+		return "true"
+	}
+	return "false"
 }
 
 func (r *ReconcileVitessCluster) createOrUpdateSecret(ctx context.Context, vt *planetscalev2.VitessCluster, secretName, discoveryKey, discoveryVal string) error {

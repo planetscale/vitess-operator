@@ -49,8 +49,17 @@ spec:
       key: rbac.yaml
     cells:
       - zone1
+    apiAddresses:
+      - http://localhost:14001
     replicas: 1
-    resources:
+    readOnly: true
+    apiResources:
+      limits:
+        memory: 128Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+    webResources:
       limits:
         memory: 128Mi
       requests:

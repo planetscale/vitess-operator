@@ -111,7 +111,6 @@ const (
 // DefaultImages are a set of images to use when the CRD doesn't specify.
 var DefaultImages = &VitessImages{
 	Vtctld:   defaultVitessLiteImage,
-	Vtadmin:  defaultVitessLiteImage,
 	Vtgate:   defaultVitessLiteImage,
 	Vttablet: defaultVitessLiteImage,
 

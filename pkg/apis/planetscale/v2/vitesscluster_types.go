@@ -440,12 +440,12 @@ type VtAdminSpec struct {
 	// Default: Deploy to all defined cells.
 	Cells []string `json:"cells,omitempty"`
 
-	// ApiAddresses is a list of vtadmin api addresses
+	// APIAddresses is a list of vtadmin api addresses
 	// to be used by the vtadmin web for each cell
 	// Either there should be only 1 element in the list
 	// which is used by all the vtadmin-web deployments
 	// or it should match the length of the Cells list
-	ApiAddresses []string `json:"apiAddresses"`
+	APIAddresses []string `json:"apiAddresses"`
 
 	// Replicas is the number of vtadmin instances to deploy in each cell.
 	Replicas *int32 `json:"replicas,omitempty"`

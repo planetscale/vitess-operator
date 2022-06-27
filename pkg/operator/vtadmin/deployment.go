@@ -47,6 +47,7 @@ const (
 
 	webConfigVolumeName = "config-js"
 	webConfigDirPath    = "/vt/web/vtadmin/build/config"
+	WebConfigFileName   = "config.js"
 )
 
 // DeploymentName returns the name of the vtadmin Deployment for a given cell.
@@ -79,7 +80,8 @@ type Spec struct {
 	ImagePullSecrets  []corev1.LocalObjectReference
 	Labels            map[string]string
 	Replicas          int32
-	Resources         corev1.ResourceRequirements
+	APIResources      corev1.ResourceRequirements
+	WebResources      corev1.ResourceRequirements
 	Affinity          *corev1.Affinity
 	ExtraFlags        map[string]string
 	ExtraEnv          []corev1.EnvVar
@@ -207,7 +209,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 		VolumeMounts: spec.ExtraVolumeMounts,
 		Env:          spec.ExtraEnv,
 	}
-	update.ResourceRequirements(&apiContainerResources, &spec.Resources)
+	update.ResourceRequirements(&apiContainerResources, &spec.APIResources)
 	updateRbac(spec, apiFlags, vtadminAPIContainer, &obj.Spec.Template.Spec)
 	updateDiscovery(spec, apiFlags, vtadminAPIContainer, &obj.Spec.Template.Spec)
 	vtadminAPIContainer.Args = apiFlags.FormatArgs()
@@ -252,8 +254,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 		Env:          spec.ExtraEnv,
 	}
 	updateWebConfig(spec, vtadminWebContainer, &obj.Spec.Template.Spec)
-	// TODO: different resource requirements for web and api
-	update.ResourceRequirements(&webContainerResources, &spec.Resources)
+	update.ResourceRequirements(&webContainerResources, &spec.WebResources)
 	update.PodTemplateContainers(&obj.Spec.Template.Spec.Containers, []corev1.Container{*vtadminAPIContainer, *vtadminWebContainer})
 
 	if spec.Affinity != nil {

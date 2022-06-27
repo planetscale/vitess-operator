@@ -2489,8 +2489,8 @@ func (in *VtAdminSpec) DeepCopyInto(out *VtAdminSpec) {
 		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}
-	if in.ApiAddresses != nil {
-		in, out := &in.ApiAddresses, &out.ApiAddresses
+	if in.APIAddresses != nil {
+		in, out := &in.APIAddresses, &out.APIAddresses
 		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}

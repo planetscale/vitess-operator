@@ -108,14 +108,25 @@ func DefaultVtAdmin(dashboard **VtAdminSpec) {
 	if (*dashboard).Replicas == nil {
 		(*dashboard).Replicas = pointer.Int32Ptr(defaultVtadminReplicas)
 	}
-	if len((*dashboard).Resources.Requests) == 0 {
-		(*dashboard).Resources.Requests = corev1.ResourceList{
+	if len((*dashboard).WebResources.Requests) == 0 {
+		(*dashboard).WebResources.Requests = corev1.ResourceList{
 			corev1.ResourceCPU:    *resource.NewMilliQuantity(defaultVtadminCPUMillis, resource.DecimalSI),
 			corev1.ResourceMemory: *resource.NewQuantity(defaultVtadminMemoryBytes, resource.BinarySI),
 		}
 	}
-	if len((*dashboard).Resources.Limits) == 0 {
-		(*dashboard).Resources.Limits = corev1.ResourceList{
+	if len((*dashboard).WebResources.Limits) == 0 {
+		(*dashboard).WebResources.Limits = corev1.ResourceList{
+			corev1.ResourceMemory: *resource.NewQuantity(defaultVtadminMemoryBytes, resource.BinarySI),
+		}
+	}
+	if len((*dashboard).APIResources.Requests) == 0 {
+		(*dashboard).APIResources.Requests = corev1.ResourceList{
+			corev1.ResourceCPU:    *resource.NewMilliQuantity(defaultVtadminCPUMillis, resource.DecimalSI),
+			corev1.ResourceMemory: *resource.NewQuantity(defaultVtadminMemoryBytes, resource.BinarySI),
+		}
+	}
+	if len((*dashboard).APIResources.Limits) == 0 {
+		(*dashboard).APIResources.Limits = corev1.ResourceList{
 			corev1.ResourceMemory: *resource.NewQuantity(defaultVtadminMemoryBytes, resource.BinarySI),
 		}
 	}
