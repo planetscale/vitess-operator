@@ -104,6 +104,43 @@ function verifyVtadminSetup() {
   vtctlclient DeleteKeyspace testKeyspace
   # Verify we still have the commerce keyspace and no other keyspace
   curlGetRequestWithRetry "localhost:14001/api/keyspaces" "commerce.*}}}}]"
+
+  # Also verify that the web page works
+  chromiumHeadlessRequest "http://localhost:14000/schemas" "corder"
+  chromiumHeadlessRequest "http://localhost:14000/schemas" "customer"
+  chromiumHeadlessRequest "http://localhost:14000/keyspace/example/commerce/shards" "commerce/-"
+}
+
+function chromiumHeadlessRequest() {
+  url=$1
+  dataToAssert=$2
+  for i in {1..600} ; do
+    chromiumBinary=$(getChromiumBinaryName)
+    res=$($chromiumBinary --headless --disable-gpu --enable-logging --dump-dom "$url")
+    if [ $? -eq 0 ]; then
+      echo "$res" | grep "$dataToAssert" > /dev/null 2>&1
+      if [ $? -ne 0 ]; then
+        echo -e "The data in $url is incorrect, got:\n$res"
+        exit 1
+      fi
+      return
+    fi
+    echo "failed to query url $url, retrying (attempt #$i) ..."
+    sleep 1
+  done
+}
+
+function getChromiumBinaryName() {
+  which chromium-browser > /dev/null
+  if [ $? -eq 0 ]; then
+      echo "chromium-browser"
+      return
+  fi
+  which chromium > /dev/null
+  if [ $? -eq 0 ]; then
+      echo "chromium"
+      return
+  fi
 }
 
 function curlGetRequestWithRetry() {
