@@ -43,6 +43,7 @@ func (r *ReconcileVitessCluster) reconcileVtadmin(ctx context.Context, vt *plane
 		return resultBuilder.Result()
 	}
 
+	// Some checks to validate user input
 	if len(vt.Spec.Images.Vtadmin) == 0 {
 		log.Error("Not deploying vtadmin since image is unspecified")
 		return resultBuilder.Result()

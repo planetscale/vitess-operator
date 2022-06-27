@@ -46,8 +46,10 @@ const (
 	discoveryStaticFilePath = "discovery-config"
 
 	webConfigVolumeName = "config-js"
-	webConfigDirPath    = "/vt/web/vtadmin/build/config"
-	WebConfigFileName   = "config.js"
+	// Directory where web config should be mounted
+	webConfigDirPath = "/vt/web/vtadmin/build/config"
+	// WebConfigFileName is the file name of the web config
+	WebConfigFileName = "config.js"
 )
 
 // DeploymentName returns the name of the vtadmin Deployment for a given cell.
@@ -226,6 +228,8 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 		},
 		Command: []string{webDir + "/node_modules/.bin/serve"},
 		Args: []string{
+			// Symlinks are required because the web config file is mounted as a
+			// secret which happens to be mounted as symlink instead of an actual file
 			"--symlinks",
 			"--no-clipboard",
 			"-l", fmt.Sprintf("%d", planetscalev2.DefaultWebPort),
@@ -298,10 +302,7 @@ func (spec *Spec) apiFlags() vitess.Flags {
 	}
 }
 
-//  --http-tablet-url-tmpl "http://{{ .Tablet.Hostname }}:15{{ .Tablet.Alias.Uid }}" \
-//  -- \
-//  --cluster "id=local,name=local,discovery=staticfile,discovery-staticfile-path=./vtadmin/discovery.json,tablet-fqdn-tmpl={{ .Tablet.Hostname }}:15{{ .Tablet.Alias.Uid }}" \
-
+// updateRbac updates the rbac flags and creates the mount for rbac configuration if specified
 func updateRbac(spec *Spec, flags vitess.Flags, container *corev1.Container, podSpec *corev1.PodSpec) {
 	if spec.Rbac != nil {
 		rbacConfigFile := secrets.Mount(spec.Rbac, rbacConfigDirName)
@@ -317,6 +318,7 @@ func updateRbac(spec *Spec, flags vitess.Flags, container *corev1.Container, pod
 	}
 }
 
+// updateDiscovery updates the cluster flag and mounts the discovery file
 func updateDiscovery(spec *Spec, flags vitess.Flags, container *corev1.Container, podSpec *corev1.PodSpec) {
 	discoveryFile := secrets.Mount(spec.Discovery, discoveryStaticFilePath)
 	// Add the volume to the Pod, if needed.
@@ -347,16 +349,14 @@ func updateDiscovery(spec *Spec, flags vitess.Flags, container *corev1.Container
 	flags["cluster"] = clusterFlagString
 }
 
+// updateWebConfig mounts the webConfig file to a specific mount path
 func updateWebConfig(spec *Spec, container *corev1.Container, podSpec *corev1.PodSpec) {
 	webConfigFile := secrets.Mount(spec.WebConfig, webConfigVolumeName)
+	// Set the absolute path since we need the config file to reside in this specific location
+	// We don't want the mount to happen on a generated directory path
+	webConfigFile.AbsolutePath = webConfigDirPath
 	// Add the volume to the Pod, if needed.
 	update.Volumes(&podSpec.Volumes, webConfigFile.PodVolumes())
 	// Mount the volume in the Container.
-	// We aren't using the method ContainerVolumeMount, because we want to specify our own mount path
-	// instead of the one generated for us.
-	container.VolumeMounts = append(container.VolumeMounts, corev1.VolumeMount{
-		Name:      webConfigFile.VolumeName(),
-		MountPath: webConfigDirPath,
-		ReadOnly:  true,
-	})
+	container.VolumeMounts = append(container.VolumeMounts, webConfigFile.ContainerVolumeMount())
 }
