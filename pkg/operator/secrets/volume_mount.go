@@ -41,6 +41,9 @@ type VolumeMount struct {
 	// DirName is the name of the directory under VolumeMountDir in which to
 	// mount this SecretSource.
 	DirName string
+	// AbsolutePath stores the absolute path to use instead of the generated path
+	// with /vt/secret as the prefix
+	AbsolutePath string
 }
 
 // Mount creates a VolumeMount for a given SecretSource.
@@ -61,6 +64,9 @@ func (v *VolumeMount) VolumeName() string {
 
 // DirPath returns the absolute path to the mounted SecretSource volume.
 func (v *VolumeMount) DirPath() string {
+	if len(v.AbsolutePath) > 0 {
+		return v.AbsolutePath
+	}
 	return filepath.Join(VolumeMountRootDir, v.DirName)
 }
 
