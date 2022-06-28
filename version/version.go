@@ -17,5 +17,5 @@ limitations under the License.
 package version
 
 var (
-	Version = "2.8.0"
+	Version = "2.7.1"
 )
