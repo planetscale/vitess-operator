@@ -120,8 +120,9 @@ function chromiumHeadlessRequest() {
     if [ $? -eq 0 ]; then
       echo "$res" | grep "$dataToAssert" > /dev/null 2>&1
       if [ $? -ne 0 ]; then
-        echo -e "The data in $url is incorrect, got:\n$res"
-        exit 1
+        echo -e "The data in $url is incorrect, got:\n$res, retrying"
+        sleep 1
+        continue
       fi
       return
     fi
