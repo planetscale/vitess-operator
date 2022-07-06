@@ -18,7 +18,7 @@ package vtadmin
 
 import (
 	"fmt"
-	"planetscale.dev/vitess-operator/pkg/operator/secrets"
+	"path/filepath"
 	"strings"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -31,6 +31,7 @@ import (
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 	"planetscale.dev/vitess-operator/pkg/operator/k8s"
 	"planetscale.dev/vitess-operator/pkg/operator/names"
+	"planetscale.dev/vitess-operator/pkg/operator/secrets"
 	"planetscale.dev/vitess-operator/pkg/operator/update"
 	"planetscale.dev/vitess-operator/pkg/operator/vitess"
 )
@@ -42,8 +43,9 @@ const (
 	webDir     = "/vt/web/vtadmin"
 	apiCommand = "/vt/bin/vtadmin"
 
-	rbacConfigDirName       = "rbac-config"
-	discoveryStaticFilePath = "discovery-config"
+	rbacConfigDirName           = "rbac-config"
+	discoveryStaticFilePath     = "discovery-config"
+	clusterConfigStaticFilePath = "cluster-config"
 
 	webConfigVolumeName = "config-js"
 	// Directory where web config should be mounted
@@ -67,17 +69,29 @@ func WebConfigSecretName(clusterName, cellName string) string {
 	return names.JoinWithConstraints(names.DefaultConstraints, clusterName, cellName, planetscalev2.VtadminComponentName, "webConfig")
 }
 
+// ClusterConfigSecretName returns the name of the vtadmin cluster config sercret's name for a given cell.
+func ClusterConfigSecretName(clusterName, cellName string) string {
+	return names.JoinWithConstraints(names.DefaultConstraints, clusterName, cellName, planetscalev2.VtadminComponentName, "clusterConfig")
+}
+
+// DiscoverySecretPath returns the path at which the discovery secret would be mounted.
+func DiscoverySecretPath() string {
+	return filepath.Join(secrets.VolumeMountRootDir, discoveryStaticFilePath)
+}
+
 // Spec specifies all the internal parameters needed to deploy vtadmin,
 // as opposed to the API type planetscalev2.VtAdminSpec, which is the public API.
 type Spec struct {
 	Cell *planetscalev2.VitessCellTemplate
+	// ClusterConfig holds the secret information for the cluster configuration
+	// for VTAdmin. It includes information like what discovery method to use and the link for that file
+	ClusterConfig *planetscalev2.SecretSource
 	// Discovery holds the secret information for the vtctld and vtgate
 	// endpoints to use by vtadmin
 	Discovery         *planetscalev2.SecretSource
 	Rbac              *planetscalev2.SecretSource
 	WebConfig         *planetscalev2.SecretSource
 	Image             string
-	ClusterName       string
 	ImagePullPolicy   corev1.PullPolicy
 	ImagePullSecrets  []corev1.LocalObjectReference
 	Labels            map[string]string
@@ -211,7 +225,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 	}
 	update.ResourceRequirements(&apiContainerResources, &spec.APIResources)
 	updateRbac(spec, apiFlags, vtadminAPIContainer, &obj.Spec.Template.Spec)
-	updateDiscovery(spec, apiFlags, vtadminAPIContainer, &obj.Spec.Template.Spec)
+	updateDiscoveryAndClusterConfig(spec, apiFlags, vtadminAPIContainer, &obj.Spec.Template.Spec)
 	vtadminAPIContainer.Args = apiFlags.FormatArgs()
 
 	var webContainerResources corev1.ResourceRequirements
@@ -318,35 +332,24 @@ func updateRbac(spec *Spec, flags vitess.Flags, container *corev1.Container, pod
 	}
 }
 
-// updateDiscovery updates the cluster flag and mounts the discovery file
-func updateDiscovery(spec *Spec, flags vitess.Flags, container *corev1.Container, podSpec *corev1.PodSpec) {
+// updateDiscoveryAndClusterConfig adds the file mounts for the discovery file and the cluster config file. It also adds the cluster-config flag after it
+func updateDiscoveryAndClusterConfig(spec *Spec, flags vitess.Flags, container *corev1.Container, podSpec *corev1.PodSpec) {
+	// Discovery File Mounts
 	discoveryFile := secrets.Mount(spec.Discovery, discoveryStaticFilePath)
 	// Add the volume to the Pod, if needed.
 	update.Volumes(&podSpec.Volumes, discoveryFile.PodVolumes())
 	// Mount the volume in the Container.
 	container.VolumeMounts = append(container.VolumeMounts, discoveryFile.ContainerVolumeMount())
 
-	clusterFlagVal, clusterFlagExists := flags["cluster"]
-	var clusterFlagStringProvided string
-	var isString bool
-	if clusterFlagExists {
-		clusterFlagStringProvided, isString = clusterFlagVal.(string)
-		if !isString {
-			return
-		}
-	}
+	// Cluster-config file mount
+	clusterConfigFile := secrets.Mount(spec.ClusterConfig, clusterConfigStaticFilePath)
+	// Add the volume to the Pod, if needed.
+	update.Volumes(&podSpec.Volumes, clusterConfigFile.PodVolumes())
+	// Mount the volume in the Container.
+	container.VolumeMounts = append(container.VolumeMounts, clusterConfigFile.ContainerVolumeMount())
 
-	// We use the cluster name as the identifier
-	clusterIdentifier := spec.ClusterName
-	// If it is not provided, then we use "cluster"
-	if clusterIdentifier == "" {
-		clusterIdentifier = "cluster"
-	}
-	clusterFlagString := fmt.Sprintf("id=%s,name=%s,discovery=staticfile,discovery-staticfile-path=%s", clusterIdentifier, clusterIdentifier, discoveryFile.FilePath())
-	if len(clusterFlagStringProvided) != 0 {
-		clusterFlagString += "," + clusterFlagStringProvided
-	}
-	flags["cluster"] = clusterFlagString
+	// Update the cluster-config flag
+	flags["cluster-config"] = clusterConfigFile.FilePath()
 }
 
 // updateWebConfig mounts the webConfig file to a specific mount path

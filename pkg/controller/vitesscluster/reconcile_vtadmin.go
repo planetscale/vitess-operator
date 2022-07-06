@@ -23,6 +23,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"path/filepath"
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 	"planetscale.dev/vitess-operator/pkg/operator/conditions"
 	"planetscale.dev/vitess-operator/pkg/operator/reconciler"
@@ -180,7 +181,7 @@ func (r *ReconcileVitessCluster) vtadminSpecs(ctx context.Context, vt *planetsca
 		extraFlags := make(map[string]string)
 		update.StringMap(&extraFlags, vt.Spec.VtAdmin.ExtraFlags)
 
-		discoverySecret, err := r.createDiscoverySecret(ctx, vt, cell)
+		discoverySecret, clusterConfigSecret, err := r.createDiscoverySecret(ctx, vt, cell)
 		if err != nil {
 			return nil, err
 		}
@@ -199,10 +200,10 @@ func (r *ReconcileVitessCluster) vtadminSpecs(ctx context.Context, vt *planetsca
 		specs = append(specs, &vtadmin.Spec{
 			Cell:              cell,
 			Discovery:         discoverySecret,
+			ClusterConfig:     clusterConfigSecret,
 			Rbac:              vt.Spec.VtAdmin.Rbac,
 			WebConfig:         webConfigSecret,
 			Image:             vt.Spec.Images.Vtadmin,
-			ClusterName:       vt.ObjectMeta.Name,
 			ImagePullPolicy:   vt.Spec.ImagePullPolicies.Vtadmin,
 			ImagePullSecrets:  vt.Spec.ImagePullSecrets,
 			Labels:            labels,
@@ -224,7 +225,7 @@ func (r *ReconcileVitessCluster) vtadminSpecs(ctx context.Context, vt *planetsca
 	return specs, nil
 }
 
-func (r *ReconcileVitessCluster) createDiscoverySecret(ctx context.Context, vt *planetscalev2.VitessCluster, cell *planetscalev2.VitessCellTemplate) (*planetscalev2.SecretSource, error) {
+func (r *ReconcileVitessCluster) createDiscoverySecret(ctx context.Context, vt *planetscalev2.VitessCluster, cell *planetscalev2.VitessCellTemplate) (*planetscalev2.SecretSource, *planetscalev2.SecretSource, error) {
 	// Get the vtctld service
 	vtctldService := corev1.Service{}
 	err := r.client.Get(ctx, client.ObjectKey{
@@ -232,7 +233,7 @@ func (r *ReconcileVitessCluster) createDiscoverySecret(ctx context.Context, vt *
 		Name:      vtctld.ServiceName(vt.Name),
 	}, &vtctldService)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// Find the IP address from the service. This is randomly assigned.
@@ -256,7 +257,7 @@ func (r *ReconcileVitessCluster) createDiscoverySecret(ctx context.Context, vt *
 		Name:      vitesscell.Name(vt.Name, cell.Name),
 	}, &vtc)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// Get the vtgate service from the cell
@@ -266,7 +267,7 @@ func (r *ReconcileVitessCluster) createDiscoverySecret(ctx context.Context, vt *
 		Name:      vtgate.ServiceName(vt.Name, cell.Name),
 	}, &vtgateService)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// Find the IP address from the service. This is randomly assigned.
@@ -299,19 +300,39 @@ func (r *ReconcileVitessCluster) createDiscoverySecret(ctx context.Context, vt *
         }
     ]
 }`, vtctldServiceIP, vtctldServiceWebPort, vtctldServiceIP, vtctldServiceGrpcPort, vtgateServiceIP, vtgateServiceGrpcPort)
-	secretName := vtadmin.DiscoverySecretName(vt.Name, cell.Name)
+	discoverySecretName := vtadmin.DiscoverySecretName(vt.Name, cell.Name)
 
 	// Create or update the secret
-	err = r.createOrUpdateSecret(ctx, vt, secretName, discoveryKey, discoveryVal)
+	err = r.createOrUpdateSecret(ctx, vt, discoverySecretName, discoveryKey, discoveryVal)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	// return the secret source, which must align with the secret we created above
+	// Variables to hold the key, value and secret name to use
+	configKey := "cluster-config.yaml"
+	configVal := fmt.Sprintf(`clusters:
+  %s:
+    name: %s
+    discovery: staticfile
+    discovery-staticfile-path: %s
+`, vt.ObjectMeta.Name, vt.ObjectMeta.Name, filepath.Join(vtadmin.DiscoverySecretPath(), discoveryKey))
+	clusterConfigSecretName := vtadmin.ClusterConfigSecretName(vt.Name, cell.Name)
+
+	// Create or update the secret
+	err = r.createOrUpdateSecret(ctx, vt, clusterConfigSecretName, configKey, configVal)
+	if err != nil {
+		return nil, nil, err
+
+	}
+
+	// return the secret sources, which must align with the secrets we created above
 	return &planetscalev2.SecretSource{
-		Name: secretName,
-		Key:  discoveryKey,
-	}, nil
+			Name: discoverySecretName,
+			Key:  discoveryKey,
+		}, &planetscalev2.SecretSource{
+			Name: clusterConfigSecretName,
+			Key:  configKey,
+		}, nil
 }
 
 func (r *ReconcileVitessCluster) createWebConfigSecret(ctx context.Context, vt *planetscalev2.VitessCluster, cell *planetscalev2.VitessCellTemplate, apiAddress string) (*planetscalev2.SecretSource, error) {
