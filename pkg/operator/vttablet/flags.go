@@ -75,7 +75,6 @@ func init() {
 			"queryserver-config-pool-size":        queryserverConfigPoolSize,
 			"queryserver-config-stream-pool-size": queryserverConfigStreamPoolSize,
 			"queryserver-config-transaction-cap":  queryserverConfigTransactionCap,
-			"client-found-rows-pool-size":         queryserverConfigTransactionCap,
 		}
 	})
 
