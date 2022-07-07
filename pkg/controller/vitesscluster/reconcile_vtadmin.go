@@ -19,11 +19,15 @@ package vitesscluster
 import (
 	"context"
 	"fmt"
+	"path/filepath"
+
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"path/filepath"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 	"planetscale.dev/vitess-operator/pkg/operator/conditions"
 	"planetscale.dev/vitess-operator/pkg/operator/reconciler"
@@ -33,8 +37,6 @@ import (
 	"planetscale.dev/vitess-operator/pkg/operator/vtadmin"
 	"planetscale.dev/vitess-operator/pkg/operator/vtctld"
 	"planetscale.dev/vitess-operator/pkg/operator/vtgate"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
 func (r *ReconcileVitessCluster) reconcileVtadmin(ctx context.Context, vt *planetscalev2.VitessCluster) (reconcile.Result, error) {
