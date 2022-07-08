@@ -67,8 +67,7 @@ func init() {
 			"init_shard":       spec.KeyRange.String(),
 			"init_tablet_type": spec.Type.InitTabletType(),
 
-			"health_check_interval":         healthCheckInterval,
-			"binlog_use_v3_resharding_mode": true,
+			"health_check_interval": healthCheckInterval,
 
 			"queryserver-config-max-result-size":  queryserverConfigMaxResultSize,
 			"queryserver-config-query-timeout":    queryserverConfigQueryTimeout,
