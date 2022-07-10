@@ -18,6 +18,7 @@ spec:
     mysqldExporter: prom/mysqld-exporter:v0.11.0
   cells:
   - name: zone1
+    durabilityPolicy: semi_sync
     gateway:
       authentication:
         static:
