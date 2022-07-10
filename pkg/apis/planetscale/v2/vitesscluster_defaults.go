@@ -144,10 +144,6 @@ func DefaultVitessKeyspaceTemplate(keyspace *VitessKeyspaceTemplate) {
 		keyspace.TurndownPolicy = VitessKeyspaceTurndownPolicyRequireIdle
 	}
 
-	if keyspace.DurabilityPolicy == "" {
-		keyspace.DurabilityPolicy = "none"
-	}
-
 	for i := range keyspace.Partitionings {
 		partition := &keyspace.Partitionings[i]
 		defaultCustomPartitioning(partition.Custom)

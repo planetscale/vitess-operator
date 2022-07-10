@@ -68,7 +68,7 @@ func (r *reconcileHandler) reconcileKeyspaceInformation(ctx context.Context) (re
 
 	// DurabilityPolicy doesn't match the one requested by the user
 	// We change the durability policy using the SetKeyspaceDurabilityPolicy rpc
-	if keyspaceInfo.DurabilityPolicy != durabilityPolicy {
+	if durabilityPolicy != "" && keyspaceInfo.DurabilityPolicy != durabilityPolicy {
 		_, err := r.wr.VtctldServer().SetKeyspaceDurabilityPolicy(ctx, &vtctldatapb.SetKeyspaceDurabilityPolicyRequest{
 			Keyspace:         keyspaceName,
 			DurabilityPolicy: durabilityPolicy,

@@ -114,7 +114,7 @@ type VitessKeyspaceTemplate struct {
 	DatabaseName string `json:"databaseName,omitempty"`
 
 	// DurabilityPolicy is the name of the durability policy to use for the keyspace.
-	// The default, when the field is left empty is the `none` durability policy.
+	// If unspecified, vtop will not set the durability policy.
 	DurabilityPolicy string `json:"durabilityPolicy,omitempty"`
 
 	// VitessOrchestrator deploys a set of Vitess Orchestrator (vtorc) servers for the Keyspace.
