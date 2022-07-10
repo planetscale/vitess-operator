@@ -113,6 +113,10 @@ type VitessKeyspaceTemplate struct {
 	// Default: Add a "vt_" prefix to the keyspace name.
 	DatabaseName string `json:"databaseName,omitempty"`
 
+	// DurabilityPolicy is the name of the durability policy to use for the keyspace.
+	// The default, when the field is left empty is the `none` durability policy.
+	DurabilityPolicy string `json:"durabilityPolicy,omitempty"`
+
 	// VitessOrchestrator deploys a set of Vitess Orchestrator (vtorc) servers for the Keyspace.
 	// It is highly recommended that you set disable_active_reparents=true
 	// and enable_semi_sync=false for the vtablets if enabling vtorc.
