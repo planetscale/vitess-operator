@@ -168,6 +168,10 @@ func (r *ReconcileVitessKeyspace) Reconcile(cctx context.Context, request reconc
 		}
 	}()
 
+	// Create/update keyspace record in the topo server
+	keyspaceInfoRes, err := handler.reconcileKeyspaceInformation(ctx)
+	resultBuilder.Merge(keyspaceInfoRes, err)
+
 	// Create/update desired VitessShards.
 	if err := handler.reconcileShards(ctx); err != nil {
 		resultBuilder.Error(err)
