@@ -7,10 +7,10 @@ steps:
   - name: "Upgrade Test"
     command:
     - apk add g++ make bash curl mysql mysql-client
-    - wget https://golang.org/dl/go1.18.3.linux-amd64.tar.gz
-    - tar -C /usr/local -xzf go1.18.3.linux-amd64.tar.gz
+    - wget https://golang.org/dl/go1.17.2.linux-amd64.tar.gz
+    - tar -C /usr/local -xzf go1.17.2.linux-amd64.tar.gz
     - export PATH=$PATH:/usr/local/go/bin
-    - rm go1.18.3.linux-amd64.tar.gz
+    - rm go1.17.2.linux-amd64.tar.gz
     - make upgrade-test
     concurrency: 1
     concurrency_group: 'vtop/upgrade-downgrade-test'
@@ -25,10 +25,10 @@ steps:
   - name: "Backup Restore Test"
     command:
     - apk add g++ make bash curl mysql mysql-client
-    - wget https://golang.org/dl/go1.18.3.linux-amd64.tar.gz
-    - tar -C /usr/local -xzf go1.18.3.linux-amd64.tar.gz
+    - wget https://golang.org/dl/go1.17.2.linux-amd64.tar.gz
+    - tar -C /usr/local -xzf go1.17.2.linux-amd64.tar.gz
     - export PATH=$PATH:/usr/local/go/bin
-    - rm go1.18.3.linux-amd64.tar.gz
+    - rm go1.17.2.linux-amd64.tar.gz
     - make backup-restore-test
     concurrency: 1
     concurrency_group: 'vtop/backup-restore-test'
@@ -40,16 +40,16 @@ steps:
           volumes:
             - "/var/run/docker.sock:/var/run/docker.sock"
 
-  - name: "VTOrc and VTAdmin Test"
+  - name: "VTAdmin Test"
     command:
     - apk add g++ make bash curl mysql mysql-client chromium
-    - wget https://golang.org/dl/go1.18.3.linux-amd64.tar.gz
-    - tar -C /usr/local -xzf go1.18.3.linux-amd64.tar.gz
+    - wget https://golang.org/dl/go1.17.2.linux-amd64.tar.gz
+    - tar -C /usr/local -xzf go1.17.2.linux-amd64.tar.gz
     - export PATH=$PATH:/usr/local/go/bin
-    - rm go1.18.3.linux-amd64.tar.gz
-    - make vtorc-vtadmin-test
+    - rm go1.17.2.linux-amd64.tar.gz
+    - make vtadmin-test
     concurrency: 1
-    concurrency_group: 'vtop/vtorc-vtadmin-test'
+    concurrency_group: 'vtop/vtadmin-test'
     timeout_in_minutes: 60
     plugins:
       - docker#v3.12.0:

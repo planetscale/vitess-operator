@@ -67,13 +67,15 @@ func init() {
 			"init_shard":       spec.KeyRange.String(),
 			"init_tablet_type": spec.Type.InitTabletType(),
 
-			"health_check_interval": healthCheckInterval,
+			"health_check_interval":         healthCheckInterval,
+			"binlog_use_v3_resharding_mode": true,
 
 			"queryserver-config-max-result-size":  queryserverConfigMaxResultSize,
 			"queryserver-config-query-timeout":    queryserverConfigQueryTimeout,
 			"queryserver-config-pool-size":        queryserverConfigPoolSize,
 			"queryserver-config-stream-pool-size": queryserverConfigStreamPoolSize,
 			"queryserver-config-transaction-cap":  queryserverConfigTransactionCap,
+			"client-found-rows-pool-size":         queryserverConfigTransactionCap,
 		}
 	})
 
