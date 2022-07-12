@@ -170,6 +170,8 @@ function upgradeToLatest() {
   echo "Apply operator-latest.yaml "
   kubectl apply -f operator-latest.yaml
 
+  sleep 2
+
   echo "Upgrade all the other binaries"
   kubectl apply -f cluster_upgrade.yaml
 
@@ -231,9 +233,13 @@ setupKubectlAccessForCI
 get_started "operator.yaml" "101_initial_cluster.yaml"
 verifyVtGateVersion "13.0.0"
 checkSemiSyncSetup
+# Initially no durability policy is specified
+verifyDurabilityPolicy "commerce" ""
 upgradeToLatest
 verifyVtGateVersion "14.0.0"
 checkSemiSyncSetup
+# After upgrading, we set the durability policy to semi_sync
+verifyDurabilityPolicy "commerce" "semi_sync"
 move_tables
 resharding
 

@@ -52,6 +52,7 @@ spec:
 
   keyspaces:
   - name: commerce
+    durabilityPolicy: semi_sync
     turndownPolicy: Immediate
     partitionings:
     - equal:

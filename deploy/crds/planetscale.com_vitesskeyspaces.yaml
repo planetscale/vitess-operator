@@ -153,6 +153,8 @@ spec:
                 type: array
               databaseName:
                 type: string
+              durabilityPolicy:
+                type: string
               extraVitessFlags:
                 additionalProperties:
                   type: string

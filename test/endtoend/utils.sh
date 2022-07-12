@@ -123,6 +123,20 @@ function verifyVtGateVersion() {
   fi
 }
 
+
+# verifyDurabilityPolicy verifies the durability policy
+# in the given keyspace
+function verifyDurabilityPolicy() {
+  keyspace=$1
+  durabilityPolicy=$2
+  data=$(vtctlclient GetKeyspace "$keyspace")
+  echo "$data" | grep "\"durability_policy\": \"$durabilityPolicy\"" > /dev/null 2>&1
+  if [ $? -ne 0 ]; then
+    echo -e "The durability policy in $keyspace is incorrect, got:\n$data"
+    exit 1
+  fi
+}
+
 function waitForKeyspaceToBeServing() {
   ks=$1
   shard=$2
