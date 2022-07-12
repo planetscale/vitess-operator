@@ -958,6 +958,8 @@ spec:
                       type: object
                     databaseName:
                       type: string
+                    durabilityPolicy:
+                      type: string
                     name:
                       maxLength: 63
                       minLength: 1

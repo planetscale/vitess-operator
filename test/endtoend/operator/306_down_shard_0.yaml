@@ -41,6 +41,7 @@ spec:
 
   keyspaces:
   - name: commerce
+    durabilityPolicy: semi_sync
     turndownPolicy: Immediate
     partitionings:
     - equal:
@@ -73,6 +74,7 @@ spec:
                 requests:
                   storage: 10Gi
   - name: customer
+    durabilityPolicy: semi_sync
     turndownPolicy: Immediate
     partitionings:
     - equal:
