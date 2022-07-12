@@ -17,5 +17,6 @@ limitations under the License.
 package version
 
 var (
-	Version = "2.8.0"
+	// Version is the current version of this branch
+	Version = "2.7.2"
 )
