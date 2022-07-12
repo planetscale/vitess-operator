@@ -13,6 +13,7 @@ spec:
     vtgate: vitess/lite:latest
     vttablet: vitess/lite:latest
     vtbackup: vitess/lite:latest
+    vtorc: vitess/lite:latest
     mysqld:
       mysql56Compatible: vitess/lite:latest
     mysqldExporter: prom/mysqld-exporter:v0.11.0
@@ -70,6 +71,16 @@ spec:
   - name: commerce
     durabilityPolicy: semi_sync
     turndownPolicy: Immediate
+    vitessOrchestrator:
+      configSecret:
+        name: example-cluster-config
+        key: orc_config.json
+      resources:
+        limits:
+          memory: 128Mi
+        requests:
+          cpu: 100m
+          memory: 128Mi
     partitionings:
     - equal:
         parts: 1
@@ -85,6 +96,7 @@ spec:
             replicas: 3
             vttablet:
               extraFlags:
+                disable_active_reparents: "true"
                 db_charset: utf8mb4
               resources:
                 limits:
@@ -203,11 +215,11 @@ stringData:
 
     # User for Orchestrator (https://github.com/openark/orchestrator).
     # TODO: Reenable when the password is randomly generated.
-    #CREATE USER 'orc_client_user'@'%' IDENTIFIED BY 'orc_client_user_password';
-    #GRANT SUPER, PROCESS, REPLICATION SLAVE, RELOAD
-    #  ON *.* TO 'orc_client_user'@'%';
-    #GRANT SELECT
-    #  ON _vt.* TO 'orc_client_user'@'%';
+    CREATE USER 'orc_client_user'@'%' IDENTIFIED BY 'orc_client_user_password';
+    GRANT SUPER, PROCESS, REPLICATION SLAVE, RELOAD
+      ON *.* TO 'orc_client_user'@'%';
+    GRANT SELECT
+      ON _vt.* TO 'orc_client_user'@'%';
 
     FLUSH PRIVILEGES;
 
@@ -230,3 +242,12 @@ stringData:
       subjects: ["*"]
       clusters:
         - "local"
+  orc_config.json: |
+    {
+      "Debug": true,
+      "MySQLTopologyUser": "orc_client_user",
+      "MySQLTopologyPassword": "orc_client_user_password",
+      "MySQLReplicaUser": "vt_repl",
+      "MySQLReplicaPassword": "",
+      "RecoveryPeriodBlockSeconds": 5
+    }
