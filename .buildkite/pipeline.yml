@@ -47,9 +47,9 @@ steps:
     - tar -C /usr/local -xzf go1.18.3.linux-amd64.tar.gz
     - export PATH=$PATH:/usr/local/go/bin
     - rm go1.18.3.linux-amd64.tar.gz
-    - make vtadmin-test
+    - make vtorc-vtadmin-test
     concurrency: 1
-    concurrency_group: 'vtop/vtadmin-test'
+    concurrency_group: 'vtop/vtorc-vtadmin-test'
     timeout_in_minutes: 60
     plugins:
       - docker#v3.12.0:

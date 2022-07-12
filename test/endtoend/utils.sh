@@ -20,6 +20,11 @@ function checkSemiSyncSetup() {
   done
 }
 
+# getAllReplicaTablets returns the list of all the replica tablets as a space separated list
+function getAllReplicaTablets() {
+  vtctlclient ListAllTablets | grep "replica" | awk '{print $1}' | tr '\n' ' '
+}
+
 function printMysqlErrorFiles() {
   for vttablet in $(kubectl get pods --no-headers -o custom-columns=":metadata.name" | grep "vttablet") ; do
     echo "Finding error.log file in $vttablet"

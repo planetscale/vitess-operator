@@ -68,6 +68,6 @@ backup-restore-test: build e2e-test-setup
 	echo "Running Backup-Restore test"
 	test/endtoend/backup_restore_test.sh
 
-vtadmin-test: build e2e-test-setup
-	echo "Running VtAdmin test"
-	test/endtoend/vtadmin_test.sh
+vtorc-vtadmin-test: build e2e-test-setup
+	echo "Running VTOrc and VtAdmin test"
+	test/endtoend/vtorc_vtadmin_test.sh
