@@ -40,7 +40,7 @@ steps:
           volumes:
             - "/var/run/docker.sock:/var/run/docker.sock"
 
-  - name: "VTAdmin Test"
+  - name: "VTOrc and VTAdmin Test"
     command:
     - apk add g++ make bash curl mysql mysql-client chromium
     - wget https://golang.org/dl/go1.18.3.linux-amd64.tar.gz
