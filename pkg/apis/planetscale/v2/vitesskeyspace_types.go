@@ -320,6 +320,7 @@ type VitessKeyspaceEqualPartitioning struct {
 	//          partitioning with the desired number of parts, perform a resharding
 	//          migration, and then remove the old partitioning.
 	// +kubebuilder:validation:Minimum=1
+	// +kubebuilder:validation:Maximum=65536
 	Parts int32 `json:"parts"`
 
 	// ShardTemplate is the configuration used for each equal-sized shard.
