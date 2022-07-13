@@ -20,11 +20,6 @@ function checkSemiSyncSetup() {
   done
 }
 
-# getAllReplicaTablets returns the list of all the replica tablets as a space separated list
-function getAllReplicaTablets() {
-  vtctlclient ListAllTablets | grep "replica" | awk '{print $1}' | tr '\n' ' '
-}
-
 function printMysqlErrorFiles() {
   for vttablet in $(kubectl get pods --no-headers -o custom-columns=":metadata.name" | grep "vttablet") ; do
     echo "Finding error.log file in $vttablet"
@@ -124,20 +119,6 @@ function verifyVtGateVersion() {
   echo "$data" | grep "$version" > /dev/null 2>&1
   if [ $? -ne 0 ]; then
     echo -e "The data in $shard's tables is incorrect, got:\n$data"
-    exit 1
-  fi
-}
-
-
-# verifyDurabilityPolicy verifies the durability policy
-# in the given keyspace
-function verifyDurabilityPolicy() {
-  keyspace=$1
-  durabilityPolicy=$2
-  data=$(vtctlclient GetKeyspace "$keyspace")
-  echo "$data" | grep "\"durability_policy\": \"$durabilityPolicy\"" > /dev/null 2>&1
-  if [ $? -ne 0 ]; then
-    echo -e "The durability policy in $keyspace is incorrect, got:\n$data"
     exit 1
   fi
 }

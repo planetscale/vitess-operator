@@ -15,12 +15,12 @@ spec:
           path: /backup
           type: Directory
   images:
-    vtctld: vitess/lite:latest
-    vtgate: vitess/lite:latest
-    vttablet: vitess/lite:latest
-    vtbackup: vitess/lite:latest
+    vtctld: vitess/lite:v14.0.0
+    vtgate: vitess/lite:v14.0.0
+    vttablet: vitess/lite:v14.0.0
+    vtbackup: vitess/lite:v14.0.0
     mysqld:
-      mysql56Compatible: vitess/lite:latest
+      mysql56Compatible: vitess/lite:v14.0.0
     mysqldExporter: prom/mysqld-exporter:v0.11.0
   cells:
   - name: zone1
@@ -52,7 +52,6 @@ spec:
 
   keyspaces:
   - name: commerce
-    durabilityPolicy: semi_sync
     turndownPolicy: Immediate
     partitionings:
     - equal:

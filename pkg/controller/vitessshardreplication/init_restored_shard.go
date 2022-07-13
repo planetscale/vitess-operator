@@ -30,7 +30,6 @@ import (
 	topodatapb "vitess.io/vitess/go/vt/proto/topodata"
 	"vitess.io/vitess/go/vt/topo"
 	"vitess.io/vitess/go/vt/topo/topoproto"
-	"vitess.io/vitess/go/vt/vtctl/reparentutil"
 	"vitess.io/vitess/go/vt/wrangler"
 
 	// register grpc tabletmanager client
@@ -150,16 +149,6 @@ func electInitialShardPrimary(ctx context.Context, keyspaceName, shardName strin
 		return nil, fmt.Errorf("can't elect primary: shard already has a primary: %v", topoproto.TabletAliasString(shard.PrimaryAlias))
 	}
 
-	// Read the keyspace durability policy
-	keyspaceDurability, err := wr.TopoServer().GetKeyspaceDurability(ctx, keyspaceName)
-	if err != nil {
-		return nil, err
-	}
-	durability, err := reparentutil.GetDurabilityPolicy(keyspaceDurability)
-	if err != nil {
-		return nil, err
-	}
-
 	// Check if any tablet has already been promoted to primary.
 	tablets, err := wr.TopoServer().GetTabletMapForShard(ctx, keyspaceName, shardName)
 	if err != nil {
@@ -242,7 +231,10 @@ func electInitialShardPrimary(ctx context.Context, keyspaceName, shardName strin
 		return nil, fmt.Errorf("lost topology lock; aborting: %v", err)
 	}
 	// Promote the candidate to primary.
-	_, err = wr.TabletManagerClient().PromoteReplica(ctx, candidatePrimary.tablet.Tablet, reparentutil.SemiSyncAckers(durability, candidatePrimary.tablet.Tablet) > 0)
+	// TODO (GuptaManan100): We are passing false for semiSync parameter since it is not being used currently.
+	// When we change this behaviour in Vitess, we should also revisit here.
+	// The associated release-14 PR is https://github.com/vitessio/vitess/pull/10375
+	_, err = wr.TabletManagerClient().PromoteReplica(ctx, candidatePrimary.tablet.Tablet, false /* semiSync */)
 	if err != nil {
 		return nil, fmt.Errorf("failed to promote tablet %v to primary: %v", candidatePrimary.tablet.AliasString(), err)
 	}
@@ -268,7 +260,10 @@ func electInitialShardPrimary(ctx context.Context, keyspaceName, shardName strin
 		wg.Add(1)
 		go func(tablet *topo.TabletInfo) {
 			defer wg.Done()
-			err := wr.TabletManagerClient().SetReplicationSource(ctx, tablet.Tablet, candidatePrimary.tablet.Alias, 0 /* don't try to wait for a reparent journal entry */, "" /* don't wait for any position */, true /* forceStartReplication */, reparentutil.IsReplicaSemiSync(durability, candidatePrimary.tablet.Tablet, tablet.Tablet))
+			// TODO (GuptaManan100): We are passing false for semiSync parameter since it is not being used currently.
+			// When we change this behaviour in Vitess, we should also revisit here.
+			// The associated release-14 PR is https://github.com/vitessio/vitess/pull/10375
+			err := wr.TabletManagerClient().SetReplicationSource(ctx, tablet.Tablet, candidatePrimary.tablet.Alias, 0 /* don't try to wait for a reparent journal entry */, "" /* don't wait for any position */, true /* forceStartReplication */, false /* semiSync */)
 			if err != nil {
 				log.Warningf("best-effort configuration of replication for tablet %v failed: %v", tablet.AliasString(), err)
 			}

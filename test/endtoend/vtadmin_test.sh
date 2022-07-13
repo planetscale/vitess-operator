@@ -3,20 +3,19 @@
 source ./tools/test.env
 source ./test/endtoend/utils.sh
 
-# get_started_vtorc_vtadmin:
-function get_started_vtorc_vtadmin() {
+# get_started_vtadmin:
+function get_started_vtadmin() {
     echo "Apply latest operator-latest.yaml"
     kubectl apply -f "operator-latest.yaml"
     checkPodStatusWithTimeout "vitess-operator(.*)1/1(.*)Running(.*)"
 
-    echo "Apply 101_initial_cluster_vtorc_vtadmin.yaml"
-    kubectl apply -f "101_initial_cluster_vtorc_vtadmin.yaml"
+    echo "Apply 101_initial_cluster_vtadmin.yaml"
+    kubectl apply -f "101_initial_cluster_vtadmin.yaml"
     checkPodStatusWithTimeout "example-zone1-vtctld(.*)1/1(.*)Running(.*)"
     checkPodStatusWithTimeout "example-zone1-vtgate(.*)1/1(.*)Running(.*)"
     checkPodStatusWithTimeout "example-etcd(.*)1/1(.*)Running(.*)" 3
     checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 3
     checkPodStatusWithTimeout "example-zone1-vtadmin(.*)2/2(.*)Running(.*)"
-    checkPodStatusWithTimeout "example-commerce-x-x-zone1-vtorc(.*)1/1(.*)Running(.*)"
 
     sleep 10
     echo "Creating vschema and commerce SQL schema"
@@ -112,19 +111,6 @@ function verifyVtadminSetup() {
   chromiumHeadlessRequest "http://localhost:14000/keyspace/example/commerce/shards" "commerce/-"
 }
 
-# verifyVTOrcSetup verifies that VTOrc is running and repairing things that we mess up
-function verifyVTOrcSetup() {
-  # Stop replication using the vtctld and wait for VTOrc to repair
-  allReplicaTablets=$(getAllReplicaTablets)
-  for replica in $(echo "$allReplicaTablets") ; do
-    vtctlclient StopReplication "$replica"
-  done
-  # Now that we have stopped replication on both the tablets, we know that this will
-  # only succeed if VTOrc is able to fix it since we are running vttablet with disable active reparent
-  # and semi-sync durability policy
-  mysql -e "insert into customer(email) values('newemail@domain.com');"
-}
-
 function chromiumHeadlessRequest() {
   url=$1
   dataToAssert=$2
@@ -213,16 +199,14 @@ cd "$PWD/test/endtoend/operator"
 killall kubectl
 setupKubectlAccessForCI
 
-get_started_vtorc_vtadmin
-verifyVtGateVersion "15.0.0"
+get_started_vtadmin
+verifyVtGateVersion "14.0.0"
 checkSemiSyncSetup
 
 # Check Vtadmin is setup
-# In get_started_vtorc_vtadmin we verify that the pod for vtadmin exists and is healthy
+# In get_started_vtadmin we verify that the pod for vtadmin exists and is healthy
 # We now try and query the vtadmin api
 verifyVtadminSetup
-# Next we check that VTOrc is running properly and is able to fix issues as they come up
-verifyVTOrcSetup
 
 # Teardown
 echo "Deleting Kind cluster. This also deletes the volume associated with it"
