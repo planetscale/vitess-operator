@@ -201,6 +201,7 @@ function curlPostRequest() {
   fi
 }
 
+exit 1
 # Test setup
 echo "Building the docker image"
 docker build -f build/Dockerfile.release -t vitess-operator-pr:latest .
