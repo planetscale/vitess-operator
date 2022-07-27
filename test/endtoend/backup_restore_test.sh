@@ -85,7 +85,6 @@ function setupKindConfig() {
   cat ./test/endtoend/kindBackupConfig.yaml | sed "s,PATH,$BACKUP_DIR,1" > ./vtdataroot/config.yaml
 }
 
-exit 1
 # Test setup
 STARTING_DIR="$PWD"
 echo "Make temporary directory for the test"
