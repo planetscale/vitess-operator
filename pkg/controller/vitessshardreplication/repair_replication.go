@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"sync"
 	"time"
+	"vitess.io/vitess/go/vt/vtctl/reparentutil"
 
 	"vitess.io/vitess/go/mysql"
 	"vitess.io/vitess/go/netutil"
@@ -262,6 +263,16 @@ func (r *ReconcileVitessShard) repairReplicationLocked(ctx context.Context, vts 
 		}
 	}
 
+	// Read the keyspace durability policy
+	keyspaceDurability, err := wr.TopoServer().GetKeyspaceDurability(ctx, keyspaceName)
+	if err != nil {
+		return err
+	}
+	durability, err := reparentutil.GetDurabilityPolicy(keyspaceDurability)
+	if err != nil {
+		return err
+	}
+
 	// Get all tablet records for the shard. A partial result is ok. We might miss
 	// some tablets, but it's still better to check the tablets we can see.
 	// The missing tablets might be in a cell whose local topo is unavailable.
@@ -297,10 +308,7 @@ func (r *ReconcileVitessShard) repairReplicationLocked(ctx context.Context, vts 
 			// Only force start replication on replicas, not rdonly.
 			// A rdonly might be stopped on purpose for a diff.
 			forceStartReplication := tablet.Type == topodatapb.TabletType_REPLICA
-			// TODO (GuptaManan100): We are passing false for semiSync parameter since it is not being used currently.
-			// When we change this behaviour in Vitess, we should also revisit here.
-			// The associated release-14 PR is https://github.com/vitessio/vitess/pull/10375
-			err = wr.TabletManagerClient().SetReplicationSource(ctx, tablet, primaryTabletInfo.Alias, 0 /* don't try to wait for a reparent journal entry */, "" /* don't wait for any position */, forceStartReplication, false /* semiSync */)
+			err = wr.TabletManagerClient().SetReplicationSource(ctx, tablet, primaryTabletInfo.Alias, 0 /* don't try to wait for a reparent journal entry */, "" /* don't wait for any position */, forceStartReplication, reparentutil.IsReplicaSemiSync(durability, primaryTabletInfo.Tablet, tablet))
 			reparentTabletCount.WithLabelValues(metricLabels(vts, err)...).Inc()
 			if err != nil {
 				// Just log the error instead of failing the process, because fixing replicas is best-effort.
