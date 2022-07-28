@@ -234,7 +234,7 @@ get_started "operator.yaml" "101_initial_cluster.yaml"
 verifyVtGateVersion "13.0.0"
 checkSemiSyncSetup
 # Initially no durability policy is specified
-verifyDurabilityPolicy "commerce" ""
+verifyNoDurabilityPolicy "commerce"
 upgradeToLatest
 verifyVtGateVersion "14.0.0"
 checkSemiSyncSetup
