@@ -231,7 +231,6 @@ func (spec *Spec) flags() vitess.Flags {
 		"topo_global_root":           spec.GlobalLockserver.RootPath,
 
 		"logtostderr":           true,
-		"enable_queries":        true,
 		"enable_realtime_stats": true,
 
 		"workflow_manager_init":         true,
