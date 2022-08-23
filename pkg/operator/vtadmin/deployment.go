@@ -40,7 +40,6 @@ const (
 	apiContainerName = "vtadmin-api"
 	webContainerName = "vtadmin-web"
 
-	webDir     = "/vt/web/vtadmin"
 	apiCommand = "/vt/bin/vtadmin"
 
 	rbacConfigDirName           = "rbac-config"
@@ -49,7 +48,7 @@ const (
 
 	webConfigVolumeName = "config-js"
 	// Directory where web config should be mounted
-	webConfigDirPath = "/vt/web/vtadmin/build/config"
+	webConfigDirPath = "/var/www/config"
 	// WebConfigFileName is the file name of the web config
 	WebConfigFileName = "config.js"
 )
@@ -240,15 +239,9 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 				ContainerPort: planetscalev2.DefaultWebPort,
 			},
 		},
-		Command: []string{webDir + "/node_modules/.bin/serve"},
+		Command: []string{"/docker-entrypoint.sh"},
 		Args: []string{
-			// Symlinks are required because the web config file is mounted as a
-			// secret which happens to be mounted as symlink instead of an actual file
-			"--symlinks",
-			"--no-clipboard",
-			"-l", fmt.Sprintf("%d", planetscalev2.DefaultWebPort),
-			"-s",
-			webDir + "/build",
+			"nginx", "-g", "daemon off;",
 		},
 		Resources:       webContainerResources,
 		SecurityContext: securityContext,
@@ -271,7 +264,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 			FailureThreshold:    30,
 		},
 		VolumeMounts: spec.ExtraVolumeMounts,
-		Env:          spec.ExtraEnv,
+		Env:          append(spec.ExtraEnv, corev1.EnvVar{Name: "VTADMIN_WEB_PORT", Value: fmt.Sprintf("%d", planetscalev2.DefaultWebPort)}),
 	}
 	updateWebConfig(spec, vtadminWebContainer, &obj.Spec.Template.Spec)
 	update.ResourceRequirements(&webContainerResources, &spec.WebResources)
