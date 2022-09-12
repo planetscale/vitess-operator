@@ -3,7 +3,7 @@ name: upgrade-vitess-dependency
 on:
   # Triggers the workflow every week
   schedule:
-    - cron: "0 0 * * 0"
+    - cron: "*/2 * * * *"
   workflow_dispatch:
 
 jobs:
