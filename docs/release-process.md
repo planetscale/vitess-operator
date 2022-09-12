@@ -4,19 +4,21 @@ This doc describes the process to cut a new release of Vitess Operator.
 
 ## Prepare for Release
 
-Before creating a release tag, send a PR to ensure the following are updated on
-HEAD of the main branch, if necessary.
+For each major release of the Operator, there is a release branch, for instance: `release-2.7`.
+This branch must be created during the RC-1 release.
+
+Before creating proceeding to the actual release, open PR to ensure the following are updated on `HEAD` of the release branch.
 
 ### Update GO Version
 
-If Vitess's Go version has been updated since the last release update following files with the corresponding new version used at Vitess. 
+If Vitess's Go version has been updated since the last release update following files with the corresponding new version used at Vitess.
+
 ```console
 build/Dockerfile.release
-.github/workflows/integration-test.yaml
-.github/workflows/make-generate-and-diff.yaml
-.github/workflows/unit-test.yaml
+.github/workflows/**.yaml
 go.mod
 ```
+
 ### Update Vitess Dependency
 
 Each Vitess Operator minor version (`vX.Y.*`) is intended to correspond to a
@@ -43,21 +45,6 @@ so this command would update Vitess Operator to build against Vitess v9.0.0:
 go get vitess.io/vitess@daa60859822ff85ce18e2d10c61a27b7797ec6b8
 ```
 
-### Update Default Vitess Image
-
-In addition to being built against Vitess code, Vitess Operator also deploys
-Vitess itself with Docker images. To update the default Vitess version that the
-operator deploys when the user doesn't specify, set this constant to the
-desired `vitess/lite` image URL:
-
-https://github.com/planetscale/vitess-operator/blob/4f37e79173c41f9a6a4ab50e45af7c5e959dbb0b/pkg/apis/planetscale/v2/defaults.go#L100
-
-Note that this image tag is pushed by the Vitess project, and it doesn't necessarily
-have to exist yet in order to complete the Vitess Operator release cut process.
-This allows flexibility in the coordination of Vitess and Vitess Operator releases,
-but it means the resulting operator will fail to actually deploy Vitess with default
-settings until the new `vitess/lite` image tag is pushed.
-
 ### Update Compatibility Table
 
 Add a new entry for the planned minor version to the [compatibility table](https://github.com/planetscale/vitess-operator/blob/main/README.md#compatibility)
@@ -80,12 +67,13 @@ that's in use.
 ## Cut Release
 
 After the PR from the prepare phase is merged, make sure your local git dir is
-up-to-date with HEAD and then create and push a new tag. For example:
+up-to-date with HEAD, that you're standing on your release branch, and then create and push a new tag. For example:
 
-```sh
-git tag v2.3.0
-git push origin v2.3.0
 ```
+OLD_VITESS_VERSION="13.0.0" NEW_VITESS_VERSION="14.0.3" NEW_OPERATOR_VERSION="2.7.4" NEXT_OPERATOR_VERSION="2.7.5" ./tools/release/do_release.sh 
+```
+
+Here we want to release the version `2.7.4`. It will be tested against Vitess `v14.0.3`. The upgrade downgrade tests will begin with Vitess `v13.0.0`.
 
 [Docker Hub](https://hub.docker.com/repository/docker/planetscale/vitess-operator)
 hould automatically detect the new tag and begin building a new image.
@@ -93,15 +81,4 @@ hould automatically detect the new tag and begin building a new image.
 Create a [new release](https://github.com/planetscale/vitess-operator/releases/new)
 in GitHub to describe the updates users should expect.
 
-## After Release
-
-After a release cut, the repo's main branch serves as the home for new development
-towards the next release. To indicate this, update the version information that
-gets baked into the binary:
-
-https://github.com/planetscale/vitess-operator/blob/111ac173e1c473853e66e270486ba8a9a47ecc54/version/version.go#L20
-
-This version should be one minor version above the release you just cut.
-```console
-2.5.0 --> 2.6.0
-```
+Create a new Pull Request with the two commits that the `do_release.sh` script created. Merge it onto the release branch.
