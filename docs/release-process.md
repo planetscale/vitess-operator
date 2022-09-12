@@ -5,13 +5,14 @@ This doc describes the process to cut a new release of Vitess Operator.
 ## Prepare for Release
 
 For each major release of the Operator, there is a release branch, for instance: `release-2.7`.
+This branch must be created during the RC-1 release.
 
-Before creating a release tag, send a PR to ensure the following are updated on
-HEAD of the release branch, if necessary.
+Before creating proceeding to the actual release, open PR to ensure the following are updated on `HEAD` of the release branch.
 
 ### Update GO Version
 
-If Vitess's Go version has been updated since the last release update following files with the corresponding new version used at Vitess. 
+If Vitess's Go version has been updated since the last release update following files with the corresponding new version used at Vitess.
+
 ```console
 build/Dockerfile.release
 .github/workflows/**.yaml
