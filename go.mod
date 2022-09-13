@@ -20,7 +20,7 @@ require (
 	sigs.k8s.io/controller-runtime v0.9.7
 	sigs.k8s.io/controller-tools v0.6.2
 	sigs.k8s.io/kustomize v2.0.3+incompatible
-	vitess.io/vitess v0.10.3-0.20220912060457-89093912dab0
+	vitess.io/vitess v0.10.3-0.20220913065139-4b58cb702e20
 )
 
 require (
@@ -35,7 +35,6 @@ require (
 	github.com/Azure/go-autorest/autorest/date v0.3.0 // indirect
 	github.com/Azure/go-autorest/logger v0.2.0 // indirect
 	github.com/Azure/go-autorest/tracing v0.6.0 // indirect
-	github.com/GeertJohan/go.rice v1.0.0 // indirect
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
 	github.com/aquarapid/vaultlib v0.5.1 // indirect
@@ -46,7 +45,6 @@ require (
 	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/coreos/go-systemd/v22 v22.3.2 // indirect
 	github.com/cyphar/filepath-securejoin v0.2.3 // indirect
-	github.com/daaku/go.zipexe v1.0.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/docker/distribution v2.7.1+incompatible // indirect
 	github.com/emicklei/go-restful v2.9.5+incompatible // indirect
