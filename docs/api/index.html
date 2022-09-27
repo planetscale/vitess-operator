@@ -616,7 +616,9 @@ If set, this must point to a file in the format expected for the
 <a href="#planetscale.com/v2.VitessClusterSpec">VitessClusterSpec</a>)
 </p>
 <p>
-<p>ClusterBackupSpec configures backups for a cluster.</p>
+<p>ClusterBackupSpec configures backups for a cluster.
+In addition to disaster recovery, Vitess currently depends on backups to support
+provisioning of a new tablet in a shard with existing data, as an implementation detail.</p>
 </p>
 <table class="table table-striped">
 <thead class="thead-dark">
