@@ -1,3 +1,9 @@
+# This workflow creates a Pull Request that upgrades the Vitess Dependency of the vitess-operator.
+# Because of the issue documented in https://github.com/peter-evans/create-pull-request/issues/48,
+# a workflow cannot trigger the execution of other workflows when it creates a PR.
+# The workaround we use to trigger the workflows on the new PR is to manually close and reopen the PR.
+# https://github.com/peter-evans/create-pull-request/blob/main/docs/concepts-guidelines.md#workarounds-to-trigger-further-workflow-runs
+
 name: upgrade-vitess-dependency
 
 on:
