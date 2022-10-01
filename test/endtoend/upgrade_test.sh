@@ -15,7 +15,7 @@ function move_tables() {
 
   sleep 10
 
-  vtctlclient MoveTables -source commerce -tables 'customer,corder' Create customer.commerce2customer
+  vtctldclient LegacyVtctlCommand -- MoveTables --source commerce --tables 'customer,corder' Create customer.commerce2customer
   if [ $? -ne 0 ]; then
     echo "MoveTables failed"
     printMysqlErrorFiles
@@ -24,7 +24,7 @@ function move_tables() {
 
   sleep 10
 
-  vdiff_out=$(vtctlclient VDiff customer.commerce2customer)
+  vdiff_out=$(vtctldclient LegacyVtctlCommand -- VDiff customer.commerce2customer)
   echo "$vdiff_out" | grep "ProcessedRows: 5" | wc -l | grep "2" > /dev/null
   if [ $? -ne 0 ]; then
     echo -e "VDiff output is invalid, got:\n$vdiff_out"
@@ -32,21 +32,21 @@ function move_tables() {
     exit 1
   fi
 
-  vtctlclient MoveTables -tablet_types=rdonly,replica SwitchTraffic customer.commerce2customer
+  vtctldclient LegacyVtctlCommand -- MoveTables --tablet_types='rdonly,replica' SwitchTraffic customer.commerce2customer
   if [ $? -ne 0 ]; then
     echo "SwitchTraffic for rdonly and replica failed"
     printMysqlErrorFiles
     exit 1
   fi
 
-  vtctlclient MoveTables -tablet_types=primary SwitchTraffic customer.commerce2customer
+  vtctldclient LegacyVtctlCommand -- MoveTables --tablet_types='primary' SwitchTraffic customer.commerce2customer
   if [ $? -ne 0 ]; then
     echo "SwitchTraffic for primary failed"
     printMysqlErrorFiles
     exit 1
   fi
 
-  vtctlclient MoveTables Complete customer.commerce2customer
+  vtctldclient LegacyVtctlCommand -- MoveTables Complete customer.commerce2customer
   if [ $? -ne 0 ]; then
     echo "MoveTables Complete failed"
     printMysqlErrorFiles
@@ -60,14 +60,14 @@ function resharding() {
   echo "Create new schemas for new shards"
   applySchemaWithRetry create_commerce_seq.sql commerce
   sleep 4
-  vtctlclient ApplyVSchema -vschema="$(cat vschema_commerce_seq.json)" commerce
+  vtctldclient ApplyVSchema --vschema-file="vschema_commerce_seq.json" commerce
   if [ $? -ne 0 ]; then
     echo "ApplyVschema commerce_seq during resharding failed"
     printMysqlErrorFiles
     exit 1
   fi
   sleep 4
-  vtctlclient ApplyVSchema -vschema="$(cat vschema_customer_sharded.json)" customer
+  vtctldclient ApplyVSchema --vschema-file="vschema_customer_sharded.json" customer
   if [ $? -ne 0 ]; then
     echo "ApplyVschema customer_sharded during resharding failed"
     printMysqlErrorFiles
@@ -91,7 +91,7 @@ function resharding() {
   echo "Ready to reshard ..."
   sleep 15
 
-  vtctlclient Reshard -source_shards '-' -target_shards '-80,80-' Create customer.cust2cust
+  vtctldclient LegacyVtctlCommand -- Reshard --source_shards '-' --target_shards '-80,80-' Create customer.cust2cust
   if [ $? -ne 0 ]; then
     echo "Reshard Create failed"
     printMysqlErrorFiles
@@ -100,20 +100,20 @@ function resharding() {
 
   sleep 15
 
-  vdiff_out=$(vtctlclient VDiff customer.cust2cust)
+  vdiff_out=$(vtctldclient LegacyVtctlCommand -- VDiff customer.cust2cust)
   echo "$vdiff_out" | grep "ProcessedRows: 5" | wc -l | grep "2" > /dev/null
   if [ $? -ne 0 ]; then
     echo -e "VDiff output is invalid, got:\n$vdiff_out"
     # Allow failure
   fi
 
-  vtctlclient Reshard -tablet_types=rdonly,replica SwitchTraffic customer.cust2cust
+  vtctldclient LegacyVtctlCommand -- Reshard --tablet_types='rdonly,replica' SwitchTraffic customer.cust2cust
   if [ $? -ne 0 ]; then
     echo "Reshard SwitchTraffic for replica,rdonly failed"
     printMysqlErrorFiles
     exit 1
   fi
-  vtctlclient Reshard -tablet_types=primary SwitchTraffic customer.cust2cust
+  vtctldclient LegacyVtctlCommand -- Reshard --tablet_types='primary' SwitchTraffic customer.cust2cust
   if [ $? -ne 0 ]; then
     echo "Reshard SwitchTraffic for primary failed"
     printMysqlErrorFiles
