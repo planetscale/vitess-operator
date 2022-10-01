@@ -159,15 +159,14 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 			{
 				Name:          planetscalev2.DefaultWebPortName,
 				Protocol:      corev1.ProtocolTCP,
-				ContainerPort: planetscalev2.DefaultVtorcWebPort,
+				ContainerPort: planetscalev2.DefaultWebPort,
 			},
 		},
 		SecurityContext: securityContext,
 		ReadinessProbe: &corev1.Probe{
 			Handler: corev1.Handler{
 				HTTPGet: &corev1.HTTPGetAction{
-					// TODO(sougou): fix orch to export better end points
-					Path: "/web/clusters",
+					Path: "/debug/health",
 					Port: intstr.FromString(planetscalev2.DefaultWebPortName),
 				},
 			},
@@ -175,8 +174,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 		LivenessProbe: &corev1.Probe{
 			Handler: corev1.Handler{
 				HTTPGet: &corev1.HTTPGetAction{
-					// TODO(sougou): fix orch to export better end points
-					Path: "/web/clusters",
+					Path: "/debug/liveness",
 					Port: intstr.FromString(planetscalev2.DefaultWebPortName),
 				},
 			},
@@ -222,6 +220,7 @@ func (spec *Spec) flags() vitess.Flags {
 		"topo_implementation":        spec.GlobalLockserver.Implementation,
 		"topo_global_server_address": spec.GlobalLockserver.Address,
 		"topo_global_root":           spec.GlobalLockserver.RootPath,
+		"port":                       planetscalev2.DefaultWebPort,
 
 		"clusters_to_watch": spec.Keyspace + "/" + spec.Shard,
 

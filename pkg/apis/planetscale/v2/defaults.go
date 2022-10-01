@@ -93,9 +93,6 @@ const (
 	// DefaultMysqlPort is the port for MySQL client connections.
 	DefaultMysqlPort = 3306
 
-	// DefaultVtorcWebPort is the default web port for vtorc.
-	DefaultVtorcWebPort = 3000
-
 	// DefaultWebPortName is the name for the web port.
 	DefaultWebPortName = "web"
 	// DefaultAPIPortName is the name for the api port.
