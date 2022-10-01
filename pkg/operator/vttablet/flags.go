@@ -100,8 +100,6 @@ func init() {
 		dbInitScript := secrets.Mount(&spec.DatabaseInitScriptSecret, dbInitScriptDirName)
 		return vitess.Flags{
 			// vtbackup-specific flags.
-			"timeout":             vtbackupTimeout,
-			"replication_timeout": vtbackupReplicationTimeout,
 			"concurrency":         vtbackupConcurrency,
 			"initial_backup":      backupSpec.InitialBackup,
 			"min_backup_interval": backupSpec.MinBackupInterval,
