@@ -29,7 +29,6 @@ import (
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 	"planetscale.dev/vitess-operator/pkg/operator/k8s"
 	"planetscale.dev/vitess-operator/pkg/operator/names"
-	"planetscale.dev/vitess-operator/pkg/operator/secrets"
 	"planetscale.dev/vitess-operator/pkg/operator/update"
 	"planetscale.dev/vitess-operator/pkg/operator/vitess"
 )
@@ -38,25 +37,21 @@ const (
 	containerName = "vtorc"
 
 	command = "/vt/bin/vtorc"
-	webDir  = "/vt/web/orchestrator"
-
-	configDirName = "vtorc-config"
 )
 
 func deploymentName(clusterName, keyspace, shardSafeName, cellName string) string {
 	return names.JoinWithConstraints(names.DefaultConstraints, clusterName, keyspace, shardSafeName, cellName, planetscalev2.VtorcComponentName)
 }
 
-// DeploymentName returns the name of the orchestrator Deployment for a given tablet pool.
+// DeploymentName returns the name of the VTOrc Deployment for a given tablet pool.
 func DeploymentName(clusterName, keyspace string, shardKeyRange planetscalev2.VitessKeyRange, cellName string) string {
 	return deploymentName(clusterName, keyspace, shardKeyRange.SafeName(), cellName)
 }
 
-// Spec specifies all the internal parameters needed to deploy orchestrator,
+// Spec specifies all the internal parameters needed to deploy VTOrc,
 // as opposed to the API type planetscalev2.VitessDashboardSpec, which is the public API.
 type Spec struct {
 	GlobalLockserver  planetscalev2.VitessLockserverParams
-	ConfigSecret      planetscalev2.SecretSource
 	Keyspace          string
 	Shard             string
 	Cell              string
@@ -185,7 +180,6 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 		Env:          spec.ExtraEnv,
 	}
 	update.ResourceRequirements(&vtorcContainer.Resources, &spec.Resources)
-	updateConfig(spec, flags, vtorcContainer, &obj.Spec.Template.Spec)
 	vtorcContainer.Args = flags.FormatArgs()
 	update.PodTemplateContainers(&obj.Spec.Template.Spec.Containers, []corev1.Container{*vtorcContainer})
 
@@ -224,20 +218,6 @@ func (spec *Spec) flags() vitess.Flags {
 
 		"clusters_to_watch": spec.Keyspace + "/" + spec.Shard,
 
-		"orc_web_dir": webDir,
-
 		"logtostderr": true,
 	}
-}
-
-func updateConfig(spec *Spec, flags vitess.Flags, container *corev1.Container, podSpec *corev1.PodSpec) {
-	configFile := secrets.Mount(&spec.ConfigSecret, configDirName)
-
-	flags["config"] = configFile.FilePath()
-
-	// Add the volume to the Pod, if needed.
-	update.Volumes(&podSpec.Volumes, configFile.PodVolumes())
-
-	// Mount the volume in the Container.
-	container.VolumeMounts = append(container.VolumeMounts, configFile.ContainerVolumeMount())
 }

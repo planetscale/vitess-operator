@@ -137,7 +137,6 @@ func (r *ReconcileVitessShard) vtorcSpecs(vts *planetscalev2.VitessShard, parent
 
 		specs = append(specs, &vtorc.Spec{
 			GlobalLockserver:  vts.Spec.GlobalLockserver,
-			ConfigSecret:      vts.Spec.VitessOrchestrator.ConfigSecret,
 			Image:             vts.Spec.Images.Vtorc,
 			ImagePullPolicy:   vts.Spec.ImagePullPolicies.Vtorc,
 			ImagePullSecrets:  vts.Spec.ImagePullSecrets,

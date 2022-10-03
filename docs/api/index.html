@@ -1754,7 +1754,6 @@ Default: Use the default credentials of the Node.</p>
 <a href="#planetscale.com/v2.S3BackupLocation">S3BackupLocation</a>, 
 <a href="#planetscale.com/v2.VitessGatewayStaticAuthentication">VitessGatewayStaticAuthentication</a>, 
 <a href="#planetscale.com/v2.VitessGatewayTLSSecureTransport">VitessGatewayTLSSecureTransport</a>, 
-<a href="#planetscale.com/v2.VitessOrchestratorSpec">VitessOrchestratorSpec</a>, 
 <a href="#planetscale.com/v2.VitessShardTemplate">VitessShardTemplate</a>, 
 <a href="#planetscale.com/v2.VtAdminSpec">VtAdminSpec</a>)
 </p>
@@ -5799,8 +5798,7 @@ VitessOrchestratorSpec
 <td>
 <p>VitessOrchestrator deploys a set of Vitess Orchestrator (vtorc) servers for the Keyspace.
 It is highly recommended that you set disable_active_reparents=true
-and enable_semi_sync=false for the vtablets if enabling vtorc.
-THIS API IS EXPERIMENTAL: NOT TO BE USED IN PRODUCTION.</p>
+and enable_semi_sync=false for the vtablets if enabling vtorc.</p>
 </td>
 </tr>
 <tr>
@@ -5954,8 +5952,7 @@ Multiple Vitess clusters can share a lockserver as long as they have unique root
 <a href="#planetscale.com/v2.VitessShardSpec">VitessShardSpec</a>)
 </p>
 <p>
-<p>VitessOrchestratorSpec specifies deployment parameters for vtorc.
-THIS API IS EXPERIMENTAL: NOT TO BE USED IN PRODUCTION.</p>
+<p>VitessOrchestratorSpec specifies deployment parameters for vtorc.</p>
 </p>
 <table class="table table-striped">
 <thead class="thead-dark">
@@ -5965,19 +5962,6 @@ THIS API IS EXPERIMENTAL: NOT TO BE USED IN PRODUCTION.</p>
 </tr>
 </thead>
 <tbody>
-<tr>
-<td>
-<code>configSecret</code></br>
-<em>
-<a href="#planetscale.com/v2.SecretSource">
-SecretSource
-</a>
-</em>
-</td>
-<td>
-<p>ConfigSecret contains the config file (with passwords) for vtorc.</p>
-</td>
-</tr>
 <tr>
 <td>
 <code>resources</code></br>
