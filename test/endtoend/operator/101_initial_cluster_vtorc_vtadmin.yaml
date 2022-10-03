@@ -71,7 +71,7 @@ spec:
   - name: commerce
     durabilityPolicy: semi_sync
     turndownPolicy: Immediate
-    vtorc:
+    vitessOrchestrator:
       resources:
         limits:
           memory: 128Mi
