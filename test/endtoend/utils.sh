@@ -5,7 +5,7 @@
 # Use this to debug issues. It will print the commands as they run
 # set -x
 shopt -s expand_aliases
-alias vtctlclient="vtctlclient --server=localhost:15999"
+alias vtctldclient="vtctldclient --server=localhost:15999"
 alias mysql="mysql -h 127.0.0.1 -P 15306 -u user"
 BUILDKITE_BUILD_ID=${BUILDKITE_BUILD_ID:-"0"}
 
@@ -22,7 +22,7 @@ function checkSemiSyncSetup() {
 
 # getAllReplicaTablets returns the list of all the replica tablets as a space separated list
 function getAllReplicaTablets() {
-  vtctlclient ListAllTablets | grep "replica" | awk '{print $1}' | tr '\n' ' '
+  vtctldclient GetTablets | grep "replica" | awk '{print $1}' | tr '\n' ' '
 }
 
 function printMysqlErrorFiles() {
@@ -59,8 +59,8 @@ function takeBackup() {
   initialBackupCount=$(kubectl get vtb --no-headers | wc -l)
   finalBackupCount=$((initialBackupCount+1))
 
-  # issue the backupShard command to vtctlclient
-  vtctlclient BackupShard "$keyspaceShard"
+  # issue the backupShard command to vtctldclient
+  vtctldclient BackupShard "$keyspaceShard"
 
   for i in {1..600} ; do
     out=$(kubectl get vtb --no-headers | wc -l)
@@ -134,7 +134,7 @@ function verifyVtGateVersion() {
 function verifyDurabilityPolicy() {
   keyspace=$1
   durabilityPolicy=$2
-  data=$(vtctlclient GetKeyspace "$keyspace")
+  data=$(vtctldclient LegacyVtctlCommand -- GetKeyspace "$keyspace")
   echo "$data" | grep "\"durability_policy\": \"$durabilityPolicy\"" > /dev/null 2>&1
   if [ $? -ne 0 ]; then
     echo -e "The durability policy in $keyspace is incorrect, got:\n$data"
@@ -163,7 +163,7 @@ function applySchemaWithRetry() {
   ks=$2
   drop_sql=$3
   for i in {1..600} ; do
-    vtctlclient ApplySchema -sql="$(cat $schema)" $ks
+    vtctldclient ApplySchema --sql-file="$schema" $ks
     if [ $? -eq 0 ]; then
       return
     fi
@@ -226,7 +226,7 @@ function get_started() {
     sleep 5
 
     applySchemaWithRetry create_commerce_schema.sql commerce drop_all_commerce_tables.sql
-    vtctlclient ApplyVSchema -vschema="$(cat vschema_commerce_initial.json)" commerce
+    vtctldclient ApplyVSchema --vschema-file="vschema_commerce_initial.json" commerce
     if [ $? -ne 0 ]; then
       echo "ApplySchema failed for initial commerce"
       printMysqlErrorFiles

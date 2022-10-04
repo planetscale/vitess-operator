@@ -82,14 +82,14 @@ func init() {
 		spec := s.(*Spec)
 		dbInitScript := secrets.Mount(&spec.DatabaseInitScriptSecret, dbInitScriptDirName)
 		return vitess.Flags{
-			"logtostderr":         true,
-			"tablet_uid":          spec.Alias.Uid,
-			"socket_file":         mysqlctlSocketPath,
-			"mysql_socket":        mysqlSocketPath,
-			"db-config-dba-uname": dbConfigDbaUname,
-			"db_charset":          spec.dbConfigCharset(),
-			"init_db_sql_file":    dbInitScript.FilePath(),
-			"wait_time":           mysqlctlWaitTime,
+			"logtostderr":      true,
+			"tablet_uid":       spec.Alias.Uid,
+			"socket_file":      mysqlctlSocketPath,
+			"mysql_socket":     mysqlSocketPath,
+			"db_dba_user":      dbConfigDbaUname,
+			"db_charset":       spec.dbConfigCharset(),
+			"init_db_sql_file": dbInitScript.FilePath(),
+			"wait_time":        mysqlctlWaitTime,
 		}
 	})
 
@@ -100,8 +100,6 @@ func init() {
 		dbInitScript := secrets.Mount(&spec.DatabaseInitScriptSecret, dbInitScriptDirName)
 		return vitess.Flags{
 			// vtbackup-specific flags.
-			"timeout":             vtbackupTimeout,
-			"replication_timeout": vtbackupReplicationTimeout,
 			"concurrency":         vtbackupConcurrency,
 			"initial_backup":      backupSpec.InitialBackup,
 			"min_backup_interval": backupSpec.MinBackupInterval,
@@ -118,8 +116,8 @@ func init() {
 			"init_shard":            spec.KeyRange.String(),
 			"init_db_name_override": spec.localDatabaseName(),
 
-			"db-config-dba-uname": dbConfigDbaUname,
-			"db_charset":          spec.dbConfigCharset(),
+			"db_dba_user": dbConfigDbaUname,
+			"db_charset":  spec.dbConfigCharset(),
 
 			"init_db_sql_file": dbInitScript.FilePath(),
 
