@@ -65,3 +65,14 @@ updateVersion $NEXT_OPERATOR_VERSION
 
 git add --all
 git commit -n -s -m "Back to dev mode"
+
+echo ""
+echo "-----------------------"
+echo ""
+echo "\tPlease push the new git tag:"
+echo ""
+echo "\t\tgit push origin v$NEW_OPERATOR_VERSION"
+echo ""
+echo "\tAnd push your current branch in order to open a Pull Request against the release branch."
+echo ""
+echo ""
