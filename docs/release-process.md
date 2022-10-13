@@ -67,7 +67,13 @@ that's in use.
 ## Cut Release
 
 After the PR from the prepare phase is merged, make sure your local git dir is
-up-to-date with HEAD, that you're standing on your release branch, and then create and push a new tag. For example:
+up-to-date with HEAD, and then create a temporary release branch on top of the long-term release branch, for instance:
+
+```
+git checkout -b new-release-2.7.5 origin/release-2.7
+```
+
+And then, create the tag using the following command, note that you will need to replace the placeholder strings:
 
 ```
 OLD_VITESS_VERSION="13.0.0" NEW_VITESS_VERSION="14.0.3" NEW_OPERATOR_VERSION="2.7.4" NEXT_OPERATOR_VERSION="2.7.5" ./tools/release/do_release.sh 
@@ -81,4 +87,4 @@ hould automatically detect the new tag and begin building a new image.
 Create a [new release](https://github.com/planetscale/vitess-operator/releases/new)
 in GitHub to describe the updates users should expect.
 
-Create a new Pull Request with the two commits that the `do_release.sh` script created. Merge it onto the release branch.
+Follow the instructions prompted by the `do_release.sh` script. You will need to push the tag and push the temporary branch to finally create a Pull Request. The Pull Request should be merged onto the release branch.
