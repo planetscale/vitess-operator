@@ -123,7 +123,7 @@ function verifyVtGateVersion() {
   data=$(mysql -e "select @@version")
   echo "$data" | grep "$version" > /dev/null 2>&1
   if [ $? -ne 0 ]; then
-    echo -e "The data in $shard's tables is incorrect, got:\n$data"
+    echo -e "The vtgate version is incorrect, expected: $version, got:\n$data"
     exit 1
   fi
 }
