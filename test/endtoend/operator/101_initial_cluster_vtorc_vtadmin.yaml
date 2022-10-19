@@ -72,15 +72,14 @@ spec:
     durabilityPolicy: semi_sync
     turndownPolicy: Immediate
     vitessOrchestrator:
-      configSecret:
-        name: example-cluster-config
-        key: orc_config.json
       resources:
         limits:
           memory: 128Mi
         requests:
           cpu: 100m
           memory: 128Mi
+      extraFlags:
+        recovery-period-block-duration: 5s
     partitionings:
     - equal:
         parts: 1
@@ -88,8 +87,6 @@ spec:
           databaseInitScriptSecret:
             name: example-cluster-config
             key: init_db.sql
-          replication:
-            enforceSemiSync: true
           tabletPools:
           - cell: zone1
             type: replica
@@ -241,12 +238,3 @@ stringData:
       subjects: ["*"]
       clusters:
         - "local"
-  orc_config.json: |
-    {
-      "Debug": true,
-      "MySQLTopologyUser": "orc_client_user",
-      "MySQLTopologyPassword": "orc_client_user_password",
-      "MySQLReplicaUser": "vt_repl",
-      "MySQLReplicaPassword": "",
-      "RecoveryPeriodBlockSeconds": 5
-    }

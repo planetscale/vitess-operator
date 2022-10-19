@@ -7,6 +7,7 @@ spec:
     vtctld: vitess/lite:latest
     vtgate: vitess/lite:latest
     vttablet: vitess/lite:latest
+    vtorc: vitess/lite:latest
     vtbackup: vitess/lite:latest
     mysqld:
       mysql56Compatible: vitess/lite:latest
@@ -42,6 +43,15 @@ spec:
   keyspaces:
   - name: commerce
     durabilityPolicy: semi_sync
+    vitessOrchestrator:
+      resources:
+        limits:
+          memory: 128Mi
+        requests:
+          cpu: 100m
+          memory: 128Mi
+      extraFlags:
+        recovery-period-block-duration: 5s
     turndownPolicy: Immediate
     partitionings:
     - equal:
@@ -50,8 +60,6 @@ spec:
           databaseInitScriptSecret:
             name: example-cluster-config
             key: init_db.sql
-          replication:
-            enforceSemiSync: true
           tabletPools:
           - cell: zone1
             type: replica
@@ -75,6 +83,15 @@ spec:
                   storage: 10Gi
   - name: customer
     durabilityPolicy: semi_sync
+    vitessOrchestrator:
+      resources:
+        limits:
+          memory: 128Mi
+        requests:
+          cpu: 100m
+          memory: 128Mi
+      extraFlags:
+        recovery-period-block-duration: 5s
     turndownPolicy: Immediate
     partitionings:
     - equal:
@@ -83,8 +100,6 @@ spec:
           databaseInitScriptSecret:
             name: example-cluster-config
             key: init_db.sql
-          replication:
-            enforceSemiSync: true
           tabletPools:
           - cell: zone1
             type: replica

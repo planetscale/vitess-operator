@@ -28,7 +28,7 @@ function get_started_vtorc_vtadmin() {
     sleep 5
 
     applySchemaWithRetry create_commerce_schema.sql commerce drop_all_commerce_tables.sql
-    vtctlclient ApplyVSchema -vschema="$(cat vschema_commerce_initial.json)" commerce
+    vtctldclient ApplyVSchema --vschema-file="vschema_commerce_initial.json" commerce
     if [ $? -ne 0 ]; then
       echo "ApplySchema failed for initial commerce"
       printMysqlErrorFiles
@@ -101,8 +101,8 @@ function verifyVtadminSetup() {
   curlDeleteRequest "localhost:14001/api/keyspace/example/testKeyspace" "unauthorized.*cannot.*delete.*keyspace"
   # We should still have both the keyspaces
   curlGetRequestWithRetry "localhost:14001/api/keyspaces" "commerce.*testKeyspace"
-  # Delete the keyspace by using the vtctlclient
-  vtctlclient DeleteKeyspace testKeyspace
+  # Delete the keyspace by using the vtctldclient
+  vtctldclient DeleteKeyspace testKeyspace
   # Verify we still have the commerce keyspace and no other keyspace
   curlGetRequestWithRetry "localhost:14001/api/keyspaces" "commerce.*}}}}]"
 
@@ -117,7 +117,7 @@ function verifyVTOrcSetup() {
   # Stop replication using the vtctld and wait for VTOrc to repair
   allReplicaTablets=$(getAllReplicaTablets)
   for replica in $(echo "$allReplicaTablets") ; do
-    vtctlclient StopReplication "$replica"
+    vtctldclient StopReplication "$replica"
   done
   # Now that we have stopped replication on both the tablets, we know that this will
   # only succeed if VTOrc is able to fix it since we are running vttablet with disable active reparent
@@ -214,7 +214,7 @@ killall kubectl
 setupKubectlAccessForCI
 
 get_started_vtorc_vtadmin
-verifyVtGateVersion "15.0.0"
+verifyVtGateVersion "16.0.0"
 checkSemiSyncSetup
 
 # Check Vtadmin is setup

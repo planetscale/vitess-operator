@@ -18,6 +18,7 @@ spec:
     vtctld: vitess/lite:latest
     vtgate: vitess/lite:latest
     vttablet: vitess/lite:latest
+    vtorc: vitess/lite:latest
     vtbackup: vitess/lite:latest
     mysqld:
       mysql56Compatible: vitess/lite:latest
