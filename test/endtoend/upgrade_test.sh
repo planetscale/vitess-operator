@@ -7,6 +7,7 @@ function move_tables() {
   echo "Apply 201_customer_tablets.yaml"
   kubectl apply -f 201_customer_tablets.yaml > /dev/null
   checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 6
+  checkPodStatusWithTimeout "example-customer-x-x-zone1-vtorc(.*)1/1(.*)Running(.*)"
 
   killall kubectl
   ./pf.sh > /dev/null 2>&1 &
@@ -80,6 +81,8 @@ function resharding() {
   echo "Apply 302_new_shards.yaml"
   kubectl apply -f 302_new_shards.yaml
   checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 12
+  checkPodStatusWithTimeout "example-customer-80-x-zone1-vtorc(.*)1/1(.*)Running(.*)"
+  checkPodStatusWithTimeout "example-customer-x-80-zone1-vtorc(.*)1/1(.*)Running(.*)"
 
   killall kubectl
   ./pf.sh > /dev/null 2>&1 &
@@ -180,6 +183,7 @@ function upgradeToLatest() {
   checkPodStatusWithTimeout "example-zone1-vtgate(.*)1/1(.*)Running(.*)"
   checkPodStatusWithTimeout "example-etcd(.*)1/1(.*)Running(.*)" 3
   checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 3
+  checkPodStatusWithTimeout "example-commerce-x-x-zone1-vtorc(.*)1/1(.*)Running(.*)"
 
   killall kubectl
   ./pf.sh > /dev/null 2>&1 &
@@ -231,14 +235,14 @@ killall kubectl
 setupKubectlAccessForCI
 
 get_started "operator.yaml" "101_initial_cluster.yaml"
-verifyVtGateVersion "14.0.0"
-checkSemiSyncSetup
-# Initially no durability policy is specified
-verifyDurabilityPolicy "commerce" ""
-upgradeToLatest
 verifyVtGateVersion "15.0.0"
 checkSemiSyncSetup
-# After upgrading, we set the durability policy to semi_sync
+# Initially too durability policy should be specified
+verifyDurabilityPolicy "commerce" "semi_sync"
+upgradeToLatest
+verifyVtGateVersion "16.0.0"
+checkSemiSyncSetup
+# After upgrading, we verify that the durability policy is still semi_sync
 verifyDurabilityPolicy "commerce" "semi_sync"
 move_tables
 resharding

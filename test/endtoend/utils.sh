@@ -123,7 +123,7 @@ function verifyVtGateVersion() {
   data=$(mysql -e "select @@version")
   echo "$data" | grep "$version" > /dev/null 2>&1
   if [ $? -ne 0 ]; then
-    echo -e "The data in $shard's tables is incorrect, got:\n$data"
+    echo -e "The vtgate version is incorrect, expected: $version, got:\n$data"
     exit 1
   fi
 }
@@ -215,6 +215,7 @@ function get_started() {
     checkPodStatusWithTimeout "example-zone1-vtgate(.*)1/1(.*)Running(.*)"
     checkPodStatusWithTimeout "example-etcd(.*)1/1(.*)Running(.*)" 3
     checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 3
+    checkPodStatusWithTimeout "example-commerce-x-x-zone1-vtorc(.*)1/1(.*)Running(.*)"
 
     sleep 10
     echo "Creating vschema and commerce SQL schema"
