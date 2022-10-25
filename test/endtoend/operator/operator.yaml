@@ -5432,11 +5432,11 @@ spec:
                   fieldPath: metadata.name
             - name: OPERATOR_NAME
               value: vitess-operator
-          image: planetscale/vitess-operator:v2.7.1
+          image: planetscale/vitess-operator:v2.8.0-rc1
           name: vitess-operator
           resources:
             limits:
-              memory: 128Mi
+              memory: 512Mi
             requests:
               cpu: 100m
               memory: 128Mi
