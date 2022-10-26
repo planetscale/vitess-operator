@@ -284,6 +284,8 @@ type VitessImagePullPolicies struct {
 }
 
 // ClusterBackupSpec configures backups for a cluster.
+// In addition to disaster recovery, Vitess currently depends on backups to support
+// provisioning of a new tablet in a shard with existing data, as an implementation detail.
 type ClusterBackupSpec struct {
 	// Locations is a list of places where Vitess backup data for the cluster
 	// can be stored. At least one storage location must be specified.
