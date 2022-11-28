@@ -202,7 +202,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 		Resources:       apiContainerResources,
 		SecurityContext: securityContext,
 		ReadinessProbe: &corev1.Probe{
-			Handler: corev1.Handler{
+			ProbeHandler: corev1.ProbeHandler{
 				HTTPGet: &corev1.HTTPGetAction{
 					Path: "/health",
 					Port: intstr.FromString(planetscalev2.DefaultAPIPortName),
@@ -210,7 +210,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 			},
 		},
 		LivenessProbe: &corev1.Probe{
-			Handler: corev1.Handler{
+			ProbeHandler: corev1.ProbeHandler{
 				HTTPGet: &corev1.HTTPGetAction{
 					Path: "/health",
 					Port: intstr.FromString(planetscalev2.DefaultAPIPortName),
@@ -246,7 +246,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 		Resources:       webContainerResources,
 		SecurityContext: securityContext,
 		ReadinessProbe: &corev1.Probe{
-			Handler: corev1.Handler{
+			ProbeHandler: corev1.ProbeHandler{
 				HTTPGet: &corev1.HTTPGetAction{
 					Path: "/",
 					Port: intstr.FromString(planetscalev2.DefaultWebPortName),
@@ -254,7 +254,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 			},
 		},
 		LivenessProbe: &corev1.Probe{
-			Handler: corev1.Handler{
+			ProbeHandler: corev1.ProbeHandler{
 				HTTPGet: &corev1.HTTPGetAction{
 					Path: "/",
 					Port: intstr.FromString(planetscalev2.DefaultWebPortName),
