@@ -185,7 +185,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 			},
 		},
 		ReadinessProbe: &corev1.Probe{
-			Handler: corev1.Handler{
+			ProbeHandler: corev1.ProbeHandler{
 				Exec: &corev1.ExecAction{
 					Command: []string{"etcdctl", "endpoint", "health"},
 				},
@@ -197,7 +197,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 			TimeoutSeconds:      5,
 		},
 		LivenessProbe: &corev1.Probe{
-			Handler: corev1.Handler{
+			ProbeHandler: corev1.ProbeHandler{
 				Exec: &corev1.ExecAction{
 					Command: []string{"etcdctl", "endpoint", "status"},
 				},

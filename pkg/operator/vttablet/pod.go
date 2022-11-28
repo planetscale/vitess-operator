@@ -132,7 +132,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 		},
 		SecurityContext: securityContext,
 		ReadinessProbe: &corev1.Probe{
-			Handler: corev1.Handler{
+			ProbeHandler: corev1.ProbeHandler{
 				HTTPGet: &corev1.HTTPGetAction{
 					// We can't use /debug/health for vttablet as we do for
 					// other Vitess servers. On vttablet, that handler has been
@@ -146,7 +146,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 			},
 		},
 		LivenessProbe: &corev1.Probe{
-			Handler: corev1.Handler{
+			ProbeHandler: corev1.ProbeHandler{
 				HTTPGet: &corev1.HTTPGetAction{
 					Path: "/debug/status",
 					Port: intstr.FromString(planetscalev2.DefaultWebPortName),
@@ -180,13 +180,13 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 				},
 			},
 			SecurityContext: securityContext,
-			ReadinessProbe:  &corev1.Probe{
-				Handler:             corev1.Handler{
+			ReadinessProbe: &corev1.Probe{
+				ProbeHandler: corev1.ProbeHandler{
 					TCPSocket: &corev1.TCPSocketAction{
 						Port: intstr.FromInt(planetscalev2.DefaultMysqlPort),
 					},
 				},
-			PeriodSeconds: 2,
+				PeriodSeconds: 2,
 			},
 			// TODO(enisoc): Add liveness probes that make sense for mysqld.
 			Env:          env,

@@ -159,7 +159,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 		},
 		SecurityContext: securityContext,
 		ReadinessProbe: &corev1.Probe{
-			Handler: corev1.Handler{
+			ProbeHandler: corev1.ProbeHandler{
 				HTTPGet: &corev1.HTTPGetAction{
 					Path: "/debug/health",
 					Port: intstr.FromString(planetscalev2.DefaultWebPortName),
@@ -167,7 +167,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 			},
 		},
 		LivenessProbe: &corev1.Probe{
-			Handler: corev1.Handler{
+			ProbeHandler: corev1.ProbeHandler{
 				HTTPGet: &corev1.HTTPGetAction{
 					Path: "/debug/liveness",
 					Port: intstr.FromString(planetscalev2.DefaultWebPortName),
