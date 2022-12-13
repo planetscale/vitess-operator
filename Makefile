@@ -23,12 +23,12 @@ release-build.arm64:
 
 unit-test:
 	pkgs="$$(go list ./... | grep -v '/test/integration/')" && \
-		go test -i $${pkgs} && \
+		go test $${pkgs} && \
 		go test $${pkgs}
 
 integration-test:
 	tools/get-kube-binaries.sh
-	go test -i ./test/integration/...
+	go test ./test/integration/...
 	PATH="$(PWD)/tools/_bin:$(PATH)" go test -v -timeout 5m ./test/integration/... -args --logtostderr -v=6
 
 generate:
