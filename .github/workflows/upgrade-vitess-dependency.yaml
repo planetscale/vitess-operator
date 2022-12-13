@@ -1,0 +1,43 @@
+# This workflow creates a Pull Request that upgrades the Vitess Dependency of the vitess-operator.
+# Because of the issue documented in https://github.com/peter-evans/create-pull-request/issues/48,
+# a workflow cannot trigger the execution of other workflows when it creates a PR.
+# The workaround we use to trigger the workflows on the new PR is to manually close and reopen the PR.
+# https://github.com/peter-evans/create-pull-request/blob/main/docs/concepts-guidelines.md#workarounds-to-trigger-further-workflow-runs
+
+name: upgrade-vitess-dependency
+
+on:
+  # Triggers the workflow every week
+  schedule:
+    - cron: "0 0 * * 0"
+  workflow_dispatch:
+
+jobs:
+  upgrade-vitess-dep:
+    name: Upgrade Vitess Dependency
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.18.5
+
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+
+      - name: Go Get latest Vitess Dependency
+        run: |
+          go get -d vitess.io/vitess@main
+          go mod tidy
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v4
+        with:
+          commit-message: "upgrade vitess dependency to latest"
+          signoff: true
+          delete-branch: true
+          title: "Upgrade Vitess Dependency to Latest"
+          body: "Weekly Vitess dependency upgrade running on a cron schedule"
+          reviewers: |
+            frouioui
+            GuptaManan100

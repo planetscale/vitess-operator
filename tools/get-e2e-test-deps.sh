@@ -36,12 +36,12 @@ else
     echo "Kind already installed"
 fi
 
-# Download vtctlclient if needed
-if ! command -v vtctlclient &> /dev/null
+# Download vtctldclient if needed
+if ! command -v vtctldclient &> /dev/null
 then
-  echo "Downloading vtctlclient..."
-  version=13.0.0
-  file=vitess-${version}-bc4a960.tar.gz
+  echo "Downloading vtctldclient..."
+  version=14.0.3
+  file=vitess-${version}-37c684d.tar.gz
   wget https://github.com/vitessio/vitess/releases/download/v${version}/${file}
   tar -xzf ${file}
   cd ${file/.tar.gz/}
@@ -49,7 +49,7 @@ then
   cd ..
   rm ${file}
   rm -r ${file/.tar.gz/}
-  echo "vtctlclient installed"
+  echo "vtctldclient installed"
 else
-  echo "vtctlclient already installed"
+  echo "vtctldclient already installed"
 fi

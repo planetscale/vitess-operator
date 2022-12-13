@@ -120,7 +120,6 @@ type VitessKeyspaceTemplate struct {
 	// VitessOrchestrator deploys a set of Vitess Orchestrator (vtorc) servers for the Keyspace.
 	// It is highly recommended that you set disable_active_reparents=true
 	// and enable_semi_sync=false for the vtablets if enabling vtorc.
-	// THIS API IS EXPERIMENTAL: NOT TO BE USED IN PRODUCTION.
 	VitessOrchestrator *VitessOrchestratorSpec `json:"vitessOrchestrator,omitempty"`
 
 	// Partitionings specify how to divide the keyspace up into shards by
@@ -182,11 +181,7 @@ type VitessKeyspaceTemplate struct {
 }
 
 // VitessOrchestratorSpec specifies deployment parameters for vtorc.
-// THIS API IS EXPERIMENTAL: NOT TO BE USED IN PRODUCTION.
 type VitessOrchestratorSpec struct {
-	// ConfigSecret contains the config file (with passwords) for vtorc.
-	ConfigSecret SecretSource `json:"configSecret"`
-
 	// Resources determines the compute resources reserved for each vtorc replica.
 	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
 

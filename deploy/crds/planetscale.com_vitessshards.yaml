@@ -285,6 +285,18 @@ spec:
                           - kind
                           - name
                           type: object
+                        dataSourceRef:
+                          properties:
+                            apiGroup:
+                              type: string
+                            kind:
+                              type: string
+                            name:
+                              type: string
+                          required:
+                          - kind
+                          - name
+                          type: object
                         resources:
                           properties:
                             limits:
@@ -591,17 +603,6 @@ spec:
                     additionalProperties:
                       type: string
                     type: object
-                  configSecret:
-                    properties:
-                      key:
-                        type: string
-                      name:
-                        type: string
-                      volumeName:
-                        type: string
-                    required:
-                    - key
-                    type: object
                   extraEnv:
                     items:
                       properties:
@@ -726,8 +727,6 @@ spec:
                     x-kubernetes-preserve-unknown-fields: true
                   tolerations:
                     x-kubernetes-preserve-unknown-fields: true
-                required:
-                - configSecret
                 type: object
               zoneMap:
                 additionalProperties:

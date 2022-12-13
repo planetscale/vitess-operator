@@ -22,16 +22,15 @@ import (
 	"fmt"
 	"sync"
 	"time"
-	"vitess.io/vitess/go/vt/vtctl/reparentutil"
 
 	"vitess.io/vitess/go/mysql"
 	"vitess.io/vitess/go/netutil"
-
 	"vitess.io/vitess/go/sqltypes"
-	"vitess.io/vitess/go/vt/topo"
-
+	tabletmanagerdatapb "vitess.io/vitess/go/vt/proto/tabletmanagerdata"
 	topodatapb "vitess.io/vitess/go/vt/proto/topodata"
+	"vitess.io/vitess/go/vt/topo"
 	"vitess.io/vitess/go/vt/topo/topoproto"
+	"vitess.io/vitess/go/vt/vtctl/reparentutil"
 	"vitess.io/vitess/go/vt/wrangler"
 
 	// register grpc tabletmanager client
@@ -381,7 +380,13 @@ func isTabletReadOnly(ctx context.Context, tmc tmclient.TabletManagerClient, tab
 	// Check the read_only variable.
 	// Note that even if the tablet sets super_read_only to ON,
 	// that will also set read_only to ON.
-	qrproto, err := tmc.ExecuteFetchAsDba(ctx, tablet, true /*usePool*/, []byte(isReadOnlyQuery), 1 /*maxRows*/, false /*disableBinlogs*/, false /*reloadSchema*/)
+	qrproto, err := tmc.ExecuteFetchAsDba(ctx, tablet, true /*usePool*/, &tabletmanagerdatapb.ExecuteFetchAsDbaRequest{
+		Query:          []byte(isReadOnlyQuery),
+		DbName:         "",
+		MaxRows:        1,
+		DisableBinlogs: false,
+		ReloadSchema:   false,
+	})
 	if err != nil {
 		return false, err
 	}

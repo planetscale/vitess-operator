@@ -27,10 +27,10 @@ To deploy a Vitess cluster on EKS using the Vitess Operator, follow these steps:
 
 Download the following files:
 
-- [Operator installation file](https://storage.googleapis.com/vitess-operator/install/operator.yaml)
-- [Database configuration file](https://storage.googleapis.com/vitess-operator/examples/exampledb_aws.yaml)
-- [Example VSchema](https://storage.googleapis.com/vitess-operator/examples/vschema.json)
-- [Example SQL schema](https://storage.googleapis.com/vitess-operator/examples/schema.sql)
+- [Operator installation file](../test/endtoend/operator/operator-latest.yaml)
+- [Database configuration file](../test/endtoend/operator/101_initial_cluster_vtorc_vtadmin.yaml)
+- [Example VSchema](../test/endtoend/operator/vschema_commerce_initial.json)
+- [Example SQL schema](../test/endtoend/operator/create_commerce_schema.sql)
 
 This guide will assume that the above files are in your working directory.
 
@@ -38,10 +38,10 @@ This guide will assume that the above files are in your working directory.
 
 This step assumes that `kubectl` is configured to access the GKE cluster.
 
-Enter the following command:
+Enter the following command, you should see a similar output:
 
 ```shell
-$ kubectl apply -f operator.yaml
+$ kubectl apply -f operator-latest.yaml
 ------
 customresourcedefinition.apiextensions.k8s.io/etcdlockservers.planetscale.com created
 customresourcedefinition.apiextensions.k8s.io/vitessbackups.planetscale.com created
@@ -100,7 +100,7 @@ vitesscluster.planetscale.com/example created
 secret/example-cluster-config created
 ```
 
-After a few minutes, you should see the pods for your keyspace using the following command:
+After a few minutes, you should see the pods for your keyspace using the following command, the output should be similar:
 
 ```shell
 $ kubectl get pods
@@ -130,15 +130,15 @@ Use the following command:
 kubectl port-forward --address localhost deployment/$(kubectl get deployment --selector="planetscale.com/component=vtctld" -o=jsonpath="{.items..metadata.name}") 15999:15999
 ```
 
-You should now be able to see all of your tablets using the following command:
+You should now be able to see all of your tablets using the following command, the output should be similar:
 
 ```shell
-$ vtctlclient -server localhost:15999 ListAllTablets
+$ vtctldclient --server localhost:15999 GetTablets
 ------
-uswest2a-0433486107 main -80 master 192.168.5.111:15000 192.168.5.111:3306 []
-uswest2a-1016938354 main -80 replica 192.168.0.234:15000 192.168.0.234:3306 []
-uswest2a-1990736494 main 80- replica 192.168.17.236:15000 192.168.17.236:3306 []
-uswest2a-3169804963 main 80- master 192.168.3.15:15000 192.168.3.15:3306 []
+uswest2a-0433486107 commerce -80 primary 192.168.5.111:15000 192.168.5.111:3306 []
+uswest2a-1016938354 commerce -80 replica 192.168.0.234:15000 192.168.0.234:3306 []
+uswest2a-1990736494 commerce 80- replica 192.168.17.236:15000 192.168.17.236:3306 []
+uswest2a-3169804963 commerce 80- primary 192.168.3.15:15000 192.168.3.15:3306 []
 ```
 
 ## Step 6. Apply the VSchema to your Vitess database.
@@ -146,7 +146,7 @@ uswest2a-3169804963 main 80- master 192.168.3.15:15000 192.168.3.15:3306 []
 Apply the example [VSchema](https://vitess.io/docs/reference/vschema/) using the following command:
 
 ```shell
-$ vtctlclient -server localhost:15999 ApplyVSchema -vschema "$(cat ./vschema.json)" main
+$ vtctldclient --server localhost:15999 ApplyVSchema --vschema "$(cat ./vschema.json)" commerce
 ```
 
 ## Step 7. Apply the SQL schema to your Vitess database.
@@ -154,7 +154,7 @@ $ vtctlclient -server localhost:15999 ApplyVSchema -vschema "$(cat ./vschema.jso
 Apply the example SQL schema using the following command:
 
 ```shell
-$ vtctlclient -server localhost:15999 ApplySchema -sql "$(cat ./schema.sql)" main
+$ vtctldclient --server localhost:15999 ApplySchema --sql "$(cat ./schema.sql)" commerce
 ```
 
 ## Step 8. Expose the Vitess service.

@@ -110,10 +110,10 @@ func (r *ReconcileVitessShard) vtorcSpecs(vts *planetscalev2.VitessShard, parent
 
 	specs := make([]*vtorc.Spec, 0, len(vts.Spec.TabletPools))
 
-	// Deploy no more than one orchestrator per cell.
+	// Deploy no more than one VTOrc per cell.
 	cellMap := make(map[string]bool)
 
-	// Make a orchestrator Deployment spec for each cell.
+	// Make a VTOrc Deployment spec for each cell.
 	for _, tabletPool := range vts.Spec.TabletPools {
 		if tabletPool.Type != planetscalev2.ReplicaPoolType {
 			continue
@@ -137,7 +137,6 @@ func (r *ReconcileVitessShard) vtorcSpecs(vts *planetscalev2.VitessShard, parent
 
 		specs = append(specs, &vtorc.Spec{
 			GlobalLockserver:  vts.Spec.GlobalLockserver,
-			ConfigSecret:      vts.Spec.VitessOrchestrator.ConfigSecret,
 			Image:             vts.Spec.Images.Vtorc,
 			ImagePullPolicy:   vts.Spec.ImagePullPolicies.Vtorc,
 			ImagePullSecrets:  vts.Spec.ImagePullSecrets,

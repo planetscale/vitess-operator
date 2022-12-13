@@ -2,8 +2,11 @@ package controllermanager
 
 import (
 	"flag"
+	"fmt"
+	"os"
 
 	"github.com/spf13/pflag"
+	"vitess.io/vitess/go/vt/servenv"
 
 	"k8s.io/klog"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
@@ -22,6 +25,39 @@ func InitFlags() {
 
 	// Add the operator flag set to the CLI.
 	pflag.CommandLine.AddFlagSet(environment.FlagSet())
+
+	vtbackupFlags := servenv.GetFlagSetFor("vtbackup")
+	flagsRequiredByVTop := map[string]bool{
+		"backup_storage_implementation":  false,
+		"ceph_backup_storage_config":     false,
+		"azblob_backup_account_name":     false,
+		"azblob_backup_account_key_file": false,
+		"azblob_backup_container_name":   false,
+		"azblob_backup_storage_root":     false,
+		"file_backup_storage_root":       false,
+		"gcs_backup_storage_bucket":      false,
+		"gcs_backup_storage_root":        false,
+		"s3_backup_aws_region":           false,
+		"s3_backup_storage_bucket":       false,
+		"s3_backup_storage_root":         false,
+		"s3_backup_force_path_style":     false,
+		"s3_backup_aws_endpoint":         false,
+	}
+
+	vtbackupFlags.VisitAll(func(f *pflag.Flag) {
+		_, isRequired := flagsRequiredByVTop[f.Name]
+		if isRequired {
+			flagsRequiredByVTop[f.Name] = true
+			pflag.CommandLine.AddFlag(f)
+		}
+	})
+
+	for flagName, wasAdded := range flagsRequiredByVTop {
+		if !wasAdded {
+			fmt.Fprintf(os.Stderr, "unable to add the flag - %s\n", flagName)
+			os.Exit(1)
+		}
+	}
 
 	// Add flags registered by imported packages (e.g. glog and
 	// controller-runtime)

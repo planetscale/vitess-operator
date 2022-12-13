@@ -26,6 +26,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	"vitess.io/vitess/go/sqltypes"
+	tabletmanagerdatapb "vitess.io/vitess/go/vt/proto/tabletmanagerdata"
 	topodatapb "vitess.io/vitess/go/vt/proto/topodata"
 	"vitess.io/vitess/go/vt/topo"
 	"vitess.io/vitess/go/vt/topo/topoproto"
@@ -232,7 +233,13 @@ func tabletDatabaseExists(ctx context.Context, tmc tmclient.TabletManagerClient,
 	}
 
 	// Get a list of all databases.
-	qrproto, err := tmc.ExecuteFetchAsDba(ctx, tablet, true /*usePool*/, []byte("SHOW DATABASES"), 10000 /*maxRows*/, false /*disableBinlogs*/, false /*reloadSchema*/)
+	qrproto, err := tmc.ExecuteFetchAsDba(ctx, tablet, true /*usePool*/, &tabletmanagerdatapb.ExecuteFetchAsDbaRequest{
+		Query:          []byte("SHOW DATABASES"),
+		DbName:         "",
+		MaxRows:        10000,
+		DisableBinlogs: false,
+		ReloadSchema:   false,
+	})
 	if err != nil {
 		return false, err
 	}
