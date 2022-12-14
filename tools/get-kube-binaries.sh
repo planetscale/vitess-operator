@@ -8,6 +8,8 @@ set -euo pipefail
 #
 # The integration test framework expects these binaries to be found in the PATH.
 
+# test
+
 # This is the kube-apiserver version to test against.
 KUBE_VERSION="${KUBE_VERSION:-v1.16.2}"
 KUBERNETES_RELEASE_URL="${KUBERNETES_RELEASE_URL:-https://dl.k8s.io}"
