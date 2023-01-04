@@ -105,6 +105,23 @@ function verifyVtadminSetup() {
   vtctldclient DeleteKeyspace testKeyspace
   # Verify we still have the commerce keyspace and no other keyspace
   curlGetRequestWithRetry "localhost:14001/api/keyspaces" "commerce.*}}}}]"
+  # Get the list of uuids of the tablets
+  uuids=$(curl "localhost:14001/api/tablets" | grep "uid\":[0-9]*" -o | grep "[0-9]*" -o)
+  echo "All uuids of tablets - $uuids"
+  primaryUUID=$(echo "$uuids" | awk '{ if(NR==1){print $1;}}')
+  echo "Primary UUID - $primaryUUID"
+  # Verify it is indeed the primary
+  request="localhost:14001/api/tablet/zone1-$primaryUUID"
+  curlGetRequestWithRetry "$request" "type\":1"
+  # Get the replica UUID
+  replicaUUID=$(echo "$uuids" | awk '{ if(NR==2){print $1;}}')
+  echo "Replica UUID - $replicaUUID"
+  request="localhost:14001/api/tablet/zone1-$replicaUUID"
+  curlGetRequestWithRetry "$request" "type\":2"
+  # Run a PRS
+  curlPostRequest "localhost:14001/api/shard/example/commerce/-/planned_failover" "{\"new_primary\":{\"cell\":\"zone1\",\"uid\":$replicaUUID}}"
+  # Verify that the replica is now the primary
+  curlGetRequestWithRetry "$request" "type\":1"
 
   # Also verify that the web page works
   chromiumHeadlessRequest "http://localhost:14000/schemas" "corder"
