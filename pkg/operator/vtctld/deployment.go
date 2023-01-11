@@ -246,17 +246,20 @@ func (spec *Spec) flags() vitess.Flags {
 
 		"workflow_manager_init":         true,
 		"workflow_manager_use_election": true,
-		"backup_engine_implementation":  string(spec.BackupEngine),
 	}
+	if spec.BackupLocation == nil {
+		return flags
+	}
+	flags = flags.Merge(vitess.Flags{
+		"backup_engine_implementation": string(spec.BackupEngine),
+	})
 	if spec.BackupEngine == planetscalev2.VitessBackupEngineXtraBackup {
-		flags.Merge(vitess.Flags{
+		flags = flags.Merge(vitess.Flags{
 			"backup_storage_compress": true,
 		})
 	}
 	clusterName := spec.Labels[planetscalev2.ClusterLabel]
-	if spec.BackupLocation != nil {
-		storageLocationFlags := vitessbackup.StorageFlags(spec.BackupLocation, clusterName)
-		flags = flags.Merge(storageLocationFlags)
-	}
+	storageLocationFlags := vitessbackup.StorageFlags(spec.BackupLocation, clusterName)
+	flags = flags.Merge(storageLocationFlags)
 	return flags
 }
