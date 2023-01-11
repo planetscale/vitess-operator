@@ -64,6 +64,10 @@ time that we update to build against a newer Vitess release.
 The Kubernetes library version is determined by the version of [Operator SDK](https://github.com/operator-framework/operator-sdk)
 that's in use.
 
+### Update the test output
+
+The `upgrade.sh`, `backup_restore_test.sh` and `vtorc_vtadmin_test.sh` files must be updated with the proper release increment. Change the `verifyVtGateVersion` function calls to use the proper version (next version and new old version).
+
 ## Cut Release
 
 After the PR from the prepare phase is merged, make sure your local git dir is
