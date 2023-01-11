@@ -236,7 +236,7 @@ checkSemiSyncSetup
 # Initially no durability policy is specified
 verifyDurabilityPolicy "commerce" ""
 upgradeToLatest
-verifyVtGateVersion "15.0.1"
+verifyVtGateVersion "15.0.2"
 checkSemiSyncSetup
 # After upgrading, we set the durability policy to semi_sync
 verifyDurabilityPolicy "commerce" "semi_sync"
