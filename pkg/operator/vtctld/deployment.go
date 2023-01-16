@@ -31,6 +31,7 @@ import (
 	"planetscale.dev/vitess-operator/pkg/operator/names"
 	"planetscale.dev/vitess-operator/pkg/operator/update"
 	"planetscale.dev/vitess-operator/pkg/operator/vitess"
+	"planetscale.dev/vitess-operator/pkg/operator/vitessbackup"
 )
 
 const (
@@ -68,6 +69,8 @@ type Spec struct {
 	Annotations       map[string]string
 	ExtraLabels       map[string]string
 	Tolerations       []corev1.Toleration
+	BackupLocation    *planetscalev2.VitessBackupLocation
+	BackupEngine      planetscalev2.VitessBackupEngine
 }
 
 // NewDeployment creates a new Deployment object for vtctld.
@@ -136,7 +139,15 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 	obj.Spec.Template.Spec.PriorityClassName = planetscalev2.DefaultVitessPriorityClass
 	obj.Spec.Template.Spec.ServiceAccountName = planetscalev2.DefaultVitessServiceAccount
 	obj.Spec.Template.Spec.Tolerations = spec.Tolerations
-	update.Volumes(&obj.Spec.Template.Spec.Volumes, spec.ExtraVolumes)
+	volumes := spec.ExtraVolumes
+	volumeMounts := spec.ExtraVolumeMounts
+	env := spec.ExtraEnv
+	if spec.BackupLocation != nil {
+		volumes = append(volumes, vitessbackup.StorageVolumes(spec.BackupLocation)...)
+		volumeMounts = append(volumeMounts, vitessbackup.StorageVolumeMounts(spec.BackupLocation)...)
+		env = append(env, vitessbackup.StorageEnvVars(spec.BackupLocation)...)
+	}
+	update.Volumes(&obj.Spec.Template.Spec.Volumes, volumes)
 
 	securityContext := &corev1.SecurityContext{}
 	if planetscalev2.DefaultVitessRunAsUser >= 0 {
@@ -187,8 +198,8 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 				InitialDelaySeconds: 300,
 				FailureThreshold:    30,
 			},
-			VolumeMounts: spec.ExtraVolumeMounts,
-			Env:          spec.ExtraEnv,
+			VolumeMounts: volumeMounts,
+			Env:          env,
 		},
 	})
 
@@ -219,7 +230,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 }
 
 func (spec *Spec) flags() vitess.Flags {
-	return vitess.Flags{
+	flags := vitess.Flags{
 		"cell": spec.Cell.Name,
 
 		"port":        planetscalev2.DefaultWebPort,
@@ -236,4 +247,19 @@ func (spec *Spec) flags() vitess.Flags {
 		"workflow_manager_init":         true,
 		"workflow_manager_use_election": true,
 	}
+	if spec.BackupLocation == nil {
+		return flags
+	}
+	flags = flags.Merge(vitess.Flags{
+		"backup_engine_implementation": string(spec.BackupEngine),
+	})
+	if spec.BackupEngine == planetscalev2.VitessBackupEngineXtraBackup {
+		flags = flags.Merge(vitess.Flags{
+			"backup_storage_compress": true,
+		})
+	}
+	clusterName := spec.Labels[planetscalev2.ClusterLabel]
+	storageLocationFlags := vitessbackup.StorageFlags(spec.BackupLocation, clusterName)
+	flags = flags.Merge(storageLocationFlags)
+	return flags
 }
