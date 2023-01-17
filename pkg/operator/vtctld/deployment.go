@@ -243,9 +243,6 @@ func (spec *Spec) flags() vitess.Flags {
 
 		"logtostderr":           true,
 		"enable_realtime_stats": true,
-
-		"workflow_manager_init":         true,
-		"workflow_manager_use_election": true,
 	}
 	if spec.BackupLocation == nil {
 		return flags
