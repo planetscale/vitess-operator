@@ -27,7 +27,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
 	topodatapb "vitess.io/vitess/go/vt/proto/topodata"
 	"vitess.io/vitess/go/vt/topo/topoproto"
 
@@ -68,6 +67,8 @@ func UpdatePodInPlace(obj *corev1.Pod, spec *Spec) {
 // If anything actually changes, the Pod must be deleted and recreated as
 // part of a rolling update in order to converge to the desired state.
 func UpdatePod(obj *corev1.Pod, spec *Spec) {
+	mysqldLifecycle := detectMySQLVersionUpgradeDowngrade(obj, spec)
+
 	// Update our own labels, but ignore existing ones we don't set.
 	update.Labels(&obj.Labels, spec.Labels)
 
@@ -191,6 +192,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 			// TODO(enisoc): Add liveness probes that make sense for mysqld.
 			Env:          env,
 			VolumeMounts: mysqldMounts,
+			Lifecycle:    mysqldLifecycle,
 		}
 
 		update.ResourceRequirements(&mysqldContainer.Resources, &spec.Mysqld.Resources)
@@ -368,6 +370,37 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	if planetscalev2.DefaultVitessServiceAccount != "" {
 		obj.Spec.ServiceAccountName = planetscalev2.DefaultVitessServiceAccount
 	}
+}
+
+func detectMySQLVersionUpgradeDowngrade(obj *corev1.Pod, spec *Spec) *corev1.Lifecycle {
+	// log := logf.Log.WithName("manager")
+
+	mysqldLifecycle := &corev1.Lifecycle{
+		PreStop: &corev1.LifecycleHandler{
+			Exec: &corev1.ExecAction{
+				Command: []string{"mysql -S /vt/socket/mysql.sock -u root -e \"set global innodb_fast_shutdown=0\" || true"},
+			},
+		},
+	}
+	return mysqldLifecycle
+	// newMySQLVersion, err := docker.GetLabel(spec.Images.Vttablet, "com.vitessio.mysql-version")
+	// if err != nil {
+	// 	log.Info(fmt.Sprintf("Could not get the label from new VTTablet container: %s", err.Error()))
+	// 	return mysqldLifecycle
+	// }
+	// log.Info(fmt.Sprintf("got the mysql version: %s", newMySQLVersion))
+	// oldMySQLVersion, ok := obj.Labels["com.vitessio.mysql-version"]
+	// if !ok {
+	// 	log.Info("old mysql version not found, using lifecycle")
+	// 	return mysqldLifecycle
+	// }
+	// oldMySQLVersionSlice := strings.Split(oldMySQLVersion, ".")
+	// newMySQLVersionSlice := strings.Split(newMySQLVersion, ".")
+	// if slices.Compare(oldMySQLVersionSlice, newMySQLVersionSlice) != 0 {
+	// 	return mysqldLifecycle
+	// }
+	// log.Info("not using lifecycle")
+	// return nil
 }
 
 // AliasFromPod returns a TabletAlias corresponding to a vttablet Pod.
