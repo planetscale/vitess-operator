@@ -106,6 +106,7 @@ get_started "operator-latest.yaml" "101_initial_cluster_backup.yaml"
 verifyVtGateVersion "16.0.0"
 checkSemiSyncSetup
 takeBackup "commerce/-"
+verifyListBackupsOutput
 takedownShard
 resurrectShard
 checkSemiSyncSetup
