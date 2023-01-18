@@ -71,6 +71,23 @@ function takeBackup() {
     fi
     sleep 3
   done
+  echo -e "ERROR: Backup not created - $out. $backupCount backups expected."
+  exit 1
+}
+
+function verifyListBackupsOutput() {
+  backupCount=$(kubectl get vtb --no-headers | wc -l)
+  for i in {1..600} ; do
+    out=$(vtctldclient LegacyVtctlCommand -- ListBackups "$keyspaceShard" | wc -l)
+    echo "$out" | grep "$backupCount" > /dev/null 2>&1
+    if [ $? -eq 0 ]; then
+      echo "ListBackupsOutputCorrect"
+      return 0
+    fi
+    sleep 3
+  done
+  echo -e "ERROR: ListBackups output not correct - $out. $backupCount backups expected."
+  exit 1
 }
 
 function dockerContainersInspect() {
