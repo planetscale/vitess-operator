@@ -124,6 +124,27 @@ function checkPodStatusWithTimeout() {
   exit 1
 }
 
+# ensurePodResourcesSet:
+# $1: regex used to match pod names
+function ensurePodResourcesSet() {
+  regex=$1
+
+  baseCmd='kubectl get pods -o custom-columns="NAME:metadata.name,CONTAINERS:spec.containers[*].name,RESOURCE:spec.containers[*].resources'
+
+  # We don't check for .limits.cpu because it is usually unset
+  for resource in '.limits.memory"' '.requests.cpu"' '.requests.memory"' ; do
+    cmd=${baseCmd}${resource}
+    out=$(eval "$cmd")
+
+    numContainers=$(echo "$out" | grep -E "$regex" | awk '{print $2}' | awk -F ',' '{print NF}')
+    numContainersWithResources=$(echo "$out" | grep -E "$regex" | awk '{print $3}' | awk -F ',' '{print NF}')
+    if [ $numContainers != $numContainersWithResources ]; then
+      echo "one or more containers in pods with $regex do not have $resource set"
+      exit 1
+    fi
+  done
+}
+
 function insertWithRetry() {
   for i in {1..600} ; do
     mysql --table < ../common/delete_commerce_data.sql && mysql --table < ../common/insert_commerce_data.sql

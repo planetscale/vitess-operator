@@ -18,6 +18,8 @@ function get_started_vtorc_vtadmin() {
     checkPodStatusWithTimeout "example-zone1-vtadmin(.*)2/2(.*)Running(.*)"
     checkPodStatusWithTimeout "example-commerce-x-x-zone1-vtorc(.*)1/1(.*)Running(.*)"
 
+    ensurePodResourcesSet "example-zone1-vtadmin"
+
     sleep 10
     echo "Creating vschema and commerce SQL schema"
 
