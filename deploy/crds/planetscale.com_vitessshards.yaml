@@ -242,8 +242,6 @@ spec:
                 type: string
               replication:
                 properties:
-                  enforceSemiSync:
-                    type: boolean
                   initializeBackup:
                     type: boolean
                   initializeMaster:

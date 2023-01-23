@@ -36,8 +36,6 @@ spec:
           databaseInitScriptSecret:
             name: example-cluster-config
             key: init_db.sql
-          replication:
-            enforceSemiSync: true
           tabletPools:
           - cell: gcpuswest1b
             type: replica
