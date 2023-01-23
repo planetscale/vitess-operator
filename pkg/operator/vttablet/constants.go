@@ -21,6 +21,8 @@ import (
 )
 
 const (
+	initContainerName = "init-vt-root"
+
 	vttabletContainerName = "vttablet"
 	vttabletCommand       = "/vt/bin/vttablet"
 
@@ -116,11 +118,58 @@ const (
 	// high because it can take a while to do crash recovery and it's rarely
 	// productive to restart automatically.
 	mysqlctlWaitTime = 2 * time.Hour
+
+	extraMycnfEnvVarName = "EXTRA_MY_CNF"
+
+	// Names for the mysqld-extra-mycnf Volume and ConfigMap
+	extraMycnfConfigMapName = "vitess-mysqld-extra-mycnf"
+	extraMycnfVolumeName    = "mysqld-extra-mycnf"
+
+	// Content keys for the mysqld-extra-mycnf ConfigMap.
+	extraCnfLogErrorKey = "log-error.cnf"
+	extraCnfRbrKey      = "rbr.cnf"
+	extraCnfSocketKey   = "socket.cnf"
+
+	// Other cnf keys found in the mysqld-extra-cnf ConfigMap.
+	extraCnfVtKey       = "vt.cnf"
+	extraCnfVtbackupKey = "vtbackup.cnf"
+	extraCnfVttabletKey = "vttablet.cnf"
+
+	// Absolute paths to mycnf files inside of mysqld containers.
+	logErrorCnfPath = vtMycnfPath + "/" + extraCnfLogErrorKey
+	rbrCnfPath      = vtMycnfPath + "/" + extraCnfRbrKey
+	socketCnfPath   = vtMycnfPath + "/" + extraCnfSocketKey
+	vtCnfPath       = vtMycnfPath + "/" + extraCnfVtKey
+	vtbackupCnfPath = vtMycnfPath + "/" + extraCnfVtbackupKey
+	vttabletCnfPath = vtMycnfPath + "/" + extraCnfVttabletKey
+
+	// Names and content keys for the mysqld-init Volume and ConfigMap.
+	mysqldInitKey           = "init.sh"
+	mysqldInitConfigMapName = "vitess-mysqld-init"
+	mysqldInitVolumeName    = "mysqld-init"
+
+	// An EmptyDir volume is mounted inside the init-vt-root initContainer.
+	mntRootVolumePath = "/mnt" + vtRootPath
+
+	// The mysqld-extra-mycnf, and mysqld-init volumes are also
+	// mounted inside the init-vt-root initContainer.
+	mntExtraMycnfVolumePath = "/mnt/extra-mycnf"
+	mntMysqldInitVolumePath = "/mnt/mysqld-init"
+
+	// Path to mysqld-init/init.sh script inside of the init-vt-root
+	// initContainer.
+	mntMysqldInitCommand = mntMysqldInitVolumePath + "/" + mysqldInitKey
+
+	// Subpaths inside of init-vt-root initContainer which are passed to
+	// by the mysqld-init/init.sh script.
+	mntBinPath           = mntRootVolumePath + "/bin"
+	mntConfigPath        = mntRootVolumePath + "/config"
+	mntCertsPath         = mntRootVolumePath + "/certs"
+	mntDataRootPath      = mntRootVolumePath + "/vtdataroot"
+	mntMycnfPath         = mntConfigPath + "/mycnf"
+	mntStderrSymlinkPath = mntConfigPath + "/stderr.symlink"
 )
 
 var (
-	defaultExtraMyCnf = []string{
-		vtMycnfPath + "/rbr.cnf",
-	}
-	vtbackupExtraMyCnfFile = vtMycnfPath + "/vtbackup.cnf"
+	defaultExtraMyCnf = []string{rbrCnfPath}
 )

@@ -1,0 +1,203 @@
+# These configmaps must be deployed to each namespace where a VitessCluster
+# will be deployed.
+
+apiVersion: apps/v1
+kind: ConfigMap
+metadata:
+  name: vitess-mysqld-extra-mycnf
+data:
+  log-error.cnf:
+    # We want to configure mysqld to log to stderr, so that we can take advantage
+    # of container log rotation.
+    #
+    # Ideally we would just add log-error=/dev/stderr to a cnf file, but there's a
+    # mysql behavior that neccesitates the work-around below.
+    #
+    # See: https://bugs.mysql.com/bug.php?id=57690
+    log-error = /vt/config/stderr.symlink
+  rbr.cnf:
+    binlog_format = row
+  socket.cnf:
+    # Keep in sync with: https://github.com/planetscale/vitess-operator/blob/main/pkg/operator/vttablet/constants.go
+    socket = /vt/socket/mysql.sock
+  vt.cnf:
+    # This file contains cnf settings specific to vtbackup and vttablet.
+    # Currently it is an empty placeholder for future settings.
+  vtbackup.cnf:
+    # This file contains cnf settings specific to vtbackup.
+    sync_binlog = 0
+    innodb_flush_log_at_trx_commit = 0
+  vttablet.cnf:
+    # This file contains cnf settings specific to vttablet.
+    # Currently it is an empty a placeholder for future settings.
+---
+apiVersion: apps/v1
+kind: ConfigMap
+metadata:
+  name: vitess-mysqld-init
+data:
+  init.sh:
+    #!/bin/sh
+
+    ###############################################################################
+    ### The purpose of this script is to prepare a mysqld container, possibly   ###
+    ### from a stock mysql image, with Vitess' binaries, cnf files, and other   ###
+    ### useful things.                                                          ###
+    ###                                                                         ###
+    ### This script is meant to run inside an initContainer running a Vitess    ###
+    ### image, with a mounted EmptyDir volume. The script will copy binaries    ###
+    ### and configs into the EmptyDir volume. Other containers in the same pod  ###
+    ### can then mount the same (no longer empty) volume.                       ###
+    ###############################################################################
+
+    set -e
+
+    COPY_CERTS="${COPY_CERTS:-0}"
+    COPY_MYSQLD="${COPY_MYSQLD:-1}"
+    COPY_VTBACKUP="${COPY_VTBACKUP:-0}"
+
+    # Optional path to extra cnfs volume.
+    EXTRA_MYCNF_VOLUME_PATH="${EXTRA_MYCNF_VOLUME_PATH:-}"
+
+    # The EmptyDir volume is mounted at /mnt$VT_ROOT_PATH.
+    #
+    # The other paths are directories and files under that dir,
+    # mirroring the structure of /vt/**.
+    MNT_BIN_PATH="${MNT_BIN_PATH:-}"
+    MNT_CERTS_PATH="${MNT_CERTS_PATH:-}"
+    MNT_CONFIG_PATH="${MNT_CONFIG_PATH:-}"
+    MNT_DATA_ROOT_PATH="${MNT_DATA_ROOT_PATH:-}"
+    MNT_MYCNF_PATH="${MNT_MYCNF_PATH:-}"
+    MNT_ROOT_PATH="${MNT_ROOT_PATH:-}"
+    MNT_STDERR_SYMLINK_PATH="${MNT_STDERR_SYMLINK_PATH:-}"
+
+    # These correspond to constants in:
+    # https://github.com/planetscale/psdb-operator/blob/main/pkg/operator/vttablet/constants.go
+    MYSQLD_COMMAND="${MYSQLD_COMMAND:-}"
+    VT_BIN_PATH="${VT_BIN_PATH:-}"
+    VT_CONFIG_PATH="${VT_CONFIG_PATH:-}"
+    VT_MYCNF_PATH="${VT_MYCNF_PATH:-}"
+    VTBACKUP_COMMAND="${VTBACKUP_COMMAND:-}"
+
+    # Validate that required environment variables are set.
+    echo "Validating environment variables..."
+    if [ -z "${MNT_BIN_PATH}" ]; then
+      >&2 echo 'Expected MNT_BIN_PATH to be set.'
+      exit 1
+    fi
+    if [ -z "${MNT_CONFIG_PATH}" ]; then
+      >&2 echo 'Expected MNT_CONFIG_PATH to be set.'
+      exit 1
+    fi
+    if [ -z "${MNT_DATA_ROOT_PATH}" ]; then
+      >&2 echo 'Expected MNT_DATA_ROOT_PATH to be set.'
+      exit 1
+    fi
+    if [ -z "${MNT_MYCNF_PATH}" ]; then
+      >&2 echo 'Expected MNT_MYCNF_PATH to be set.'
+      exit 1
+    fi
+    if [ -z "${MNT_ROOT_PATH}" ]; then
+      >&2 echo 'Expected MNT_ROOT_PATH to be set.'
+      exit 1
+    fi
+    if [ -z "${MNT_STDERR_SYMLINK_PATH}" ]; then
+      >&2 echo 'Expected MNT_STDERR_SYMLINK_PATH to be set.'
+      exit 1
+    fi
+    if [ "${COPY_MYSQLD}" = "1" ] && [ -z "${MYSQLD_COMMAND}" ]; then
+      >&2 echo 'Expected MYSQLD_COMMAND to be set.'
+      exit 1
+    fi
+    if [ -z "${VT_BIN_PATH}" ]; then
+      >&2 echo 'Expected VT_BIN_PATH to be set.'
+      exit 1
+    fi
+    if [ -z "${VT_CONFIG_PATH}" ]; then
+      >&2 echo 'Expected VT_CONFIG_PATH to be set.'
+      exit 1
+    fi
+    if [ -z "${VT_MYCNF_PATH}" ]; then
+      >&2 echo 'Expected VT_MYCNF_PATH to be set.'
+      exit 1
+    fi
+    if [ "${COPY_VTBACKUP}" = "1" ] && [ -z "${VTBACKUP_COMMAND}" ]; then
+      >&2 echo 'Expected VTBACKUP_COMMAND to be set.'
+      exit 1
+    fi
+    echo "Environment variables look OK."
+
+    # Assert that the volume root exists.
+    if [ ! -d "${MNT_ROOT_PATH}" ]; then
+      >&2 echo "Expected mounted volume at: '${MNT_ROOT_PATH}'."
+      exit 1
+    fi
+
+    # Create sub-dirs if they don't yet exist.
+    echo "Creating directories..."
+    mkdir -p "${MNT_BIN_PATH}"
+    mkdir -p "${MNT_CONFIG_PATH}"
+    mkdir -p "${MNT_DATA_ROOT_PATH}"
+    mkdir -p "${MNT_MYCNF_PATH}"
+    echo "Created directories."
+
+    # Copy mysqlctld from vitess container to volume.
+    if [ "${COPY_MYSQLD}" = "1" ]; then
+      echo "Copying mysqld executable from ${MYSQLD_COMMAND} to ${MNT_BIN_PATH}..."
+      if [ -f "${MYSQLD_COMMAND}" ]; then
+        cp --no-clobber "${MYSQLD_COMMAND}" "${MNT_BIN_PATH}"
+      else
+        >&2 echo "mysqld executable does not exist or could not be accessed: ${MYSQLD_COMMAND}."
+        exit 1
+      fi
+      echo "Copied mysqld executable."
+    fi
+
+    # Copy vtbackup from vitess container to volume.
+    if [ "${COPY_VTBACKUP}" = "1" ]; then
+      echo "Copying vtbackup executable from ${VTBACKUP_COMMAND} to ${MNT_BIN_PATH}..."
+      if [ -f "${VTBACKUP_COMMAND}" ]; then
+        cp --no-clobber "${VTBACKUP_COMMAND}" "${MNT_BIN_PATH}"
+      else
+        >&2 echo "vtbackup executable does not exist or could not be accessed: ${VTBACKUP_COMMAND}."
+        exit 1
+      fi
+      echo "Copied vtbackup executable."
+    fi
+
+    # Copy cnf files from vitess container to volume.
+    if [ -d "${VT_MYCNF_PATH}" ]; then
+      echo "Copying Vitess mycnf files from ${VT_MYCNF_PATH} to ${MNT_MYCNF_PATH}..."
+      cp --no-clobber -R "${VT_MYCNF_PATH}/." "${MNT_MYCNF_PATH}"
+      echo "Copied Vitess mycnf files."
+    fi
+
+    # Copy any extra cnf files to volume.
+    if [ -n "${EXTRA_MYCNF_VOLUME_PATH}" ]; then
+      echo "Copying extra mycnf files from ${EXTRA_MYCNF_VOLUME_PATH} to ${MNT_MYCNF_PATH}..."
+      if [ -d "${EXTRA_MYCNF_VOLUME_PATH}" ]; then
+        cp --no-clobber -R "${EXTRA_MYCNF_VOLUME_PATH}/." "${MNT_MYCNF_PATH}"
+      else
+        >&2 echo "Extra mycnf volume does not exist or could not be accessed: ${EXTRA_MYCNF_VOLUME_PATH}."
+        exit 1
+      fi
+      echo "Copied extra mycnf files."
+    fi
+
+    # This one is a little weird. We want to configure mysqld to log to stderr,
+    # so that we can take advantage of container log rotation.
+    #
+    # Ideally we would just add log-error=/dev/stderr to a cnf file, but there's a
+    # mysql behavior that neccesitates the work-around below.
+    #
+    # See: https://bugs.mysql.com/bug.php?id=57690
+    echo "Creating symbolic link from /dev/stderr to ${MNT_STDERR_SYMLINK_PATH}..."
+    ln -sf /dev/stderr "${MNT_STDERR_SYMLINK_PATH}"
+    echo "Created symbolic link."
+
+    if [ "${COPY_CERTS}" = "1" ]; then
+      echo "Copying host certificate to ${MNT_CERTS_PATH}..."
+      mkdir -p "${MNT_CERTS_PATH}"
+      cp --no-clobber /etc/ssl/certs/ca-certificates.crt "${MNT_CERTS_PATH}"
+      echo "Copied host certificate."
+    fi

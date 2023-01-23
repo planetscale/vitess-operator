@@ -1,4 +1,5 @@
 resources:
+- configmap.yaml
 - operator.yaml
 - role_binding.yaml
 - role.yaml

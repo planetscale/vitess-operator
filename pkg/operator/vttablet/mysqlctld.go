@@ -25,22 +25,6 @@ import (
 )
 
 const (
-	vtRootInitScript = `set -ex
-mkdir -p /mnt/vt/bin
-cp --no-clobber /vt/bin/mysqlctld /mnt/vt/bin/
-mkdir -p /mnt/vt/config
-if [[ -d /vt/config/mycnf ]]; then
-  cp --no-clobber -R /vt/config/mycnf /mnt/vt/config/
-else
-  mkdir -p /mnt/vt/config/mycnf
-fi
-mkdir -p /mnt/vt/vtdataroot
-ln -sf /dev/stderr /mnt/vt/config/stderr.symlink
-echo "log-error = /vt/config/stderr.symlink" > /mnt/vt/config/mycnf/log-error.cnf
-echo "binlog_format=row" > /mnt/vt/config/mycnf/rbr.cnf
-echo "socket = ` + mysqlSocketPath + `" > /mnt/vt/config/mycnf/socket.cnf
-`
-
 	mysqlSocketInitScript = `set -ex
 cd ` + vtDataRootPath + `
 for mycnf in $(find . -mindepth 2 -maxdepth 2 -path './vt_*/my.cnf'); do
@@ -50,8 +34,15 @@ done
 )
 
 func init() {
-	// Copy Vitess files needed by mysqlctld into the mysqld container,
-	// which might be using a stock MySQL image.
+	// Vitess may run mysql containers with stock mysql images. In order to
+	// load mysqlctld (or vtbackup) onto those containers, we:
+	// - Set up an EmptyDir volume on the pod.
+	// - Mount other volumes containing useful configs.
+	// - Run an initContainer with the EmptyDir volume mounted, and run a
+	//   script inside the initContainer which copies binaries and configs
+	//   into place on the EmptyDir volume.
+	// - Mount the same EmptyDir volume (now populated with useful things) on
+	//   mysqld, vtbackup, or vttablet containers.
 	tabletVolumes.Add(func(s lazy.Spec) []corev1.Volume {
 		return []corev1.Volume{
 			{
@@ -60,6 +51,8 @@ func init() {
 					EmptyDir: &corev1.EmptyDirVolumeSource{},
 				},
 			},
+			mysqldInitConfigMapVolume(),
+			extraMycnfConfigMapVolume(),
 		}
 	})
 	tabletInitContainers.Add(func(s lazy.Spec) []corev1.Container {
@@ -81,11 +74,20 @@ func init() {
 				VolumeMounts: []corev1.VolumeMount{
 					{
 						Name:      vtRootVolumeName,
-						MountPath: "/mnt/vt",
+						MountPath: mntRootVolumePath,
+					},
+					{
+						Name:      mysqldInitVolumeName,
+						MountPath: mntMysqldInitVolumePath},
+					{
+						Name:      extraMycnfVolumeName,
+						MountPath: mntExtraMycnfVolumePath,
 					},
 				},
-				Command: []string{"bash", "-c"},
-				Args:    []string{vtRootInitScript},
+				Command: []string{mntMysqldInitCommand},
+				Env: mysqldInitEnv(mysqldInitOpts{
+					copyMysqld: true,
+				}),
 			},
 		}
 
@@ -142,13 +144,21 @@ func init() {
 			},
 		}
 	})
-	// Tell mysqld to log to stderr instead of a file, so we can rely on
-	// automatic rotation of container logs. Also configure the location of the
-	// UNIX socket file. These config files are written out by vtRootInitScript.
+	// - Tell mysqld to log to stderr instead of a file, so we can rely on
+	//   automatic rotation of container logs.
+	// - Also configure the location of the UNIX socket file.
+	// - Add configurations shared by vtbackup and vttablet.
+	// - Add vtbackup- and vttablet-specific configurations.
 	extraMyCnf.Add(func(s lazy.Spec) []string {
-		return []string{
-			vtMycnfPath + "/log-error.cnf",
-			vtMycnfPath + "/socket.cnf",
+		cnfs := []string{logErrorCnfPath, socketCnfPath, vtCnfPath}
+
+		switch s.(type) {
+			case *BackupSpec:
+				cnfs = append(cnfs, vtbackupCnfPath)
+			case *Spec:
+				cnfs = append(cnfs, vttabletCnfPath)
 		}
+
+		return cnfs
 	})
 }

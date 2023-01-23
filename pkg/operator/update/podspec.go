@@ -181,8 +181,11 @@ func PodTemplateContainer(dst, src *corev1.Container) {
 // admission webhooks, other controllers, or the API server.
 func SecurityContext(dst **corev1.SecurityContext, src *corev1.SecurityContext) {
 	if *dst == nil || src == nil {
+		// If dst is nil, just use src.
+		if dst == nil {
+			*dst = src
+		}
 		// Only one side is set, so we don't need to merge anything.
-		*dst = src
 		return
 	}
 

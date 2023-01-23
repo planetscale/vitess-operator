@@ -29,16 +29,30 @@ func init() {
 	})
 
 	tabletEnvVars.Add(func(s lazy.Spec) []corev1.EnvVar {
-		spec := s.(*Spec)
-		return []corev1.EnvVar{
+		envVars := []corev1.EnvVar{
 			{Name: "VTROOT", Value: vtRootPath},
 			{Name: "VTDATAROOT", Value: vtDataRootPath},
 			{Name: "VT_MYSQL_ROOT", Value: vtMysqlRootPath},
+		}
+
+		var spec *Spec
+		switch v := s.(type) {
+		case *BackupSpec:
+			spec = v.TabletSpec
+		case *Spec:
+			spec = v
+		default:
+			return envVars
+		}
+
+		envVars = append(envVars, []corev1.EnvVar{
 			{Name: "MYSQL_FLAVOR", Value: spec.Images.Mysqld.Flavor()},
 			{
-				Name:  "EXTRA_MY_CNF",
-				Value: strings.Join(extraMyCnf.Get(spec), ":"),
+				Name:  extraMycnfEnvVarName,
+				Value: strings.Join(extraMyCnf.Get(s), ":"),
 			},
-		}
+		}...)
+
+		return envVars
 	})
 }

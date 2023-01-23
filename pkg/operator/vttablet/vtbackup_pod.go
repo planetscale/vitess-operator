@@ -30,26 +30,6 @@ import (
 	"planetscale.dev/vitess-operator/pkg/operator/update"
 )
 
-const (
-	vtbackupInitScript = `set -ex
-mkdir -p /mnt/vt/bin
-cp --no-clobber /vt/bin/vtbackup /mnt/vt/bin/
-mkdir -p /mnt/vt/config
-if [[ -d /vt/config/mycnf ]]; then
-  cp --no-clobber -R /vt/config/mycnf /mnt/vt/config/
-else
-  mkdir -p /mnt/vt/config/mycnf
-fi
-ln -sf /dev/stderr /mnt/vt/config/stderr.symlink
-echo "log-error = /vt/config/stderr.symlink" > /mnt/vt/config/mycnf/log-error.cnf
-echo "binlog_format=row" > /mnt/vt/config/mycnf/rbr.cnf
-echo -e "sync_binlog=0\ninnodb_flush_log_at_trx_commit=0" > /mnt/vt/config/mycnf/vtbackup.cnf
-mkdir -p /mnt/vt/certs
-cp --no-clobber /etc/ssl/certs/ca-certificates.crt /mnt/vt/certs/
-echo "socket = ` + mysqlSocketPath + `" > /mnt/vt/config/mycnf/socket.cnf
-`
-)
-
 // BackupSpec is the spec for a Backup Pod.
 type BackupSpec struct {
 	// TabletSpec is the spec for a vttablet Pod. A backup Pod is a special kind
@@ -96,7 +76,7 @@ func NewBackupPod(key client.ObjectKey, backupSpec *BackupSpec) *corev1.Pod {
 	tabletSpec := backupSpec.TabletSpec
 
 	// Include vttablet env vars, since we run some vttablet code like backups.
-	env := append(vttabletEnvVars.Get(tabletSpec), tabletEnvVars.Get(tabletSpec)...)
+	env := append(vttabletEnvVars.Get(tabletSpec), tabletEnvVars.Get(backupSpec)...)
 	// Add vtbackup-specific env vars.
 	env = append(env, corev1.EnvVar{
 		Name:  "HOME",
@@ -148,20 +128,35 @@ func NewBackupPod(key client.ObjectKey, backupSpec *BackupSpec) *corev1.Pod {
 			Tolerations:      tabletSpec.Tolerations,
 			InitContainers: []corev1.Container{
 				{
-					Name:            "init-vt-root",
+					Name:            initContainerName,
 					SecurityContext: securityContext,
 					// We only use the vtbackup image to steal the vtbackup binary.
 					// When we actually run it, we run inside the mysqld image.
 					Image:           tabletSpec.Images.Vtbackup,
 					ImagePullPolicy: tabletSpec.ImagePullPolicies.Vtbackup,
 					VolumeMounts: []corev1.VolumeMount{
-						{Name: vtRootVolumeName, MountPath: "/mnt/vt"},
+						{
+							Name: vtRootVolumeName,
+							MountPath: vtRootVolumeName,
+						},
+						{
+							Name:      mysqldInitVolumeName,
+							MountPath: mntMysqldInitVolumePath,
+						},
+						{
+							Name:      extraMycnfVolumeName,
+							MountPath: mntExtraMycnfVolumePath,
+						},
 					},
-					Command: []string{"bash", "-c"},
+					Command: []string{mntMysqldInitCommand},
 					// Copy vtbackup binary instead of mysqlctld.
 					// Also we need to copy certs over, since we use HTTPS for
 					// some backup storage locations.
-					Args: []string{vtbackupInitScript},
+					Args:    []string{},
+					Env: mysqldInitEnv(mysqldInitOpts{
+						copyCerts:    true,
+						copyVtbackup: true,
+					}),
 				},
 			},
 			Containers: []corev1.Container{
