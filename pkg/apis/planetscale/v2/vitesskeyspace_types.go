@@ -119,7 +119,7 @@ type VitessKeyspaceTemplate struct {
 
 	// VitessOrchestrator deploys a set of Vitess Orchestrator (vtorc) servers for the Keyspace.
 	// It is highly recommended that you set disable_active_reparents=true
-	// and enable_semi_sync=false for the vtablets if enabling vtorc.
+	// for the vttablets if enabling vtorc.
 	VitessOrchestrator *VitessOrchestratorSpec `json:"vitessOrchestrator,omitempty"`
 
 	// Partitionings specify how to divide the keyspace up into shards by
