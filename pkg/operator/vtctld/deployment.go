@@ -241,8 +241,7 @@ func (spec *Spec) flags() vitess.Flags {
 		"topo_global_server_address": spec.GlobalLockserver.Address,
 		"topo_global_root":           spec.GlobalLockserver.RootPath,
 
-		"logtostderr":           true,
-		"enable_realtime_stats": true,
+		"logtostderr": true,
 	}
 	if spec.BackupLocation == nil {
 		return flags
