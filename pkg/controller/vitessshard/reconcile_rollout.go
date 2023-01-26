@@ -181,5 +181,5 @@ func getPrimaryTabletAlias(ctx context.Context, vts *planetscalev2.VitessShard) 
 		return "", err
 	}
 
-	return topoproto.TabletAliasString(shard.MasterAlias), nil
+	return topoproto.TabletAliasString(shard.PrimaryAlias), nil
 }
