@@ -21,6 +21,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/felicianotech/sonar/sonar/docker"
+	"golang.org/x/exp/slices"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -373,8 +375,6 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 }
 
 func detectMySQLVersionUpgradeDowngrade(obj *corev1.Pod, spec *Spec) *corev1.Lifecycle {
-	// log := logf.Log.WithName("manager")
-
 	mysqldLifecycle := &corev1.Lifecycle{
 		PreStop: &corev1.LifecycleHandler{
 			Exec: &corev1.ExecAction{
@@ -382,25 +382,21 @@ func detectMySQLVersionUpgradeDowngrade(obj *corev1.Pod, spec *Spec) *corev1.Lif
 			},
 		},
 	}
-	return mysqldLifecycle
-	// newMySQLVersion, err := docker.GetLabel(spec.Images.Vttablet, "com.vitessio.mysql-version")
-	// if err != nil {
-	// 	log.Info(fmt.Sprintf("Could not get the label from new VTTablet container: %s", err.Error()))
-	// 	return mysqldLifecycle
-	// }
-	// log.Info(fmt.Sprintf("got the mysql version: %s", newMySQLVersion))
-	// oldMySQLVersion, ok := obj.Labels["com.vitessio.mysql-version"]
-	// if !ok {
-	// 	log.Info("old mysql version not found, using lifecycle")
-	// 	return mysqldLifecycle
-	// }
-	// oldMySQLVersionSlice := strings.Split(oldMySQLVersion, ".")
-	// newMySQLVersionSlice := strings.Split(newMySQLVersion, ".")
-	// if slices.Compare(oldMySQLVersionSlice, newMySQLVersionSlice) != 0 {
-	// 	return mysqldLifecycle
-	// }
-	// log.Info("not using lifecycle")
-	// return nil
+	newMySQLVersion, err := docker.GetLabel(spec.Images.Vttablet, "com.vitessio.mysql-version")
+	if err != nil {
+		return mysqldLifecycle
+	}
+	if newMySQLVersion == "" {
+		return nil
+	}
+	oldMySQLVersion, _ := obj.Annotations[planetscalev2.TabletMySQLVersion]
+	oldMySQLVersionSlice := strings.Split(oldMySQLVersion, ".")
+	newMySQLVersionSlice := strings.Split(newMySQLVersion, ".")
+	if slices.Compare(oldMySQLVersionSlice, newMySQLVersionSlice) != 0 {
+		spec.Annotations[planetscalev2.TabletMySQLVersion] = newMySQLVersion
+		return mysqldLifecycle
+	}
+	return nil
 }
 
 // AliasFromPod returns a TabletAlias corresponding to a vttablet Pod.

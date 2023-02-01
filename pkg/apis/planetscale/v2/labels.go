@@ -37,6 +37,8 @@ const (
 	TabletTypeLabel = LabelPrefix + "/" + "tablet-type"
 	// TabletIndexLabel is the key for identifying the index of a Vitess tablet within its pool.
 	TabletIndexLabel = LabelPrefix + "/" + "tablet-index"
+	// TabletMySQLVersion is the key for identifying the version of the VTTablet's MySQL
+	TabletMySQLVersion = LabelPrefix + "/" + "tablet-mysql-version"
 
 	// VtctldComponentName is the ComponentLabel value for vtctld.
 	VtctldComponentName = "vtctld"
