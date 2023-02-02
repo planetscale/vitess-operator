@@ -190,7 +190,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 			// TODO(enisoc): Add liveness probes that make sense for mysqld.
 			Env:          env,
 			VolumeMounts: mysqldMounts,
-			Lifecycle:    detectMySQLVersionUpgradeDowngrade(),
+			Lifecycle:    getMySQLdLifecycle(),
 		}
 
 		update.ResourceRequirements(&mysqldContainer.Resources, &spec.Mysqld.Resources)
@@ -370,7 +370,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	}
 }
 
-func detectMySQLVersionUpgradeDowngrade() *corev1.Lifecycle {
+func getMySQLdLifecycle() *corev1.Lifecycle {
 	return &corev1.Lifecycle{
 		PreStop: &corev1.LifecycleHandler{
 			Exec: &corev1.ExecAction{
