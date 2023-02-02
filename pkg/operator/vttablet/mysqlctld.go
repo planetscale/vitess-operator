@@ -18,6 +18,7 @@ package vttablet
 
 import (
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/utils/pointer"
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
@@ -86,6 +87,12 @@ func init() {
 				},
 				Command: []string{"bash", "-c"},
 				Args:    []string{vtRootInitScript},
+				Resources: corev1.ResourceRequirements{
+					Requests: corev1.ResourceList{
+						corev1.ResourceCPU:    *resource.NewMilliQuantity(planetscalev2.DefaultInitCPURequestMillis, resource.DecimalSI),
+						corev1.ResourceMemory: *resource.NewQuantity(planetscalev2.DefaultInitMemoryRequestBytes, resource.BinarySI),
+					},
+				},
 			},
 		}
 
@@ -108,6 +115,12 @@ func init() {
 				},
 				Command: []string{"bash", "-c"},
 				Args:    []string{mysqlSocketInitScript},
+				Resources: corev1.ResourceRequirements{
+					Requests: corev1.ResourceList{
+						corev1.ResourceCPU:    *resource.NewMilliQuantity(planetscalev2.DefaultInitCPURequestMillis, resource.DecimalSI),
+						corev1.ResourceMemory: *resource.NewQuantity(planetscalev2.DefaultInitMemoryRequestBytes, resource.BinarySI),
+					},
+				},
 			})
 		}
 
