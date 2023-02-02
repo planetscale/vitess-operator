@@ -21,8 +21,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/felicianotech/sonar/sonar/docker"
-	"golang.org/x/exp/slices"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -69,8 +67,6 @@ func UpdatePodInPlace(obj *corev1.Pod, spec *Spec) {
 // If anything actually changes, the Pod must be deleted and recreated as
 // part of a rolling update in order to converge to the desired state.
 func UpdatePod(obj *corev1.Pod, spec *Spec) {
-	mysqldLifecycle := detectMySQLVersionUpgradeDowngrade(obj, spec)
-
 	// Update our own labels, but ignore existing ones we don't set.
 	update.Labels(&obj.Labels, spec.Labels)
 
@@ -194,7 +190,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 			// TODO(enisoc): Add liveness probes that make sense for mysqld.
 			Env:          env,
 			VolumeMounts: mysqldMounts,
-			Lifecycle:    mysqldLifecycle,
+			Lifecycle:    detectMySQLVersionUpgradeDowngrade(),
 		}
 
 		update.ResourceRequirements(&mysqldContainer.Resources, &spec.Mysqld.Resources)
@@ -374,29 +370,14 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	}
 }
 
-func detectMySQLVersionUpgradeDowngrade(obj *corev1.Pod, spec *Spec) *corev1.Lifecycle {
-	mysqldLifecycle := &corev1.Lifecycle{
+func detectMySQLVersionUpgradeDowngrade() *corev1.Lifecycle {
+	return &corev1.Lifecycle{
 		PreStop: &corev1.LifecycleHandler{
 			Exec: &corev1.ExecAction{
 				Command: []string{"mysql -S /vt/socket/mysql.sock -u root -e \"set global innodb_fast_shutdown=0\" || true"},
 			},
 		},
 	}
-	newMySQLVersion, err := docker.GetLabel(spec.Images.Vttablet, "com.vitessio.mysql-version")
-	if err != nil {
-		return mysqldLifecycle
-	}
-	if newMySQLVersion == "" {
-		return nil
-	}
-	oldMySQLVersion, _ := obj.Annotations[planetscalev2.TabletMySQLVersion]
-	oldMySQLVersionSlice := strings.Split(oldMySQLVersion, ".")
-	newMySQLVersionSlice := strings.Split(newMySQLVersion, ".")
-	if slices.Compare(oldMySQLVersionSlice, newMySQLVersionSlice) != 0 {
-		spec.Annotations[planetscalev2.TabletMySQLVersion] = newMySQLVersion
-		return mysqldLifecycle
-	}
-	return nil
 }
 
 // AliasFromPod returns a TabletAlias corresponding to a vttablet Pod.
