@@ -203,10 +203,6 @@ func (r *ReconcileVitessShard) Reconcile(cctx context.Context, request reconcile
 	initReplicationResult, err := r.initReplication(ctx, vts, wr)
 	resultBuilder.Merge(initReplicationResult, err)
 
-	// Try to fix replication if it's broken.
-	repairResult, err := r.repairReplication(ctx, vts, wr)
-	resultBuilder.Merge(repairResult, err)
-
 	// Check if we've been asked to do a planned reparent.
 	drainResult, err := r.reconcileDrain(ctx, vts, wr)
 	resultBuilder.Merge(drainResult, err)

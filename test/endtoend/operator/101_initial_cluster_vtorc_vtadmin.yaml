@@ -71,15 +71,6 @@ spec:
   - name: commerce
     durabilityPolicy: semi_sync
     turndownPolicy: Immediate
-    vitessOrchestrator:
-      resources:
-        limits:
-          memory: 128Mi
-        requests:
-          cpu: 100m
-          memory: 128Mi
-      extraFlags:
-        recovery-period-block-duration: 5s
     partitionings:
     - equal:
         parts: 1
