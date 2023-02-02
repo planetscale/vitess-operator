@@ -103,6 +103,9 @@ const (
 	DefaultMysqlPortName = "mysql"
 
 	defaultVitessLiteImage = "vitess/lite:latest"
+
+	DefaultInitCPURequestMillis   = 100
+	DefaultInitMemoryRequestBytes = 32 * (1 << 20) // 32 MiB
 )
 
 // DefaultImages are a set of images to use when the CRD doesn't specify.

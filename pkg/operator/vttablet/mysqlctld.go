@@ -48,9 +48,6 @@ for mycnf in $(find . -mindepth 2 -maxdepth 2 -path './vt_*/my.cnf'); do
   sed -i -e 's,^socket[ \t]*=.*$,socket = ` + mysqlSocketPath + `,' "${mycnf}"
 done
 `
-
-	defaultInitCPURequestMillis   = 100
-	defaultInitMemoryRequestBytes = 32 * (1 << 20) // 32 MiB
 )
 
 func init() {
@@ -92,8 +89,8 @@ func init() {
 				Args:    []string{vtRootInitScript},
 				Resources: corev1.ResourceRequirements{
 					Requests: corev1.ResourceList{
-						corev1.ResourceCPU:    *resource.NewMilliQuantity(defaultInitCPURequestMillis, resource.DecimalSI),
-						corev1.ResourceMemory: *resource.NewQuantity(defaultInitMemoryRequestBytes, resource.BinarySI),
+						corev1.ResourceCPU:    *resource.NewMilliQuantity(planetscalev2.DefaultInitCPURequestMillis, resource.DecimalSI),
+						corev1.ResourceMemory: *resource.NewQuantity(planetscalev2.DefaultInitMemoryRequestBytes, resource.BinarySI),
 					},
 				},
 			},
@@ -120,8 +117,8 @@ func init() {
 				Args:    []string{mysqlSocketInitScript},
 				Resources: corev1.ResourceRequirements{
 					Requests: corev1.ResourceList{
-						corev1.ResourceCPU:    *resource.NewMilliQuantity(defaultInitCPURequestMillis, resource.DecimalSI),
-						corev1.ResourceMemory: *resource.NewQuantity(defaultInitMemoryRequestBytes, resource.BinarySI),
+						corev1.ResourceCPU:    *resource.NewMilliQuantity(planetscalev2.DefaultInitCPURequestMillis, resource.DecimalSI),
+						corev1.ResourceMemory: *resource.NewQuantity(planetscalev2.DefaultInitMemoryRequestBytes, resource.BinarySI),
 					},
 				},
 			})
