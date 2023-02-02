@@ -25,6 +25,26 @@ function getAllReplicaTablets() {
   vtctldclient GetTablets | grep "replica" | awk '{print $1}' | tr '\n' ' '
 }
 
+# getAllPrimaryTablets returns the list of all the primary tablets as a space separated list
+function getAllPrimaryTablets() {
+  vtctldclient GetTablets | grep "primary" | awk '{print $1}' | tr '\n' ' '
+}
+
+# runSQLWithRetry runs the given SQL until it succeeds
+function runSQLWithRetry() {
+  query=$1
+  for i in {1..600} ; do
+    mysql -e "$query"
+    if [ $? -eq 0 ]; then
+      return
+    fi
+    echo "failed to run query $query, retrying (attempt #$i) ..."
+    sleep 1
+  done
+  echo "Timed out trying to run $query"
+  exit 1
+}
+
 function printMysqlErrorFiles() {
   for vttablet in $(kubectl get pods --no-headers -o custom-columns=":metadata.name" | grep "vttablet") ; do
     echo "Finding error.log file in $vttablet"

@@ -32,9 +32,9 @@ func DefaultVitessKeyspace(dst *VitessKeyspace) {
 }
 
 func DefaultVitessOrchestrator(vtorc **VitessOrchestratorSpec) {
-	// If no vtorc is specified, we don't launch any.
+	// If no vtorc is specified, we want to start one since it is now a mandatory component of Vitess.
 	if *vtorc == nil {
-		return
+		*vtorc = &VitessOrchestratorSpec{}
 	}
 	if len((*vtorc).Resources.Requests) == 0 {
 		(*vtorc).Resources.Requests = corev1.ResourceList{

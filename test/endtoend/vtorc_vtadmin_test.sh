@@ -142,6 +142,15 @@ function verifyVTOrcSetup() {
   # only succeed if VTOrc is able to fix it since we are running vttablet with disable active reparent
   # and semi-sync durability policy
   mysql -e "insert into customer(email) values('newemail@domain.com');"
+
+  # Set primary tablets to read-only using the vtctld and wait for VTOrc to repair
+  allPrimaryTablets=$(getAllPrimaryTablets)
+  for primary in $(echo "$allPrimaryTablets") ; do
+    vtctldclient SetWritable "$primary" false
+  done
+
+  # This query will only succeed after VTOrc has repaired the primary's to be read-write again
+  runSQLWithRetry "insert into customer(email) values('newemail2@domain.com');"
 }
 
 function chromiumHeadlessRequest() {
