@@ -27,7 +27,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
 	topodatapb "vitess.io/vitess/go/vt/proto/topodata"
 	"vitess.io/vitess/go/vt/topo/topoproto"
 
@@ -191,6 +190,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 			// TODO(enisoc): Add liveness probes that make sense for mysqld.
 			Env:          env,
 			VolumeMounts: mysqldMounts,
+			Lifecycle:    getMySQLdLifecycle(),
 		}
 
 		update.ResourceRequirements(&mysqldContainer.Resources, &spec.Mysqld.Resources)
@@ -241,9 +241,18 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 		}
 	}
 
+	// Set the resource requirements on each of the default vttablet init
+	// containers to the same values as the vttablet container itself in
+	// case the cluster requires them.
+	defaultTabletInitContainers := tabletInitContainers.Get(spec)
+	for i := range defaultTabletInitContainers {
+		c := &defaultTabletInitContainers[i]
+		update.ResourceRequirements(&c.Resources, &spec.Vttablet.Resources)
+	}
+
 	// Make the final list of desired containers and init containers.
 	initContainers := []corev1.Container{}
-	initContainers = append(initContainers, tabletInitContainers.Get(spec)...)
+	initContainers = append(initContainers, defaultTabletInitContainers...)
 	initContainers = append(initContainers, spec.InitContainers...)
 
 	sidecarContainers := []corev1.Container{}
@@ -367,6 +376,16 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 
 	if planetscalev2.DefaultVitessServiceAccount != "" {
 		obj.Spec.ServiceAccountName = planetscalev2.DefaultVitessServiceAccount
+	}
+}
+
+func getMySQLdLifecycle() *corev1.Lifecycle {
+	return &corev1.Lifecycle{
+		PreStop: &corev1.LifecycleHandler{
+			Exec: &corev1.ExecAction{
+				Command: []string{"mysql -S /vt/socket/mysql.sock -u root -e \"set global innodb_fast_shutdown=0\" || true"},
+			},
+		},
 	}
 }
 
