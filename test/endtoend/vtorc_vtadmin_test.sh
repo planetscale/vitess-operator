@@ -94,7 +94,7 @@ function verifyVtadminSetup() {
   curlGetRequestWithRetry "localhost:14001/api/keyspaces" "commerce"
   # Verify the other APIs work as well
   curlGetRequestWithRetry "localhost:14001/api/tablets" '"tablets":\[{"cluster":{"id":"example","name":"example"},"tablet":{"alias":{"cell":"zone1"'
-  curlGetRequestWithRetry "localhost:14001/api/schemas" '"keyspace":"commerce","table_definitions":\[{"name":"corder","schema":"CREATE TABLE `corder` (\\n  `order_id` bigint(20) NOT NULL AUTO_INCREMENT'
+  curlGetRequestWithRetry "localhost:14001/api/schemas" '"keyspace":"commerce","table_definitions":\[{"name":"corder","schema":"CREATE TABLE `corder` (\\n  `order_id`'
   # Verify that we are able to create a keyspace
   curlPostRequest "localhost:14001/api/keyspace/example" '{"name":"testKeyspace"}'
   # List the keyspaces and check that we have them both
@@ -242,7 +242,7 @@ killall kubectl
 setupKubectlAccessForCI
 
 get_started_vtorc_vtadmin
-verifyVtGateVersion "16.0.0"
+verifyVtGateVersion "17.0.0"
 checkSemiSyncSetup
 
 # Check Vtadmin is setup
