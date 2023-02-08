@@ -190,7 +190,6 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 			// TODO(enisoc): Add liveness probes that make sense for mysqld.
 			Env:          env,
 			VolumeMounts: mysqldMounts,
-			Lifecycle:    getMySQLdLifecycle(),
 		}
 
 		update.ResourceRequirements(&mysqldContainer.Resources, &spec.Mysqld.Resources)
@@ -376,16 +375,6 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 
 	if planetscalev2.DefaultVitessServiceAccount != "" {
 		obj.Spec.ServiceAccountName = planetscalev2.DefaultVitessServiceAccount
-	}
-}
-
-func getMySQLdLifecycle() *corev1.Lifecycle {
-	return &corev1.Lifecycle{
-		PreStop: &corev1.LifecycleHandler{
-			Exec: &corev1.ExecAction{
-				Command: []string{"mysql -S /vt/socket/mysql.sock -u root -e \"set global innodb_fast_shutdown=0\" || true"},
-			},
-		},
 	}
 }
 
