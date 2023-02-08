@@ -158,6 +158,18 @@ func (r *ReconcileVitessCluster) vtctldSpecs(vt *planetscalev2.VitessCluster, pa
 		update.StringMap(&extraFlags, vt.Spec.ExtraVitessFlags)
 		update.StringMap(&extraFlags, vt.Spec.VitessDashboard.ExtraFlags)
 
+		var backupLocation *planetscalev2.VitessBackupLocation
+		var backupEngine planetscalev2.VitessBackupEngine
+		if vt.Spec.Backup != nil {
+			// We don't know which location to use for vtctld.
+			// If there are more than one locations configured, we can only choose one.
+			// Here we opt to take the first one.
+			if len(vt.Spec.Backup.Locations) != 0 {
+				backupLocation = &vt.Spec.Backup.Locations[0]
+			}
+			backupEngine = vt.Spec.Backup.Engine
+		}
+
 		specs = append(specs, &vtctld.Spec{
 			GlobalLockserver:  glsParams,
 			Image:             vt.Spec.Images.Vtctld,
@@ -177,7 +189,10 @@ func (r *ReconcileVitessCluster) vtctldSpecs(vt *planetscalev2.VitessCluster, pa
 			Annotations:       vt.Spec.VitessDashboard.Annotations,
 			ExtraLabels:       vt.Spec.VitessDashboard.ExtraLabels,
 			Tolerations:       vt.Spec.VitessDashboard.Tolerations,
+			BackupEngine:      backupEngine,
+			BackupLocation:    backupLocation,
 		})
+
 	}
 	return specs
 }

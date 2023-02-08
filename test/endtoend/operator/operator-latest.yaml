@@ -2179,8 +2179,6 @@ spec:
                                         type: object
                                       replication:
                                         properties:
-                                          enforceSemiSync:
-                                            type: boolean
                                           initializeBackup:
                                             type: boolean
                                           initializeMaster:
@@ -2532,8 +2530,6 @@ spec:
                                       type: object
                                     replication:
                                       properties:
-                                        enforceSemiSync:
-                                          type: boolean
                                         initializeBackup:
                                           type: boolean
                                         initializeMaster:
@@ -3743,8 +3739,6 @@ spec:
                                   type: object
                                 replication:
                                   properties:
-                                    enforceSemiSync:
-                                      type: boolean
                                     initializeBackup:
                                       type: boolean
                                     initializeMaster:
@@ -4096,8 +4090,6 @@ spec:
                                 type: object
                               replication:
                                 properties:
-                                  enforceSemiSync:
-                                    type: boolean
                                   initializeBackup:
                                     type: boolean
                                   initializeMaster:
@@ -4981,8 +4973,6 @@ spec:
                   type: string
                 replication:
                   properties:
-                    enforceSemiSync:
-                      type: boolean
                     initializeBackup:
                       type: boolean
                     initializeMaster:

@@ -129,24 +129,6 @@ type VitessShardTemplate struct {
 
 // VitessReplicationSpec specifies how Vitess will set up MySQL replication.
 type VitessReplicationSpec struct {
-	// EnforceSemiSync means Vitess will configure MySQL to require semi-sync
-	// acknowledgement of all transactions while forbidding fallback to
-	// asynchronous replication under any circumstance.
-	//
-	// Note that this is different from merely *enabling* semi-sync, which in
-	// its default configuration allows fallback to asynchronous replication
-	// if no replicas are connected or if they don't respond after a few seconds.
-	// Enforced semi-sync is a mode that prefers master unavailability when
-	// durability cannot be ensured, rather than risking the loss of data that
-	// was already reported to clients as committed.
-	//
-	// WARNING: Do not enable this if the shard has fewer than 3 master-eligible
-	// replicas, as that may lead to master unavailability during routine
-	// maintenance.
-	//
-	// Default: Semi-sync is not enforced.
-	EnforceSemiSync bool `json:"enforceSemiSync,omitempty"`
-
 	// InitializeMaster specifies whether to choose an initial master for a
 	// new or restored shard that has no master yet.
 	//

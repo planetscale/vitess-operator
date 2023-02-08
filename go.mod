@@ -6,7 +6,7 @@ require (
 	github.com/ahmetb/gen-crd-api-reference-docs v0.1.5-0.20190629210212-52e137b8d003
 	github.com/planetscale/operator-sdk-libs v0.0.0-20220216002626-1af183733234
 	github.com/prometheus/client_golang v1.14.0
-	github.com/sirupsen/logrus v1.8.1
+	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.1
 	gopkg.in/yaml.v2 v2.4.0
@@ -20,7 +20,7 @@ require (
 	sigs.k8s.io/controller-runtime v0.13.1
 	sigs.k8s.io/controller-tools v0.6.2
 	sigs.k8s.io/kustomize v2.0.3+incompatible
-	vitess.io/vitess v0.10.3-0.20221201003815-22067c7a4e33
+	vitess.io/vitess v0.10.3-0.20230127083157-f33b86219ddc
 )
 
 require (
@@ -117,6 +117,7 @@ require (
 	github.com/pierrec/lz4 v2.6.1+incompatible // indirect
 	github.com/pires/go-proxyproto v0.6.2 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/planetscale/log v0.0.0-20221118170849-fb599bc35c50 // indirect
 	github.com/planetscale/pargzip v0.0.0-20201116224723-90c7fc03ea8a // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_model v0.3.0 // indirect
@@ -124,6 +125,7 @@ require (
 	github.com/prometheus/procfs v0.8.0 // indirect
 	github.com/rivo/uniseg v0.4.3 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
+	github.com/slok/noglog v0.2.0 // indirect
 	github.com/spf13/cobra v1.6.1 // indirect
 	github.com/spyzhov/ajson v0.7.1 // indirect
 	github.com/tinylib/msgp v1.1.6 // indirect

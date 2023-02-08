@@ -25,6 +25,26 @@ function getAllReplicaTablets() {
   vtctldclient GetTablets | grep "replica" | awk '{print $1}' | tr '\n' ' '
 }
 
+# getAllPrimaryTablets returns the list of all the primary tablets as a space separated list
+function getAllPrimaryTablets() {
+  vtctldclient GetTablets | grep "primary" | awk '{print $1}' | tr '\n' ' '
+}
+
+# runSQLWithRetry runs the given SQL until it succeeds
+function runSQLWithRetry() {
+  query=$1
+  for i in {1..600} ; do
+    mysql -e "$query"
+    if [ $? -eq 0 ]; then
+      return
+    fi
+    echo "failed to run query $query, retrying (attempt #$i) ..."
+    sleep 1
+  done
+  echo "Timed out trying to run $query"
+  exit 1
+}
+
 function printMysqlErrorFiles() {
   for vttablet in $(kubectl get pods --no-headers -o custom-columns=":metadata.name" | grep "vttablet") ; do
     echo "Finding error.log file in $vttablet"
@@ -71,6 +91,23 @@ function takeBackup() {
     fi
     sleep 3
   done
+  echo -e "ERROR: Backup not created - $out. $backupCount backups expected."
+  exit 1
+}
+
+function verifyListBackupsOutput() {
+  backupCount=$(kubectl get vtb --no-headers | wc -l)
+  for i in {1..600} ; do
+    out=$(vtctldclient LegacyVtctlCommand -- ListBackups "$keyspaceShard" | wc -l)
+    echo "$out" | grep "$backupCount" > /dev/null 2>&1
+    if [ $? -eq 0 ]; then
+      echo "ListBackupsOutputCorrect"
+      return 0
+    fi
+    sleep 3
+  done
+  echo -e "ERROR: ListBackups output not correct - $out. $backupCount backups expected."
+  exit 1
 }
 
 function dockerContainersInspect() {
@@ -105,6 +142,27 @@ function checkPodStatusWithTimeout() {
   done
   echo -e "ERROR: checkPodStatusWithTimeout timeout to find pod matching:\ngot:\n$out\nfor regex: $regex"
   exit 1
+}
+
+# ensurePodResourcesSet:
+# $1: regex used to match pod names
+function ensurePodResourcesSet() {
+  regex=$1
+
+  baseCmd='kubectl get pods -o custom-columns="NAME:metadata.name,CONTAINERS:spec.containers[*].name,RESOURCE:spec.containers[*].resources'
+
+  # We don't check for .limits.cpu because it is usually unset
+  for resource in '.limits.memory"' '.requests.cpu"' '.requests.memory"' ; do
+    cmd=${baseCmd}${resource}
+    out=$(eval "$cmd")
+
+    numContainers=$(echo "$out" | grep -E "$regex" | awk '{print $2}' | awk -F ',' '{print NF}')
+    numContainersWithResources=$(echo "$out" | grep -E "$regex" | awk '{print $3}' | awk -F ',' '{print NF}')
+    if [ $numContainers != $numContainersWithResources ]; then
+      echo "one or more containers in pods with $regex do not have $resource set"
+      exit 1
+    fi
+  done
 }
 
 function insertWithRetry() {

@@ -5,6 +5,8 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	apilabels "k8s.io/apimachinery/pkg/labels"
+	"planetscale.dev/vitess-operator/pkg/operator/drain"
+	"planetscale.dev/vitess-operator/pkg/operator/toposerver"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"vitess.io/vitess/go/vt/topo/topoproto"
@@ -51,8 +53,14 @@ func (r *ReconcileVitessShard) reconcileRollout(ctx context.Context, vts *planet
 		}
 	}
 
+	primaryAlias, err := getPrimaryTabletAlias(ctx, vts)
+	if err != nil {
+		r.recorder.Eventf(vts, corev1.EventTypeWarning, "RolloutBlocked", "Could not get TabletAlias for the Primary.")
+		return resultBuilder.Error(err)
+	}
+
 	// Retrieve tablet pod to be released during this reconcile.
-	tabletKey, pod := getNextScheduledTablet(tabletKeys, tabletPods)
+	tabletKey, pod := getNextScheduledTablet(tabletKeys, tabletPods, primaryAlias)
 	if tabletKey == "" {
 		// If we have no more scheduled tablets, uncascade the shard.
 		if err := r.uncascadeShard(ctx, vts); err != nil {
@@ -127,15 +135,51 @@ func (r *ReconcileVitessShard) uncascadeShard(ctx context.Context, vts *planetsc
 	return r.client.Update(ctx, vts)
 }
 
-func getNextScheduledTablet(tabletKeys []string, tabletPods map[string]*corev1.Pod) (string, *corev1.Pod) {
+func getNextScheduledTablet(tabletKeys []string, tabletPods map[string]*corev1.Pod, primaryAlias string) (string, *corev1.Pod) {
+	scheduledTablets := map[string]bool{}
+
 	for _, tabletKey := range tabletKeys {
 		pod := tabletPods[tabletKey]
-		if !rollout.Scheduled(pod) {
-			continue
-		}
+		if rollout.Scheduled(pod) {
+			scheduledTablets[tabletKey] = true
 
-		return tabletKey, pod
+			// If a Pod is scheduled for rollout and it's already drained
+			// then it's the next tablet to release since the drain controller
+			// will not drain any more tablets in the shard.
+			// A tablet may have been drained by something other than a rollout.
+			if drain.Finished(pod) {
+				return tabletKey, pod
+			}
+		}
+	}
+
+	// Release any scheduled tablet
+	for tabletKey := range scheduledTablets {
+		if tabletKey != primaryAlias {
+			return tabletKey, tabletPods[tabletKey]
+		}
+	}
+
+	// If there are no remaining scheduled tablets, then release the Primary if its scheduled
+	if _, scheduled := scheduledTablets[primaryAlias]; scheduled {
+		return primaryAlias, tabletPods[primaryAlias]
 	}
 
 	return "", nil
+}
+
+func getPrimaryTabletAlias(ctx context.Context, vts *planetscalev2.VitessShard) (string, error) {
+	ts, err := toposerver.Open(ctx, vts.Spec.GlobalLockserver)
+	if err != nil {
+		return "", err
+	}
+	defer ts.Close()
+
+	keyspaceName := vts.Labels[planetscalev2.KeyspaceLabel]
+	shard, err := ts.GetShard(ctx, keyspaceName, vts.Spec.Name)
+	if err != nil {
+		return "", err
+	}
+
+	return topoproto.TabletAliasString(shard.PrimaryAlias), nil
 }

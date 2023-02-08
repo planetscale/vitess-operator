@@ -18,6 +18,8 @@ function get_started_vtorc_vtadmin() {
     checkPodStatusWithTimeout "example-zone1-vtadmin(.*)2/2(.*)Running(.*)"
     checkPodStatusWithTimeout "example-commerce-x-x-zone1-vtorc(.*)1/1(.*)Running(.*)"
 
+    ensurePodResourcesSet "example-zone1-vtadmin"
+
     sleep 10
     echo "Creating vschema and commerce SQL schema"
 
@@ -105,6 +107,23 @@ function verifyVtadminSetup() {
   vtctldclient DeleteKeyspace testKeyspace
   # Verify we still have the commerce keyspace and no other keyspace
   curlGetRequestWithRetry "localhost:14001/api/keyspaces" "commerce.*}}}}]"
+  # Get the list of uuids of the tablets
+  uuids=$(curl "localhost:14001/api/tablets" | grep "uid\":[0-9]*" -o | grep "[0-9]*" -o)
+  echo "All uuids of tablets - $uuids"
+  primaryUUID=$(echo "$uuids" | awk '{ if(NR==1){print $1;}}')
+  echo "Primary UUID - $primaryUUID"
+  # Verify it is indeed the primary
+  request="localhost:14001/api/tablet/zone1-$primaryUUID"
+  curlGetRequestWithRetry "$request" "type\":1"
+  # Get the replica UUID
+  replicaUUID=$(echo "$uuids" | awk '{ if(NR==2){print $1;}}')
+  echo "Replica UUID - $replicaUUID"
+  request="localhost:14001/api/tablet/zone1-$replicaUUID"
+  curlGetRequestWithRetry "$request" "type\":2"
+  # Run a PRS
+  curlPostRequest "localhost:14001/api/shard/example/commerce/-/planned_failover" "{\"new_primary\":{\"cell\":\"zone1\",\"uid\":$replicaUUID}}"
+  # Verify that the replica is now the primary
+  curlGetRequestWithRetry "$request" "type\":1"
 
   # Also verify that the web page works
   chromiumHeadlessRequest "http://localhost:14000/schemas" "corder"
@@ -123,6 +142,15 @@ function verifyVTOrcSetup() {
   # only succeed if VTOrc is able to fix it since we are running vttablet with disable active reparent
   # and semi-sync durability policy
   mysql -e "insert into customer(email) values('newemail@domain.com');"
+
+  # Set primary tablets to read-only using the vtctld and wait for VTOrc to repair
+  allPrimaryTablets=$(getAllPrimaryTablets)
+  for primary in $(echo "$allPrimaryTablets") ; do
+    vtctldclient SetWritable "$primary" false
+  done
+
+  # This query will only succeed after VTOrc has repaired the primary's to be read-write again
+  runSQLWithRetry "insert into customer(email) values('newemail2@domain.com');"
 }
 
 function chromiumHeadlessRequest() {
