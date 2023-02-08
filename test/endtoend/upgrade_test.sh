@@ -6,6 +6,7 @@ source ./test/endtoend/utils.sh
 function move_tables() {
   echo "Apply 201_customer_tablets.yaml"
   kubectl apply -f 201_customer_tablets.yaml > /dev/null
+  sleep 300
   checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 6
   checkPodStatusWithTimeout "example-customer-x-x-zone1-vtorc(.*)1/1(.*)Running(.*)"
 
@@ -169,7 +170,7 @@ EOF
 }
 
 function waitAndVerifySetup() {
-  sleep 200
+  sleep 300
   checkPodStatusWithTimeout "example-zone1-vtctld(.*)1/1(.*)Running(.*)"
   checkPodStatusWithTimeout "example-zone1-vtgate(.*)1/1(.*)Running(.*)"
   checkPodStatusWithTimeout "example-etcd(.*)1/1(.*)Running(.*)" 3

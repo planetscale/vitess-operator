@@ -38,7 +38,9 @@ function checkInnodbFastShutdown() {
   value=$1
   for vttablet in $(kubectl get pods --no-headers -o custom-columns=":metadata.name" | grep "vttablet") ; do
     echo "Checking innodb_fast_shutdown in $vttablet"
-    kubectl exec "$vttablet" -c mysqld -- mysql -S "/vt/socket/mysql.sock" -u root -e "select @@innodb_fast_shutdown" | grep "$value"
+    out=$(kubectl exec "$vttablet" -c mysqld -- mysql -S "/vt/socket/mysql.sock" -u root -e "select @@innodb_fast_shutdown")
+    echo "Output - $out"
+    echo "$out" | grep "$value"
     if [ $? -ne 0 ]; then
       echo "innodb_fast_shutdown not correct on $vttablet"
       exit 1
