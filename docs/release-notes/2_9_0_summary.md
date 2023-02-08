@@ -25,6 +25,5 @@ In order for you to correctly upgrade, there is a certain path to follow:
 2. Apply this file.
 3. Wait for all the pods to be healthy.
 4. Then change your YAML file to use the new Docker Images (`vitess/lite:v16.0.0`, defaults to mysql80).
-5. Wait for all the pods to be healthy.
-6. Remove `innodb_fast_shutdown=0` from your extra cnf in your YAML file.
-7. Apply this file.
+5. Remove `innodb_fast_shutdown=0` from your extra cnf in your YAML file.
+6. Apply this file.
