@@ -6,6 +6,7 @@ source ./test/endtoend/utils.sh
 function move_tables() {
   echo "Apply 201_customer_tablets.yaml"
   kubectl apply -f 201_customer_tablets.yaml > /dev/null
+  sleep 300
   checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 6
   checkPodStatusWithTimeout "example-customer-x-x-zone1-vtorc(.*)1/1(.*)Running(.*)"
 
@@ -168,21 +169,46 @@ EOF
   waitForKeyspaceToBeServing customer 80- 2
 }
 
-function upgradeToLatest() {
-  echo "Apply operator-latest.yaml "
-  kubectl apply -f operator-latest.yaml
-
-  sleep 2
-
-  echo "Upgrade all the other binaries"
-  kubectl apply -f cluster_upgrade.yaml
-
-  sleep 200
+function waitAndVerifySetup() {
+  sleep 300
   checkPodStatusWithTimeout "example-zone1-vtctld(.*)1/1(.*)Running(.*)"
   checkPodStatusWithTimeout "example-zone1-vtgate(.*)1/1(.*)Running(.*)"
   checkPodStatusWithTimeout "example-etcd(.*)1/1(.*)Running(.*)" 3
   checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 3
   checkPodStatusWithTimeout "example-commerce-x-x-zone1-vtorc(.*)1/1(.*)Running(.*)"
+}
+
+function upgradeToLatest() {
+  # Initially verify the value of innodb_fast_shutdown
+  checkInnodbFastShutdown "1"
+  checkMySQLVersion "5.7"
+
+  # The first thing we need to do is to update the config to set innodb_fast_shutdown=0
+  sed -E "s/#config/config/g" 101_initial_cluster.yaml > temp.yaml
+  echo "Applying config overrides"
+  kubectl apply -f temp.yaml
+  waitAndVerifySetup
+  checkInnodbFastShutdown "0"
+  checkMySQLVersion "5.7"
+
+  echo "Cleaning up temporary file"
+  rm temp.yaml
+
+  echo "Apply operator-latest.yaml "
+  kubectl apply -f operator-latest.yaml
+  # We need a wait here too since the client generator's version changed.
+  # This rolls all the vttablets in place
+  waitAndVerifySetup
+  checkInnodbFastShutdown "0"
+  checkMySQLVersion "5.7"
+
+  echo "Upgrade all the other binaries"
+  kubectl apply -f cluster_upgrade.yaml
+  # Upgrading MySQL from 5.7 to 8.0 takes time
+  sleep 300
+  waitAndVerifySetup
+  checkInnodbFastShutdown "0"
+  checkMySQLVersion "8.0"
 
   killall kubectl
   ./pf.sh > /dev/null 2>&1 &
@@ -239,11 +265,13 @@ checkSemiSyncSetup
 # Initially too durability policy should be specified
 verifyDurabilityPolicy "commerce" "semi_sync"
 upgradeToLatest
-verifyVtGateVersion "16.0.0"
+verifyVtGateVersion "17.0.0"
 checkSemiSyncSetup
 # After upgrading, we verify that the durability policy is still semi_sync
 verifyDurabilityPolicy "commerce" "semi_sync"
 move_tables
+checkInnodbFastShutdown "1"
+checkMySQLVersion "8.0"
 resharding
 
 # Teardown

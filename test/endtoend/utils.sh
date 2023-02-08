@@ -20,6 +20,36 @@ function checkSemiSyncSetup() {
   done
 }
 
+# checkMySQLVersion checks the MySQL version
+function checkMySQLVersion() {
+  version=$1
+  for vttablet in $(kubectl get pods --no-headers -o custom-columns=":metadata.name" | grep "vttablet") ; do
+    echo "Checking MySQL version in $vttablet"
+    kubectl exec "$vttablet" -c mysqld -- mysql -S "/vt/socket/mysql.sock" -u root -e "select @@version" | grep "$version"
+    if [ $? -ne 0 ]; then
+      echo "MySQL version not correct on $vttablet"
+      exit 1
+    fi
+  done
+}
+
+# checkInnodbFastShutdown checks the value of innodb_fast_shutdown
+function checkInnodbFastShutdown() {
+  value=$1
+  for vttablet in $(kubectl get pods --no-headers -o custom-columns=":metadata.name" | grep "vttablet") ; do
+    echo "Checking innodb_fast_shutdown in $vttablet"
+    for i in {1..600} ; do
+      out=$(kubectl exec "$vttablet" -c mysqld -- mysql -S "/vt/socket/mysql.sock" -u root -e "select @@innodb_fast_shutdown" || true)
+      echo "$out" | grep "$value" > /dev/null 2>&1
+      if [ $? -eq 0 ]; then
+        return 0
+      fi
+      echo "innodb_fast_shutdown not correct on $vttablet"
+      sleep 3
+    done
+  done
+}
+
 # getAllReplicaTablets returns the list of all the replica tablets as a space separated list
 function getAllReplicaTablets() {
   vtctldclient GetTablets | grep "replica" | awk '{print $1}' | tr '\n' ' '
@@ -141,6 +171,10 @@ function checkPodStatusWithTimeout() {
     sleep 1
   done
   echo -e "ERROR: checkPodStatusWithTimeout timeout to find pod matching:\ngot:\n$out\nfor regex: $regex"
+  echo "$regex" | grep "vttablet" > /dev/null 2>&1
+  if [ $? -eq 0 ]; then
+    printMysqlErrorFiles
+  fi
   exit 1
 }
 
@@ -178,7 +212,8 @@ function insertWithRetry() {
 
 function verifyVtGateVersion() {
   version=$1
-  data=$(mysql -e "select @@version")
+  podName=$(kubectl get pods --no-headers -o custom-columns=":metadata.name" | grep "vtgate")
+  data=$(kubectl logs "$podName" | head -n 2)
   echo "$data" | grep "$version" > /dev/null 2>&1
   if [ $? -ne 0 ]; then
     echo -e "The vtgate version is incorrect, expected: $version, got:\n$data"
