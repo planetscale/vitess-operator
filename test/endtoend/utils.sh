@@ -167,6 +167,10 @@ function checkPodStatusWithTimeout() {
     sleep 1
   done
   echo -e "ERROR: checkPodStatusWithTimeout timeout to find pod matching:\ngot:\n$out\nfor regex: $regex"
+  echo "$regex" | grep "vttablet" > /dev/null 2>&1
+  if [ $? -eq 0 ]; then
+    printMysqlErrorFiles
+  fi
   exit 1
 }
 
