@@ -84,6 +84,7 @@ spec:
                 requests:
                   cpu: 100m
                   memory: 512Mi
+              configOverrides: "innodb_fast_shutdown=0"
             dataVolumeClaimTemplate:
               accessModes: ["ReadWriteOnce"]
               resources:

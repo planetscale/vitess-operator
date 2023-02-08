@@ -206,7 +206,7 @@ function upgradeToLatest() {
   # Upgrading MySQL from 5.7 to 8.0 takes time
   sleep 300
   waitAndVerifySetup
-  checkInnodbFastShutdown "1"
+  checkInnodbFastShutdown "0"
   checkMySQLVersion "8.0"
 
   killall kubectl
@@ -269,6 +269,8 @@ checkSemiSyncSetup
 # After upgrading, we verify that the durability policy is still semi_sync
 verifyDurabilityPolicy "commerce" "semi_sync"
 move_tables
+checkInnodbFastShutdown "1"
+checkMySQLVersion "8.0"
 resharding
 
 # Teardown
