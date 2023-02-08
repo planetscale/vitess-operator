@@ -38,6 +38,13 @@ function updateVitessImages() {
   rm -f $(find -E $ROOT/test/endtoend/operator/ -name "*.yaml.bak") $ROOT/pkg/apis/planetscale/v2/defaults.go.bak $ROOT/test/endtoend/operator/operator.yaml.bak
 }
 
+function updateOperatorYaml() {
+  new_operator_version=$1
+
+  sed -i.bak -E "s/planetscale\/vitess-operator:(.*)/planetscale\/vitess-operator:v$new_operator_version/g" "$ROOT/deploy/operator.yaml"
+  rm -f $ROOT/deploy/operator.yaml.bak
+}
+
 function updateVersion() {
   version=$1
 
@@ -56,6 +63,7 @@ fi
 
 updateVersion $NEW_OPERATOR_VERSION
 updateVitessImages $OLD_VITESS_VERSION $NEW_VITESS_VERSION $NEW_OPERATOR_VERSION
+updateOperatorYaml $NEW_OPERATOR_VERSION
 
 git add --all
 git commit -n -s -m "Release commit for $NEW_OPERATOR_VERSION"

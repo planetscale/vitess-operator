@@ -19,6 +19,27 @@ build/Dockerfile.release
 go.mod
 ```
 
+### Update Compatibility Table
+
+Add a new entry for the planned minor version to the [compatibility table](https://github.com/planetscale/vitess-operator/blob/main/README.md#compatibility)
+in the README file.
+
+The recommended Kubernetes versions depend on the version of the Kubernetes
+client libs that Vitess Operator uses:
+
+https://github.com/planetscale/vitess-operator/blob/111ac173e1c473853e66e270486ba8a9a47ecc54/go.mod#L35
+
+The recommended server versions are those that match the minor version for the
+client libraries, as well as server versions that are +/- one minor version
+relative to the client libraries.
+
+Note that we don't necessarily update to newer Kubernetes libraries at the same
+time that we update to build against a newer Vitess release.
+The Kubernetes library version is determined by the version of [Operator SDK](https://github.com/operator-framework/operator-sdk)
+that's in use.
+
+## Cut Release
+
 ### Update Vitess Dependency
 
 Each Vitess Operator minor version (`vX.Y.*`) is intended to correspond to a
@@ -45,26 +66,7 @@ so this command would update Vitess Operator to build against Vitess v9.0.0:
 go get vitess.io/vitess@daa60859822ff85ce18e2d10c61a27b7797ec6b8
 ```
 
-### Update Compatibility Table
-
-Add a new entry for the planned minor version to the [compatibility table](https://github.com/planetscale/vitess-operator/blob/main/README.md#compatibility)
-in the README file.
-
-The recommended Kubernetes versions depend on the version of the Kubernetes
-client libs that Vitess Operator uses:
-
-https://github.com/planetscale/vitess-operator/blob/111ac173e1c473853e66e270486ba8a9a47ecc54/go.mod#L35
-
-The recommended server versions are those that match the minor version for the
-client libraries, as well as server versions that are +/- one minor version
-relative to the client libraries.
-
-Note that we don't necessarily update to newer Kubernetes libraries at the same
-time that we update to build against a newer Vitess release.
-The Kubernetes library version is determined by the version of [Operator SDK](https://github.com/operator-framework/operator-sdk)
-that's in use.
-
-## Cut Release
+### Release
 
 After the PR from the prepare phase is merged, make sure your local git dir is
 up-to-date with HEAD, and then create a temporary release branch on top of the long-term release branch, for instance:
