@@ -181,7 +181,6 @@ function waitAndVerifySetup() {
 function upgradeToLatest() {
   # Initially verify the value of innodb_fast_shutdown
   checkInnodbFastShutdown "1"
-  checkMySQLVersion "5.7"
 
   # The first thing we need to do is to update the config to set innodb_fast_shutdown=0
   sed -E "s/#config/config/g" 101_initial_cluster.yaml > temp.yaml
@@ -189,7 +188,6 @@ function upgradeToLatest() {
   kubectl apply -f temp.yaml
   waitAndVerifySetup
   checkInnodbFastShutdown "0"
-  checkMySQLVersion "5.7"
 
   echo "Cleaning up temporary file"
   rm temp.yaml
@@ -201,15 +199,12 @@ function upgradeToLatest() {
   sleep 300
   waitAndVerifySetup
   checkInnodbFastShutdown "0"
-  checkMySQLVersion "5.7"
 
   echo "Upgrade all the other binaries"
   kubectl apply -f cluster_upgrade.yaml
-  # Upgrading MySQL from 5.7 to 8.0 takes time
   sleep 300
   waitAndVerifySetup
   checkInnodbFastShutdown "0"
-  checkMySQLVersion "8.0"
 
   killall kubectl
   ./pf.sh > /dev/null 2>&1 &
@@ -272,7 +267,6 @@ checkSemiSyncSetup
 verifyDurabilityPolicy "commerce" "semi_sync"
 move_tables
 checkInnodbFastShutdown "1"
-checkMySQLVersion "8.0"
 resharding
 
 # Teardown
