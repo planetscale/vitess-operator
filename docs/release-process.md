@@ -44,7 +44,16 @@ The `upgrade.sh`, `backup_restore_test.sh` and `vtorc_vtadmin_test.sh` files mus
 
 ## Cut Release
 
-### Update Vitess Dependency
+### Release
+
+After the PR from the prepare phase is merged, make sure your local git dir is
+up-to-date with HEAD, and then create a temporary release branch on top of the long-term release branch, for instance:
+
+```
+git checkout -b new-release-2.7.5 origin/release-2.7
+```
+
+#### Update Vitess Dependency
 
 Each Vitess Operator minor version (`vX.Y.*`) is intended to correspond to a
 particular Vitess major version (`vX.*.*`).
@@ -70,13 +79,9 @@ so this command would update Vitess Operator to build against Vitess v9.0.0:
 go get vitess.io/vitess@daa60859822ff85ce18e2d10c61a27b7797ec6b8
 ```
 
-### Release
-
-After the PR from the prepare phase is merged, make sure your local git dir is
-up-to-date with HEAD, and then create a temporary release branch on top of the long-term release branch, for instance:
-
-```
-git checkout -b new-release-2.7.5 origin/release-2.7
+Following this cleanup the `go.sum` file by:
+```sh
+go mod tidy
 ```
 
 And then, create the tag using the following command, note that you will need to replace the placeholder strings:
@@ -90,7 +95,7 @@ Here we want to release the version `2.7.4`. It will be tested against Vitess `v
 [Docker Hub](https://hub.docker.com/repository/docker/planetscale/vitess-operator)
 hould automatically detect the new tag and begin building a new image.
 
-Create a [new release](https://github.com/planetscale/vitess-operator/releases/new)
-in GitHub to describe the updates users should expect.
-
 Follow the instructions prompted by the `do_release.sh` script. You will need to push the tag and push the temporary branch to finally create a Pull Request. The Pull Request should be merged onto the release branch.
+
+Create a [new release](https://github.com/planetscale/vitess-operator/releases/new)
+in GitHub UI and make sure to add the release-notes from the docs (if any).
