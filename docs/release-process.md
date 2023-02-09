@@ -47,7 +47,7 @@ The `upgrade.sh`, `backup_restore_test.sh` and `vtorc_vtadmin_test.sh` files mus
 ### Release
 
 After the PR from the prepare phase is merged, make sure your local git dir is
-up-to-date with HEAD, and then create a temporary release branch on top of the long-term release branch, for instance:
+up-to-date with the remote's HEAD, and then create a temporary release branch on top of the long-term release branch, for instance:
 
 ```
 git checkout -b new-release-2.7.5 origin/release-2.7
@@ -84,7 +84,9 @@ Following this cleanup the `go.sum` file by:
 go mod tidy
 ```
 
-And then, create the tag using the following command, note that you will need to replace the placeholder strings:
+#### Do-Release
+
+Now, create the tag using the following command, note that you will need to replace the placeholder strings:
 
 ```
 OLD_VITESS_VERSION="13.0.0" NEW_VITESS_VERSION="14.0.3" NEW_OPERATOR_VERSION="2.7.4" NEXT_OPERATOR_VERSION="2.7.5" ./tools/release/do_release.sh 
