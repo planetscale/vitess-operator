@@ -97,5 +97,11 @@ hould automatically detect the new tag and begin building a new image.
 
 Follow the instructions prompted by the `do_release.sh` script. You will need to push the tag and push the temporary branch to finally create a Pull Request. The Pull Request should be merged onto the release branch.
 
+> **Note**
+> Make sure to Normal Merge the pull request i.e. merge the pull request with merge commit and not a squash merge. This is required because we create the tag
+from the pull request, so in order to have the tag on the release branche's history, it has to be a normal merge.
+
+### UI Release
+
 Create a [new release](https://github.com/planetscale/vitess-operator/releases/new)
 in GitHub UI and make sure to add the release-notes from the docs (if any).
