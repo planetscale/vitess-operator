@@ -198,6 +198,7 @@ function upgradeToLatest() {
   kubectl apply -f operator-latest.yaml
   # We need a wait here too since the client generator's version changed.
   # This rolls all the vttablets in place
+  sleep 300
   waitAndVerifySetup
   checkInnodbFastShutdown "0"
   checkMySQLVersion "5.7"
