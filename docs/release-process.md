@@ -108,7 +108,7 @@ from the pull request, so in order to have the tag on the release branche's hist
 Once you have done the release on the release branch, there are several steps to follow on `main`.
 
 - The `vitess/lite` image tag must be changed in [101_initial_cluster.yaml](..%2Ftest%2Fendtoend%2Foperator%2F101_initial_cluster.yaml). The latest Vitess release tag must be used.
-- We must copy the [operator.yaml](..%2Ftest%2Fendtoend%2Foperator%2Foperator.yaml) file we created during the release onto `main`.
+- We must copy the [operator-latest.yaml](..%2Ftest%2Fendtoend%2Foperator%2Foperator-latest.yaml) file we created during the release onto `main`'s [operator.yaml](..%2Ftest%2Fendtoend%2Foperator%2Foperator.yaml) file.
 - Bump the `planetscale/vitess-operator` image tag to the latest version we just released in [operator.yaml](..%2Ftest%2Fendtoend%2Foperator%2Foperator.yaml).
 
 ### UI Release
