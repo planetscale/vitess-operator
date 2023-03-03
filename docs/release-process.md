@@ -103,6 +103,14 @@ Follow the instructions prompted by the `do_release.sh` script. You will need to
 > Make sure to Normal Merge the pull request i.e. merge the pull request with merge commit and not a squash merge. This is required because we create the tag
 from the pull request, so in order to have the tag on the release branche's history, it has to be a normal merge.
 
+##### On `main`
+
+Once you have done the release on the release branch, there are several steps to follow on `main`.
+
+- The `vitess/lite` image tag must be changed in [101_initial_cluster.yaml](..%2Ftest%2Fendtoend%2Foperator%2F101_initial_cluster.yaml). The latest Vitess release tag must be used.
+- We must copy the [operator-latest.yaml](..%2Ftest%2Fendtoend%2Foperator%2Foperator-latest.yaml) file we created during the release onto `main`'s [operator.yaml](..%2Ftest%2Fendtoend%2Foperator%2Foperator.yaml) file.
+- Bump the `planetscale/vitess-operator` image tag to the latest version we just released in [operator.yaml](..%2Ftest%2Fendtoend%2Foperator%2Foperator.yaml).
+
 ### UI Release
 
 Create a [new release](https://github.com/planetscale/vitess-operator/releases/new)
