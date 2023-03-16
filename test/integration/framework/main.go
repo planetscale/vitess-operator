@@ -129,7 +129,6 @@ func testMain(tests func() int) error {
 	klog.Info("Waiting for kube-apiserver to be ready...")
 	start := time.Now()
 	for {
-		klog.Info("checking kubectl version")
 		out, kubectlErr := execKubectl("version")
 		if kubectlErr == nil {
 			break
@@ -139,6 +138,8 @@ func testMain(tests func() int) error {
 		}
 		time.Sleep(time.Second)
 	}
+
+	klog.Info("kube-apiserver is ready!")
 
 	return nil
 

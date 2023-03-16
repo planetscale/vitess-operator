@@ -66,6 +66,19 @@ func startApiserver() (func(), error) {
 	}
 	klog.Infof("storing kube-apiserver data in: %v", apiserverDataDir)
 
+	authPolicy := `{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"user":"admin", "namespace": "*", "resource": "*", "apiGroup": "*", "nonResourcePath": "*"}}
+	{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"user":"kubecfg", "namespace": "*", "resource": "*", "apiGroup": "*", "nonResourcePath": "*"}}
+	{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"user":"kubelet", "namespace": "*", "resource": "*", "apiGroup": "*", "nonResourcePath": "*"}}
+	{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"user":"kube-proxy", "namespace": "*", "resource": "*", "apiGroup": "*", "nonResourcePath": "*"}}
+	{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"user":"kube", "namespace": "*", "resource": "*", "apiGroup": "*", "nonResourcePath": "*"}}
+	{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"user":"system:controller_manager", "namespace": "*", "resource": "*", "apiGroup": "*", "nonResourcePath": "*"}}
+	{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"user":"system:dns", "namespace": "*", "resource": "*", "apiGroup": "*", "nonResourcePath": "*"}}
+	{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"user":"system:logging", "namespace": "*", "resource": "*", "apiGroup": "*", "nonResourcePath": "*"}}
+	{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"user":"system:monitoring", "namespace": "*", "resource": "*", "apiGroup": "*", "nonResourcePath": "*"}}
+	{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"user":"system:scheduler", "namespace": "*", "resource": "*", "apiGroup": "*", "nonResourcePath": "*"}}
+	{"apiVersion": "abac.authorization.kubernetes.io/v1beta1", "kind": "Policy", "spec": {"user":"system:serviceaccount:kube-system:default", "namespace": "*", "resource": "*", "apiGroup": "*", "nonResourcePath": "*"}}`
+	os.WriteFile(fmt.Sprintf("%s/auth-policy.json",apiserverDataDir), []byte(authPolicy), 0644)
+
 	ctx, cancel := context.WithCancel(context.Background())
 	cmd := exec.CommandContext(
 		ctx,
@@ -78,6 +91,8 @@ func startApiserver() (func(), error) {
 		"--service-account-issuer", "https://kubernetes.default.svc.cluster.local",
 		"--service-account-key-file", fmt.Sprintf("%s/apiserver.crt", apiserverDataDir),
 		"--service-account-signing-key-file", fmt.Sprintf("%s/apiserver.key", apiserverDataDir),
+		"--authorization-policy-file", fmt.Sprintf("%s/auth-policy.json",apiserverDataDir),
+		"--authorization-mode", "ABAC",
 	)
 
 	// Uncomment these to see kube-apiserver output in test logs.
