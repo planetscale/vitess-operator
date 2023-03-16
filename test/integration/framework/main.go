@@ -126,6 +126,10 @@ func testMain(tests func() int) error {
 	}
 	defer stopApiserver()
 
+	klog.Info("set kubectl context")
+
+	execKubectl("config", "set-context", "--user=testrunner")
+	
 	klog.Info("Waiting for kube-apiserver to be ready...")
 	start := time.Now()
 	for {
