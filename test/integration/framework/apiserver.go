@@ -75,9 +75,9 @@ func startApiserver() (func(), error) {
 		// doesn't conflict with other test apiservers.
 		"--secure-port", strconv.Itoa(apiserverPort),
 		"--etcd-servers", etcdURL,
-		"--service-account-issuer","https://kubernetes.default.svc.cluster.local",
-		"--service-account-key-file","/etc/kubernetes/pki/sa.pub",
-		"--service-account-signing-key-file","/etc/kubernetes/pki/sa.key",
+		"--service-account-issuer", "https://kubernetes.default.svc.cluster.local",
+		"--service-account-key-file", fmt.Sprintf("%s/apiserver.crt", apiserverDataDir),
+		"--service-account-signing-key-file", fmt.Sprintf("%s/apiserver.key", apiserverDataDir),
 	)
 
 	// Uncomment these to see kube-apiserver output in test logs.
