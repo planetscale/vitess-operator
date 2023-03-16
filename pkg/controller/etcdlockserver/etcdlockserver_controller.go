@@ -23,7 +23,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	corev1 "k8s.io/api/core/v1"
-	policyv1 "k8s.io/api/policy/v1"
+	policyv1beta1 "k8s.io/api/policy/v1beta1"
 	apiequality "k8s.io/apimachinery/pkg/api/equality"
 	"k8s.io/apimachinery/pkg/api/errors"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -58,7 +58,7 @@ var watchResources = []client.Object{
 	&corev1.Pod{},
 	&corev1.Service{},
 	&corev1.PersistentVolumeClaim{},
-	&policyv1.PodDisruptionBudget{},
+	&policyv1beta1.PodDisruptionBudget{},
 }
 
 // Add creates a new EtcdLockserver Controller and adds it to the Manager. The Manager will set fields on the Controller
