@@ -77,7 +77,7 @@ func startApiserver() (func(), error) {
 		"--etcd-servers", etcdURL,
 		"--service-account-issuer","https://kubernetes.default.svc.cluster.local",
 		"--service-account-key-file","/etc/kubernetes/pki/sa.pub",
-		"--service-account-signing-key-file","/etc/kubernetes/pki/sa.key"
+		"--service-account-signing-key-file","/etc/kubernetes/pki/sa.key",
 	)
 
 	// Uncomment these to see kube-apiserver output in test logs.
