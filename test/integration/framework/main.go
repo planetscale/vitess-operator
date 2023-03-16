@@ -110,21 +110,15 @@ func TestMain(tests func() int) {
 func testMain(tests func() int) error {
 	controllermanager.InitFlags()
 
-	klog.Info("hello world -- klog.Info")
-	klog.Infof("hello world -- klog.Infof")
-	klog.Warningf("hello world -- klog.Warningf")
-
-	return nil
-
 	if _, err := getKubectlPath(); err != nil {
 		return errors.New(installKubectl)
 	}
 
-	stopEtcd, err := startEtcd()
-	if err != nil {
-		return fmt.Errorf("cannot run integration tests: unable to start etcd: %v", err)
-	}
-	defer stopEtcd()
+	// stopEtcd, err := startEtcd()
+	// if err != nil {
+	// 	return fmt.Errorf("cannot run integration tests: unable to start etcd: %v", err)
+	// }
+	// defer stopEtcd()
 
 	stopApiserver, err := startApiserver()
 	if err != nil {
@@ -135,6 +129,7 @@ func testMain(tests func() int) error {
 	klog.Info("Waiting for kube-apiserver to be ready...")
 	start := time.Now()
 	for {
+		klog.Info("checking kubectl version")
 		out, kubectlErr := execKubectl("version")
 		if kubectlErr == nil {
 			break
@@ -144,6 +139,8 @@ func testMain(tests func() int) error {
 		}
 		time.Sleep(time.Second)
 	}
+
+	return nil
 
 	if out, err := execKubectlStdin(strings.NewReader(defaultNamespace), "apply", "-f", "-"); err != nil {
 		return fmt.Errorf("cannot create default Namespace: %v\n%s", err, out)
