@@ -66,7 +66,7 @@ func startApiserver() (func(), error) {
 	}
 	klog.Infof("storing kube-apiserver data in: %v", apiserverDataDir)
 
-	authPolicy := "{\"apiVersion\": \"abac.authorization.kubernetes.io/v1beta1\", \"kind\": \"Policy\", \"spec\": {\"user\":\"testrunner\", \"namespace\": \"*\", \"resource\": \"*\", \"apiGroup\": \"*\"}}"
+	authPolicy := "{\"apiVersion\": \"abac.authorization.kubernetes.io/v1beta1\", \"kind\": \"Policy\", \"spec\": {\"user\":\"system:anonymous\", \"namespace\": \"*\", \"resource\": \"*\", \"apiGroup\": \"*\"}}"
 	os.WriteFile(fmt.Sprintf("%s/auth-policy.json",apiserverDataDir), []byte(authPolicy), 0644)
 
 	ctx, cancel := context.WithCancel(context.Background())
