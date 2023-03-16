@@ -57,7 +57,7 @@ func startApiserver() (func(), error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not get a port: %v", err)
 	}
-	apiserverURL = fmt.Sprintf("http://127.0.0.1:%d", apiserverPort)
+	apiserverURL = fmt.Sprintf("https://127.0.0.1:%d", apiserverPort)
 	klog.Infof("starting kube-apiserver on %s", apiserverURL)
 
 	apiserverDataDir, err := ioutil.TempDir(os.TempDir(), "integration_test_apiserver_data")
@@ -71,10 +71,9 @@ func startApiserver() (func(), error) {
 		ctx,
 		apiserverPath,
 		"--cert-dir", apiserverDataDir,
-		"--insecure-port", strconv.Itoa(apiserverPort),
 		// We don't use the secure port, but we need to pick something that
 		// doesn't conflict with other test apiservers.
-		"--secure-port", strconv.Itoa(apiserverPort+1),
+		"--secure-port", strconv.Itoa(apiserverPort),
 		"--etcd-servers", etcdURL,
 	)
 
