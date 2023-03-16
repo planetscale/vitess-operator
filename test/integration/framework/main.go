@@ -114,11 +114,11 @@ func testMain(tests func() int) error {
 		return errors.New(installKubectl)
 	}
 
-	// stopEtcd, err := startEtcd()
-	// if err != nil {
-	// 	return fmt.Errorf("cannot run integration tests: unable to start etcd: %v", err)
-	// }
-	// defer stopEtcd()
+	stopEtcd, err := startEtcd()
+	if err != nil {
+		return fmt.Errorf("cannot run integration tests: unable to start etcd: %v", err)
+	}
+	defer stopEtcd()
 
 	stopApiserver, err := startApiserver()
 	if err != nil {
