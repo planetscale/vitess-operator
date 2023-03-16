@@ -80,8 +80,8 @@ func startApiserver() (func(), error) {
 
 	// Uncomment these to see kube-apiserver output in test logs.
 	// For operator tests, we generally don't expect problems at this level.
-	//cmd.Stdout = os.Stdout
-	//cmd.Stderr = os.Stderr
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 
 	stop := func() {
 		cancel()
