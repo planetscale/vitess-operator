@@ -19,7 +19,7 @@ package etcdlockserver
 import (
 	"context"
 
-	policyv1 "k8s.io/api/policy/v1"
+	policyv1beta1 "k8s.io/api/policy/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -50,13 +50,13 @@ func (r *ReconcileEtcdLockserver) reconcilePodDisruptionBudget(ctx context.Conte
 		Name:      etcd.PDBName(lockserverName),
 	}
 	err := r.reconciler.ReconcileObject(ctx, ls, key, labels, true, reconciler.Strategy{
-		Kind: &policyv1.PodDisruptionBudget{},
+		Kind: &policyv1beta1.PodDisruptionBudget{},
 
 		New: func(key client.ObjectKey) runtime.Object {
 			return etcd.NewPDB(key, labels)
 		},
 		UpdateInPlace: func(key client.ObjectKey, obj runtime.Object) {
-			curObj := obj.(*policyv1.PodDisruptionBudget)
+			curObj := obj.(*policyv1beta1.PodDisruptionBudget)
 			etcd.UpdatePDBInPlace(curObj, labels)
 		},
 	})
