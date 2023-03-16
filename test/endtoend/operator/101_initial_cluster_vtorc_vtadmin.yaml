@@ -15,7 +15,7 @@ spec:
     vtbackup: vitess/lite:latest
     vtorc: vitess/lite:latest
     mysqld:
-      mysql56Compatible: vitess/lite:latest
+      mysql80Compatible: vitess/lite:latest
     mysqldExporter: prom/mysqld-exporter:v0.11.0
   cells:
   - name: zone1
@@ -71,15 +71,6 @@ spec:
   - name: commerce
     durabilityPolicy: semi_sync
     turndownPolicy: Immediate
-    vitessOrchestrator:
-      resources:
-        limits:
-          memory: 128Mi
-        requests:
-          cpu: 100m
-          memory: 128Mi
-      extraFlags:
-        recovery-period-block-duration: 5s
     partitionings:
     - equal:
         parts: 1
@@ -233,8 +224,7 @@ stringData:
       clusters: ["*"]
     - resource: "Shard"
       actions:
-        - "emergency_reparent_shard"
-        - "planned_reparent_shard"
+        - "emergency_failover_shard"
+        - "planned_failover_shard"
       subjects: ["*"]
-      clusters:
-        - "local"
+      clusters: ["*"]

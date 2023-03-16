@@ -47,7 +47,6 @@ type Spec struct {
 	DataVolumePVCName         string
 	GlobalLockserver          planetscalev2.VitessLockserverParams
 	DatabaseInitScriptSecret  planetscalev2.SecretSource
-	EnableSemiSync            bool
 	Annotations               map[string]string
 	ExtraLabels               map[string]string
 	BackupLocation            *planetscalev2.VitessBackupLocation

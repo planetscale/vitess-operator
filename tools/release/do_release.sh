@@ -26,16 +26,15 @@ fi
 function updateVitessImages() {
   old_vitess_version=$1
   new_vitess_version=$2
-  new_operator_version=$3
 
-  operator_files=$(find -E $ROOT/test/endtoend/operator/* -name "*.yaml" | grep -v "101_initial_cluster.yaml")
+  operator_files=$(find -E $ROOT/test/endtoend/operator/* -name "*.yaml" | grep -v "101_initial_cluster.yaml" | grep -v "101_initial_cluster_backup.yaml")
   sed -i.bak -E "s/vitess\/lite:(.*)/vitess\/lite:v$new_vitess_version/g" $operator_files
   sed -i.bak -E "s/vitess\/vtadmin:(.*)/vitess\/vtadmin:v$new_vitess_version/g" $operator_files
   sed -i.bak -E "s/vitess\/lite:(.*)/vitess\/lite:v$new_vitess_version\"/g" $ROOT/pkg/apis/planetscale/v2/defaults.go
   sed -i.bak -E "s/vitess\/lite:(.*)/vitess\/lite:v$old_vitess_version/g" $ROOT/test/endtoend/operator/101_initial_cluster.yaml
-  sed -i.bak -E "s/planetscale\/vitess-operator:(.*)/planetscale\/vitess-operator:v$new_operator_version/g" $ROOT/test/endtoend/operator/operator.yaml
+  sed -i.bak -E "s/vitess\/lite:(.*)/vitess\/lite:v$new_vitess_version-mysql57/g" $ROOT/test/endtoend/operator/101_initial_cluster_backup.yaml
 
-  rm -f $(find -E $ROOT/test/endtoend/operator/ -name "*.yaml.bak") $ROOT/pkg/apis/planetscale/v2/defaults.go.bak $ROOT/test/endtoend/operator/operator.yaml.bak
+  rm -f $(find -E $ROOT/test/endtoend/operator/ -name "*.yaml.bak") $ROOT/pkg/apis/planetscale/v2/defaults.go.bak
 }
 
 function updateVersion() {
@@ -69,10 +68,10 @@ git commit -n -s -m "Back to dev mode"
 echo ""
 echo "-----------------------"
 echo ""
-echo "\tPlease push the new git tag:"
+echo "Please push the new git tag:"
 echo ""
-echo "\t\tgit push origin v$NEW_OPERATOR_VERSION"
+echo "   git push origin v$NEW_OPERATOR_VERSION"
 echo ""
-echo "\tAnd push your current branch in order to open a Pull Request against the release branch."
+echo "And push your current branch in order to open a Pull Request against the release branch."
 echo ""
 echo ""

@@ -12,17 +12,46 @@ BUILDKITE_BUILD_ID=${BUILDKITE_BUILD_ID:-"0"}
 function checkSemiSyncSetup() {
   for vttablet in $(kubectl get pods --no-headers -o custom-columns=":metadata.name" | grep "vttablet") ; do
     echo "Checking semi-sync in $vttablet"
-    kubectl exec "$vttablet" -c mysqld -- mysql -S "/vt/socket/mysql.sock" -u root -e "show variables like 'rpl_semi_sync_slave_enabled'" | grep "ON"
-    if [ $? -ne 0 ]; then
-      echo "Semi Sync not setup on $vttablet"
-      exit 1
-    fi
+    checkSemiSyncWithRetry "$vttablet"
   done
+}
+
+function checkSemiSyncWithRetry() {
+  vttablet=$1
+  for i in {1..600} ; do
+    kubectl exec "$vttablet" -c mysqld -- mysql -S "/vt/socket/mysql.sock" -u root -e "show variables like 'rpl_semi_sync_slave_enabled'" | grep "ON"
+    if [ $? -eq 0 ]; then
+      return
+    fi
+    sleep 1
+  done
+  echo "Semi Sync not setup on $vttablet"
+  exit 1
 }
 
 # getAllReplicaTablets returns the list of all the replica tablets as a space separated list
 function getAllReplicaTablets() {
   vtctldclient GetTablets | grep "replica" | awk '{print $1}' | tr '\n' ' '
+}
+
+# getAllPrimaryTablets returns the list of all the primary tablets as a space separated list
+function getAllPrimaryTablets() {
+  vtctldclient GetTablets | grep "primary" | awk '{print $1}' | tr '\n' ' '
+}
+
+# runSQLWithRetry runs the given SQL until it succeeds
+function runSQLWithRetry() {
+  query=$1
+  for i in {1..600} ; do
+    mysql -e "$query"
+    if [ $? -eq 0 ]; then
+      return
+    fi
+    echo "failed to run query $query, retrying (attempt #$i) ..."
+    sleep 1
+  done
+  echo "Timed out trying to run $query"
+  exit 1
 }
 
 function printMysqlErrorFiles() {
@@ -71,6 +100,23 @@ function takeBackup() {
     fi
     sleep 3
   done
+  echo -e "ERROR: Backup not created - $out. $backupCount backups expected."
+  exit 1
+}
+
+function verifyListBackupsOutput() {
+  backupCount=$(kubectl get vtb --no-headers | wc -l)
+  for i in {1..600} ; do
+    out=$(vtctldclient LegacyVtctlCommand -- ListBackups "$keyspaceShard" | wc -l)
+    echo "$out" | grep "$backupCount" > /dev/null 2>&1
+    if [ $? -eq 0 ]; then
+      echo "ListBackupsOutputCorrect"
+      return 0
+    fi
+    sleep 3
+  done
+  echo -e "ERROR: ListBackups output not correct - $out. $backupCount backups expected."
+  exit 1
 }
 
 function dockerContainersInspect() {
@@ -104,7 +150,32 @@ function checkPodStatusWithTimeout() {
     sleep 1
   done
   echo -e "ERROR: checkPodStatusWithTimeout timeout to find pod matching:\ngot:\n$out\nfor regex: $regex"
+  echo "$regex" | grep "vttablet" > /dev/null 2>&1
+  if [ $? -eq 0 ]; then
+    printMysqlErrorFiles
+  fi
   exit 1
+}
+
+# ensurePodResourcesSet:
+# $1: regex used to match pod names
+function ensurePodResourcesSet() {
+  regex=$1
+
+  baseCmd='kubectl get pods -o custom-columns="NAME:metadata.name,CONTAINERS:spec.containers[*].name,RESOURCE:spec.containers[*].resources'
+
+  # We don't check for .limits.cpu because it is usually unset
+  for resource in '.limits.memory"' '.requests.cpu"' '.requests.memory"' ; do
+    cmd=${baseCmd}${resource}
+    out=$(eval "$cmd")
+
+    numContainers=$(echo "$out" | grep -E "$regex" | awk '{print $2}' | awk -F ',' '{print NF}')
+    numContainersWithResources=$(echo "$out" | grep -E "$regex" | awk '{print $3}' | awk -F ',' '{print NF}')
+    if [ $numContainers != $numContainersWithResources ]; then
+      echo "one or more containers in pods with $regex do not have $resource set"
+      exit 1
+    fi
+  done
 }
 
 function insertWithRetry() {
@@ -120,7 +191,8 @@ function insertWithRetry() {
 
 function verifyVtGateVersion() {
   version=$1
-  data=$(mysql -e "select @@version")
+  podName=$(kubectl get pods --no-headers -o custom-columns=":metadata.name" | grep "vtgate")
+  data=$(kubectl logs "$podName" | head -n 2)
   echo "$data" | grep "$version" > /dev/null 2>&1
   if [ $? -ne 0 ]; then
     echo -e "The vtgate version is incorrect, expected: $version, got:\n$data"

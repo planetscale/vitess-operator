@@ -18,6 +18,7 @@ package vttablet
 
 import (
 	corev1 "k8s.io/api/core/v1"
+
 	"planetscale.dev/vitess-operator/pkg/operator/lazy"
 	"planetscale.dev/vitess-operator/pkg/operator/secrets"
 	"planetscale.dev/vitess-operator/pkg/operator/vitess"
@@ -90,7 +91,6 @@ func localDatastoreFlags(spec *Spec) vitess.Flags {
 		// TODO: Should this be configurable?
 		"enable_replication_reporter": true,
 
-		"enable_semi_sync":  spec.EnableSemiSync,
 		"mysqlctl_socket":   mysqlctlSocketPath,
 		"mycnf_socket_file": mysqlSocketPath,
 	}

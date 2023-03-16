@@ -185,8 +185,6 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 	update.PodTemplateContainers(&obj.Spec.Template.Spec.InitContainers, spec.InitContainers)
 	update.PodTemplateContainers(&obj.Spec.Template.Spec.Containers, spec.SidecarContainers)
 
-	// Make a copy of Resources since it contains pointers.
-	var apiContainerResources corev1.ResourceRequirements
 	vtadminAPIContainer := &corev1.Container{
 		Name:            apiContainerName,
 		Image:           spec.Image,
@@ -199,7 +197,6 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 				ContainerPort: planetscalev2.DefaultAPIPort,
 			},
 		},
-		Resources:       apiContainerResources,
 		SecurityContext: securityContext,
 		ReadinessProbe: &corev1.Probe{
 			ProbeHandler: corev1.ProbeHandler{
@@ -222,12 +219,11 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 		VolumeMounts: spec.ExtraVolumeMounts,
 		Env:          spec.ExtraEnv,
 	}
-	update.ResourceRequirements(&apiContainerResources, &spec.APIResources)
+	update.ResourceRequirements(&vtadminAPIContainer.Resources, &spec.APIResources)
 	updateRbac(spec, apiFlags, vtadminAPIContainer, &obj.Spec.Template.Spec)
 	updateDiscoveryAndClusterConfig(spec, apiFlags, vtadminAPIContainer, &obj.Spec.Template.Spec)
 	vtadminAPIContainer.Args = apiFlags.FormatArgs()
 
-	var webContainerResources corev1.ResourceRequirements
 	vtadminWebContainer := &corev1.Container{
 		Name:            webContainerName,
 		Image:           spec.Image,
@@ -243,7 +239,6 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 		Args: []string{
 			"nginx", "-g", "daemon off;",
 		},
-		Resources:       webContainerResources,
 		SecurityContext: securityContext,
 		ReadinessProbe: &corev1.Probe{
 			ProbeHandler: corev1.ProbeHandler{
@@ -267,7 +262,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 		Env:          append(spec.ExtraEnv, corev1.EnvVar{Name: "VTADMIN_WEB_PORT", Value: fmt.Sprintf("%d", planetscalev2.DefaultWebPort)}),
 	}
 	updateWebConfig(spec, vtadminWebContainer, &obj.Spec.Template.Spec)
-	update.ResourceRequirements(&webContainerResources, &spec.WebResources)
+	update.ResourceRequirements(&vtadminWebContainer.Resources, &spec.WebResources)
 	update.PodTemplateContainers(&obj.Spec.Template.Spec.Containers, []corev1.Container{*vtadminAPIContainer, *vtadminWebContainer})
 
 	if spec.Affinity != nil {

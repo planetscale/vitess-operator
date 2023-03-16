@@ -27,7 +27,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
 	topodatapb "vitess.io/vitess/go/vt/proto/topodata"
 	"vitess.io/vitess/go/vt/topo/topoproto"
 
@@ -241,9 +240,18 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 		}
 	}
 
+	// Set the resource requirements on each of the default vttablet init
+	// containers to the same values as the vttablet container itself in
+	// case the cluster requires them.
+	defaultTabletInitContainers := tabletInitContainers.Get(spec)
+	for i := range defaultTabletInitContainers {
+		c := &defaultTabletInitContainers[i]
+		update.ResourceRequirements(&c.Resources, &spec.Vttablet.Resources)
+	}
+
 	// Make the final list of desired containers and init containers.
 	initContainers := []corev1.Container{}
-	initContainers = append(initContainers, tabletInitContainers.Get(spec)...)
+	initContainers = append(initContainers, defaultTabletInitContainers...)
 	initContainers = append(initContainers, spec.InitContainers...)
 
 	sidecarContainers := []corev1.Container{}

@@ -14,7 +14,7 @@ spec:
     vtorc: vitess/lite:latest
     vtbackup: vitess/lite:latest
     mysqld:
-      mysql56Compatible: vitess/lite:latest
+      mysql80Compatible: vitess/lite:latest
     mysqldExporter: prom/mysqld-exporter:v0.11.0
   cells:
   - name: zone1
@@ -84,6 +84,7 @@ spec:
                 requests:
                   cpu: 100m
                   memory: 512Mi
+              configOverrides: "innodb_fast_shutdown=0"
             dataVolumeClaimTemplate:
               accessModes: ["ReadWriteOnce"]
               resources:
