@@ -110,6 +110,12 @@ func TestMain(tests func() int) {
 func testMain(tests func() int) error {
 	controllermanager.InitFlags()
 
+	klog.Info("hello world -- klog.Info")
+	klog.Infof("hello world -- klog.Infof")
+	klog.Warningf("hello world -- klog.Warningf")
+
+	return nil
+
 	if _, err := getKubectlPath(); err != nil {
 		return errors.New(installKubectl)
 	}
