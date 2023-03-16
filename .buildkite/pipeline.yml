@@ -10,8 +10,9 @@ steps:
     - wget https://golang.org/dl/go1.19.4.linux-amd64.tar.gz
     - tar -C /usr/local -xzf go1.19.4.linux-amd64.tar.gz
     - export PATH=$PATH:/usr/local/go/bin
+    - echo $PATH
     - rm go1.19.4.linux-amd64.tar.gz
-    - make upgrade-test
+    - PATH=$PATH:/usr/local/go/bin bash -c 'make upgrade-test'
     concurrency: 1
     concurrency_group: 'vtop/upgrade-downgrade-test'
     timeout_in_minutes: 60
@@ -28,8 +29,9 @@ steps:
     - wget https://golang.org/dl/go1.19.4.linux-amd64.tar.gz
     - tar -C /usr/local -xzf go1.19.4.linux-amd64.tar.gz
     - export PATH=$PATH:/usr/local/go/bin
+    - echo $PATH
     - rm go1.19.4.linux-amd64.tar.gz
-    - make backup-restore-test
+    - PATH=$PATH:/usr/local/go/bin bash -c 'make backup-restore-test'
     concurrency: 1
     concurrency_group: 'vtop/backup-restore-test'
     timeout_in_minutes: 60
@@ -46,8 +48,9 @@ steps:
     - wget https://golang.org/dl/go1.19.4.linux-amd64.tar.gz
     - tar -C /usr/local -xzf go1.19.4.linux-amd64.tar.gz
     - export PATH=$PATH:/usr/local/go/bin
+    - echo $PATH
     - rm go1.19.4.linux-amd64.tar.gz
-    - make vtorc-vtadmin-test
+    - PATH=$PATH:/usr/local/go/bin bash -c 'make vtorc-vtadmin-test'
     concurrency: 1
     concurrency_group: 'vtop/vtorc-vtadmin-test'
     timeout_in_minutes: 60
