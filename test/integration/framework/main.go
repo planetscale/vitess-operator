@@ -250,7 +250,7 @@ func execKubectlStdin(stdin io.Reader, args ...string) ([]byte, error) {
 		return nil, fmt.Errorf("cannot exec kubectl: %v", err)
 	}
 	// cmdline := append([]string{"--server", ApiserverURL()}, args...)
-	cmdline := append([]string{"--insecure-skip-tls-verify=true", "--username=foo", "--password=bar", fmt.Sprintf("--server=%s",ApiserverURL())}, cmdline3...)
+	cmdline := append([]string{"--insecure-skip-tls-verify=true", "--username=foo", "--password=bar", fmt.Sprintf("--server=%s",ApiserverURL())}, args...)
 	cmd := exec.Command(execPath, cmdline...)
 
 	cmd.Stdin = stdin
