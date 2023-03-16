@@ -17,7 +17,7 @@ limitations under the License.
 package etcd
 
 import (
-	policyv1 "k8s.io/api/policy/v1"
+	policyv1beta1 "k8s.io/api/policy/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -37,18 +37,18 @@ func PDBName(lockserverName string) string {
 }
 
 // NewPDB creates a new PDB.
-func NewPDB(key client.ObjectKey, labels map[string]string) *policyv1.PodDisruptionBudget {
+func NewPDB(key client.ObjectKey, labels map[string]string) *policyv1beta1.PodDisruptionBudget {
 	// This tells `kubectl drain` not to delete one of the members unless the
 	// number of remaining members will still be at least QuorumSize.
 	minAvailable := intstr.FromInt(QuorumSize)
 
-	return &policyv1.PodDisruptionBudget{
+	return &policyv1beta1.PodDisruptionBudget{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: key.Namespace,
 			Name:      key.Name,
 			Labels:    labels,
 		},
-		Spec: policyv1.PodDisruptionBudgetSpec{
+		Spec: policyv1beta1.PodDisruptionBudgetSpec{
 			Selector: &metav1.LabelSelector{
 				MatchLabels: labels,
 			},
@@ -58,7 +58,7 @@ func NewPDB(key client.ObjectKey, labels map[string]string) *policyv1.PodDisrupt
 }
 
 // UpdatePDBInPlace updates an existing PDB in-place.
-func UpdatePDBInPlace(obj *policyv1.PodDisruptionBudget, labels map[string]string) {
+func UpdatePDBInPlace(obj *policyv1beta1.PodDisruptionBudget, labels map[string]string) {
 	// Update labels, but ignore existing ones we don't set.
 	update.Labels(&obj.Labels, labels)
 }
