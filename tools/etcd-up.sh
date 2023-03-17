@@ -1,7 +1,6 @@
 #!/bin/bash
 
-ETCD_PORT=2379
-ETCD_URL="http://127.0.0.1:${ETCD_PORT}"
+source /vtop/tools/env.sh
 
 
 function fail() {
