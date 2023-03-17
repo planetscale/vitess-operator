@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source /vtop/tools/env.sh
+source /vtop/docker/scripts/env.sh
 
 echo "starting kube-apiserver on ${KUBE_APISERVER_URL}"
 
