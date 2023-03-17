@@ -125,10 +125,6 @@ func testMain(tests func() int) error {
 		return fmt.Errorf("cannot run integration tests: unable to start kube-apiserver: %v", err)
 	}
 	defer stopApiserver()
-
-	klog.Info("set kubectl context")
-
-	execKubectl("config", "set-context", "--user=testrunner")
 	
 	klog.Info("Waiting for kube-apiserver to be ready...")
 	start := time.Now()
@@ -142,10 +138,6 @@ func testMain(tests func() int) error {
 		}
 		time.Sleep(time.Second)
 	}
-
-	klog.Info("kube-apiserver is ready!")
-
-	return nil
 
 	if out, err := execKubectlStdin(strings.NewReader(defaultNamespace), "apply", "-f", "-"); err != nil {
 		return fmt.Errorf("cannot create default Namespace: %v\n%s", err, out)
