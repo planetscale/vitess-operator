@@ -125,7 +125,7 @@ func testMain(tests func() int) error {
 		return fmt.Errorf("cannot run integration tests: unable to start kube-apiserver: %v", err)
 	}
 	defer stopApiserver()
-	
+
 	klog.Info("Waiting for kube-apiserver to be ready...")
 	start := time.Now()
 	for {
@@ -241,7 +241,6 @@ func execKubectlStdin(stdin io.Reader, args ...string) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("cannot exec kubectl: %v", err)
 	}
-	
 	cmdline := append([]string{
 		"--server", ApiserverURL(),
 		"--tls-server-name", "10.0.0.1",
