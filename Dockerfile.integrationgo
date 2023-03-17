@@ -5,12 +5,14 @@ WORKDIR /vtop
 
 COPY ./ ./
 
+RUN mkdir tmp
+RUN mkdir etcd
+
 RUN apk update && apk upgrade
 RUN apk add bash curl
 
 RUN tools/get-kube-binaries.sh
 RUN ln -s `pwd`/tools/_bin/kube-apiserver /usr/local/bin && ln -s `pwd`/tools/_bin/kubectl /usr/local/bin && ln -s `pwd`/tools/_bin/etcd /usr/local/bin
-RUN go test -i ./test/integration/...
-
+# RUN go test -i ./test/integration/...
 
 CMD tail -f /dev/null
