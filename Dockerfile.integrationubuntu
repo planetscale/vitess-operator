@@ -1,0 +1,10 @@
+FROM ubuntu:22.04 
+
+USER root
+# RUN apt install sudo
+
+RUN apt update && apt upgrade
+RUN apt install -y curl coreutils
+# RUN curl -L https://github.com/actions/go-versions/releases/download/1.19.4-3636993500/go-1.19.4-linux-x64.tar.gz | tar -xz && mv `pwd`/go-1.18.4-linux-x64 `pwd`/go/ && ln -s `pwd`/go/go /usr/local/bin 
+
+CMD tail -f /dev/null
