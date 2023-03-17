@@ -26,12 +26,13 @@ import (
 	"os/exec"
 	"strconv"
 
+	"github.com/google/uuid"
 	"k8s.io/client-go/rest"
 	"k8s.io/klog"
 )
 
 var apiserverURL = ""
-var apiserverToken = "31ada4fd-adec-460c-809a-9e56ceb75269"
+var apiserverToken = uuid.New().String()
 var apiserverDatadir = ""
 
 const installApiserver = `
