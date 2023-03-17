@@ -249,7 +249,6 @@ func execKubectlStdin(stdin io.Reader, args ...string) ([]byte, error) {
 		}, args...)
 	
 	cmd := exec.Command(execPath, cmdline...)
-
 	cmd.Stdin = stdin
 	return cmd.CombinedOutput()
 }
