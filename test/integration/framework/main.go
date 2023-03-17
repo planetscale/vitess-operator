@@ -242,12 +242,14 @@ func execKubectlStdin(stdin io.Reader, args ...string) ([]byte, error) {
 		return nil, fmt.Errorf("cannot exec kubectl: %v", err)
 	}
 	
-	cmdline := append([]string{"--server", ApiserverURL()}, args...)
-	cmdline2 := append([]string{"--tls-server-name", "10.0.0.1"}, cmdline...)
-	cmdline3 := append([]string{"--certificate-authority", ApiserverCert()}, cmdline2...)
-	cmdline4 := append([]string{"--token", ApiserverToken()}, cmdline3...)
-
-	cmd := exec.Command(execPath, cmdline4...)
+	cmdline := append([]string{
+		"--server", ApiserverURL(),
+		"--tls-server-name", "10.0.0.1",
+		"--certificate-authority", ApiserverCert(),
+		"--token", ApiserverToken(),
+		}, args...)
+	
+	cmd := exec.Command(execPath, cmdline...)
 
 	cmd.Stdin = stdin
 	return cmd.CombinedOutput()
