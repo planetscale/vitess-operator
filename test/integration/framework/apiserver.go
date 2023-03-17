@@ -31,6 +31,8 @@ import (
 )
 
 var apiserverURL = ""
+var apiserverToken = "31ada4fd-adec-460c-809a-9e56ceb75269"
+var apiserverDataDir = ""
 
 const installApiserver = `
 Cannot find kube-apiserver, cannot run integration tests
@@ -66,8 +68,13 @@ func startApiserver() (func(), error) {
 	}
 	klog.Infof("storing kube-apiserver data in: %v", apiserverDataDir)
 
-	authPolicy := "{\"apiVersion\": \"abac.authorization.kubernetes.io/v1beta1\", \"kind\": \"Policy\", \"spec\": {\"user\":\"system:anonymous\", \"namespace\": \"*\", \"resource\": \"*\", \"apiGroup\": \"*\"}}"
-	os.WriteFile(fmt.Sprintf("%s/auth-policy.json",apiserverDataDir), []byte(authPolicy), 0644)
+	os.WriteFile(fmt.Sprintf("%s/token.csv", apiserverDataDir), []byte(fmt.Sprintf("%s,aclient,1", apiserverToken)), 0644)
+
+	abac1 := "{\"apiVersion\": \"abac.authorization.kubernetes.io/v1beta1\", \"kind\": \"Policy\", \"spec\": {\"user\": \"testrunner\", \"namespace\": \"*\", \"resource\": \"*\", \"apiGroup\": \"*\"}}"
+	abac2 := "{\"apiVersion\": \"abac.authorization.kubernetes.io/v1beta1\", \"kind\": \"Policy\", \"spec\": {\"group\": \"system:authenticated\", \"readonly\": true, \"nonResourcePath\": \"*\"}}"
+
+	os.WriteFile(fmt.Sprintf("%s/auth-policy.json", apiserverDataDir), []byte(fmt.Sprintf("%s\n%s", abac1, abac2)), 0644)
+
 
 	ctx, cancel := context.WithCancel(context.Background())
 	cmd := exec.CommandContext(
@@ -78,11 +85,12 @@ func startApiserver() (func(), error) {
 		// doesn't conflict with other test apiservers.
 		"--secure-port", strconv.Itoa(apiserverPort),
 		"--etcd-servers", etcdURL,
-		"--service-account-issuer", "https://kubernetes.default.svc.cluster.local",
-		"--service-account-key-file", fmt.Sprintf("%s/apiserver.crt", apiserverDataDir),
+		"--service-account-issuer", "api",
+		"--service-account-key-file", fmt.Sprintf("%s/apiserver.key", apiserverDataDir),
 		"--service-account-signing-key-file", fmt.Sprintf("%s/apiserver.key", apiserverDataDir),
-		"--authorization-policy-file", fmt.Sprintf("%s/auth-policy.json",apiserverDataDir),
+		"--authorization-policy-file", fmt.Sprintf("%s/auth-policy.json", apiserverDataDir),
 		"--authorization-mode", "ABAC",
+		"--token-auth-file", fmt.Sprintf("%s/token.csv", apiserverDataDir),
 	)
 
 	// Uncomment these to see kube-apiserver output in test logs.
@@ -116,4 +124,12 @@ func ApiserverConfig() *rest.Config {
 	return &rest.Config{
 		Host: ApiserverURL(),
 	}
+}
+
+func ApiserverToken() string {
+	return apiserverToken
+}
+
+func ApiserverDataDir() string {
+	return apiserverDataDir
 }
