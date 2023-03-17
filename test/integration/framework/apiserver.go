@@ -66,16 +66,15 @@ func startApiserver() (func(), error) {
 	if err != nil {
 		return nil, fmt.Errorf("unable to make temp kube-apiserver data dir: %v", err)
 	}
-
 	apiserverDatadir = apiserverDataDir
-
 	klog.Infof("storing kube-apiserver data in: %v", apiserverDatadir)
 
+	// create token auth file
 	os.WriteFile(fmt.Sprintf("%s/token.csv", apiserverDatadir), []byte(fmt.Sprintf("%s,testrunner,1", apiserverToken)), 0644)
 
+	// create authorization policy file
 	abac1 := "{\"apiVersion\": \"abac.authorization.kubernetes.io/v1beta1\", \"kind\": \"Policy\", \"spec\": {\"user\": \"testrunner\", \"namespace\": \"*\", \"resource\": \"*\", \"apiGroup\": \"*\"}}"
 	abac2 := "{\"apiVersion\": \"abac.authorization.kubernetes.io/v1beta1\", \"kind\": \"Policy\", \"spec\": {\"group\": \"system:authenticated\", \"readonly\": true, \"nonResourcePath\": \"*\"}}"
-
 	os.WriteFile(fmt.Sprintf("%s/auth-policy.json", apiserverDatadir), []byte(fmt.Sprintf("%s\n%s", abac1, abac2)), 0644)
 
 
@@ -96,8 +95,8 @@ func startApiserver() (func(), error) {
 
 	// Uncomment these to see kube-apiserver output in test logs.
 	// For operator tests, we generally don't expect problems at this level.
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	// cmd.Stdout = os.Stdout
+	// cmd.Stderr = os.Stderr
 
 	stop := func() {
 		cancel()
