@@ -17,7 +17,7 @@ steps:
     timeout_in_minutes: 60
     plugins:
       - docker#v3.12.0:
-          image: "docker:latest"
+          image: "docker:23.0.0"
           propagate-environment: true
           volumes:
             - "/var/run/docker.sock:/var/run/docker.sock"
@@ -35,7 +35,7 @@ steps:
     timeout_in_minutes: 60
     plugins:
       - docker#v3.12.0:
-          image: "docker:latest"
+          image: "docker:23.0.0"
           propagate-environment: true
           volumes:
             - "/var/run/docker.sock:/var/run/docker.sock"
@@ -53,7 +53,7 @@ steps:
     timeout_in_minutes: 60
     plugins:
       - docker#v3.12.0:
-          image: "docker:latest"
+          image: "docker:23.0.0"
           propagate-environment: true
           volumes:
             - "/var/run/docker.sock:/var/run/docker.sock"
