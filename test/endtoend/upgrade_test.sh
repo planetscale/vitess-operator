@@ -1,7 +1,7 @@
 #!/bin/bash
 
 source ./tools/test.env
-source ./test/endtoend/utils.sh
+source ./tools/test.env ; source ./test/endtoend/utils.sh
 
 function move_tables() {
   echo "Apply 201_customer_tablets.yaml"
