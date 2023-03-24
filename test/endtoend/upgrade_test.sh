@@ -36,21 +36,21 @@ function move_tables() {
   vtctldclient LegacyVtctlCommand -- MoveTables --tablet_types='rdonly,replica' SwitchTraffic customer.commerce2customer
   if [ $? -ne 0 ]; then
     echo "SwitchTraffic for rdonly and replica failed"
-    printMysqlErrorFiles
+#    printMysqlErrorFiles
     exit 1
   fi
 
   vtctldclient LegacyVtctlCommand -- MoveTables --tablet_types='primary' SwitchTraffic customer.commerce2customer
   if [ $? -ne 0 ]; then
     echo "SwitchTraffic for primary failed"
-    printMysqlErrorFiles
+#    printMysqlErrorFiles
     exit 1
   fi
 
   vtctldclient LegacyVtctlCommand -- MoveTables Complete customer.commerce2customer
   if [ $? -ne 0 ]; then
     echo "MoveTables Complete failed"
-    printMysqlErrorFiles
+#    printMysqlErrorFiles
     exit 1
   fi
 
@@ -64,14 +64,14 @@ function resharding() {
   vtctldclient ApplyVSchema --vschema-file="vschema_commerce_seq.json" commerce
   if [ $? -ne 0 ]; then
     echo "ApplyVschema commerce_seq during resharding failed"
-    printMysqlErrorFiles
+#    printMysqlErrorFiles
     exit 1
   fi
   sleep 4
   vtctldclient ApplyVSchema --vschema-file="vschema_customer_sharded.json" customer
   if [ $? -ne 0 ]; then
     echo "ApplyVschema customer_sharded during resharding failed"
-    printMysqlErrorFiles
+#    printMysqlErrorFiles
     exit 1
   fi
   sleep 4
@@ -97,7 +97,7 @@ function resharding() {
   vtctldclient LegacyVtctlCommand -- Reshard --source_shards '-' --target_shards '-80,80-' Create customer.cust2cust
   if [ $? -ne 0 ]; then
     echo "Reshard Create failed"
-    printMysqlErrorFiles
+#    printMysqlErrorFiles
     exit 1
   fi
 
@@ -113,13 +113,13 @@ function resharding() {
   vtctldclient LegacyVtctlCommand -- Reshard --tablet_types='rdonly,replica' SwitchTraffic customer.cust2cust
   if [ $? -ne 0 ]; then
     echo "Reshard SwitchTraffic for replica,rdonly failed"
-    printMysqlErrorFiles
+#    printMysqlErrorFiles
     exit 1
   fi
   vtctldclient LegacyVtctlCommand -- Reshard --tablet_types='primary' SwitchTraffic customer.cust2cust
   if [ $? -ne 0 ]; then
     echo "Reshard SwitchTraffic for primary failed"
-    printMysqlErrorFiles
+#    printMysqlErrorFiles
     exit 1
   fi
 
@@ -251,4 +251,4 @@ resharding
 
 # Teardown
 echo "Deleting Kind cluster. This also deletes the volume associated with it"
-kind delete cluster --name kind-${BUILDKITE_BUILD_ID}
+#kind delete cluster --name kind-${BUILDKITE_BUILD_ID}
