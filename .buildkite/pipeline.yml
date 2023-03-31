@@ -6,7 +6,7 @@ agents:
 steps:
   - name: "Upgrade Test"
     command:
-    - apk add g++ make bash curl mysql mysql-client
+    - apk add g++ make gcompat bash curl mysql mysql-client
     - wget https://golang.org/dl/go1.18.5.linux-amd64.tar.gz
     - tar -C /usr/local -xzf go1.18.5.linux-amd64.tar.gz
     - export PATH=$PATH:/usr/local/go/bin
@@ -24,7 +24,7 @@ steps:
 
   - name: "Backup Restore Test"
     command:
-    - apk add g++ make bash curl mysql mysql-client
+    - apk add g++ make gcompat bash curl mysql mysql-client
     - wget https://golang.org/dl/go1.18.5.linux-amd64.tar.gz
     - tar -C /usr/local -xzf go1.18.5.linux-amd64.tar.gz
     - export PATH=$PATH:/usr/local/go/bin
@@ -42,7 +42,7 @@ steps:
 
   - name: "VTOrc and VTAdmin Test"
     command:
-    - apk add g++ make bash curl mysql mysql-client chromium
+    - apk add g++ make gcompat bash curl mysql mysql-client chromium
     - wget https://golang.org/dl/go1.18.5.linux-amd64.tar.gz
     - tar -C /usr/local -xzf go1.18.5.linux-amd64.tar.gz
     - export PATH=$PATH:/usr/local/go/bin
