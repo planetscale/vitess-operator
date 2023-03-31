@@ -204,3 +204,5 @@ replace (
 	k8s.io/sample-cli-plugin => k8s.io/sample-cli-plugin v0.26.1
 	k8s.io/sample-controller => k8s.io/sample-controller v0.26.1
 )
+
+replace github.com/spyzhov/ajson v0.8.0 => github.com/rohit-nayak-ps/ajson v0.7.2-0.20230316112806-97deb03d883c
