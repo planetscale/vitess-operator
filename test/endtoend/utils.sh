@@ -267,7 +267,7 @@ function setupKubectlAccessForCI() {
     # To accomplish we need to add the current docker container in the same network as the kind container
     # and change the kubectl configuration to use the port listed in the internal endpoint instead of the one
     # that is exported to the localhost by kind.
-    dockerContainerName=$(docker container ls --filter "ancestor=docker:23.0.0" --format '{{.Names}}')
+    dockerContainerName=$(docker container ls --filter "ancestor=docker" --format '{{.Names}}')
     docker network connect kind $dockerContainerName
     kind get kubeconfig --internal --name kind-${BUILDKITE_BUILD_ID} > $HOME/.kube/config
   fi
