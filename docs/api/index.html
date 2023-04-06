@@ -2927,6 +2927,32 @@ ServiceOverrides
 specify how to spread vtgate pods among the given topology</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>lifecycle</code></br>
+<em>
+<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#lifecycle-v1-core">
+Kubernetes core/v1.Lifecycle
+</a>
+</em>
+</td>
+<td>
+<p>Lifecycle can optionally be used to add container lifecycle hooks
+to the vtgate container.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>terminationGracePeriodSeconds</code></br>
+<em>
+int64
+</em>
+</td>
+<td>
+<p>TerminationGracePeriodSeconds can optionally be used to customize
+terminationGracePeriodSeconds of the vtgate pod.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="planetscale.com/v2.VitessCellGatewayStatus">VitessCellGatewayStatus
