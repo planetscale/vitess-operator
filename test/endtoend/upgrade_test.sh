@@ -110,8 +110,6 @@ function resharding() {
     # Allow failure
   fi
 
-  echo "do: vtctldclient LegacyVtctlCommand -- Reshard --tablet_types='rdonly,replica' SwitchTraffic customer.cust2cust && vtctldclient LegacyVtctlCommand -- Reshard --tablet_types='primary' SwitchTraffic customer.cust2cust - here"
-  sleep 99999999
   vtctldclient LegacyVtctlCommand -- Reshard --tablet_types='rdonly,replica' SwitchTraffic customer.cust2cust
   if [ $? -ne 0 ]; then
     echo "Reshard SwitchTraffic for replica,rdonly failed"
