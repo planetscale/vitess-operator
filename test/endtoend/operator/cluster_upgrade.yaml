@@ -80,10 +80,10 @@ spec:
             mysqld:
               resources:
                 limits:
-                  memory: 512Mi
+                  memory: 1024Mi
                 requests:
                   cpu: 100m
-                  memory: 512Mi
+                  memory: 1024Mi
               configOverrides: "innodb_fast_shutdown=0"
             dataVolumeClaimTemplate:
               accessModes: ["ReadWriteOnce"]

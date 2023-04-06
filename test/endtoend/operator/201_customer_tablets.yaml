@@ -76,10 +76,10 @@ spec:
             mysqld:
               resources:
                 limits:
-                  memory: 512Mi
+                  memory: 1024Mi
                 requests:
                   cpu: 100m
-                  memory: 512Mi
+                  memory: 1024Mi
             dataVolumeClaimTemplate:
               accessModes: ["ReadWriteOnce"]
               resources:
@@ -120,10 +120,10 @@ spec:
             mysqld:
               resources:
                 limits:
-                  memory: 512Mi
+                  memory: 1024Mi
                 requests:
                   cpu: 100m
-                  memory: 512Mi
+                  memory: 1024Mi
             dataVolumeClaimTemplate:
               accessModes: ["ReadWriteOnce"]
               resources:
