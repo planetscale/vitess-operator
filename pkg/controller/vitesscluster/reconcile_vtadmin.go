@@ -347,6 +347,12 @@ func (r *ReconcileVitessCluster) createWebConfigSecret(ctx context.Context, vt *
      'VITE_BUGSNAG_API_KEY': "",
      'VITE_DOCUMENT_TITLE': "",
      'VITE_READONLY_MODE': %s,
+     'REACT_APP_VTADMIN_API_ADDRESS': "%s",
+     'REACT_APP_FETCH_CREDENTIALS': "omit",
+     'REACT_APP_ENABLE_EXPERIMENTAL_TABLET_DEBUG_VARS': false,
+     'REACT_APP_BUGSNAG_API_KEY': "",
+     'REACT_APP_DOCUMENT_TITLE': "",
+     'REACT_APP_READONLY_MODE': %s,
  };`, apiAddress, convertReadOnlyFieldToString(vt.Spec.VtAdmin.ReadOnly))
 	secretName := vtadmin.WebConfigSecretName(vt.Name, cell.Name)
 
