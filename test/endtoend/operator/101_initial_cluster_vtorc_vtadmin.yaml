@@ -98,7 +98,7 @@ spec:
                   memory: 1024Mi
                 requests:
                   cpu: 100m
-                  memory: 1024Mi
+                  memory: 512Mi
             dataVolumeClaimTemplate:
               accessModes: ["ReadWriteOnce"]
               resources:
