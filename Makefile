@@ -23,13 +23,11 @@ release-build.arm64:
 
 unit-test:
 	pkgs="$$(go list ./... | grep -v '/test/integration/')" && \
-		go test -i $${pkgs} && \
-		go test $${pkgs}
+		go test -count=1 $${pkgs}
 
 integration-test:
 	tools/get-kube-binaries.sh
-	go test -i ./test/integration/...
-	PATH="$(PWD)/tools/_bin:$(PATH)" go test -v -timeout 5m ./test/integration/... -args --logtostderr -v=6
+	PATH="$(PWD)/tools/_bin:$(PATH)" go test -v -timeout 5m -count=1 ./test/integration/... -args --logtostderr -v=6
 
 generate:
 	go run sigs.k8s.io/controller-tools/cmd/controller-gen object crd:maxDescLen=0 paths="./pkg/apis/planetscale/v2" output:crd:artifacts:config=./deploy/crds
