@@ -63,24 +63,26 @@ func DeploymentName(clusterName, cellName string) string {
 // Spec specifies all the internal parameters needed to deploy vtgate,
 // as opposed to the API type planetscalev2.VitessCellGatewaySpec, which is the public API.
 type Spec struct {
-	Cell                      *planetscalev2.VitessCellSpec
-	CellsToWatch              []string
-	Labels                    map[string]string
-	Replicas                  int32
-	Resources                 corev1.ResourceRequirements
-	Authentication            *planetscalev2.VitessGatewayAuthentication
-	SecureTransport           *planetscalev2.VitessGatewaySecureTransport
-	Affinity                  *corev1.Affinity
-	ExtraFlags                map[string]string
-	ExtraEnv                  []corev1.EnvVar
-	ExtraVolumes              []corev1.Volume
-	ExtraVolumeMounts         []corev1.VolumeMount
-	InitContainers            []corev1.Container
-	SidecarContainers         []corev1.Container
-	Annotations               map[string]string
-	ExtraLabels               map[string]string
-	Tolerations               []corev1.Toleration
-	TopologySpreadConstraints []corev1.TopologySpreadConstraint
+	Cell                          *planetscalev2.VitessCellSpec
+	CellsToWatch                  []string
+	Labels                        map[string]string
+	Replicas                      int32
+	Resources                     corev1.ResourceRequirements
+	Authentication                *planetscalev2.VitessGatewayAuthentication
+	SecureTransport               *planetscalev2.VitessGatewaySecureTransport
+	Affinity                      *corev1.Affinity
+	ExtraFlags                    map[string]string
+	ExtraEnv                      []corev1.EnvVar
+	ExtraVolumes                  []corev1.Volume
+	ExtraVolumeMounts             []corev1.VolumeMount
+	InitContainers                []corev1.Container
+	SidecarContainers             []corev1.Container
+	Annotations                   map[string]string
+	ExtraLabels                   map[string]string
+	Tolerations                   []corev1.Toleration
+	TopologySpreadConstraints     []corev1.TopologySpreadConstraint
+	Lifecycle                     corev1.Lifecycle
+	TerminationGracePeriodSeconds *int64
 }
 
 // NewDeployment creates a new Deployment object for vtgate.
@@ -130,6 +132,10 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 	obj.Spec.Template.Spec.ServiceAccountName = planetscalev2.DefaultVitessServiceAccount
 	obj.Spec.Template.Spec.Tolerations = spec.Tolerations
 	obj.Spec.Template.Spec.TopologySpreadConstraints = spec.TopologySpreadConstraints
+
+	if spec.TerminationGracePeriodSeconds != nil {
+		obj.Spec.Template.Spec.TerminationGracePeriodSeconds = spec.TerminationGracePeriodSeconds
+	}
 
 	if spec.Affinity != nil {
 		obj.Spec.Template.Spec.Affinity = spec.Affinity
@@ -230,6 +236,12 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 	}
 	// Write out the final flags list.
 	vtgateContainer.Args = flags.FormatArgs()
+
+	// Set the container lifecycle configuration if provided. Otherwise, skip
+	// to avoid restarting existing pods due to an empty 'lifecycle' field.
+	if spec.Lifecycle != (corev1.Lifecycle{}) {
+		vtgateContainer.Lifecycle = &spec.Lifecycle
+	}
 
 	update.PodTemplateContainers(&obj.Spec.Template.Spec.InitContainers, spec.InitContainers)
 	update.PodTemplateContainers(&obj.Spec.Template.Spec.Containers, spec.SidecarContainers)

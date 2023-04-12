@@ -200,6 +200,14 @@ type VitessCellGatewaySpec struct {
 	// +kubebuilder:validation:Schemaless
 	// +kubebuilder:pruning:PreserveUnknownFields
 	TopologySpreadConstraints []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty"`
+
+	// Lifecycle can optionally be used to add container lifecycle hooks
+	// to the vtgate container.
+	Lifecycle corev1.Lifecycle `json:"lifecycle,omitempty"`
+
+	// TerminationGracePeriodSeconds can optionally be used to customize
+	// terminationGracePeriodSeconds of the vtgate pod.
+	TerminationGracePeriodSeconds *int64 `json:"terminationGracePeriodSeconds,omitempty"`
 }
 
 // VitessGatewayAuthentication configures authentication for vtgate in this cell.
