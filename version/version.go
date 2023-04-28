@@ -18,5 +18,5 @@ package version
 
 var (
 	// Version is the current version of this branch
-	Version = "2.7.5"
+	Version = "2.7.6"
 )
