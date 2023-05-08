@@ -163,6 +163,14 @@ COrder
 +----------+-------------+----------+-------+
 EOF
 
+  # Complete the reshard process
+  vtctldclient LegacyVtctlCommand -- Reshard Complete customer.cust2cust
+  if [ $? -ne 0 ]; then
+    echo "Reshard Complete failed"
+    printMysqlErrorFiles
+    exit 1
+  fi
+
   kubectl apply -f 306_down_shard_0.yaml
   checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 9
   waitForKeyspaceToBeServing customer -80 2
