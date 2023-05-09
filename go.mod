@@ -4,6 +4,7 @@ go 1.19
 
 require (
 	github.com/ahmetb/gen-crd-api-reference-docs v0.1.5-0.20190629210212-52e137b8d003
+	github.com/google/uuid v1.3.0
 	github.com/planetscale/operator-sdk-libs v0.0.0-20220216002626-1af183733234
 	github.com/prometheus/client_golang v1.14.0
 	github.com/sirupsen/logrus v1.9.0
@@ -20,7 +21,7 @@ require (
 	sigs.k8s.io/controller-runtime v0.14.3
 	sigs.k8s.io/controller-tools v0.11.3
 	sigs.k8s.io/kustomize v2.0.3+incompatible
-	vitess.io/vitess v0.16.1
+	vitess.io/vitess v0.16.2
 )
 
 require (
@@ -73,7 +74,6 @@ require (
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
-	github.com/google/uuid v1.3.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.2.1 // indirect
 	github.com/googleapis/gax-go/v2 v2.7.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0 // indirect
