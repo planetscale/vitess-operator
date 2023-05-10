@@ -12,12 +12,21 @@ BUILDKITE_BUILD_ID=${BUILDKITE_BUILD_ID:-"0"}
 function checkSemiSyncSetup() {
   for vttablet in $(kubectl get pods --no-headers -o custom-columns=":metadata.name" | grep "vttablet") ; do
     echo "Checking semi-sync in $vttablet"
-    kubectl exec "$vttablet" -c mysqld -- mysql -S "/vt/socket/mysql.sock" -u root -e "show variables like 'rpl_semi_sync_slave_enabled'" | grep "ON"
-    if [ $? -ne 0 ]; then
-      echo "Semi Sync not setup on $vttablet"
-      exit 1
-    fi
+    checkSemiSyncWithRetry "$vttablet"
   done
+}
+
+function checkSemiSyncWithRetry() {
+  vttablet=$1
+  for i in {1..600} ; do
+    kubectl exec "$vttablet" -c mysqld -- mysql -S "/vt/socket/mysql.sock" -u root -e "show variables like 'rpl_semi_sync_slave_enabled'" | grep "ON"
+    if [ $? -eq 0 ]; then
+      return
+    fi
+    sleep 1
+  done
+  echo "Semi Sync not setup on $vttablet"
+  exit 1
 }
 
 # checkInnodbFastShutdown checks the value of innodb_fast_shutdown
