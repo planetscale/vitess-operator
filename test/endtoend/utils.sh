@@ -192,7 +192,7 @@ function insertWithRetry() {
 function verifyVtGateVersion() {
   version=$1
   podName=$(kubectl get pods --no-headers -o custom-columns=":metadata.name" | grep "vtgate")
-  data=$(kubectl logs "$podName" | head -n 2)
+  data=$(kubectl logs "$podName" | head)
   echo "$data" | grep "$version" > /dev/null 2>&1
   if [ $? -ne 0 ]; then
     echo -e "The vtgate version is incorrect, expected: $version, got:\n$data"
