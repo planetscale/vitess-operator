@@ -26,6 +26,7 @@ Vitess Operator Version | Recommended Vitess Versions | Recommended Kubernetes V
 `v2.7.*` | `v14.0.*`                   | `v1.20.*`, `v1.21.*`, or `v1.22.*`
 `v2.8.*` | `v15.0.*`                   | `v1.22.*`, `v1.23.*`, or `v1.24.*`
 `v2.9.*` | `v16.0.*`                   | `v1.22.*`, `v1.23.*`, or `v1.24.*`
+`v2.10.*` | `v17.0.*`                   | `v1.22.*`, `v1.23.*`, `v1.24.*`, or `v1.25.*`
 `latest` | `latest`                    | `v1.22.*`, `v1.23.*`, `v1.24.*`, or `v1.25.*`
 
 If for some reason you must attempt to use versions outside the recommend
