@@ -509,6 +509,11 @@ spec:
                                       type: array
                                     extraVolumes:
                                       x-kubernetes-preserve-unknown-fields: true
+                                    index:
+                                      default: 0
+                                      format: int32
+                                      minimum: 0
+                                      type: integer
                                     initContainers:
                                       x-kubernetes-preserve-unknown-fields: true
                                     mysqld:
@@ -619,6 +624,7 @@ spec:
                                 x-kubernetes-list-map-keys:
                                 - type
                                 - cell
+                                - index
                                 x-kubernetes-list-type: map
                             required:
                             - databaseInitScriptSecret
@@ -904,6 +910,11 @@ spec:
                                     type: array
                                   extraVolumes:
                                     x-kubernetes-preserve-unknown-fields: true
+                                  index:
+                                    default: 0
+                                    format: int32
+                                    minimum: 0
+                                    type: integer
                                   initContainers:
                                     x-kubernetes-preserve-unknown-fields: true
                                   mysqld:
@@ -1014,6 +1025,7 @@ spec:
                               x-kubernetes-list-map-keys:
                               - type
                               - cell
+                              - index
                               x-kubernetes-list-type: map
                           required:
                           - databaseInitScriptSecret

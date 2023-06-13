@@ -7066,6 +7066,20 @@ VitessTabletPoolType
 </tr>
 <tr>
 <td>
+<code>index</code></br>
+<em>
+int32
+</em>
+</td>
+<td>
+<p>Index is the pool&rsquo;s index within the (cell,type) pair.
+This field is optional, and defaults to 0.
+Assigning different numbers to this field enables the existence of multiple pools with a specific tablet type in a given cell,
+which can be beneficial for unmanaged tablets.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>replicas</code></br>
 <em>
 int32
@@ -7329,7 +7343,7 @@ specify how to spread vttablet pods among the given topology</p>
 <td>
 <p>TabletPools specify groups of tablets in a given cell with a certain
 tablet type and a shared configuration template.</p>
-<p>There must be at most one pool in this list for each (cell,type) pair.
+<p>There must be at most one pool in this list for each (cell,type,index) set.
 Each shard must have at least one &ldquo;replica&rdquo; pool (in at least one cell)
 in order to be able to serve.</p>
 </td>

@@ -105,7 +105,7 @@ type VitessShardTemplate struct {
 	// TabletPools specify groups of tablets in a given cell with a certain
 	// tablet type and a shared configuration template.
 	//
-	// There must be at most one pool in this list for each (cell,type) pair.
+	// There must be at most one pool in this list for each (cell,type,index) set.
 	// Each shard must have at least one "replica" pool (in at least one cell)
 	// in order to be able to serve.
 	// +patchMergeKey=type
@@ -113,6 +113,7 @@ type VitessShardTemplate struct {
 	// +listType=map
 	// +listMapKey=type
 	// +listMapKey=cell
+	// +listMapKey=index
 	TabletPools []VitessShardTabletPool `json:"tabletPools,omitempty" patchStrategy:"merge" patchMergeKey:"type"`
 
 	// DatabaseInitScriptSecret specifies the init_db.sql script file to use for this shard.
@@ -169,6 +170,14 @@ type VitessShardTabletPool struct {
 	//   * externalrdonly - tablets pointed at an external, read-only MySQL endpoint that serve batch/analytical (OLAP) workloads
 	// +kubebuilder:validation:Enum=replica;rdonly;externalmaster;externalreplica;externalrdonly
 	Type VitessTabletPoolType `json:"type"`
+
+	// Index is the pool's index within the (cell,type) pair.
+	// This field is optional, and defaults to 0.
+	// Assigning different numbers to this field enables the existence of multiple pools with a specific tablet type in a given cell,
+	// which can be beneficial for unmanaged tablets.
+	// +kubebuilder:default=0
+	// +kubebuilder:validation:Minimum=0
+	Index int32 `json:"index,omitempty"`
 
 	// Replicas is the number of tablets to deploy in this pool.
 	// This field is required, although it may be set to 0,

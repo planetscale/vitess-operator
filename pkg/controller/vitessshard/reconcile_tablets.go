@@ -284,6 +284,11 @@ func vttabletSpecs(vts *planetscalev2.VitessShard, parentLabels map[string]strin
 				Uid:  vttablet.UID(pool.Cell, keyspaceName, vts.Spec.KeyRange, pool.Type, uint32(tabletIndex)),
 			}
 
+			// If TabletPools has multiple pools within the same (cell,type) pair, we need to add a pool index to the UID generator.
+			if 0 < pool.Index {
+				tabletAlias.Uid = vttablet.UIDWithPoolIndex(pool.Cell, keyspaceName, vts.Spec.KeyRange, pool.Type, uint32(tabletIndex), uint32(pool.Index))
+			}
+
 			// Copy parent labels map and add tablet-specific labels.
 			labels := make(map[string]string, len(parentLabels)+4)
 			for k, v := range parentLabels {
@@ -292,6 +297,7 @@ func vttabletSpecs(vts *planetscalev2.VitessShard, parentLabels map[string]strin
 			labels[planetscalev2.CellLabel] = tabletAlias.Cell
 			labels[planetscalev2.TabletUidLabel] = strconv.FormatUint(uint64(tabletAlias.Uid), 10)
 			labels[planetscalev2.TabletTypeLabel] = string(pool.Type)
+			labels[planetscalev2.TabletPoolIndexLabel] = strconv.FormatUint(uint64(pool.Index), 10)
 			labels[planetscalev2.TabletIndexLabel] = strconv.FormatUint(uint64(tabletIndex), 10)
 
 			// Merge ExtraVitessFlags into the tablet spec ExtraFlags field.

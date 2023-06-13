@@ -43,11 +43,30 @@ lead time to develop a smarter way to handle tablet identity and MySQL server
 IDs in Vitess itself.
 
 WARNING: DO NOT change the behavior of this function, as that may result in
-         the deletion and recreation of all tablets.
+
+	the deletion and recreation of all tablets.
 */
 func UID(cellName, keyspaceName string, shardKeyRange planetscalev2.VitessKeyRange, tabletPoolType planetscalev2.VitessTabletPoolType, tabletIndex uint32) uint32 {
 	h := md5.New()
 	fmt.Fprintln(h, cellName, keyspaceName, shardKeyRange.String(), string(tabletPoolType), tabletIndex)
+	sum := h.Sum(nil)
+	return binary.BigEndian.Uint32(sum[:4])
+}
+
+/*
+UIDWithPoolIndex function generates a 32-bit unsigned integer similar to the UID function above.
+
+However, it additionally takes the poolIndex as an input.
+This allows the generation of a unique UID for a tablet that belongs to a different pool
+but shares other common attributes.
+
+To preserve the existing UID, it is recommended to use the UID function instead of this function
+when the poolIndex is set to its default value of 0.
+*/
+func UIDWithPoolIndex(cellName, keyspaceName string, shardKeyRange planetscalev2.VitessKeyRange,
+	tabletPoolType planetscalev2.VitessTabletPoolType, tabletIndex uint32, poolIndex uint32) uint32 {
+	h := md5.New()
+	fmt.Fprintln(h, cellName, keyspaceName, shardKeyRange.String(), string(tabletPoolType), tabletIndex, poolIndex)
 	sum := h.Sum(nil)
 	return binary.BigEndian.Uint32(sum[:4])
 }
