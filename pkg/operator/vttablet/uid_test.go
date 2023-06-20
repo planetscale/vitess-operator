@@ -39,20 +39,20 @@ func TestUIDHash(t *testing.T) {
 	}
 }
 
-// TestUIDWithPoolIndexHash checks that nobody changed the hash function for UIDWithPoolIndex().
-func TestUIDWithPoolIndexHash(t *testing.T) {
+// TestUIDWithPoolNameHash checks that nobody changed the hash function for UIDWithPoolName().
+func TestUIDWithPoolNameHash(t *testing.T) {
 	cell := "cell"
 	keyspace := "keyspace"
 	keyRange := planetscalev2.VitessKeyRange{Start: "10", End: "20"}
 	tabletType := planetscalev2.ReplicaPoolType
-	tabletIndex := uint32(1)
-	poolIndex := uint32(1)
+	tabletName := uint32(1)
+	poolName := "unmanaged-replica-1"
 
 	// DO NOT CHANGE THIS VALUE!
 	// This is intentionally a change-detection test. If it breaks, you messed up.
-	want := uint32(3840445776)
+	want := uint32(6333720)
 
-	if got := UIDWithPoolIndex(cell, keyspace, keyRange, tabletType, tabletIndex, poolIndex); got != want {
-		t.Fatalf("UIDWithPoolIndex() = %v, want %v", got, want)
+	if got := UIDWithPoolName(cell, keyspace, keyRange, tabletType, tabletName, poolName); got != want {
+		t.Fatalf("UIDWithPoolName() = %v, want %v", got, want)
 	}
 }

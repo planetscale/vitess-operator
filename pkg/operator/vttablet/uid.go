@@ -54,19 +54,19 @@ func UID(cellName, keyspaceName string, shardKeyRange planetscalev2.VitessKeyRan
 }
 
 /*
-UIDWithPoolIndex function generates a 32-bit unsigned integer similar to the UID function above.
+UIDWithPoolName function generates a 32-bit unsigned integer similar to the UID function above.
 
-However, it additionally takes the poolIndex as an input.
+However, it additionally takes the poolName as an input.
 This allows the generation of a unique UID for a tablet that belongs to a different pool
 but shares other common attributes.
 
 To preserve the existing UID, it is recommended to use the UID function instead of this function
-when the poolIndex is set to its default value of 0.
+when the poolName is set to its default value of an empty string.
 */
-func UIDWithPoolIndex(cellName, keyspaceName string, shardKeyRange planetscalev2.VitessKeyRange,
-	tabletPoolType planetscalev2.VitessTabletPoolType, tabletIndex uint32, poolIndex uint32) uint32 {
+func UIDWithPoolName(cellName, keyspaceName string, shardKeyRange planetscalev2.VitessKeyRange,
+	tabletPoolType planetscalev2.VitessTabletPoolType, tabletName uint32, poolName string) uint32 {
 	h := md5.New()
-	fmt.Fprintln(h, cellName, keyspaceName, shardKeyRange.String(), string(tabletPoolType), tabletIndex, poolIndex)
+	fmt.Fprintln(h, cellName, keyspaceName, shardKeyRange.String(), string(tabletPoolType), tabletName, poolName)
 	sum := h.Sum(nil)
 	return binary.BigEndian.Uint32(sum[:4])
 }

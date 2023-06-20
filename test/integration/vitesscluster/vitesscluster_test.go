@@ -68,7 +68,7 @@ spec:
                   storage: 1Gi
           - cell: cell2
             type: rdonly
-            index: 1
+            name: unmanaged-replica-2
             replicas: 3
             mysqld: {}
             dataVolumeClaimTemplate:
@@ -202,19 +202,19 @@ func verifyBasicVitessShard(f *framework.Fixture, ns, cluster, keyspace, shard s
 	// VitessShard creates vttablet Pods.
 	cell1Pods := f.ExpectPods(&client.ListOptions{
 		Namespace:     ns,
-		LabelSelector: tabletPodSelector(cluster, keyspace, shard, "cell1", "replica", "0"),
+		LabelSelector: tabletPodSelector(cluster, keyspace, shard, "cell1", "replica", ""),
 	}, expectedTabletCount[0])
 	cell2Pods := f.ExpectPods(&client.ListOptions{
 		Namespace:     ns,
-		LabelSelector: tabletPodSelector(cluster, keyspace, shard, "cell2", "rdonly", "0"),
+		LabelSelector: tabletPodSelector(cluster, keyspace, shard, "cell2", "rdonly", ""),
 	}, expectedTabletCount[1])
 	cell2_1_Pods := f.ExpectPods(&client.ListOptions{
 		Namespace:     ns,
-		LabelSelector: tabletPodSelector(cluster, keyspace, shard, "cell2", "rdonly", "1"),
+		LabelSelector: tabletPodSelector(cluster, keyspace, shard, "cell2", "rdonly", "unmanaged-replica-2"),
 	}, expectedTabletCount[2])
 	cell3Pods := f.ExpectPods(&client.ListOptions{
 		Namespace:     ns,
-		LabelSelector: tabletPodSelector(cluster, keyspace, shard, "cell3", "replica", "0"),
+		LabelSelector: tabletPodSelector(cluster, keyspace, shard, "cell3", "replica", ""),
 	}, expectedTabletCount[3])
 
 	// Each vttablet Pod should have a PVC.
@@ -236,7 +236,7 @@ func verifyBasicVitessShard(f *framework.Fixture, ns, cluster, keyspace, shard s
 	f.MustGet(ns, names.JoinWithConstraints(names.DefaultConstraints, cluster, keyspace, shard, "vtbackup", "init"), &corev1.PersistentVolumeClaim{})
 }
 
-func tabletPodSelector(cluster, keyspace, shard, cell, tabletType, poolIndex string) apilabels.Selector {
+func tabletPodSelector(cluster, keyspace, shard, cell, tabletType, poolName string) apilabels.Selector {
 	// This intentionally does NOT use any shared constants because we want the
 	// test to fail if the labels change, since that's a breaking change.
 	return apilabels.Set{
@@ -245,6 +245,6 @@ func tabletPodSelector(cluster, keyspace, shard, cell, tabletType, poolIndex str
 		"planetscale.com/shard":       shard,
 		"planetscale.com/cell":        cell,
 		"planetscale.com/tablet-type": tabletType,
-		"planetscale.com/pool-index":  poolIndex,
+		"planetscale.com/pool-name":   poolName,
 	}.AsSelector()
 }

@@ -133,7 +133,7 @@ func (r *ReconcileVitessShard) claimForTabletPod(ctx context.Context, pod *v1.Po
 }
 
 // tabletKeysForPool returns the list of targetKeys for a given pool type and cell.
-// Note that this function does not care about the pool's index assignment.
+// Note that this function does not care about the pool's name assignment.
 func tabletKeysForPool(vts *planetscalev2.VitessShard, poolCell string, poolType planetscalev2.VitessTabletPoolType) ([]string, error) {
 	tabletKeys := vts.Status.TabletAliases()
 
