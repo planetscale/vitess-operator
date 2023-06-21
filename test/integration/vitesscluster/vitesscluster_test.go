@@ -66,16 +66,6 @@ spec:
               resources:
                 requests:
                   storage: 1Gi
-          - cell: cell2
-            type: rdonly
-            name: unmanaged-replica-2
-            replicas: 3
-            mysqld: {}
-            dataVolumeClaimTemplate:
-              accessModes: [ReadWriteOnce]
-              resources:
-                requests:
-                  storage: 1Gi
     - equal:
         parts: 1
         shardTemplate:
@@ -87,11 +77,28 @@ spec:
             type: replica
             replicas: 3
             mysqld: {}
-            dataVolumeClaimTemplate:
-              accessModes: [ReadWriteOnce]
-              resources:
-                requests:
-                  storage: 1Gi
+            externalDatastore:
+              port: 3306
+              credentialsSecret:
+                name: cluster-config
+                key: db_credentials.json
+          - cell: cell3
+            type: rdonly
+            replicas: 3
+            externalDatastore:
+              port: 3307
+              credentialsSecret:
+                name: cluster-config
+                key: db_credentials.json
+          - cell: cell3
+            type: rdonly
+            replicas: 3
+            name: unmanaged-replica-2
+            externalDatastore:
+              port: 3308
+              credentialsSecret:
+                name: cluster-config
+                key: db_credentials.json
   backup:
     locations:
     - name: vbs1
@@ -191,9 +198,9 @@ func verifyBasicVitessKeyspace(f *framework.Fixture, ns, cluster, keyspace strin
 	f.MustGet(ns, names.JoinWithConstraints(names.DefaultConstraints, cluster, keyspace), &planetscalev2.VitessKeyspace{})
 
 	// VitessKeyspaces create VitessShards.
-	verifyBasicVitessShard(f, ns, cluster, keyspace, "x-80", []int{3, 3, 3, 0})
-	verifyBasicVitessShard(f, ns, cluster, keyspace, "80-x", []int{3, 3, 3, 0})
-	verifyBasicVitessShard(f, ns, cluster, keyspace, "x-x", []int{0, 0, 0, 3})
+	verifyBasicVitessShard(f, ns, cluster, keyspace, "x-80", []int{3, 3})
+	verifyBasicVitessShard(f, ns, cluster, keyspace, "80-x", []int{3, 3})
+	verifyBasicVitessShardExternal(f, ns, cluster, keyspace, "x-x", []int{3, 3, 3})
 }
 
 func verifyBasicVitessShard(f *framework.Fixture, ns, cluster, keyspace, shard string, expectedTabletCount []int) {
@@ -202,20 +209,12 @@ func verifyBasicVitessShard(f *framework.Fixture, ns, cluster, keyspace, shard s
 	// VitessShard creates vttablet Pods.
 	cell1Pods := f.ExpectPods(&client.ListOptions{
 		Namespace:     ns,
-		LabelSelector: tabletPodSelector(cluster, keyspace, shard, "cell1", "replica", ""),
+		LabelSelector: tabletPodSelector(cluster, keyspace, shard, "cell1", "replica"),
 	}, expectedTabletCount[0])
 	cell2Pods := f.ExpectPods(&client.ListOptions{
 		Namespace:     ns,
-		LabelSelector: tabletPodSelector(cluster, keyspace, shard, "cell2", "rdonly", ""),
+		LabelSelector: tabletPodSelector(cluster, keyspace, shard, "cell2", "rdonly"),
 	}, expectedTabletCount[1])
-	cell2_1_Pods := f.ExpectPods(&client.ListOptions{
-		Namespace:     ns,
-		LabelSelector: tabletPodSelector(cluster, keyspace, shard, "cell2", "rdonly", "unmanaged-replica-2"),
-	}, expectedTabletCount[2])
-	cell3Pods := f.ExpectPods(&client.ListOptions{
-		Namespace:     ns,
-		LabelSelector: tabletPodSelector(cluster, keyspace, shard, "cell3", "replica", ""),
-	}, expectedTabletCount[3])
 
 	// Each vttablet Pod should have a PVC.
 	for i := range cell1Pods.Items {
@@ -224,19 +223,43 @@ func verifyBasicVitessShard(f *framework.Fixture, ns, cluster, keyspace, shard s
 	for i := range cell2Pods.Items {
 		f.MustGet(ns, cell2Pods.Items[i].Name, &corev1.PersistentVolumeClaim{})
 	}
-	for i := range cell2_1_Pods.Items {
-		f.MustGet(ns, cell2_1_Pods.Items[i].Name, &corev1.PersistentVolumeClaim{})
-	}
-	for i := range cell3Pods.Items {
-		f.MustGet(ns, cell3Pods.Items[i].Name, &corev1.PersistentVolumeClaim{})
-	}
 
 	// VitessShard creates vtbackup-init Pod/PVC.
 	f.MustGet(ns, names.JoinWithConstraints(names.DefaultConstraints, cluster, keyspace, shard, "vtbackup", "init"), &corev1.Pod{})
 	f.MustGet(ns, names.JoinWithConstraints(names.DefaultConstraints, cluster, keyspace, shard, "vtbackup", "init"), &corev1.PersistentVolumeClaim{})
 }
 
-func tabletPodSelector(cluster, keyspace, shard, cell, tabletType, poolName string) apilabels.Selector {
+func verifyBasicVitessShardExternal(f *framework.Fixture, ns, cluster, keyspace, shard string, expectedTabletCount []int) {
+	f.MustGet(ns, names.JoinWithConstraints(names.DefaultConstraints, cluster, keyspace, shard), &planetscalev2.VitessShard{})
+
+	// VitessShard creates vttablet Pods.
+	f.ExpectPods(&client.ListOptions{
+		Namespace:     ns,
+		LabelSelector: tabletPodExternalSelector(cluster, keyspace, shard, "cell3", "replica", ""),
+	}, expectedTabletCount[0])
+	f.ExpectPods(&client.ListOptions{
+		Namespace:     ns,
+		LabelSelector: tabletPodExternalSelector(cluster, keyspace, shard, "cell3", "rdonly", ""),
+	}, expectedTabletCount[1])
+	f.ExpectPods(&client.ListOptions{
+		Namespace:     ns,
+		LabelSelector: tabletPodExternalSelector(cluster, keyspace, shard, "cell3", "rdonly", "unmanaged-replica-2"),
+	}, expectedTabletCount[2])
+}
+
+func tabletPodSelector(cluster, keyspace, shard, cell, tabletType string) apilabels.Selector {
+	// This intentionally does NOT use any shared constants because we want the
+	// test to fail if the labels change, since that's a breaking change.
+	return apilabels.Set{
+		"planetscale.com/cluster":     cluster,
+		"planetscale.com/keyspace":    keyspace,
+		"planetscale.com/shard":       shard,
+		"planetscale.com/cell":        cell,
+		"planetscale.com/tablet-type": tabletType,
+	}.AsSelector()
+}
+
+func tabletPodExternalSelector(cluster, keyspace, shard, cell, tabletType, poolName string) apilabels.Selector {
 	// This intentionally does NOT use any shared constants because we want the
 	// test to fail if the labels change, since that's a breaking change.
 	return apilabels.Set{
