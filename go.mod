@@ -16,7 +16,7 @@ require (
 	k8s.io/client-go v0.26.1
 	k8s.io/klog v1.0.0
 	k8s.io/kubectl v0.21.9
-	k8s.io/kubernetes v1.26.5
+	k8s.io/kubernetes v1.26.6
 	k8s.io/utils v0.0.0-20230115233650-391b47cb4029
 	sigs.k8s.io/controller-runtime v0.14.3
 	sigs.k8s.io/controller-tools v0.11.3
