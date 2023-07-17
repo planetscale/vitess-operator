@@ -2,6 +2,8 @@
 
 This doc describes the process to cut a new release of Vitess Operator.
 
+-------------------
+
 ## Prepare for Release
 
 For each major release of the Operator, there is a release branch, for instance: `release-2.7`.
@@ -18,6 +20,8 @@ build/Dockerfile.release
 .github/workflows/**.yaml
 go.mod
 ```
+
+-------------------
 
 ### Update Compatibility Table
 
@@ -38,9 +42,7 @@ time that we update to build against a newer Vitess release.
 The Kubernetes library version is determined by the version of [Operator SDK](https://github.com/operator-framework/operator-sdk)
 that's in use.
 
-### Update the test output
-
-The `upgrade.sh`, `backup_restore_test.sh` and `vtorc_vtadmin_test.sh` files must be updated with the proper release increment. Change the `verifyVtGateVersion` function calls to use the proper version (next version and new old version).
+-------------------
 
 ## Cut Release
 
@@ -95,7 +97,7 @@ OLD_VITESS_VERSION="13.0.0" NEW_VITESS_VERSION="14.0.3" NEW_OPERATOR_VERSION="2.
 Here we want to release the version `2.7.4`. It will be tested against Vitess `v14.0.3`. The upgrade downgrade tests will begin with Vitess `v13.0.0`.
 
 [Docker Hub](https://hub.docker.com/repository/docker/planetscale/vitess-operator)
-hould automatically detect the new tag and begin building a new image.
+should automatically detect the new tag and begin building a new image.
 
 Follow the instructions prompted by the `do_release.sh` script. You will need to push the tag and push the temporary branch to finally create a Pull Request. The Pull Request should be merged onto the release branch.
 
@@ -103,15 +105,33 @@ Follow the instructions prompted by the `do_release.sh` script. You will need to
 > Make sure to Normal Merge the pull request i.e. merge the pull request with merge commit and not a squash merge. This is required because we create the tag
 from the pull request, so in order to have the tag on the release branche's history, it has to be a normal merge.
 
-##### On `main`
+##### Update the test output
 
-Once you have done the release on the release branch, there are several steps to follow on `main`.
+The `upgrade_test.sh`, `backup_restore_test.sh` and `vtorc_vtadmin_test.sh` files must be updated with the proper release increment. Change the `verifyVtGateVersion` function calls to use the proper version (current version being released and latest previous version (only used in `upgrade_test.sh`)).
 
-- The `vitess/lite` image tag must be changed in [101_initial_cluster.yaml](..%2Ftest%2Fendtoend%2Foperator%2F101_initial_cluster.yaml). The latest Vitess release tag must be used.
-- We must copy the [operator-latest.yaml](..%2Ftest%2Fendtoend%2Foperator%2Foperator-latest.yaml) file we created during the release onto `main`'s [operator.yaml](..%2Ftest%2Fendtoend%2Foperator%2Foperator.yaml) file.
-- Bump the `planetscale/vitess-operator` image tag to the latest version we just released in [operator.yaml](..%2Ftest%2Fendtoend%2Foperator%2Foperator.yaml).
+##### CI Failures
+
+> **Note**
+> It is likely that the buildkite tests will fail on the release PR initially because of the unavailability of the latest vitess and vitess-operator docker images. This however doesn't block the release. The tests should be restarted after the said images are built and available.
+
+-------------------
 
 ### UI Release
 
 Create a [new release](https://github.com/planetscale/vitess-operator/releases/new)
 in GitHub UI and make sure to add the release-notes from the docs (if any).
+
+-------------------
+
+### On `main`
+
+> **Note**
+> This step is only required for the latest major release and patch releases of the latest major release.
+
+Once you have done the release on the release branch, there are several steps to follow on `main`.
+
+- The `vitess/lite` image tag must be changed in [101_initial_cluster.yaml](..%2Ftest%2Fendtoend%2Foperator%2F101_initial_cluster.yaml). The latest Vitess release tag must be used.
+- We must copy the [operator-latest.yaml](..%2Ftest%2Fendtoend%2Foperator%2Foperator-latest.yaml) file we created during the release onto `main`'s [operator.yaml](..%2Ftest%2Fendtoend%2Foperator%2Foperator.yaml) file. Once copied, remove the change that adds `imagePullPolicy: Never` and update the `image: vitess-operator-pr:latest` to use the docker image of latest vitess-operator patch like `image: planetscale/vitess-operator:v2.10.0`.
+- The `upgrade_test.sh`, `backup_restore_test.sh` and `vtorc_vtadmin_test.sh` files must be updated with the proper release increment. Change the `verifyVtGateVersion` function calls to use the proper version (new snapshot Vitess version and current version being released (only used in `upgrade_test.sh`)).
+
+
