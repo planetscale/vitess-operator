@@ -72,10 +72,12 @@ func InitFlags() {
 	}
 	vttabletFlags.VisitAll(func(f *pflag.Flag) {
 		_, isRequired := tlsFlags[f.Name]
-		isAlreadyAdded := pflag.CommandLine.Lookup(f.Name) != nil
-		if isRequired && !isAlreadyAdded  {
-			pflag.CommandLine.AddFlag(f)
-			tlsFlags[f.Name] = true
+		if isRequired {
+			isAlreadyAdded := pflag.CommandLine.Lookup(f.Name) != nil
+			if !isAlreadyAdded {
+				pflag.CommandLine.AddFlag(f)
+				tlsFlags[f.Name] = true
+			}
 		}
 	})
 	for flagName, wasAdded := range tlsFlags {
