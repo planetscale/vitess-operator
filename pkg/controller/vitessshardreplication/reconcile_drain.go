@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"time"
 
-	"vitess.io/vitess/go/mysql"
+	"vitess.io/vitess/go/mysql/replication"
 	topodatapb "vitess.io/vitess/go/vt/proto/topodata"
 	"vitess.io/vitess/go/vt/topo"
 	"vitess.io/vitess/go/vt/topo/topoproto"
@@ -69,17 +69,17 @@ This operates in four phases:
 
 We guarantee this invariant:
 
-- Only one tablet is marked as finished, and once it is, no other tablet will be
-  marked as finished until this tablet is deleted or the drain is aborted
-  (aborting the drain is considered an emergency situation and our invariant
-  could break here).
+  - Only one tablet is marked as finished, and once it is, no other tablet will be
+    marked as finished until this tablet is deleted or the drain is aborted
+    (aborting the drain is considered an emergency situation and our invariant
+    could break here).
 
 This has implications to these situations:
 
-- If the shard becomes unhealthy, anything marked as "finished" will stay
-  "finished".
-- If the primary is reparented to a "finished" tablet, that tablet will stay
-  "finished".
+  - If the shard becomes unhealthy, anything marked as "finished" will stay
+    "finished".
+  - If the primary is reparented to a "finished" tablet, that tablet will stay
+    "finished".
 
 These are necessary because if we ever remove the "finished" annotation we could
 then later mark something else as "finished".
@@ -429,7 +429,7 @@ func candidatePrimary(ctx context.Context, wr *wrangler.Wrangler, shard *topo.Sh
 			status, err := wr.TabletManagerClient().ReplicationStatus(ctx, tablet.Tablet)
 			result := candidateInfo{tablet: tablet, err: err}
 			if err == nil {
-				result.position, result.err = mysql.DecodePosition(status.Position)
+				result.position, result.err = replication.DecodePosition(status.Position)
 			}
 			results <- result
 		}(tablet)
@@ -438,7 +438,7 @@ func candidatePrimary(ctx context.Context, wr *wrangler.Wrangler, shard *topo.Sh
 	// Read results channel and remember the high point so far.
 	// No one ever closes the results chan, but we know how many to expect.
 	var bestCandidate *topo.TabletInfo
-	var highestPosition mysql.Position
+	var highestPosition replication.Position
 	for range candidates {
 		result := <-results
 		if result.err != nil {
@@ -460,6 +460,6 @@ func candidatePrimary(ctx context.Context, wr *wrangler.Wrangler, shard *topo.Sh
 
 type candidateInfo struct {
 	tablet   *topo.TabletInfo
-	position mysql.Position
+	position replication.Position
 	err      error
 }
