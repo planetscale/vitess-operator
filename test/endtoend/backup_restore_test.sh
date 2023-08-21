@@ -76,34 +76,40 @@ function setupKindConfig() {
     # working directory to kind. The current directory in the docker is workdir
     # So if we try and mount that, we get an error. Instead we need to mount the
     # path where the code was checked out be buildkite
+    echo "Running in buildkite -- setting up environment"
     dockerContainerName=$(docker container ls --filter "ancestor=docker" --format '{{.Names}}')
     CHECKOUT_PATH=$(docker container inspect -f '{{range .Mounts}}{{ if eq .Destination "/workdir" }}{{println .Source }}{{ end }}{{end}}' "$dockerContainerName")
+    echo "Using checkout path: $CHECKOUT_PATH"
     BACKUP_DIR="$CHECKOUT_PATH/vtdataroot/backup"
+    echo "Using backup directory: $BACKUP_DIR"
   else
     BACKUP_DIR="$PWD/vtdataroot/backup"
   fi
   cat ./test/endtoend/kindBackupConfig.yaml | sed "s,PATH,$BACKUP_DIR,1" > ./vtdataroot/config.yaml
+  echo "Using Kind config: $(cat ./vtdataroot/config.yaml)"
 }
 
 # Test setup
 STARTING_DIR="$PWD"
 echo "Make temporary directory for the test"
-mkdir -p -m 777 ./vtdataroot/backup
+mkdir -p -m 750 ./vtdataroot/backup
 echo "Building the docker image"
 docker build -f build/Dockerfile.release -t vitess-operator-pr:latest .
 echo "Setting up the kind config"
 setupKindConfig
-echo "Creating Kind cluster"
-kind create cluster --wait 30s --name kind-${BUILDKITE_BUILD_ID} --config ./vtdataroot/config.yaml
+export CLUSTER_NAME="kind-${BUILDKITE_BUILD_ID}"
+echo "Creating Kind cluster with name: ${CLUSTER_NAME} and config: $(cat ./vtdataroot/config.yaml)"
+kind create cluster --wait 30s --name "${CLUSTER_NAME}" --config ./vtdataroot/config.yaml || die "Failed to create Kind cluster" 
+setupKubectlAccessForCI
+echo -e "\n\nCluster info: $(kubectl cluster-info dump --context "${CLUSTER_NAME}")\n\n"
 echo "Loading docker image into Kind cluster"
-kind load docker-image vitess-operator-pr:latest --name kind-${BUILDKITE_BUILD_ID}
+kind load docker-image vitess-operator-pr:latest --name "${CLUSTER_NAME}" || die "Failed to load docker image into Kind cluster"
 
 cd "$PWD/test/endtoend/operator"
 killall kubectl
-setupKubectlAccessForCI
 
 get_started "operator-latest.yaml" "101_initial_cluster_backup.yaml"
-verifyVtGateVersion "17.0.2"
+verifyVtGateVersion "17.0.1"
 checkSemiSyncSetup
 takeBackup "commerce/-"
 verifyListBackupsOutput
@@ -116,4 +122,4 @@ echo "Removing the temporary directory"
 removeBackupFiles
 rm -rf "$STARTING_DIR/vtdataroot"
 echo "Deleting Kind cluster. This also deletes the volume associated with it"
-kind delete cluster --name kind-${BUILDKITE_BUILD_ID}
+kind delete cluster --name "${CLUSTER_NAME}"

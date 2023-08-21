@@ -141,6 +141,11 @@ function checkPodStatusWithTimeout() {
   # We use this for loop instead of `kubectl wait` because we don't have access to the full pod name
   # and `kubectl wait` does not support regex to match resource name.
   for i in {1..1200} ; do
+    for pod in $(kubectl get pods --no-headers -o custom-columns=":metadata.name") ; do
+      echo "Checking pod ${pod}"
+      kubectl describe pod "${pod}"
+      kubectl logs "${pod}"
+    done
     out=$(kubectl get pods)
     echo "$out" | grep -E "$regex" | wc -l | grep "$nb" > /dev/null 2>&1
     if [ $? -eq 0 ]; then
@@ -269,8 +274,10 @@ function setupKubectlAccessForCI() {
     # and change the kubectl configuration to use the port listed in the internal endpoint instead of the one
     # that is exported to the localhost by kind.
     dockerContainerName=$(docker container ls --filter "ancestor=docker" --format '{{.Names}}')
+    echo "Setting up kubectl access for CI using container name: $dockerContainerName"
     docker network connect kind $dockerContainerName
     kind get kubeconfig --internal --name kind-${BUILDKITE_BUILD_ID} > $HOME/.kube/config
+    echo "Set up kubectl config: $(cat $HOME/.kube/config)"
   fi
 }
 
@@ -354,4 +361,10 @@ COrder
 |        5 |           5 | SKU-1002 |    30 |
 +----------+-------------+----------+-------+
 EOF
+}
+
+# die prints the given message and exits with code 1
+function die {
+  echo "${1}"
+  exit 1
 }
