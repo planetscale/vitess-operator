@@ -141,23 +141,25 @@ function checkPodStatusWithTimeout() {
   # We use this for loop instead of `kubectl wait` because we don't have access to the full pod name
   # and `kubectl wait` does not support regex to match resource name.
   for i in {1..1200} ; do
-    for pod in $(kubectl get pods --no-headers -o custom-columns=":metadata.name") ; do
-      echo "Checking pod ${pod}"
-      kubectl describe pod "${pod}"
-      kubectl logs "${pod}"
-      if [[ ${pod} =~ 'vttablet' ]]; then
-        kubectl logs -c mysqld "${pod}"
-      fi
-    done
     out=$(kubectl get pods)
     echo "$out" | grep -E "$regex" | wc -l | grep "$nb" > /dev/null 2>&1
     if [ $? -eq 0 ]; then
       echo "$regex found"
       return
     fi
-    dmesg
-    free -m
-    ps -eo pid,ppid,cmd,%mem,%cpu --sort=-%mem | head -20
+    if [[ ${DEBUG} == "true" ]]; then
+      for pod in $(kubectl get pods --no-headers -o custom-columns=":metadata.name") ; do
+        echo "Checking pod ${pod}"
+        kubectl describe pod "${pod}"
+        kubectl logs "${pod}"
+        if [[ ${pod} =~ 'vttablet' ]]; then
+          kubectl logs -c mysqld "${pod}"
+        fi
+      done
+      dmesg
+      free -m
+      ps -eo pid,ppid,cmd,%mem,%cpu --sort=-%mem | head -20
+    fi
     sleep 1
   done
   echo -e "ERROR: checkPodStatusWithTimeout timeout to find pod matching:\ngot:\n$out\nfor regex: $regex"

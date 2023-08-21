@@ -101,7 +101,6 @@ export CLUSTER_NAME="kind-${BUILDKITE_BUILD_ID}"
 echo "Creating Kind cluster with name: ${CLUSTER_NAME} and config: $(cat ./vtdataroot/config.yaml)"
 kind create cluster --wait 30s --name "${CLUSTER_NAME}" --config ./vtdataroot/config.yaml || die "Failed to create Kind cluster" 
 setupKubectlAccessForCI
-echo -e "\n\nCluster info: $(kubectl cluster-info dump --context "${CLUSTER_NAME}")\n\n"
 echo "Loading docker image into Kind cluster"
 kind load docker-image vitess-operator-pr:latest --name "${CLUSTER_NAME}" || die "Failed to load docker image into Kind cluster"
 

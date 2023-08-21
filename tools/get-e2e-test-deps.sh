@@ -13,7 +13,7 @@ DIR="${BASH_SOURCE%/*}"
 mkdir -p "${DIR}/_bin"
 cd "${DIR}/_bin"
 
-KUBE_VERSION="${KUBE_VERSION:-v1.25.11}"
+export KUBE_VERSION="v1.25.11"
 KUBERNETES_RELEASE_URL="${KUBERNETES_RELEASE_URL:-https://dl.k8s.io}"
 KIND_VERSION="v0.20.0"
 
