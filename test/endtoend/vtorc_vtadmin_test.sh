@@ -230,10 +230,11 @@ function curlPostRequest() {
 }
 
 # Test setup
+KUBE_VERSION="${KUBE_VERSION:-v1.24.15}"
 echo "Building the docker image"
 docker build -f build/Dockerfile.release -t vitess-operator-pr:latest .
 echo "Creating Kind cluster"
-kind create cluster --wait 30s --name kind-${BUILDKITE_BUILD_ID}
+kind create cluster --image "kindest/node:${KUBE_VERSION}" --wait 30s --name kind-${BUILDKITE_BUILD_ID}
 echo "Loading docker image into Kind cluster"
 kind load docker-image vitess-operator-pr:latest --name kind-${BUILDKITE_BUILD_ID}
 

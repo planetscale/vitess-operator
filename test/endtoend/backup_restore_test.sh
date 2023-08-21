@@ -90,6 +90,7 @@ function setupKindConfig() {
 }
 
 # Test setup
+KUBE_VERSION="${KUBE_VERSION:-v1.24.15}"
 STARTING_DIR="$PWD"
 echo "Make temporary directory for the test"
 mkdir -p -m 750 ./vtdataroot/backup
@@ -99,7 +100,7 @@ echo "Setting up the kind config"
 setupKindConfig
 export CLUSTER_NAME="kind-${BUILDKITE_BUILD_ID}"
 echo "Creating Kind cluster with name: ${CLUSTER_NAME} and config: $(cat ./vtdataroot/config.yaml)"
-kind create cluster --wait 30s --name "${CLUSTER_NAME}" --config ./vtdataroot/config.yaml || die "Failed to create Kind cluster" 
+kind create cluster --image "kindest/node:${KUBE_VERSION}" --wait 30s --name "${CLUSTER_NAME}" --config ./vtdataroot/config.yaml || die "Failed to create Kind cluster" 
 setupKubectlAccessForCI
 echo "Loading docker image into Kind cluster"
 kind load docker-image vitess-operator-pr:latest --name "${CLUSTER_NAME}" || die "Failed to load docker image into Kind cluster"

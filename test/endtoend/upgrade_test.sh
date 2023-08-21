@@ -233,7 +233,7 @@ EOF
 }
 
 # Test setup
-KUBE_VERSION="${KUBE_VERSION:-v1.25.11}"
+KUBE_VERSION="${KUBE_VERSION:-v1.24.15}"
 echo "Building the docker image"
 docker build -f build/Dockerfile.release -t vitess-operator-pr:latest .
 echo "Creating Kind cluster"
