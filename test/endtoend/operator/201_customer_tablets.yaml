@@ -76,7 +76,7 @@ spec:
             mysqld:
               resources:
                 limits:
-                  memory: 1024Mi
+                  memory: 2048Mi
                 requests:
                   cpu: 100m
                   memory: 512Mi
@@ -120,7 +120,7 @@ spec:
             mysqld:
               resources:
                 limits:
-                  memory: 1024Mi
+                  memory: 2048Mi
                 requests:
                   cpu: 100m
                   memory: 512Mi
