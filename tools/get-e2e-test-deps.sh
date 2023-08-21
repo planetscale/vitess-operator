@@ -13,8 +13,9 @@ DIR="${BASH_SOURCE%/*}"
 mkdir -p "${DIR}/_bin"
 cd "${DIR}/_bin"
 
-KUBE_VERSION="${KUBE_VERSION:-v1.21.1}"
+KUBE_VERSION="${KUBE_VERSION:-v1.25.11}"
 KUBERNETES_RELEASE_URL="${KUBERNETES_RELEASE_URL:-https://dl.k8s.io}"
+KIND_VERSION="v0.20.0"
 
 # Download kubectl if needed.
 if [ ! -f "kubectl-${KUBE_VERSION}" ]; then
@@ -29,7 +30,7 @@ ln -sf "kubectl-${KUBE_VERSION}" kubectl
 if ! command -v kind &> /dev/null
 then
     echo "Downloading kind..."
-    curl -L https://kind.sigs.k8s.io/dl/v0.12.0/kind-linux-amd64 > "kind"
+    curl -L "https://kind.sigs.k8s.io/dl/${KUBE_VERSION}/kind-linux-amd64" > "kind"
     chmod +x "kind"
     echo "Installed kind"
 else
@@ -40,8 +41,8 @@ fi
 if ! command -v vtctldclient &> /dev/null
 then
   echo "Downloading vtctldclient..."
-  version=16.0.1
-  file=vitess-${version}-d1ba625.tar.gz
+  version=16.0.4
+  file=vitess-${version}-87ea735.tar.gz
   wget https://github.com/vitessio/vitess/releases/download/v${version}/${file}
   tar -xzf ${file}
   cd ${file/.tar.gz/}
