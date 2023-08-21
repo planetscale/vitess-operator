@@ -145,6 +145,9 @@ function checkPodStatusWithTimeout() {
       echo "Checking pod ${pod}"
       kubectl describe pod "${pod}"
       kubectl logs "${pod}"
+      if [[ ${pod} =~ 'vttablet' ]]; then
+        kubectl logs -c mysqld "${pod}"
+      fi
     done
     out=$(kubectl get pods)
     echo "$out" | grep -E "$regex" | wc -l | grep "$nb" > /dev/null 2>&1
