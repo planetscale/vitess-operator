@@ -91,7 +91,7 @@ echo "Make temporary directory for the test"
 mkdir -p -m 777 ./vtdataroot/backup
 echo "Building the docker image"
 docker build -f build/Dockerfile.release -t vitess-operator-pr:latest .
-echo "Setting up the kind config"
+echo "Setting up the kind config with config: $(cat ./vtdataroot/config.yaml)"
 setupKindConfig
 echo "Creating Kind cluster"
 kind create cluster --wait 30s --name kind-${BUILDKITE_BUILD_ID} --config ./vtdataroot/config.yaml
