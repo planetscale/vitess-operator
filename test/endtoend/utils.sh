@@ -152,10 +152,12 @@ function checkPodStatusWithTimeout() {
       echo "$regex found"
       return
     fi
+    dmesg
+    free -m
+    ps -eo pid,ppid,cmd,%mem,%cpu --sort=-%mem | head -20
     sleep 1
   done
   echo -e "ERROR: checkPodStatusWithTimeout timeout to find pod matching:\ngot:\n$out\nfor regex: $regex"
-  dmesg
   echo "$regex" | grep "vttablet" > /dev/null 2>&1
   if [ $? -eq 0 ]; then
     printMysqlErrorFiles
