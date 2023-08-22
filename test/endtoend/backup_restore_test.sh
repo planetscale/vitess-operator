@@ -98,6 +98,8 @@ kind create cluster --wait 30s --name kind-${BUILDKITE_BUILD_ID} --config ./vtda
 echo "Loading docker image into Kind cluster"
 kind load docker-image vitess-operator-pr:latest --name kind-${BUILDKITE_BUILD_ID}
 
+sleep 300
+
 cd "$PWD/test/endtoend/operator"
 killall kubectl
 setupKubectlAccessForCI
