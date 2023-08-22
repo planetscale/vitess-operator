@@ -141,6 +141,7 @@ function checkPodStatusWithTimeout() {
   # We use this for loop instead of `kubectl wait` because we don't have access to the full pod name
   # and `kubectl wait` does not support regex to match resource name.
   for i in {1..1200} ; do
+    docker container ls
     out=$(kubectl get pods)
     echo "$out" | grep -E "$regex" | wc -l | grep "$nb" > /dev/null 2>&1
     if [ $? -eq 0 ]; then
@@ -281,6 +282,8 @@ function get_started() {
     echo "Apply latest $1"
     kubectl apply -f "$1"
     checkPodStatusWithTimeout "vitess-operator(.*)1/1(.*)Running(.*)"
+
+    docker container ls
 
     echo "Apply $2"
     kubectl apply -f "$2"
