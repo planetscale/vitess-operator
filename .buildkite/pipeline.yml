@@ -1,5 +1,5 @@
 agents:
-  queue: "public"
+  queue: "public-v5"
 
 # Mount the docker.sock as to the docker container, so that we are able to
 # run docker build command and kind is spawned as a sibling container.
