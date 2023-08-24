@@ -27,6 +27,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	"vitess.io/vitess/go/mysql"
+	"vitess.io/vitess/go/mysql/replication"
 	topodatapb "vitess.io/vitess/go/vt/proto/topodata"
 	"vitess.io/vitess/go/vt/topo"
 	"vitess.io/vitess/go/vt/topo/topoproto"
@@ -281,7 +282,7 @@ func electInitialShardPrimary(ctx context.Context, keyspaceName, shardName strin
 
 type tabletStatus struct {
 	replicationConfigured bool
-	replicationPosition   mysql.Position
+	replicationPosition   replication.Position
 	databaseExists        bool
 	tablet                *topo.TabletInfo
 	err                   error
@@ -312,7 +313,7 @@ func getTabletStatus(ctx context.Context, tmc tmclient.TabletManagerClient, tabl
 		status.err = fmt.Errorf("couldn't get replicaiton position for tablet %v: %v", tabletName, err)
 		return status
 	}
-	status.replicationPosition, err = mysql.DecodePosition(positionStr)
+	status.replicationPosition, err = replication.DecodePosition(positionStr)
 	if err != nil {
 		status.err = fmt.Errorf("couldn't get replicaiton position for tablet %v: %v", tabletName, err)
 		return status
@@ -344,7 +345,8 @@ func getTabletStatus(ctx context.Context, tmc tmclient.TabletManagerClient, tabl
 // values as well as the latest known value pulled from our build dependency.
 //
 // TODO: Add an officially-supported signal in the Vitess RPC to recognize this
-//       important state programmatically.
+//
+//	important state programmatically.
 func isErrNotReplica(err error) bool {
 	errString := err.Error()
 
