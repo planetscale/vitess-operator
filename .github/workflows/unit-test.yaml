@@ -24,7 +24,7 @@ jobs:
       uses: actions/checkout@v1
 
     - name: Build
-      run: go install -v ./...
+      run: CGO_ENABLED=0 go install -v ./...
 
     - name: Unit Test
       run: make unit-test
