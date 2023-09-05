@@ -11,12 +11,12 @@
 # without messing up file permissions, since the Docker container doesn't run as
 # your actual user.
 
-FROM golang:1.20.2 AS build
+FROM golang:1.21.0 AS build
 
 ENV GO111MODULE=on
 WORKDIR /go/src/planetscale.dev/vitess-operator
 COPY . /go/src/planetscale.dev/vitess-operator
-RUN go install /go/src/planetscale.dev/vitess-operator/cmd/manager
+RUN CGO_ENABLED=0 go install /go/src/planetscale.dev/vitess-operator/cmd/manager
 
 # The rest is meant to mimic the output from operator-sdk's Dockerfile.
 # We just copy the binary we built inside Docker instead of from outside.
