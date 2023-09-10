@@ -21,7 +21,7 @@ require (
 	sigs.k8s.io/controller-runtime v0.14.3
 	sigs.k8s.io/controller-tools v0.11.3
 	sigs.k8s.io/kustomize v2.0.3+incompatible
-	vitess.io/vitess v0.10.3-0.20230901101525-76367545447b
+	vitess.io/vitess v0.10.3-0.20230908190456-26a97d8d0866
 )
 
 require (
