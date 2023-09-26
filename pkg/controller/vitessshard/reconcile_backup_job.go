@@ -235,6 +235,7 @@ func vtbackupSpec(key client.ObjectKey, vts *planetscalev2.VitessShard, parentLa
 		KeyRange:                 vts.Spec.KeyRange,
 		Vttablet:                 &pool.Vttablet,
 		Mysqld:                   pool.Mysqld,
+		MysqldExporter:           pool.MysqldExporter,
 		DataVolumePVCName:        key.Name,
 		DataVolumePVCSpec:        pool.DataVolumeClaimTemplate,
 		KeyspaceName:             keyspaceName,
