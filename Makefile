@@ -3,7 +3,7 @@
 IMAGE_REGISTRY:=docker.io
 IMAGE_TAG:=latest
 
-IMAGE:=planetscale/vitess-operator
+IMAGE:=frouioui/vitess-operator
 
 IMAGE_NAME:=$(IMAGE_REGISTRY)/$(IMAGE)
 

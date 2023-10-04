@@ -27,7 +27,7 @@ const (
 	vtbackupContainerName = "vtbackup"
 	vtbackupCommand       = "/vt/bin/vtbackup"
 
-	mysqldContainerName = "mysqld"
+	MysqldContainerName = "mysqld"
 	mysqldCommand       = "/vt/bin/mysqlctld"
 
 	mysqldExporterContainerName      = "mysqld-exporter"

@@ -204,7 +204,7 @@ func (r *ReconcileVitessShard) Reconcile(cctx context.Context, request reconcile
 	resultBuilder.Merge(initReplicationResult, err)
 
 	// Check if we've been asked to do a planned reparent.
-	drainResult, err := r.reconcileDrain(ctx, vts, wr)
+	drainResult, err := r.reconcileDrain(ctx, vts, wr, log)
 	resultBuilder.Merge(drainResult, err)
 
 	// Request a periodic resync for the shard so we can recheck replication

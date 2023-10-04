@@ -166,7 +166,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 
 	if spec.Mysqld != nil {
 		mysqldContainer = &corev1.Container{
-			Name:            mysqldContainerName,
+			Name:            MysqldContainerName,
 			Image:           spec.Images.Mysqld.Image(),
 			ImagePullPolicy: spec.ImagePullPolicies.Mysqld,
 			Command:         []string{mysqldCommand},
