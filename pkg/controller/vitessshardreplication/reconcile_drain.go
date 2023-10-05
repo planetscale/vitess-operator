@@ -261,7 +261,7 @@ func (r *ReconcileVitessShard) reconcileDrain(ctx context.Context, vts *planetsc
 		}
 	}
 
-	// 4. Check if we need to any operations like disabling fast shutdown
+	// 4. Check if we need to perform any operations like disabling fast shutdown
 	// for upgrades here.
 	if err := r.disableFastShutdown(ctx, wr, pods, tablets, vts.Spec.Images.Mysqld.Image(), log); err != nil {
 		r.recorder.Eventf(vts, corev1.EventTypeWarning,
