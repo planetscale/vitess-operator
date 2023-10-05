@@ -51,12 +51,6 @@ func TestSafeMysqldUpgrade(t *testing.T) {
 			needsSafe: false,
 		},
 		{
-			name:      "equal version with different registry",
-			current:   "docker.io/vitess/mysql:8.0.23",
-			desired:   "docker.io/vitess/mysql:8.0.23",
-			needsSafe: false,
-		},
-		{
 			name:      "no explicit current version",
 			current:   "docker.io/vitess/mysql:latest",
 			desired:   "docker.io/vitess/mysql:8.9.23",
