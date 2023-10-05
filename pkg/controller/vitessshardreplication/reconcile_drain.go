@@ -591,7 +591,7 @@ func safeMysqldUpgrade(currentImage, desiredImage string) (bool, error) {
 	// as patch release could also include on-disk data format changes. This happened a number of times
 	// in practice as well, so this concern is real.
 	//
-	// MySQL though as announced a new release strategy, see:
+	// MySQL though has announced a new release strategy, see:
 	// https://dev.mysql.com/blog-archive/introducing-mysql-innovation-and-long-term-support-lts-versions/
 	//
 	// With that release strategy, it will become possible that patch releases will be safe to downgrade
