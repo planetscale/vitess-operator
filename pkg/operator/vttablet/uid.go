@@ -43,8 +43,7 @@ lead time to develop a smarter way to handle tablet identity and MySQL server
 IDs in Vitess itself.
 
 WARNING: DO NOT change the behavior of this function, as that may result in
-
-	the deletion and recreation of all tablets.
+         the deletion and recreation of all tablets.
 */
 func UID(cellName, keyspaceName string, shardKeyRange planetscalev2.VitessKeyRange, tabletPoolType planetscalev2.VitessTabletPoolType, tabletIndex uint32) uint32 {
 	h := md5.New()
