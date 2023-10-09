@@ -11,7 +11,7 @@ IMAGE_NAME:=$(IMAGE_REGISTRY)/$(IMAGE)
 export GO111MODULE=on
 
 build:
-	go build -o build/_output/bin/vitess-operator ./cmd/manager
+	CGO_ENABLED=0 go build -o build/_output/bin/vitess-operator ./cmd/manager
 
 # Release build is slow but self-contained (doesn't depend on anything in your
 # local machine). We use this for automated builds that we publish.

@@ -8,13 +8,13 @@ metadata:
   name: example
 spec:
   images:
-    vtctld: vitess/lite:v17.0.0-rc1
-    vtgate: vitess/lite:v17.0.0-rc1
-    vttablet: vitess/lite:v17.0.0-rc1
-    vtorc: vitess/lite:v17.0.0-rc1
-    vtbackup: vitess/lite:v17.0.0-rc1
+    vtctld: vitess/lite:v18.0.0-rc1
+    vtgate: vitess/lite:v18.0.0-rc1
+    vttablet: vitess/lite:v18.0.0-rc1
+    vtorc: vitess/lite:v18.0.0-rc1
+    vtbackup: vitess/lite:v18.0.0-rc1
     mysqld:
-      mysql80Compatible: vitess/lite:v17.0.0-rc1
+      mysql80Compatible: vitess/lite:v18.0.0-rc1
     mysqldExporter: prom/mysqld-exporter:v0.11.0
   cells:
   - name: zone1
@@ -185,6 +185,7 @@ stringData:
     GRANT REPLICATION SLAVE ON *.* TO 'vt_repl'@'%';
 
     # User for Vitess filtered replication (binlog player).
+    # Same permissions as vt_app.
     CREATE USER 'vt_filtered'@'localhost';
     GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, RELOAD, PROCESS, FILE,
       REFERENCES, INDEX, ALTER, SHOW DATABASES, CREATE TEMPORARY TABLES,
@@ -192,18 +193,13 @@ stringData:
       SHOW VIEW, CREATE ROUTINE, ALTER ROUTINE, CREATE USER, EVENT, TRIGGER
       ON *.* TO 'vt_filtered'@'localhost';
 
-    # User for Orchestrator (https://github.com/openark/orchestrator).
-    # TODO: Reenable when the password is randomly generated.
-    #CREATE USER 'orc_client_user'@'%' IDENTIFIED BY 'orc_client_user_password';
-    #GRANT SUPER, PROCESS, REPLICATION SLAVE, RELOAD
-    #  ON *.* TO 'orc_client_user'@'%';
-    #GRANT SELECT
-    #  ON _vt.* TO 'orc_client_user'@'%';
-
     FLUSH PRIVILEGES;
 
     RESET SLAVE ALL;
     RESET MASTER;
+
+    # custom sql is used to add custom scripts like creating users/passwords. We use it in our tests
+    # {{custom_sql}}
 
     # We need to set super_read_only back to what it was before
     SET GLOBAL super_read_only=IFNULL(@original_super_read_only, 'ON');

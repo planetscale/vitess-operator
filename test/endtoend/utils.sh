@@ -220,12 +220,13 @@ function waitForKeyspaceToBeServing() {
   nb_of_replica=$3
   for i in {1..600} ; do
     out=$(mysql --table --execute="show vitess_tablets")
-    echo "$out" | grep -E "$ks(.*)$shard(.*)PRIMARY(.*)SERVING|$ks(.*)$shard(.*)REPLICA(.*)SERVING" | wc -l | grep "$((nb_of_replica+1))"
-    if [ $? -eq 0 ]; then
+    numtablets=$(echo "$out" | grep -E "$ks(.*)$shard(.*)PRIMARY(.*)SERVING|$ks(.*)$shard(.*)REPLICA(.*)SERVING" | wc -l)
+    if [[ $numtablets -ge $((nb_of_replica+1)) ]]; then
       echo "Shard $ks/$shard is serving"
       return
     fi
-    echo "Shard $ks/$shard is not fully serving, retrying (attempt #$i) ..."
+    echo "Shard $ks/$shard is not fully serving. Output: $out"
+    echo "Retrying (attempt #$i) ..."
     sleep 10
   done
 }
