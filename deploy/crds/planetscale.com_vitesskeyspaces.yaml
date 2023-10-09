@@ -549,6 +549,9 @@ spec:
                                       required:
                                       - resources
                                       type: object
+                                    name:
+                                      default: ""
+                                      type: string
                                     replicas:
                                       format: int32
                                       minimum: 0
@@ -619,6 +622,7 @@ spec:
                                 x-kubernetes-list-map-keys:
                                 - type
                                 - cell
+                                - name
                                 x-kubernetes-list-type: map
                             required:
                             - databaseInitScriptSecret
@@ -944,6 +948,9 @@ spec:
                                     required:
                                     - resources
                                     type: object
+                                  name:
+                                    default: ""
+                                    type: string
                                   replicas:
                                     format: int32
                                     minimum: 0
@@ -1014,6 +1021,7 @@ spec:
                               x-kubernetes-list-map-keys:
                               - type
                               - cell
+                              - name
                               x-kubernetes-list-type: map
                           required:
                           - databaseInitScriptSecret

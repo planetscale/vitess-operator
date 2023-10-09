@@ -35,6 +35,9 @@ const (
 	TabletUidLabel = LabelPrefix + "/" + "tablet-uid"
 	// TabletTypeLabel is the key for identifying the Vitess target tablet type for a Pod.
 	TabletTypeLabel = LabelPrefix + "/" + "tablet-type"
+	// TabletPoolNameLabel is the key for identifying the Vitess target pool name within the (cell,type) pair.
+	// This label is applicable to Vitess-unmanaged keyspaces.
+	TabletPoolNameLabel = LabelPrefix + "/" + "pool-name"
 	// TabletIndexLabel is the key for identifying the index of a Vitess tablet within its pool.
 	TabletIndexLabel = LabelPrefix + "/" + "tablet-index"
 

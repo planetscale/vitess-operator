@@ -53,6 +53,9 @@ func (r *ReconcileVitessShard) reconcileDisk(ctx context.Context, vts *planetsca
 			continue
 		}
 
+		// In cases where there are multiple pools with the same tablet type in a given cell,
+		// there is a possibility of processing the same tablet multiple times.
+		// We permit this to occur as it is practically harmless and simplifies implementation.
 		poolTablets, err := tabletKeysForPool(vts, tabletPool.Cell, tabletPool.Type)
 		if err != nil {
 			return resultBuilder.Error(err)
@@ -129,6 +132,8 @@ func (r *ReconcileVitessShard) claimForTabletPod(ctx context.Context, pod *v1.Po
 	return pvc, nil
 }
 
+// tabletKeysForPool returns the list of targetKeys for a given pool type and cell.
+// Note that this function does not care about the pool's name assignment.
 func tabletKeysForPool(vts *planetscalev2.VitessShard, poolCell string, poolType planetscalev2.VitessTabletPoolType) ([]string, error) {
 	tabletKeys := vts.Status.TabletAliases()
 

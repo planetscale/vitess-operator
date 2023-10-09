@@ -7066,6 +7066,21 @@ VitessTabletPoolType
 </tr>
 <tr>
 <td>
+<code>name</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Name is the pool&rsquo;s unique name within the (cell,type) pair.
+This field is optional, and defaults to an empty.
+Assigning different names to this field enables the existence of multiple pools with a specific tablet type in a given cell,
+which can be beneficial for unmanaged tablets.
+Hence, you must specify ExternalDatastore when assigning a name to this field.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>replicas</code></br>
 <em>
 int32
@@ -7329,7 +7344,7 @@ specify how to spread vttablet pods among the given topology</p>
 <td>
 <p>TabletPools specify groups of tablets in a given cell with a certain
 tablet type and a shared configuration template.</p>
-<p>There must be at most one pool in this list for each (cell,type) pair.
+<p>There must be at most one pool in this list for each (cell,type,name) set.
 Each shard must have at least one &ldquo;replica&rdquo; pool (in at least one cell)
 in order to be able to serve.</p>
 </td>
