@@ -29,10 +29,10 @@ function updateVitessImages() {
   new_operator_version=$3
 
   operator_files=$(find -E $ROOT/test/endtoend/operator/* -name "*.yaml" | grep -v "101_initial_cluster.yaml")
-  sed -i.bak -E "s/vitess\/lite:(.*)/vitess\/lite:v$new_vitess_version/g" $operator_files
-  sed -i.bak -E "s/vitess\/vtadmin:(.*)/vitess\/vtadmin:v$new_vitess_version/g" $operator_files
-  sed -i.bak -E "s/vitess\/lite:(.*)/vitess\/lite:v$new_vitess_version\"/g" $ROOT/pkg/apis/planetscale/v2/defaults.go
-  sed -i.bak -E "s/vitess\/lite:(.*)/vitess\/lite:v$old_vitess_version/g" $ROOT/test/endtoend/operator/101_initial_cluster.yaml
+  sed -i.bak -E "s/vitess\/lite:([^-]*)(-rc[0-9]*)?(-mysql.*)?/vitess\/lite:v$new_vitess_version\3/g" $operator_files
+  sed -i.bak -E "s/vitess\/vtadmin:([^-]*)(-rc[0-9]*)?(-mysql.*)?/vitess\/vtadmin:v$new_vitess_version\3/g" $operator_files
+  sed -i.bak -E "s/vitess\/lite:([^-]*)(-rc[0-9]*)?(-mysql.*)?/vitess\/lite:v$new_vitess_version\3\"/g" $ROOT/pkg/apis/planetscale/v2/defaults.go
+  sed -i.bak -E "s/vitess\/lite:([^-]*)(-rc[0-9]*)?(-mysql.*)?/vitess\/lite:v$old_vitess_version\3/g" $ROOT/test/endtoend/operator/101_initial_cluster.yaml
   sed -i.bak -E "s/planetscale\/vitess-operator:(.*)/planetscale\/vitess-operator:v$new_operator_version/g" $ROOT/test/endtoend/operator/operator.yaml
 
   rm -f $(find -E $ROOT/test/endtoend/operator/ -name "*.yaml.bak") $ROOT/pkg/apis/planetscale/v2/defaults.go.bak $ROOT/test/endtoend/operator/operator.yaml.bak
