@@ -313,7 +313,11 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 		obj.Spec.SecurityContext.FSGroup = pointer.Int64Ptr(planetscalev2.DefaultVitessFSGroup)
 	}
 
-	obj.Spec.TerminationGracePeriodSeconds = pointer.Int64Ptr(terminationGracePeriodSeconds)
+	if spec.Vttablet.TerminationGracePeriodSeconds != nil {
+		obj.Spec.TerminationGracePeriodSeconds = spec.Vttablet.TerminationGracePeriodSeconds
+	} else {
+		obj.Spec.TerminationGracePeriodSeconds = pointer.Int64Ptr(terminationGracePeriodSeconds)
+	}
 
 	// In both the case of the user injecting their own affinity and the default, we
 	// simply override the pod's existing affinity configuration.

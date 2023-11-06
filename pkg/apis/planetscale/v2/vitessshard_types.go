@@ -292,6 +292,10 @@ type VttabletSpec struct {
 	// +kubebuilder:validation:Schemaless
 	// +kubebuilder:pruning:PreserveUnknownFields
 	Lifecycle corev1.Lifecycle `json:"lifecycle,omitempty"`
+
+	// TerminationGracePeriodSeconds can optionally be used to customize
+	// terminationGracePeriodSeconds of the vttablet pod.
+	TerminationGracePeriodSeconds *int64 `json:"terminationGracePeriodSeconds,omitempty"`
 }
 
 // MysqldSpec configures the local MySQL server within a tablet.
