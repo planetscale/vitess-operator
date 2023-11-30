@@ -316,7 +316,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	if spec.Vttablet.TerminationGracePeriodSeconds != nil {
 		obj.Spec.TerminationGracePeriodSeconds = spec.Vttablet.TerminationGracePeriodSeconds
 	} else {
-		obj.Spec.TerminationGracePeriodSeconds = pointer.Int64Ptr(terminationGracePeriodSeconds)
+		obj.Spec.TerminationGracePeriodSeconds = pointer.Int64Ptr(defaultTerminationGracePeriodSeconds)
 	}
 
 	// In both the case of the user injecting their own affinity and the default, we
