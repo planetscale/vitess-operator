@@ -55,6 +55,8 @@ const (
 	reconcileDrainReadTimeout = 10 * time.Second
 	// plannedReparentTimeout is the timeout for executing PlannedReparentShard.
 	plannedReparentTimeout = 30 * time.Second
+	// tolerableReplicationLag is the replication lag that is considered acceptable for running a PRS.
+	tolerableReplicationLag = 15 * time.Second
 	// candidatePrimaryTimeout is the timeout for contacting candidate primarys to decide which one to choose.
 	candidatePrimaryTimeout = 2 * time.Second
 )
@@ -313,7 +315,7 @@ func (r *ReconcileVitessShard) reconcileDrain(ctx context.Context, vts *planetsc
 	if vts.Spec.UsingExternalDatastore() {
 		reparentErr = r.handleExternalReparent(ctx, vts, wr, newPrimary.Alias, shard.PrimaryAlias)
 	} else {
-		reparentErr = wr.PlannedReparentShard(reparentCtx, keyspaceName, vts.Spec.Name, newPrimary.Alias, nil, plannedReparentTimeout)
+		reparentErr = wr.PlannedReparentShard(reparentCtx, keyspaceName, vts.Spec.Name, newPrimary.Alias, nil, plannedReparentTimeout, tolerableReplicationLag)
 	}
 
 	if reparentErr != nil {
