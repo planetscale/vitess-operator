@@ -17,6 +17,8 @@ limitations under the License.
 package vttablet
 
 import (
+	"fmt"
+
 	"vitess.io/vitess/go/vt/topo/topoproto"
 
 	corev1 "k8s.io/api/core/v1"
@@ -70,7 +72,7 @@ func init() {
 			"health_check_interval": healthCheckInterval,
 
 			"queryserver-config-max-result-size":  queryserverConfigMaxResultSize,
-			"queryserver-config-query-timeout":    queryserverConfigQueryTimeout,
+			"queryserver-config-query-timeout":    fmt.Sprintf("%ds", queryserverConfigQueryTimeout),
 			"queryserver-config-pool-size":        queryserverConfigPoolSize,
 			"queryserver-config-stream-pool-size": queryserverConfigStreamPoolSize,
 			"queryserver-config-transaction-cap":  queryserverConfigTransactionCap,
