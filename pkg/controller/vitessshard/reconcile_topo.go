@@ -21,6 +21,9 @@ import (
 	"strings"
 	"time"
 
+	"vitess.io/vitess/go/mysql/collations"
+	"vitess.io/vitess/go/vt/servenv"
+	"vitess.io/vitess/go/vt/sqlparser"
 	"vitess.io/vitess/go/vt/topo/topoproto"
 
 	corev1 "k8s.io/api/core/v1"
@@ -63,7 +66,16 @@ func (r *ReconcileVitessShard) reconcileTopology(ctx context.Context, vts *plane
 		return resultBuilder.RequeueAfter(topoRequeueDelay)
 	}
 	defer ts.Close()
-	wr := wrangler.New(logutil.NewConsoleLogger(), ts.Server, nil)
+	collationEnv := collations.NewEnvironment(servenv.MySQLServerVersion())
+	parser, err := sqlparser.New(sqlparser.Options{
+		MySQLServerVersion: servenv.MySQLServerVersion(),
+		TruncateUILen:      servenv.TruncateUILen,
+		TruncateErrLen:     servenv.TruncateErrLen,
+	})
+	if err != nil {
+		return resultBuilder.Error(err)
+	}
+	wr := wrangler.New(logutil.NewConsoleLogger(), ts.Server, nil, collationEnv, parser)
 
 	// Get the shard record.
 	if shard, err := ts.GetShard(ctx, keyspaceName, vts.Spec.Name); err == nil {
@@ -168,8 +180,8 @@ func (r *ReconcileVitessShard) pruneShardCells(ctx context.Context, vts *planets
 			Keyspace:  keyspaceName,
 			ShardName: vts.Spec.Name,
 			Cell:      cellName,
-			Force:     false /* force */,
-			Recursive: false /* recursive */,
+			Force:     false, /* force */
+			Recursive: false, /* recursive */
 		}); err != nil {
 			r.recorder.Eventf(vts, corev1.EventTypeWarning, "TopoCleanupFailed", "unable to remove cell %s from shard: %v", cellName, err)
 			resultBuilder.RequeueAfter(topoRequeueDelay)

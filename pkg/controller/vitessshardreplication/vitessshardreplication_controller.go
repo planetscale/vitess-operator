@@ -22,6 +22,9 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
+	"vitess.io/vitess/go/mysql/collations"
+	"vitess.io/vitess/go/vt/servenv"
+	"vitess.io/vitess/go/vt/sqlparser"
 
 	"vitess.io/vitess/go/vt/logutil"
 	"vitess.io/vitess/go/vt/vttablet/tmclient"
@@ -195,9 +198,18 @@ func (r *ReconcileVitessShard) Reconcile(cctx context.Context, request reconcile
 	tmc := tmclient.NewTabletManagerClient()
 	defer tmc.Close()
 
+	collationEnv := collations.NewEnvironment(servenv.MySQLServerVersion())
+	parser, err := sqlparser.New(sqlparser.Options{
+		MySQLServerVersion: servenv.MySQLServerVersion(),
+		TruncateUILen:      servenv.TruncateUILen,
+		TruncateErrLen:     servenv.TruncateErrLen,
+	})
+	if err != nil {
+		return resultBuilder.Error(err)
+	}
 	// Wrangler wraps the necessary clients and implements
 	// multi-step Vitess cluster management workflows.
-	wr := wrangler.New(logutil.NewConsoleLogger(), ts.Server, tmc)
+	wr := wrangler.New(logutil.NewConsoleLogger(), ts.Server, tmc, collationEnv, parser)
 
 	// Initialize replication if it has not already been started.
 	initReplicationResult, err := r.initReplication(ctx, vts, wr)

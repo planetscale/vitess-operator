@@ -24,7 +24,10 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"vitess.io/vitess/go/mysql/collations"
 	"vitess.io/vitess/go/vt/logutil"
+	"vitess.io/vitess/go/vt/servenv"
+	"vitess.io/vitess/go/vt/sqlparser"
 	"vitess.io/vitess/go/vt/vttablet/tmclient"
 	"vitess.io/vitess/go/vt/wrangler"
 
@@ -74,9 +77,18 @@ func (r *reconcileHandler) tsInit(ctx context.Context) error {
 		r.tmc = tmclient.NewTabletManagerClient()
 	}
 
+	collationEnv := collations.NewEnvironment(servenv.MySQLServerVersion())
+	parser, err := sqlparser.New(sqlparser.Options{
+		MySQLServerVersion: servenv.MySQLServerVersion(),
+		TruncateUILen:      servenv.TruncateUILen,
+		TruncateErrLen:     servenv.TruncateErrLen,
+	})
+	if err != nil {
+		return err
+	}
 	// Wrangler wraps the necessary clients and implements
 	// multi-step Vitess cluster management workflows.
-	wr := wrangler.New(logutil.NewConsoleLogger(), r.ts.Server, r.tmc)
+	wr := wrangler.New(logutil.NewConsoleLogger(), r.ts.Server, r.tmc, collationEnv, parser)
 	r.wr = wr
 
 	return nil

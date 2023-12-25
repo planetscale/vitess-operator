@@ -24,7 +24,10 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"vitess.io/vitess/go/mysql/collations"
 	"vitess.io/vitess/go/vt/logutil"
+	"vitess.io/vitess/go/vt/servenv"
+	"vitess.io/vitess/go/vt/sqlparser"
 	"vitess.io/vitess/go/vt/topo"
 	"vitess.io/vitess/go/vt/wrangler"
 
@@ -91,9 +94,18 @@ func KeyspacesToPrune(keyspaceNames []string, desiredKeyspaces sets.String, orph
 func DeleteKeyspaces(ctx context.Context, ts *topo.Server, recorder record.EventRecorder, eventObj runtime.Object, keyspaceNames []string) (reconcile.Result, error) {
 	resultBuilder := &results.Builder{}
 
+	collationEnv := collations.NewEnvironment(servenv.MySQLServerVersion())
+	parser, err := sqlparser.New(sqlparser.Options{
+		MySQLServerVersion: servenv.MySQLServerVersion(),
+		TruncateUILen:      servenv.TruncateUILen,
+		TruncateErrLen:     servenv.TruncateErrLen,
+	})
+	if err != nil {
+		return resultBuilder.Error(err)
+	}
 	// We use the Vitess wrangler (multi-step command executor) to recursively delete the keyspace.
 	// This is equivalent to `vtctl DeleteKeyspace -recursive`.
-	wr := wrangler.New(logutil.NewConsoleLogger(), ts, nil)
+	wr := wrangler.New(logutil.NewConsoleLogger(), ts, nil, collationEnv, parser)
 
 	for _, name := range keyspaceNames {
 		// Before we delete a keyspace, we must delete vschema for this operation to be idempotent.
