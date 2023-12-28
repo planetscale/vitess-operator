@@ -25,9 +25,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/yaml"
+	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 
@@ -57,22 +59,18 @@ func NewFixture(ctx context.Context, t *testing.T) *Fixture {
 	config := ApiserverConfig()
 
 	scheme, err := controllermanager.NewScheme()
-	if err != nil {
-		t.Fatalf("can't create Scheme: %v", err)
-	}
+	require.NoError(t, err)
 
-	mapper, err := apiutil.NewDiscoveryRESTMapper(config)
-	if err != nil {
-		t.Fatalf("can't create Mapper: %v", err)
-	}
+	httpClient, err := rest.HTTPClientFor(config)
+	require.NoError(t, err)
+	mapper, err := apiutil.NewDiscoveryRESTMapper(config, httpClient)
+	require.NoError(t, err)
 
 	kubeClient, err := client.New(config, client.Options{
 		Scheme: scheme,
 		Mapper: mapper,
 	})
-	if err != nil {
-		t.Fatalf("can't create Client: %v", err)
-	}
+	require.NoError(t, err)
 
 	return &Fixture{
 		T:      t,
