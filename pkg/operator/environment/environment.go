@@ -25,12 +25,19 @@ import (
 	"time"
 
 	"github.com/spf13/pflag"
+	"vitess.io/vitess/go/mysql/collations"
+	"vitess.io/vitess/go/vt/sqlparser"
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 )
 
 var (
-	reconcileTimeout time.Duration
+	reconcileTimeout   time.Duration
+	mySQLServerVersion = "8.0.30-Vitess"
+	// truncateUILen truncate queries in debug UIs to the given length. 0 means unlimited.
+	truncateUILen = 512
+	// truncateErrLen truncate queries in error logs to the given length. 0 means unlimited.
+	truncateErrLen = 0
 )
 
 // FlagSet returns the FlagSet for the operator.
@@ -57,4 +64,15 @@ func FlagSet() *pflag.FlagSet {
 // ReconcileTimeout returns the global maximum reconcile timeout for all controllers.
 func ReconcileTimeout() time.Duration {
 	return reconcileTimeout
+}
+
+// GetCollationEnvAndParser gets the collation environment and parser to be used in the operator.
+func GetCollationEnvAndParser() (*collations.Environment, *sqlparser.Parser, error) {
+	collationEnv := collations.NewEnvironment(mySQLServerVersion)
+	parser, err := sqlparser.New(sqlparser.Options{
+		MySQLServerVersion: mySQLServerVersion,
+		TruncateUILen:      truncateUILen,
+		TruncateErrLen:     truncateErrLen,
+	})
+	return collationEnv, parser, err
 }

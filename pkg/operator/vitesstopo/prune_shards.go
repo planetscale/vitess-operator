@@ -24,14 +24,12 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"vitess.io/vitess/go/mysql/collations"
 	"vitess.io/vitess/go/vt/logutil"
-	"vitess.io/vitess/go/vt/servenv"
-	"vitess.io/vitess/go/vt/sqlparser"
 	"vitess.io/vitess/go/vt/topo"
 	"vitess.io/vitess/go/vt/wrangler"
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
+	"planetscale.dev/vitess-operator/pkg/operator/environment"
 	"planetscale.dev/vitess-operator/pkg/operator/results"
 )
 
@@ -86,12 +84,7 @@ func ShardsToPrune(currentShards []string, desiredShards sets.String, orphanedSh
 func DeleteShards(ctx context.Context, ts *topo.Server, recorder record.EventRecorder, eventObj runtime.Object, keyspaceName string, shardNames []string) (reconcile.Result, error) {
 	resultBuilder := &results.Builder{}
 
-	collationEnv := collations.NewEnvironment(servenv.MySQLServerVersion())
-	parser, err := sqlparser.New(sqlparser.Options{
-		MySQLServerVersion: servenv.MySQLServerVersion(),
-		TruncateUILen:      servenv.TruncateUILen,
-		TruncateErrLen:     servenv.TruncateErrLen,
-	})
+	collationEnv, parser, err := environment.GetCollationEnvAndParser()
 	if err != nil {
 		return resultBuilder.Error(err)
 	}

@@ -22,10 +22,6 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
-	"vitess.io/vitess/go/mysql/collations"
-	"vitess.io/vitess/go/vt/servenv"
-	"vitess.io/vitess/go/vt/sqlparser"
-
 	"vitess.io/vitess/go/vt/logutil"
 	"vitess.io/vitess/go/vt/vttablet/tmclient"
 	"vitess.io/vitess/go/vt/wrangler"
@@ -198,12 +194,7 @@ func (r *ReconcileVitessShard) Reconcile(cctx context.Context, request reconcile
 	tmc := tmclient.NewTabletManagerClient()
 	defer tmc.Close()
 
-	collationEnv := collations.NewEnvironment(servenv.MySQLServerVersion())
-	parser, err := sqlparser.New(sqlparser.Options{
-		MySQLServerVersion: servenv.MySQLServerVersion(),
-		TruncateUILen:      servenv.TruncateUILen,
-		TruncateErrLen:     servenv.TruncateErrLen,
-	})
+	collationEnv, parser, err := environment.GetCollationEnvAndParser()
 	if err != nil {
 		return resultBuilder.Error(err)
 	}
