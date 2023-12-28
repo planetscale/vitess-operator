@@ -93,23 +93,25 @@ func add(mgr manager.Manager, r *ReconcileVitessShard) error {
 	}
 
 	// Watch for changes to primary resource VitessShard
-	if err := c.Watch(&source.Kind{Type: &planetscalev2.VitessShard{}}, &handler.EnqueueRequestForObject{}); err != nil {
+	if err := c.Watch(source.Kind(mgr.GetCache(), &planetscalev2.VitessShard{}), &handler.EnqueueRequestForObject{}); err != nil {
 		return err
 	}
 
 	// Watch for changes to secondary resources and requeue the owner VitessShard.
 	for _, resource := range watchResources {
-		err := c.Watch(&source.Kind{Type: resource}, &handler.EnqueueRequestForOwner{
-			IsController: true,
-			OwnerType:    &planetscalev2.VitessShard{},
-		})
+		err := c.Watch(source.Kind(mgr.GetCache(), resource), handler.EnqueueRequestForOwner(
+			mgr.GetScheme(),
+			mgr.GetRESTMapper(),
+			&planetscalev2.VitessShard{},
+			handler.OnlyControllerOwner(),
+		))
 		if err != nil {
 			return err
 		}
 	}
 
 	// Watch for changes in VitessBackups, which we don't own, and requeue associated VitessShards.
-	err = c.Watch(&source.Kind{Type: &planetscalev2.VitessBackup{}}, handler.EnqueueRequestsFromMapFunc(shardBackupMapper))
+	err = c.Watch(source.Kind(mgr.GetCache(), &planetscalev2.VitessBackup{}), handler.EnqueueRequestsFromMapFunc(shardBackupMapper))
 	if err != nil {
 		return err
 	}
@@ -226,7 +228,7 @@ func (r *ReconcileVitessShard) Reconcile(cctx context.Context, request reconcile
 }
 
 // Map maps a VitessBackup to a list of requests for VitessShards.
-func shardBackupMapper(obj client.Object) []reconcile.Request {
+func shardBackupMapper(ctx context.Context, obj client.Object) []reconcile.Request {
 	vtb := obj.(*planetscalev2.VitessBackup)
 
 	// Request reconciliation for the VitessShard that matches this VitessBackup.
