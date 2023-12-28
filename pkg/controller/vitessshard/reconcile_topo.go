@@ -64,7 +64,7 @@ func (r *ReconcileVitessShard) reconcileTopology(ctx context.Context, vts *plane
 		return resultBuilder.RequeueAfter(topoRequeueDelay)
 	}
 	defer ts.Close()
-	collationEnv, parser, err := environment.GetCollationEnvAndParser()
+	collationEnv, parser, err := environment.CollationEnvAndParser()
 	if err != nil {
 		return resultBuilder.Error(err)
 	}

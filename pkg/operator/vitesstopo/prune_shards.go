@@ -84,7 +84,7 @@ func ShardsToPrune(currentShards []string, desiredShards sets.String, orphanedSh
 func DeleteShards(ctx context.Context, ts *topo.Server, recorder record.EventRecorder, eventObj runtime.Object, keyspaceName string, shardNames []string) (reconcile.Result, error) {
 	resultBuilder := &results.Builder{}
 
-	collationEnv, parser, err := environment.GetCollationEnvAndParser()
+	collationEnv, parser, err := environment.CollationEnvAndParser()
 	if err != nil {
 		return resultBuilder.Error(err)
 	}

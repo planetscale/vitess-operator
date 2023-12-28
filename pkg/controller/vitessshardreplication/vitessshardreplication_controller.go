@@ -194,7 +194,7 @@ func (r *ReconcileVitessShard) Reconcile(cctx context.Context, request reconcile
 	tmc := tmclient.NewTabletManagerClient()
 	defer tmc.Close()
 
-	collationEnv, parser, err := environment.GetCollationEnvAndParser()
+	collationEnv, parser, err := environment.CollationEnvAndParser()
 	if err != nil {
 		return resultBuilder.Error(err)
 	}

@@ -75,7 +75,7 @@ func (r *reconcileHandler) tsInit(ctx context.Context) error {
 		r.tmc = tmclient.NewTabletManagerClient()
 	}
 
-	collationEnv, parser, err := environment.GetCollationEnvAndParser()
+	collationEnv, parser, err := environment.CollationEnvAndParser()
 	if err != nil {
 		return err
 	}

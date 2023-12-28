@@ -66,8 +66,8 @@ func ReconcileTimeout() time.Duration {
 	return reconcileTimeout
 }
 
-// GetCollationEnvAndParser gets the collation environment and parser to be used in the operator.
-func GetCollationEnvAndParser() (*collations.Environment, *sqlparser.Parser, error) {
+// CollationEnvAndParser gets the collation environment and parser to be used in the operator.
+func CollationEnvAndParser() (*collations.Environment, *sqlparser.Parser, error) {
 	collationEnv := collations.NewEnvironment(mySQLServerVersion)
 	parser, err := sqlparser.New(sqlparser.Options{
 		MySQLServerVersion: mySQLServerVersion,

@@ -92,7 +92,7 @@ func KeyspacesToPrune(keyspaceNames []string, desiredKeyspaces sets.String, orph
 func DeleteKeyspaces(ctx context.Context, ts *topo.Server, recorder record.EventRecorder, eventObj runtime.Object, keyspaceNames []string) (reconcile.Result, error) {
 	resultBuilder := &results.Builder{}
 
-	collationEnv, parser, err := environment.GetCollationEnvAndParser()
+	collationEnv, parser, err := environment.CollationEnvAndParser()
 	if err != nil {
 		return resultBuilder.Error(err)
 	}
