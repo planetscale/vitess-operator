@@ -31,6 +31,7 @@ import (
 	"vitess.io/vitess/go/vt/wrangler"
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
+	"planetscale.dev/vitess-operator/pkg/operator/environment"
 	"planetscale.dev/vitess-operator/pkg/operator/k8s"
 	"planetscale.dev/vitess-operator/pkg/operator/results"
 	"planetscale.dev/vitess-operator/pkg/operator/toposerver"
@@ -63,7 +64,11 @@ func (r *ReconcileVitessShard) reconcileTopology(ctx context.Context, vts *plane
 		return resultBuilder.RequeueAfter(topoRequeueDelay)
 	}
 	defer ts.Close()
-	wr := wrangler.New(logutil.NewConsoleLogger(), ts.Server, nil)
+	collationEnv, parser, err := environment.CollationEnvAndParser()
+	if err != nil {
+		return resultBuilder.Error(err)
+	}
+	wr := wrangler.New(logutil.NewConsoleLogger(), ts.Server, nil, collationEnv, parser)
 
 	// Get the shard record.
 	if shard, err := ts.GetShard(ctx, keyspaceName, vts.Spec.Name); err == nil {
@@ -168,8 +173,8 @@ func (r *ReconcileVitessShard) pruneShardCells(ctx context.Context, vts *planets
 			Keyspace:  keyspaceName,
 			ShardName: vts.Spec.Name,
 			Cell:      cellName,
-			Force:     false /* force */,
-			Recursive: false /* recursive */,
+			Force:     false, /* force */
+			Recursive: false, /* recursive */
 		}); err != nil {
 			r.recorder.Eventf(vts, corev1.EventTypeWarning, "TopoCleanupFailed", "unable to remove cell %s from shard: %v", cellName, err)
 			resultBuilder.RequeueAfter(topoRequeueDelay)

@@ -22,7 +22,6 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
-
 	"vitess.io/vitess/go/vt/logutil"
 	"vitess.io/vitess/go/vt/vttablet/tmclient"
 	"vitess.io/vitess/go/vt/wrangler"
@@ -195,9 +194,13 @@ func (r *ReconcileVitessShard) Reconcile(cctx context.Context, request reconcile
 	tmc := tmclient.NewTabletManagerClient()
 	defer tmc.Close()
 
+	collationEnv, parser, err := environment.CollationEnvAndParser()
+	if err != nil {
+		return resultBuilder.Error(err)
+	}
 	// Wrangler wraps the necessary clients and implements
 	// multi-step Vitess cluster management workflows.
-	wr := wrangler.New(logutil.NewConsoleLogger(), ts.Server, tmc)
+	wr := wrangler.New(logutil.NewConsoleLogger(), ts.Server, tmc, collationEnv, parser)
 
 	// Initialize replication if it has not already been started.
 	initReplicationResult, err := r.initReplication(ctx, vts, wr)

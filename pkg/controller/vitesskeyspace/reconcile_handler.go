@@ -29,6 +29,7 @@ import (
 	"vitess.io/vitess/go/vt/wrangler"
 
 	v2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
+	"planetscale.dev/vitess-operator/pkg/operator/environment"
 	"planetscale.dev/vitess-operator/pkg/operator/reconciler"
 	"planetscale.dev/vitess-operator/pkg/operator/toposerver"
 )
@@ -74,9 +75,13 @@ func (r *reconcileHandler) tsInit(ctx context.Context) error {
 		r.tmc = tmclient.NewTabletManagerClient()
 	}
 
+	collationEnv, parser, err := environment.CollationEnvAndParser()
+	if err != nil {
+		return err
+	}
 	// Wrangler wraps the necessary clients and implements
 	// multi-step Vitess cluster management workflows.
-	wr := wrangler.New(logutil.NewConsoleLogger(), r.ts.Server, r.tmc)
+	wr := wrangler.New(logutil.NewConsoleLogger(), r.ts.Server, r.tmc, collationEnv, parser)
 	r.wr = wr
 
 	return nil
