@@ -94,7 +94,7 @@ docker build -f build/Dockerfile.release -t vitess-operator-pr:latest .
 echo "Setting up the kind config"
 setupKindConfig
 echo "Creating Kind cluster"
-kind create cluster --wait 30s --name kind-${BUILDKITE_BUILD_ID} --config ./vtdataroot/config.yaml --image kindest/node:v1.27.0
+kind create cluster --wait 30s --name kind-${BUILDKITE_BUILD_ID} --config ./vtdataroot/config.yaml --image kindest/node:v1.28.0
 echo "Loading docker image into Kind cluster"
 kind load docker-image vitess-operator-pr:latest --name kind-${BUILDKITE_BUILD_ID}
 
