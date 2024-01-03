@@ -103,16 +103,18 @@ func add(mgr manager.Manager, r *ReconcileVitessShard) error {
 	}
 
 	// Watch for changes to primary resource VitessShard
-	if err := c.Watch(&source.Kind{Type: &planetscalev2.VitessShard{}}, &handler.EnqueueRequestForObject{}); err != nil {
+	if err := c.Watch(source.Kind(mgr.GetCache(), &planetscalev2.VitessShard{}), &handler.EnqueueRequestForObject{}); err != nil {
 		return err
 	}
 
 	// Watch for changes to secondary resources and requeue the owner VitessShard.
 	for _, resource := range watchResources {
-		err := c.Watch(&source.Kind{Type: resource}, &handler.EnqueueRequestForOwner{
-			IsController: true,
-			OwnerType:    &planetscalev2.VitessShard{},
-		})
+		err := c.Watch(source.Kind(mgr.GetCache(), resource), handler.EnqueueRequestForOwner(
+			mgr.GetScheme(),
+			mgr.GetRESTMapper(),
+			&planetscalev2.VitessShard{},
+			handler.OnlyControllerOwner(),
+		))
 		if err != nil {
 			return err
 		}

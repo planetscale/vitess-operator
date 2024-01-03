@@ -27,6 +27,7 @@ import (
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
+	"sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
@@ -94,17 +95,20 @@ func main() {
 	}
 
 	options := manager.Options{
-		Namespace:          namespace,
-		SyncPeriod:         cacheInvalidateInterval,
-		MetricsBindAddress: fmt.Sprintf("%s:%d", metricsHost, metricsPort),
+		Cache: cache.Options{
+			SyncPeriod: cacheInvalidateInterval,
+		},
+		Metrics: server.Options{
+			BindAddress: fmt.Sprintf("%s:%d", metricsHost, metricsPort),
+		},
 	}
-	// Add support for MultiNamespace set in WATCH_NAMESPACE (e.g ns1,ns2)
-	// Note that this is not intended to be used for excluding namespaces, this is better done via a Predicate
-	// Also note that you may face performance issues when using this with a high number of namespaces.
-	// More Info: https://godoc.org/github.com/kubernetes-sigs/controller-runtime/pkg/cache#MultiNamespacedCacheBuilder
-	if strings.Contains(namespace, ",") {
-		options.Namespace = ""
-		options.NewCache = cache.MultiNamespacedCacheBuilder(strings.Split(namespace, ","))
+
+	if namespace != "" {
+		cacheConfigMap := map[string]cache.Config{}
+		for _, ns := range strings.Split(namespace, ",") {
+			cacheConfigMap[ns] = cache.Config{}
+		}
+		options.Cache.DefaultNamespaces = cacheConfigMap
 	}
 	mgr, err := controllermanager.New(forkPath, cfg, options)
 	if err != nil {
