@@ -51,6 +51,8 @@ spec:
           - cell: cell1
             type: replica
             replicas: 3
+            vttablet:
+              terminationGracePeriodSeconds: 60
             mysqld: {}
             dataVolumeClaimTemplate:
               accessModes: [ReadWriteOnce]
@@ -219,9 +221,15 @@ func verifyBasicVitessShard(f *framework.Fixture, ns, cluster, keyspace, shard s
 	// Each vttablet Pod should have a PVC.
 	for i := range cell1Pods.Items {
 		f.MustGet(ns, cell1Pods.Items[i].Name, &corev1.PersistentVolumeClaim{})
+		if *cell1Pods.Items[i].Spec.TerminationGracePeriodSeconds != 60 {
+			f.Fatalf("TerminationGracePeriodSeconds should be 60, but got %d", *cell1Pods.Items[i].Spec.TerminationGracePeriodSeconds)
+		}
 	}
 	for i := range cell2Pods.Items {
 		f.MustGet(ns, cell2Pods.Items[i].Name, &corev1.PersistentVolumeClaim{})
+		if *cell2Pods.Items[i].Spec.TerminationGracePeriodSeconds != 1800 {
+			f.Fatalf("TerminationGracePeriodSeconds should be 1800, but got %d", *cell2Pods.Items[i].Spec.TerminationGracePeriodSeconds)
+		}
 	}
 
 	// VitessShard creates vtbackup-init Pod/PVC.
