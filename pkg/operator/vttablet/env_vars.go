@@ -17,6 +17,7 @@ limitations under the License.
 package vttablet
 
 import (
+	"fmt"
 	"strings"
 
 	"planetscale.dev/vitess-operator/pkg/operator/lazy"
@@ -38,6 +39,15 @@ func init() {
 			{
 				Name:  "EXTRA_MY_CNF",
 				Value: strings.Join(extraMyCnf.Get(spec), ":"),
+			},
+		}
+	})
+
+	mysqldExporterEnvVars.Add(func(s lazy.Spec) []corev1.EnvVar {
+		return []corev1.EnvVar{
+			{
+				Name:  "DATA_SOURCE_NAME",
+				Value: fmt.Sprintf("%s@unix(%s)/", mysqldExporterUser, mysqlSocketPath),
 			},
 		}
 	})
