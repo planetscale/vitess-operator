@@ -1168,5 +1168,5 @@ sigs.k8s.io/structured-merge-diff/v4 v4.2.3/go.mod h1:qjx8mGObPmV2aSZepjQjbmb2ih
 sigs.k8s.io/yaml v1.2.0/go.mod h1:yfXDCHCao9+ENCvLSE62v9VSji2MKu5jeNfTrofGhJc=
 sigs.k8s.io/yaml v1.3.0 h1:a2VclLzOGrwOHDiV8EfBGhvjHvP46CtW5j6POvhYGGo=
 sigs.k8s.io/yaml v1.3.0/go.mod h1:GeOyir5tyXNByN85N/dRIT9es5UQNerPYEKK56eTBm8=
-vitess.io/vitess v0.10.3-0.20231222054134-d807985131ed h1:XHwJFwKTCWu2Mo3B8+41TOVGzGTHIzqU69yG+TmUSlM=
-vitess.io/vitess v0.10.3-0.20231222054134-d807985131ed/go.mod h1:fIPsR9+FuCA/QwknylRPp0buFk41Tl9KNhOQPQTm+5Y=
+vitess.io/vitess v0.10.3-0.20231229124652-260bf149a930 h1:72wrg2I3h4NcceIOd6fCnYH4ORgKpBpjafnRd1u9geE=
+vitess.io/vitess v0.10.3-0.20231229124652-260bf149a930/go.mod h1:fIPsR9+FuCA/QwknylRPp0buFk41Tl9KNhOQPQTm+5Y=
