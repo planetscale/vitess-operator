@@ -238,6 +238,10 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 			//   This depends on the exact semantics of each of mysqld-exporter's HTTP handlers,
 			//   so we need to do more investigation. For now it's better to leave them empty.
 		}
+
+		if spec.MysqldExporter != nil {
+			update.ResourceRequirements(&mysqldExporterContainer.Resources, &spec.MysqldExporter.Resources)
+		}
 	}
 
 	// Set the resource requirements on each of the default vttablet init
@@ -313,7 +317,11 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 		obj.Spec.SecurityContext.FSGroup = pointer.Int64Ptr(planetscalev2.DefaultVitessFSGroup)
 	}
 
-	obj.Spec.TerminationGracePeriodSeconds = pointer.Int64Ptr(terminationGracePeriodSeconds)
+	if spec.Vttablet.TerminationGracePeriodSeconds != nil {
+		obj.Spec.TerminationGracePeriodSeconds = spec.Vttablet.TerminationGracePeriodSeconds
+	} else {
+		obj.Spec.TerminationGracePeriodSeconds = pointer.Int64Ptr(defaultTerminationGracePeriodSeconds)
+	}
 
 	// In both the case of the user injecting their own affinity and the default, we
 	// simply override the pod's existing affinity configuration.

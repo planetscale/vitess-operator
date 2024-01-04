@@ -96,24 +96,26 @@ func add(mgr manager.Manager, r *ReconcileVitessCell) error {
 	}
 
 	// Watch for changes to primary resource VitessCell
-	err = c.Watch(&source.Kind{Type: &planetscalev2.VitessCell{}}, &handler.EnqueueRequestForObject{})
+	err = c.Watch(source.Kind(mgr.GetCache(), &planetscalev2.VitessCell{}), &handler.EnqueueRequestForObject{})
 	if err != nil {
 		return err
 	}
 
 	// Watch for changes to secondary resources and requeue the owner VitessCell.
 	for _, resource := range watchResources {
-		err := c.Watch(&source.Kind{Type: resource}, &handler.EnqueueRequestForOwner{
-			IsController: true,
-			OwnerType:    &planetscalev2.VitessCell{},
-		})
+		err := c.Watch(source.Kind(mgr.GetCache(), resource), handler.EnqueueRequestForOwner(
+			mgr.GetScheme(),
+			mgr.GetRESTMapper(),
+			&planetscalev2.VitessCell{},
+			handler.OnlyControllerOwner(),
+		))
 		if err != nil {
 			return err
 		}
 	}
 
 	// Watch for changes in VitessKeyspaces, which we don't own, and requeue associated VitessCells.
-	err = c.Watch(&source.Kind{Type: &planetscalev2.VitessKeyspace{}}, handler.EnqueueRequestsFromMapFunc(keyspaceCellsMapper))
+	err = c.Watch(source.Kind(mgr.GetCache(), &planetscalev2.VitessKeyspace{}), handler.EnqueueRequestsFromMapFunc(keyspaceCellsMapper))
 	if err != nil {
 		return err
 	}
@@ -122,7 +124,7 @@ func add(mgr manager.Manager, r *ReconcileVitessCell) error {
 	scm := &secretCellsMapper{
 		client: mgr.GetClient(),
 	}
-	err = c.Watch(&source.Kind{Type: &corev1.Secret{}}, handler.EnqueueRequestsFromMapFunc(scm.Map))
+	err = c.Watch(source.Kind(mgr.GetCache(), &corev1.Secret{}), handler.EnqueueRequestsFromMapFunc(scm.Map))
 	if err != nil {
 		return err
 	}

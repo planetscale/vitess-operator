@@ -331,6 +331,7 @@ func vttabletSpecs(vts *planetscalev2.VitessShard, parentLabels map[string]strin
 				Zone:                      vts.Spec.ZoneMap[tabletAlias.Cell],
 				Vttablet:                  &vttabletcpy,
 				Mysqld:                    pool.Mysqld,
+				MysqldExporter:            pool.MysqldExporter,
 				ExternalDatastore:         pool.ExternalDatastore,
 				Type:                      pool.Type,
 				DataVolumePVCSpec:         pool.DataVolumeClaimTemplate,

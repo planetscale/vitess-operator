@@ -98,17 +98,19 @@ func add(mgr manager.Manager, r *ReconcileVitessKeyspace) error {
 	}
 
 	// Watch for changes to primary resource VitessKeyspace
-	err = c.Watch(&source.Kind{Type: &planetscalev2.VitessKeyspace{}}, &handler.EnqueueRequestForObject{})
+	err = c.Watch(source.Kind(mgr.GetCache(), &planetscalev2.VitessKeyspace{}), &handler.EnqueueRequestForObject{})
 	if err != nil {
 		return err
 	}
 
 	// Watch for changes to secondary resources and requeue the owner VitessKeyspace.
 	for _, resource := range watchResources {
-		err := c.Watch(&source.Kind{Type: resource}, &handler.EnqueueRequestForOwner{
-			IsController: true,
-			OwnerType:    &planetscalev2.VitessKeyspace{},
-		})
+		err := c.Watch(source.Kind(mgr.GetCache(), resource), handler.EnqueueRequestForOwner(
+			mgr.GetScheme(),
+			mgr.GetRESTMapper(),
+			&planetscalev2.VitessKeyspace{},
+			handler.OnlyControllerOwner(),
+		))
 		if err != nil {
 			return err
 		}

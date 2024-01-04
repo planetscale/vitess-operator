@@ -31,6 +31,7 @@ import (
 	"time"
 
 	"k8s.io/klog"
+	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
 	"planetscale.dev/vitess-operator/pkg/operator/controllermanager"
@@ -204,7 +205,11 @@ func testMain(tests func() int) error {
 
 	// Start vitess-operator in this test process.
 	mgr, err := controllermanager.New("", ApiserverConfig(), manager.Options{
-		Namespace: "default",
+		Cache: cache.Options{
+			DefaultNamespaces: map[string]cache.Config{
+				"default": {},
+			},
+		},
 	})
 	if err != nil {
 		return fmt.Errorf("cannot create controller-manager: %v", err)
@@ -246,8 +251,8 @@ func execKubectlStdin(stdin io.Reader, args ...string) ([]byte, error) {
 		"--tls-server-name", "10.0.0.1",
 		"--certificate-authority", ApiserverCert(),
 		"--token", ApiserverToken(),
-		}, args...)
-	
+	}, args...)
+
 	cmd := exec.Command(execPath, cmdline...)
 	cmd.Stdin = stdin
 	return cmd.CombinedOutput()

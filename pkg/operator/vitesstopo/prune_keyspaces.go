@@ -29,6 +29,7 @@ import (
 	"vitess.io/vitess/go/vt/wrangler"
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
+	"planetscale.dev/vitess-operator/pkg/operator/environment"
 	"planetscale.dev/vitess-operator/pkg/operator/results"
 
 	vtctldatapb "vitess.io/vitess/go/vt/proto/vtctldata"
@@ -91,9 +92,13 @@ func KeyspacesToPrune(keyspaceNames []string, desiredKeyspaces sets.String, orph
 func DeleteKeyspaces(ctx context.Context, ts *topo.Server, recorder record.EventRecorder, eventObj runtime.Object, keyspaceNames []string) (reconcile.Result, error) {
 	resultBuilder := &results.Builder{}
 
+	collationEnv, parser, err := environment.CollationEnvAndParser()
+	if err != nil {
+		return resultBuilder.Error(err)
+	}
 	// We use the Vitess wrangler (multi-step command executor) to recursively delete the keyspace.
 	// This is equivalent to `vtctl DeleteKeyspace -recursive`.
-	wr := wrangler.New(logutil.NewConsoleLogger(), ts, nil)
+	wr := wrangler.New(logutil.NewConsoleLogger(), ts, nil, collationEnv, parser)
 
 	for _, name := range keyspaceNames {
 		// Before we delete a keyspace, we must delete vschema for this operation to be idempotent.
