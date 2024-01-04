@@ -207,6 +207,10 @@ type VitessShardTabletPool struct {
 	// Mysqld configures a local MySQL running inside each tablet Pod.
 	// You must specify either Mysqld or ExternalDatastore, but not both.
 	Mysqld *MysqldSpec `json:"mysqld,omitempty"`
+
+	// MysqldExporter configures a MySQL exporter running inside each tablet Pod.
+	MysqldExporter *MysqldExporterSpec `json:"mysqldExporter,omitempty"`
+
 	// ExternalDatastore provides information for an externally managed MySQL.
 	// You must specify either Mysqld or ExternalDatastore, but not both.
 	ExternalDatastore *ExternalDatastore `json:"externalDatastore,omitempty"`
@@ -309,6 +313,12 @@ type MysqldSpec struct {
 	// to override default my.cnf values (included with Vitess) for this
 	// particular MySQL instance.
 	ConfigOverrides string `json:"configOverrides,omitempty"`
+}
+
+// MysqldExporterSpec configures the local MySQL exporter within a tablet.
+type MysqldExporterSpec struct {
+	// Resources specify the compute resources to allocate for just the MySQL Exporter.
+	Resources corev1.ResourceRequirements `json:"resources"`
 }
 
 // VitessTabletPoolType represents the tablet types for which it makes sense

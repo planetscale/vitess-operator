@@ -42,6 +42,7 @@ type Spec struct {
 	DatabaseName              string
 	Vttablet                  *planetscalev2.VttabletSpec
 	Mysqld                    *planetscalev2.MysqldSpec
+	MysqldExporter            *planetscalev2.MysqldExporterSpec
 	ExternalDatastore         *planetscalev2.ExternalDatastore
 	DataVolumePVCSpec         *corev1.PersistentVolumeClaimSpec
 	DataVolumePVCName         string
