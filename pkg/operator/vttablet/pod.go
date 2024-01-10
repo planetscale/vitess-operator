@@ -17,7 +17,6 @@ limitations under the License.
 package vttablet
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -92,9 +91,11 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	env := tabletEnvVars.Get(spec)
 	vttabletEnv := append(vttabletEnvVars.Get(spec), env...)
 	update.GOMAXPROCS(&vttabletEnv, spec.Vttablet.Resources)
+	mysqldExporterEnv := mysqldExporterEnvVars.Get(spec)
 	// Then apply user-provided overrides last so they take precedence.
 	update.Env(&env, spec.ExtraEnv)
 	update.Env(&vttabletEnv, spec.ExtraEnv)
+	update.Env(&mysqldExporterEnv, spec.ExtraEnv)
 
 	// Compute all operator-generated volume mounts first.
 	mysqldMounts := append(mysqldVolumeMounts.Get(spec), volumeMounts...)
@@ -208,12 +209,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 				// memory usage.
 				"--collect.info_schema.tables.databases=sys,_vt",
 			},
-			Env: []corev1.EnvVar{
-				{
-					Name:  "DATA_SOURCE_NAME",
-					Value: fmt.Sprintf("%s@unix(%s)/", mysqldExporterUser, mysqlSocketPath),
-				},
-			},
+			Env: mysqldExporterEnv,
 			Ports: []corev1.ContainerPort{
 				{
 					Name:          mysqldExporterPortName,

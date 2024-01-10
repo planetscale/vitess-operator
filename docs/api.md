@@ -6675,7 +6675,7 @@ created for this component.</p>
 <td>
 <p>ExtraEnv can optionally be used to override default environment variables
 set by the operator, or pass additional environment variables.
-These values are applied to both the vttablet and mysqld containers.</p>
+These values are applied to the vttablet, mysqld, and mysqld-exporter containers.</p>
 </td>
 </tr>
 <tr>

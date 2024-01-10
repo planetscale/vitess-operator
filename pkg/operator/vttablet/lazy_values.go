@@ -30,6 +30,8 @@ var (
 	tabletEnvVars lazy.EnvVars
 	// vttabletEnvVars are extra env vars for only the vttablet container.
 	vttabletEnvVars lazy.EnvVars
+	// mysqldExporterEnvVars are extra env vars for only the mysqld container.
+	mysqldExporterEnvVars lazy.EnvVars
 	// extraMyCnf is a list of file paths to put into the EXTRA_MY_CNF env var.
 	extraMyCnf lazy.Strings
 
