@@ -21,7 +21,7 @@ require (
 	sigs.k8s.io/controller-runtime v0.16.3
 	sigs.k8s.io/controller-tools v0.11.3
 	sigs.k8s.io/kustomize v2.0.3+incompatible
-	vitess.io/vitess v0.10.3-0.20240105212102-ce203d2d6103
+	vitess.io/vitess v0.10.3-0.20240112195828-c53420174d46
 )
 
 require (
@@ -44,7 +44,7 @@ require (
 	github.com/Microsoft/go-winio v0.6.1 // indirect
 	github.com/aquarapid/vaultlib v0.5.1 // indirect
 	github.com/armon/go-metrics v0.4.1 // indirect
-	github.com/aws/aws-sdk-go v1.49.15 // indirect
+	github.com/aws/aws-sdk-go v1.49.16 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/blang/semver/v4 v4.0.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
