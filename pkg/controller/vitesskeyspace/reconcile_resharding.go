@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"reflect"
 	"sort"
+
 	vtctldatapb "vitess.io/vitess/go/vt/proto/vtctldata"
 
 	corev1 "k8s.io/api/core/v1"
@@ -55,7 +56,11 @@ func (r *reconcileHandler) reconcileResharding(ctx context.Context) (reconcile.R
 	// Look for a resharding workflow. If we find a second one bail out.
 	var reshardingWorkflow *wrangler.ReplicationStatusResult
 	for _, workflowName := range workflowList {
-		workflow, err := r.wr.ShowWorkflow(ctx, workflowName, r.vtk.Spec.Name)
+		var shards []string
+		for _, shard := range r.vtk.Spec.ShardTemplates() {
+			shards = append(shards, shard.KeyRange.String())
+		}
+		workflow, err := r.wr.ShowWorkflow(ctx, workflowName, r.vtk.Spec.Name, shards)
 		if err != nil {
 			// The only reason this would fail is if runVExec fails. This could be a topo communication failure or any number
 			// of indeterminable failures. We probably want to requeu faster than the resync period to try again, but wait a bit in
