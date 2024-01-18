@@ -68,7 +68,7 @@ func (r *ReconcileVitessShard) reconcileTopology(ctx context.Context, vts *plane
 	if err != nil {
 		return resultBuilder.Error(err)
 	}
-	wr := wrangler.New(logutil.NewConsoleLogger(), ts.Server, nil, collationEnv, parser)
+	wr := wrangler.New(logutil.NewConsoleLogger(), ts.Server, nil, collationEnv, parser, environment.MySQLServerVersion)
 
 	// Get the shard record.
 	if shard, err := ts.GetShard(ctx, keyspaceName, vts.Spec.Name); err == nil {

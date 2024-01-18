@@ -98,7 +98,7 @@ func DeleteKeyspaces(ctx context.Context, ts *topo.Server, recorder record.Event
 	}
 	// We use the Vitess wrangler (multi-step command executor) to recursively delete the keyspace.
 	// This is equivalent to `vtctl DeleteKeyspace -recursive`.
-	wr := wrangler.New(logutil.NewConsoleLogger(), ts, nil, collationEnv, parser)
+	wr := wrangler.New(logutil.NewConsoleLogger(), ts, nil, collationEnv, parser, environment.MySQLServerVersion)
 
 	for _, name := range keyspaceNames {
 		// Before we delete a keyspace, we must delete vschema for this operation to be idempotent.

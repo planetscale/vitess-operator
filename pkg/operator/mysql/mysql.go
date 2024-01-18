@@ -23,6 +23,7 @@ import (
 	"strconv"
 	"strings"
 
+	"planetscale.dev/vitess-operator/pkg/operator/environment"
 	"planetscale.dev/vitess-operator/pkg/operator/vitess"
 	"vitess.io/vitess/go/vt/sqlparser"
 )
@@ -35,6 +36,7 @@ func UpdateMySQLServerVersion(flags vitess.Flags, mysqldImage string) {
 		return
 	}
 	flags["mysql_server_version"] = value
+	environment.MySQLServerVersion = value
 }
 
 func dockerImageGetVersionToString(currentVersionImage string) (string, error) {

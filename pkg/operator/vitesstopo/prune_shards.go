@@ -91,7 +91,7 @@ func DeleteShards(ctx context.Context, ts *topo.Server, recorder record.EventRec
 
 	// We use the Vitess wrangler (multi-step command executor) to recursively delete the shard.
 	// This is equivalent to `vtctl DeleteShard -recursive`.
-	wr := wrangler.New(logutil.NewConsoleLogger(), ts, nil, collationEnv, parser)
+	wr := wrangler.New(logutil.NewConsoleLogger(), ts, nil, collationEnv, parser, environment.MySQLServerVersion)
 
 	for _, name := range shardNames {
 		// topo.NoNode is the error type returned if we can't find the shard when deleting. This ensures that this operation is idempotent.

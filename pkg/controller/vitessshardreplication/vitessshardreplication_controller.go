@@ -202,7 +202,7 @@ func (r *ReconcileVitessShard) Reconcile(cctx context.Context, request reconcile
 	}
 	// Wrangler wraps the necessary clients and implements
 	// multi-step Vitess cluster management workflows.
-	wr := wrangler.New(logutil.NewConsoleLogger(), ts.Server, tmc, collationEnv, parser)
+	wr := wrangler.New(logutil.NewConsoleLogger(), ts.Server, tmc, collationEnv, parser, environment.MySQLServerVersion)
 
 	// Initialize replication if it has not already been started.
 	initReplicationResult, err := r.initReplication(ctx, vts, wr)
