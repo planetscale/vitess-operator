@@ -81,7 +81,7 @@ func (r *reconcileHandler) tsInit(ctx context.Context) error {
 	}
 	// Wrangler wraps the necessary clients and implements
 	// multi-step Vitess cluster management workflows.
-	wr := wrangler.New(logutil.NewConsoleLogger(), r.ts.Server, r.tmc, collationEnv, parser)
+	wr := wrangler.New(logutil.NewConsoleLogger(), r.ts.Server, r.tmc, collationEnv, parser, environment.MySQLServerVersion)
 	r.wr = wr
 
 	return nil

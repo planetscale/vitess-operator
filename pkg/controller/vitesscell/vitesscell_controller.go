@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
+	apilabels "k8s.io/apimachinery/pkg/labels"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -181,17 +182,6 @@ func (r *ReconcileVitessCell) Reconcile(cctx context.Context, request reconcile.
 		return resultBuilder.Error(err)
 	}
 
-	// Fetch the VitessShard instance
-	vts := &planetscalev2.VitessShard{}
-	err = r.client.Get(ctx, request.NamespacedName, vts)
-	if err != nil {
-		if apierrors.IsNotFound(err) {
-			return resultBuilder.Result()
-		}
-		// Error reading the object - requeue the request.
-		return resultBuilder.Error(err)
-	}
-
 	// Reset status so it's all based on the latest observed state.
 	oldStatus := vtc.Status
 	vtc.Status = planetscalev2.NewVitessCellStatus()
@@ -206,8 +196,28 @@ func (r *ReconcileVitessCell) Reconcile(cctx context.Context, request reconcile.
 		resultBuilder.Error(err)
 	}
 
+	// List all VitessShard in the same cluster, we do this to determine what is the image used for the mysqld container
+	// Note that this is cheap because it comes from the local cache.
+	labels := map[string]string{
+		planetscalev2.ClusterLabel: vtc.Labels[planetscalev2.ClusterLabel],
+	}
+	opts := &client.ListOptions{
+		Namespace:     vtc.Namespace,
+		LabelSelector: apilabels.SelectorFromSet(labels),
+	}
+	vts := &planetscalev2.VitessShardList{}
+	if err := r.client.List(ctx, vts, opts); err != nil {
+		r.recorder.Eventf(vtc, corev1.EventTypeWarning, "ListFailed", "failed to list VitessShard objects: %v", err)
+		return resultBuilder.Error(err)
+	}
+
+	var mysqldImage string
+	if len(vts.Items) > 0 {
+		mysqldImage = vts.Items[0].Spec.Images.Mysqld.Image()
+	}
+
 	// Create/update vtgate deployments.
-	vtgateResult, err := r.reconcileVtgate(ctx, vtc, vts.Spec.Images.Mysqld.Image())
+	vtgateResult, err := r.reconcileVtgate(ctx, vtc, mysqldImage)
 	resultBuilder.Merge(vtgateResult, err)
 
 	// Check which VitessKeyspaces are deployed to this cell.
