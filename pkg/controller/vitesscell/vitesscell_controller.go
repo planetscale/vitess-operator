@@ -181,6 +181,17 @@ func (r *ReconcileVitessCell) Reconcile(cctx context.Context, request reconcile.
 		return resultBuilder.Error(err)
 	}
 
+	// Fetch the VitessShard instance
+	vts := &planetscalev2.VitessShard{}
+	err = r.client.Get(ctx, request.NamespacedName, vts)
+	if err != nil {
+		if apierrors.IsNotFound(err) {
+			return resultBuilder.Result()
+		}
+		// Error reading the object - requeue the request.
+		return resultBuilder.Error(err)
+	}
+
 	// Reset status so it's all based on the latest observed state.
 	oldStatus := vtc.Status
 	vtc.Status = planetscalev2.NewVitessCellStatus()
@@ -196,7 +207,7 @@ func (r *ReconcileVitessCell) Reconcile(cctx context.Context, request reconcile.
 	}
 
 	// Create/update vtgate deployments.
-	vtgateResult, err := r.reconcileVtgate(ctx, vtc)
+	vtgateResult, err := r.reconcileVtgate(ctx, vtc, vts.Spec.Images.Mysqld.Image())
 	resultBuilder.Merge(vtgateResult, err)
 
 	// Check which VitessKeyspaces are deployed to this cell.

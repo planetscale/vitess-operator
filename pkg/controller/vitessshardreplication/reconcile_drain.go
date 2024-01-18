@@ -19,13 +19,10 @@ package vitessshardreplication
 import (
 	"context"
 	"fmt"
-	"regexp"
-	"slices"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/sirupsen/logrus"
+	"planetscale.dev/vitess-operator/pkg/operator/mysql"
 	"vitess.io/vitess/go/mysql/replication"
 	"vitess.io/vitess/go/vt/proto/tabletmanagerdata"
 	topodatapb "vitess.io/vitess/go/vt/proto/topodata"
@@ -508,7 +505,7 @@ func (r *ReconcileVitessShard) disableFastShutdown(
 			}
 		}
 
-		needsSafe, err := safeMysqldUpgrade(current, desiredImage)
+		needsSafe, err := mysql.DockerImageSafeUpgrade(current, desiredImage)
 		if err != nil {
 			return err
 		}
@@ -525,98 +522,6 @@ func (r *ReconcileVitessShard) disableFastShutdown(
 		log.Infof("innodb_fast_shutdown = 0 to prepare MySQL upgrade on pod %s", pod.Name)
 	}
 	return nil
-}
-
-var mysqlImageVersion = regexp.MustCompile(`^(\d+)\.(\d+)\.(\d+)`)
-
-func safeMysqldUpgrade(currentImage, desiredImage string) (bool, error) {
-	if currentImage == "" || desiredImage == "" {
-		// No action if we have unknown versions.
-		return false, nil
-	}
-
-	// Quick check so no regexp matching is needed for the most common
-	// case where nothing changes.
-	if desiredImage == currentImage {
-		return false, nil
-	}
-
-	currentParts := strings.SplitN(currentImage, ":", 2)
-	if len(currentParts) != 2 {
-		return false, nil
-	}
-
-	desiredParts := strings.SplitN(desiredImage, ":", 2)
-	if len(desiredParts) != 2 {
-		return false, nil
-	}
-
-	current := currentParts[1]
-	desired := desiredParts[1]
-
-	curStrParts := mysqlImageVersion.FindStringSubmatch(current)
-	if len(curStrParts) != 4 {
-		// Invalid version, assume that we need to do a safe upgrade.
-		return true, nil
-	}
-	dstStrParts := mysqlImageVersion.FindStringSubmatch(desired)
-	if len(dstStrParts) != 4 {
-		// Invalid version, assume that we need to do a safe upgrade.
-		return true, nil
-	}
-	if slices.Equal(curStrParts, dstStrParts) {
-		return false, nil
-	}
-	dstParts := make([]int, len(dstStrParts)-1)
-	curParts := make([]int, len(curStrParts)-1)
-	for i, part := range dstStrParts[1:] {
-		// We already matched with `\d_` so there's no
-		// way this can trigger an error.
-		dstParts[i], _ = strconv.Atoi(part)
-	}
-
-	for i, part := range curStrParts[1:] {
-		// We already matched with `\d_` so there's no
-		// way this can trigger an error.
-		curParts[i], _ = strconv.Atoi(part)
-	}
-
-	if dstParts[0] < curParts[0] {
-		return false, fmt.Errorf("cannot downgrade major version from %s to %s", current, desired)
-	}
-	if dstParts[0] == curParts[1] && dstParts[1] < curParts[1] {
-		return false, fmt.Errorf("cannot downgrade minor version from %s to %s", current, desired)
-	}
-
-	// Alright, here it gets more tricky. MySQL has had a complicated release history. For the 8.0 series,
-	// up to 8.0.34 at least (known at this point), it was not supported to downgrade patch releases
-	// as patch release could also include on-disk data format changes. This happened a number of times
-	// in practice as well, so this concern is real.
-	//
-	// MySQL though has announced a new release strategy, see:
-	// https://dev.mysql.com/blog-archive/introducing-mysql-innovation-and-long-term-support-lts-versions/
-	//
-	// With that release strategy, it will become possible that patch releases will be safe to downgrade
-	// as well and since the data format doesn't change on-disk anymore, it's also safe to upgrade with
-	// fast shutdown enabled.
-	// Specifically, it calls out that "MySQL 8.0.34+ will become bugfix only release (red)". This means
-	// that we use that version as a cut-off point here for when we need to disable fast shutdown or not.
-	if dstParts[0] == 8 && dstParts[1] == 0 && curParts[0] == 8 && curParts[1] == 0 {
-		// Our upgrade process stays within the 8.0.x version range.
-		if dstParts[2] >= 34 && curParts[2] >= 34 {
-			// No need for safe upgrade if both versions are 8.0.34 or higher.
-			return false, nil
-		}
-		// We can't downgrade within the 8.0.x series before 8.0.34.
-		if dstParts[2] < curParts[2] {
-			return false, fmt.Errorf("cannot downgrade patch version from %s to %s", current, desired)
-		}
-		// Always need safe upgrade if we change the patch release for 8.0.x before 8.0.34.
-		return dstParts[2] != curParts[2], nil
-	}
-
-	// For any major or minor version change we always need safe upgrade.
-	return dstParts[0] != curParts[0] || dstParts[1] != curParts[1], nil
 }
 
 type candidateInfo struct {

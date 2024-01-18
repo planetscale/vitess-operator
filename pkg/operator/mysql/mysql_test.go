@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package vitessshardreplication
+package mysql
 
 import (
 	"testing"
@@ -132,7 +132,7 @@ func TestSafeMysqldUpgrade(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			needsSafe, err := safeMysqldUpgrade(tt.current, tt.desired)
+			needsSafe, err := DockerImageSafeUpgrade(tt.current, tt.desired)
 			if tt.err != "" {
 				assert.EqualError(t, err, tt.err)
 			} else {
