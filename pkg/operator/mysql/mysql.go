@@ -23,12 +23,21 @@ import (
 	"strconv"
 	"strings"
 
+	"planetscale.dev/vitess-operator/pkg/operator/vitess"
 	"vitess.io/vitess/go/vt/sqlparser"
 )
 
 var imageVersionRegExp = regexp.MustCompile(`^(\d+)\.(\d+)\.(\d+)`)
 
-func DockerImageGetVersionToString(currentVersionImage string) (string, error) {
+func UpdateMySQLServerVersion(flags vitess.Flags, mysqldImage string) {
+	value, err := dockerImageGetVersionToString(mysqldImage)
+	if err != nil {
+		return
+	}
+	flags["mysql_server_version"] = value
+}
+
+func dockerImageGetVersionToString(currentVersionImage string) (string, error) {
 	currentVersionSlice := strings.SplitN(currentVersionImage, ":", 2)
 	if len(currentVersionSlice) != 2 {
 		return "", fmt.Errorf("could not parse the image name and image label, got: %s, but expected xx:xx", currentVersionImage)

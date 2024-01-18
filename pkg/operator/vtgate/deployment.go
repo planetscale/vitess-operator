@@ -224,7 +224,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec, mysqldImage string) {
 	flags := spec.baseFlags()
 
 	// Update the Pod template, container, and flags for various optional things.
-	updateMySQLServerVersion(flags, mysqldImage)
+	mysql.UpdateMySQLServerVersion(flags, mysqldImage)
 	updateAuth(spec, flags, vtgateContainer, &obj.Spec.Template.Spec)
 	updateTransport(spec, flags, vtgateContainer, &obj.Spec.Template.Spec)
 	update.Volumes(&obj.Spec.Template.Spec.Volumes, spec.ExtraVolumes)
@@ -286,14 +286,6 @@ func (spec *Spec) baseFlags() vitess.Flags {
 		"port":        planetscalev2.DefaultWebPort,
 		"grpc_port":   planetscalev2.DefaultGrpcPort,
 	}
-}
-
-func updateMySQLServerVersion(flags vitess.Flags, mysqldImage string) {
-	value, err := mysql.DockerImageGetVersionToString(mysqldImage)
-	if err != nil {
-		return
-	}
-	flags["mysql_server_version"] = value
 }
 
 func updateAuth(spec *Spec, flags vitess.Flags, container *corev1.Container, podSpec *corev1.PodSpec) {
