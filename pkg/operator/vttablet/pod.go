@@ -167,13 +167,16 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	var mysqldContainer *corev1.Container
 	var mysqldExporterContainer *corev1.Container
 
+	mysqlctldAllFlags := mysqlctldFlags.Get(spec)
+	mysql.UpdateMySQLServerVersion(mysqlctldAllFlags, spec.Images.Mysqld.Image())
+
 	if spec.Mysqld != nil {
 		mysqldContainer = &corev1.Container{
 			Name:            MysqldContainerName,
 			Image:           spec.Images.Mysqld.Image(),
 			ImagePullPolicy: spec.ImagePullPolicies.Mysqld,
 			Command:         []string{mysqldCommand},
-			Args:            mysqlctldFlags.Get(spec).FormatArgs(),
+			Args:            mysqlctldAllFlags.FormatArgs(),
 			Ports: []corev1.ContainerPort{
 				{
 					Name:          planetscalev2.DefaultMysqlPortName,
