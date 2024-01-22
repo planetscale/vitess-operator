@@ -25,8 +25,7 @@ import (
 	"time"
 
 	"github.com/spf13/pflag"
-	"vitess.io/vitess/go/mysql/collations"
-	"vitess.io/vitess/go/vt/sqlparser"
+	"vitess.io/vitess/go/vt/vtenv"
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 )
@@ -66,13 +65,11 @@ func ReconcileTimeout() time.Duration {
 	return reconcileTimeout
 }
 
-// CollationEnvAndParser gets the collation environment and parser to be used in the operator.
-func CollationEnvAndParser() (*collations.Environment, *sqlparser.Parser, error) {
-	collationEnv := collations.NewEnvironment(mySQLServerVersion)
-	parser, err := sqlparser.New(sqlparser.Options{
+// VtEnvironment gets the vitess environment to be used in the operator.
+func VtEnvironment() (*vtenv.Environment, error) {
+	return vtenv.New(vtenv.Options{
 		MySQLServerVersion: mySQLServerVersion,
 		TruncateUILen:      truncateUILen,
 		TruncateErrLen:     truncateErrLen,
 	})
-	return collationEnv, parser, err
 }

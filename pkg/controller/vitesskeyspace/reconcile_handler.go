@@ -75,13 +75,13 @@ func (r *reconcileHandler) tsInit(ctx context.Context) error {
 		r.tmc = tmclient.NewTabletManagerClient()
 	}
 
-	collationEnv, parser, err := environment.CollationEnvAndParser()
+	vtEnv, err := environment.VtEnvironment()
 	if err != nil {
 		return err
 	}
 	// Wrangler wraps the necessary clients and implements
 	// multi-step Vitess cluster management workflows.
-	wr := wrangler.New(logutil.NewConsoleLogger(), r.ts.Server, r.tmc, collationEnv, parser)
+	wr := wrangler.New(vtEnv, logutil.NewConsoleLogger(), r.ts.Server, r.tmc)
 	r.wr = wr
 
 	return nil
