@@ -24,6 +24,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/pointer"
+	"planetscale.dev/vitess-operator/pkg/operator/mysql"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
@@ -86,7 +87,7 @@ type Spec struct {
 }
 
 // NewDeployment creates a new Deployment object for vtgate.
-func NewDeployment(key client.ObjectKey, spec *Spec) *appsv1.Deployment {
+func NewDeployment(key client.ObjectKey, spec *Spec, mysqldImage string) *appsv1.Deployment {
 	// Fill in the immutable parts.
 	obj := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
@@ -100,12 +101,12 @@ func NewDeployment(key client.ObjectKey, spec *Spec) *appsv1.Deployment {
 		},
 	}
 	// Set everything else.
-	UpdateDeployment(obj, spec)
+	UpdateDeployment(obj, spec, mysqldImage)
 	return obj
 }
 
 // UpdateDeployment updates the mutable parts of the vtgate Deployment.
-func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
+func UpdateDeployment(obj *appsv1.Deployment, spec *Spec, mysqldImage string) {
 	// Set labels on the Deployment object.
 	update.Labels(&obj.Labels, spec.Labels)
 
@@ -223,6 +224,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 	flags := spec.baseFlags()
 
 	// Update the Pod template, container, and flags for various optional things.
+	mysql.UpdateMySQLServerVersion(flags, mysqldImage)
 	updateAuth(spec, flags, vtgateContainer, &obj.Spec.Template.Spec)
 	updateTransport(spec, flags, vtgateContainer, &obj.Spec.Template.Spec)
 	update.Volumes(&obj.Spec.Template.Spec.Volumes, spec.ExtraVolumes)

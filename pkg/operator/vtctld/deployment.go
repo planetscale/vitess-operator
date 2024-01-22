@@ -24,6 +24,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/pointer"
+	"planetscale.dev/vitess-operator/pkg/operator/mysql"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
@@ -74,7 +75,7 @@ type Spec struct {
 }
 
 // NewDeployment creates a new Deployment object for vtctld.
-func NewDeployment(key client.ObjectKey, spec *Spec) *appsv1.Deployment {
+func NewDeployment(key client.ObjectKey, spec *Spec, mysqldImage string) *appsv1.Deployment {
 	// Fill in the immutable parts.
 	obj := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
@@ -88,7 +89,7 @@ func NewDeployment(key client.ObjectKey, spec *Spec) *appsv1.Deployment {
 		},
 	}
 	// Set everything else.
-	UpdateDeployment(obj, spec)
+	UpdateDeployment(obj, spec, mysqldImage)
 	return obj
 }
 
@@ -104,7 +105,7 @@ func UpdateDeploymentImmediate(obj *appsv1.Deployment, spec *Spec) {
 
 // UpdateDeployment updates the mutable parts of the vtctld Deployment
 // that should be changed as part of a gradual, rolling update.
-func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
+func UpdateDeployment(obj *appsv1.Deployment, spec *Spec, mysqldImage string) {
 	UpdateDeploymentImmediate(obj, spec)
 
 	// Reset Pod template labels so we remove old ones.
@@ -131,6 +132,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 		key = strings.TrimLeft(key, "-")
 		flags[key] = value
 	}
+	mysql.UpdateMySQLServerVersion(flags, mysqldImage)
 
 	// Set only the Pod template fields we care about.
 	// Use functions from the `operator/update` package for lists

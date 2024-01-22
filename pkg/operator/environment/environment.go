@@ -32,7 +32,7 @@ import (
 
 var (
 	reconcileTimeout   time.Duration
-	mySQLServerVersion = "8.0.30-Vitess"
+	MySQLServerVersion = "8.0.30-Vitess"
 	// truncateUILen truncate queries in debug UIs to the given length. 0 means unlimited.
 	truncateUILen = 512
 	// truncateErrLen truncate queries in error logs to the given length. 0 means unlimited.
@@ -68,7 +68,7 @@ func ReconcileTimeout() time.Duration {
 // VtEnvironment gets the vitess environment to be used in the operator.
 func VtEnvironment() (*vtenv.Environment, error) {
 	return vtenv.New(vtenv.Options{
-		MySQLServerVersion: mySQLServerVersion,
+		MySQLServerVersion: MySQLServerVersion,
 		TruncateUILen:      truncateUILen,
 		TruncateErrLen:     truncateErrLen,
 	})

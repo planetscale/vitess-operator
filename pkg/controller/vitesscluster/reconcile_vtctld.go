@@ -84,19 +84,19 @@ func (r *ReconcileVitessCluster) reconcileVtctld(ctx context.Context, vt *planet
 		Kind: &appsv1.Deployment{},
 
 		New: func(key client.ObjectKey) runtime.Object {
-			return vtctld.NewDeployment(key, specMap[key])
+			return vtctld.NewDeployment(key, specMap[key], vt.Spec.Images.Mysqld.Image())
 		},
 		UpdateInPlace: func(key client.ObjectKey, obj runtime.Object) {
 			newObj := obj.(*appsv1.Deployment)
 			if *vt.Spec.UpdateStrategy.Type == planetscalev2.ImmediateVitessClusterUpdateStrategyType {
-				vtctld.UpdateDeployment(newObj, specMap[key])
+				vtctld.UpdateDeployment(newObj, specMap[key], vt.Spec.Images.Mysqld.Image())
 				return
 			}
 			vtctld.UpdateDeploymentImmediate(newObj, specMap[key])
 		},
 		UpdateRollingInPlace: func(key client.ObjectKey, obj runtime.Object) {
 			newObj := obj.(*appsv1.Deployment)
-			vtctld.UpdateDeployment(newObj, specMap[key])
+			vtctld.UpdateDeployment(newObj, specMap[key], vt.Spec.Images.Mysqld.Image())
 		},
 		Status: func(key client.ObjectKey, obj runtime.Object) {
 			// This function will get called once for each Deployment.

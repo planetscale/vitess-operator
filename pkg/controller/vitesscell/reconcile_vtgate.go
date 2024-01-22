@@ -71,7 +71,7 @@ func (m *secretCellsMapper) Map(ctx context.Context, obj client.Object) []reconc
 	return requests
 }
 
-func (r *ReconcileVitessCell) reconcileVtgate(ctx context.Context, vtc *planetscalev2.VitessCell) (reconcile.Result, error) {
+func (r *ReconcileVitessCell) reconcileVtgate(ctx context.Context, vtc *planetscalev2.VitessCell, mysqldImage string) (reconcile.Result, error) {
 	clusterName := vtc.Labels[planetscalev2.ClusterLabel]
 
 	key := client.ObjectKey{Namespace: vtc.Namespace, Name: vtgate.ServiceName(clusterName, vtc.Spec.Name)}
@@ -151,11 +151,11 @@ func (r *ReconcileVitessCell) reconcileVtgate(ctx context.Context, vtc *planetsc
 		Kind: &appsv1.Deployment{},
 
 		New: func(key client.ObjectKey) runtime.Object {
-			return vtgate.NewDeployment(key, spec)
+			return vtgate.NewDeployment(key, spec, mysqldImage)
 		},
 		UpdateInPlace: func(key client.ObjectKey, obj runtime.Object) {
 			newObj := obj.(*appsv1.Deployment)
-			vtgate.UpdateDeployment(newObj, spec)
+			vtgate.UpdateDeployment(newObj, spec, mysqldImage)
 		},
 		Status: func(key client.ObjectKey, obj runtime.Object) {
 			curObj := obj.(*appsv1.Deployment)

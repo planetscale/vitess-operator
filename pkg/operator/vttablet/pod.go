@@ -25,6 +25,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/pointer"
+	"planetscale.dev/vitess-operator/pkg/operator/mysql"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	topodatapb "vitess.io/vitess/go/vt/proto/topodata"
 	"vitess.io/vitess/go/vt/topo/topoproto"
@@ -86,6 +87,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 		key = strings.TrimLeft(key, "-")
 		vttabletAllFlags[key] = value
 	}
+	mysql.UpdateMySQLServerVersion(vttabletAllFlags, spec.Images.Mysqld.Image())
 
 	// Compute all operator-generated env vars first.
 	env := tabletEnvVars.Get(spec)
@@ -165,13 +167,16 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	var mysqldContainer *corev1.Container
 	var mysqldExporterContainer *corev1.Container
 
+	mysqlctldAllFlags := mysqlctldFlags.Get(spec)
+	mysql.UpdateMySQLServerVersion(mysqlctldAllFlags, spec.Images.Mysqld.Image())
+
 	if spec.Mysqld != nil {
 		mysqldContainer = &corev1.Container{
 			Name:            MysqldContainerName,
 			Image:           spec.Images.Mysqld.Image(),
 			ImagePullPolicy: spec.ImagePullPolicies.Mysqld,
 			Command:         []string{mysqldCommand},
-			Args:            mysqlctldFlags.Get(spec).FormatArgs(),
+			Args:            mysqlctldAllFlags.FormatArgs(),
 			Ports: []corev1.ContainerPort{
 				{
 					Name:          planetscalev2.DefaultMysqlPortName,

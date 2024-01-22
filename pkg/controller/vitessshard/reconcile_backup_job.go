@@ -141,7 +141,7 @@ func (r *ReconcileVitessShard) reconcileBackupJob(ctx context.Context, vts *plan
 		Kind: &corev1.Pod{},
 
 		New: func(key client.ObjectKey) runtime.Object {
-			return vttablet.NewBackupPod(key, specMap[key])
+			return vttablet.NewBackupPod(key, specMap[key], vts.Spec.Images.Mysqld.Image())
 		},
 		Status: func(key client.ObjectKey, obj runtime.Object) {
 			pod := obj.(*corev1.Pod)

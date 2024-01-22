@@ -23,6 +23,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/pointer"
+	"planetscale.dev/vitess-operator/pkg/operator/mysql"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
@@ -92,7 +93,7 @@ func InitialBackupPodName(clusterName, keyspaceName string, keyRange planetscale
 
 // NewBackupPod creates a new vtbackup Pod, which is like a special kind of
 // minimal tablet used to run backups as a batch process.
-func NewBackupPod(key client.ObjectKey, backupSpec *BackupSpec) *corev1.Pod {
+func NewBackupPod(key client.ObjectKey, backupSpec *BackupSpec, mysqldImage string) *corev1.Pod {
 	tabletSpec := backupSpec.TabletSpec
 
 	// Include vttablet env vars, since we run some vttablet code like backups.
@@ -132,6 +133,8 @@ func NewBackupPod(key client.ObjectKey, backupSpec *BackupSpec) *corev1.Pod {
 	// Make a copy of Resources since it contains pointers.
 	update.ResourceRequirements(&containerResources, &tabletSpec.Mysqld.Resources)
 
+	vtbackupAllFlags := vtbackupFlags.Get(backupSpec)
+	mysql.UpdateMySQLServerVersion(vtbackupAllFlags, mysqldImage)
 	pod := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace:   key.Namespace,
@@ -171,7 +174,7 @@ func NewBackupPod(key client.ObjectKey, backupSpec *BackupSpec) *corev1.Pod {
 					Image:           tabletSpec.Images.Mysqld.Image(),
 					ImagePullPolicy: tabletSpec.ImagePullPolicies.Mysqld,
 					Command:         []string{vtbackupCommand},
-					Args:            vtbackupFlags.Get(backupSpec).FormatArgs(),
+					Args:            vtbackupAllFlags.FormatArgs(),
 					Resources:       containerResources,
 					SecurityContext: securityContext,
 					Env:             env,
