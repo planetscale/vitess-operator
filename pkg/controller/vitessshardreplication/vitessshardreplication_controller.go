@@ -196,13 +196,13 @@ func (r *ReconcileVitessShard) Reconcile(cctx context.Context, request reconcile
 	tmc := tmclient.NewTabletManagerClient()
 	defer tmc.Close()
 
-	collationEnv, parser, err := environment.CollationEnvAndParser()
+	vtEnv, err := environment.VtEnvironment()
 	if err != nil {
 		return resultBuilder.Error(err)
 	}
 	// Wrangler wraps the necessary clients and implements
 	// multi-step Vitess cluster management workflows.
-	wr := wrangler.New(logutil.NewConsoleLogger(), ts.Server, tmc, collationEnv, parser, environment.MySQLServerVersion)
+	wr := wrangler.New(vtEnv, logutil.NewConsoleLogger(), ts.Server, tmc)
 
 	// Initialize replication if it has not already been started.
 	initReplicationResult, err := r.initReplication(ctx, vts, wr)
