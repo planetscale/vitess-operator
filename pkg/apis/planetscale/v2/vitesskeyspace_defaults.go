@@ -69,3 +69,23 @@ func DefaultVitessKeyspaceImages(dst *VitessKeyspaceImages, clusterDefaults *Vit
 		dst.MysqldExporter = clusterDefaults.MysqldExporter
 	}
 }
+
+// MergeVitessKeyspaceImages takes non-empty image values from a non-nil src
+// and sets them on dst.
+func MergeVitessKeyspaceImages(dst *VitessKeyspaceImages, src *VitessKeyspaceImages) {
+	if src.Vttablet != "" {
+		dst.Vttablet = src.Vttablet
+	}
+	if src.Vtorc != "" {
+		dst.Vtorc = src.Vtorc
+	}
+	if src.Vtbackup != "" {
+		dst.Vtbackup = src.Vtbackup
+	}
+	if src.Mysqld != nil {
+		dst.Mysqld = src.Mysqld
+	}
+	if dst.MysqldExporter != "" {
+		dst.MysqldExporter = src.MysqldExporter
+	}
+}
