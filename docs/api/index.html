@@ -4770,10 +4770,11 @@ VitessKeyspaceImages
 </em>
 </td>
 <td>
-<p>Images are not customizable by users at the keyspace level because version
-skew across the cluster is discouraged except during rolling updates,
-in which case this field is automatically managed by the VitessCluster
-controller that owns this VitessKeyspace.</p>
+<p>Images are inherited from the VitessCluster spec, unless the user has
+specified keyspace-level overrides. Version skew across the cluster is
+discouraged except during rolling updates, in which case this field is
+automatically managed by the VitessCluster controller that owns this
+VitessKeyspace.</p>
 </td>
 </tr>
 <tr>
@@ -5078,6 +5079,7 @@ use custom partitioning instead.</p>
 <p>
 (<em>Appears on:</em>
 <a href="#planetscale.com/v2.VitessKeyspaceSpec">VitessKeyspaceSpec</a>, 
+<a href="#planetscale.com/v2.VitessKeyspaceTemplate">VitessKeyspaceTemplate</a>, 
 <a href="#planetscale.com/v2.VitessShardSpec">VitessShardSpec</a>)
 </p>
 <p>
@@ -5557,10 +5559,11 @@ VitessKeyspaceImages
 </em>
 </td>
 <td>
-<p>Images are not customizable by users at the keyspace level because version
-skew across the cluster is discouraged except during rolling updates,
-in which case this field is automatically managed by the VitessCluster
-controller that owns this VitessKeyspace.</p>
+<p>Images are inherited from the VitessCluster spec, unless the user has
+specified keyspace-level overrides. Version skew across the cluster is
+discouraged except during rolling updates, in which case this field is
+automatically managed by the VitessCluster controller that owns this
+VitessKeyspace.</p>
 </td>
 </tr>
 <tr>
@@ -5934,6 +5937,24 @@ map[string]string
 </td>
 <td>
 <p>Annotations can optionally be used to attach custom annotations to the VitessKeyspace object.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>images</code></br>
+<em>
+<a href="#planetscale.com/v2.VitessKeyspaceImages">
+VitessKeyspaceImages
+</a>
+</em>
+</td>
+<td>
+<p>Users are encouraged to let the VitessCluster controller automatically
+propagate image changes from the VitessCluster to the VitessKeyspace
+via rolling updates.</p>
+<p>For special cases, users may specify per-VitessKeyspace images. An
+example: migrating from MySQL 5.7 to MySQL 8.0 via a <code>MoveTables</code>
+operation, after which the source keyspace is destroyed.</p>
 </td>
 </tr>
 </tbody>

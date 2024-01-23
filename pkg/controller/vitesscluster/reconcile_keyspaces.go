@@ -149,6 +149,9 @@ func newVitessKeyspace(key client.ObjectKey, vt *planetscalev2.VitessCluster, pa
 	images := planetscalev2.VitessKeyspaceImages{}
 	planetscalev2.DefaultVitessKeyspaceImages(&images, &vt.Spec.Images)
 
+	// Apply user-defined overrides for images.
+	planetscalev2.MergeVitessKeyspaceImages(&images, &keyspace.Images)
+
 	// Copy parent labels map and add keyspace-specific label.
 	labels := make(map[string]string, len(parentLabels)+1)
 	for k, v := range parentLabels {

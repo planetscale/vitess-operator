@@ -1172,6 +1172,28 @@ spec:
                       type: string
                     durabilityPolicy:
                       type: string
+                    images:
+                      properties:
+                        mysqld:
+                          properties:
+                            mariadb103Compatible:
+                              type: string
+                            mariadbCompatible:
+                              type: string
+                            mysql56Compatible:
+                              type: string
+                            mysql80Compatible:
+                              type: string
+                          type: object
+                        mysqldExporter:
+                          type: string
+                        vtbackup:
+                          type: string
+                        vtorc:
+                          type: string
+                        vttablet:
+                          type: string
+                      type: object
                     name:
                       maxLength: 63
                       minLength: 1

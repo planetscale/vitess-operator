@@ -51,10 +51,11 @@ type VitessKeyspaceSpec struct {
 	// GlobalLockserver are the params to connect to the global lockserver.
 	GlobalLockserver VitessLockserverParams `json:"globalLockserver"`
 
-	// Images are not customizable by users at the keyspace level because version
-	// skew across the cluster is discouraged except during rolling updates,
-	// in which case this field is automatically managed by the VitessCluster
-	// controller that owns this VitessKeyspace.
+	// Images are inherited from the VitessCluster spec, unless the user has
+	// specified keyspace-level overrides. Version skew across the cluster is
+	// discouraged except during rolling updates, in which case this field is
+	// automatically managed by the VitessCluster controller that owns this
+	// VitessKeyspace.
 	Images VitessKeyspaceImages `json:"images,omitempty"`
 
 	// ImagePullPolicies are inherited from the VitessCluster spec.
@@ -178,6 +179,15 @@ type VitessKeyspaceTemplate struct {
 
 	// Annotations can optionally be used to attach custom annotations to the VitessKeyspace object.
 	Annotations map[string]string `json:"annotations,omitempty"`
+
+	// Users are encouraged to let the VitessCluster controller automatically
+	// propagate image changes from the VitessCluster to the VitessKeyspace
+	// via rolling updates.
+	//
+	// For special cases, users may specify per-VitessKeyspace images. An
+	// example: migrating from MySQL 5.7 to MySQL 8.0 via a `MoveTables`
+	// operation, after which the source keyspace is destroyed.
+	Images VitessKeyspaceImages `json:"images,omitempty"`
 }
 
 // VitessOrchestratorSpec specifies deployment parameters for vtorc.
