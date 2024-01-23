@@ -85,7 +85,7 @@ func MergeVitessKeyspaceImages(dst *VitessKeyspaceImages, src *VitessKeyspaceIma
 	if src.Mysqld != nil {
 		dst.Mysqld = src.Mysqld
 	}
-	if dst.MysqldExporter != "" {
+	if src.MysqldExporter != "" {
 		dst.MysqldExporter = src.MysqldExporter
 	}
 }
