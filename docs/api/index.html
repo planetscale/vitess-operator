@@ -1418,9 +1418,7 @@ EtcdLockserverStatus
 <a href="#planetscale.com/v2.VitessKeyspaceImages">VitessKeyspaceImages</a>)
 </p>
 <p>
-<p>MysqldImage specifies the container image to use for mysqld,
-as well as declaring which MySQL flavor setting in Vitess the
-image is compatible with.</p>
+<p>TODO: Remove this once everything is migrated to MysqldImageNew.</p>
 </p>
 <table class="table table-striped">
 <thead class="thead-dark">
@@ -1476,6 +1474,52 @@ string
 <td>
 <p>Mariadb103Compatible is a container image (including version tag) for mysqld
 that&rsquo;s compatible with the Vitess &ldquo;MariaDB103&rdquo; flavor setting.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="planetscale.com/v2.MysqldImageNew">MysqldImageNew
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#planetscale.com/v2.VitessKeyspaceTemplateImages">VitessKeyspaceTemplateImages</a>)
+</p>
+<p>
+<p>MysqldImageNew specifies the container image to use for mysqld,
+as well as declaring which MySQL flavor setting in Vitess the
+image is compatible with.</p>
+<p>TODO: rename this to MysqldImage once MysqldImage is removed.</p>
+</p>
+<table class="table table-striped">
+<thead class="thead-dark">
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>mysql56Compatible</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Mysql56Compatible is a container image (including version tag) for mysqld
+that&rsquo;s compatible with the Vitess &ldquo;MySQL56&rdquo; flavor setting.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>mysql80Compatible</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Mysql80Compatible is a container image (including version tag) for mysqld
+that&rsquo;s compatible with the Vitess &ldquo;MySQL80&rdquo; flavor setting.</p>
 </td>
 </tr>
 </tbody>
@@ -4742,7 +4786,8 @@ VitessKeyspaceImages
 specified keyspace-level overrides. Version skew across the cluster is
 discouraged except during rolling updates, in which case this field is
 automatically managed by the VitessCluster controller that owns this
-VitessKeyspace.</p>
+VitessKeyspace, or else when a user has specified a keyspace-level
+images on VitessKeyspaceTemplate.</p>
 </td>
 </tr>
 <tr>
@@ -5047,7 +5092,6 @@ use custom partitioning instead.</p>
 <p>
 (<em>Appears on:</em>
 <a href="#planetscale.com/v2.VitessKeyspaceSpec">VitessKeyspaceSpec</a>, 
-<a href="#planetscale.com/v2.VitessKeyspaceTemplate">VitessKeyspaceTemplate</a>, 
 <a href="#planetscale.com/v2.VitessShardSpec">VitessShardSpec</a>)
 </p>
 <p>
@@ -5531,7 +5575,8 @@ VitessKeyspaceImages
 specified keyspace-level overrides. Version skew across the cluster is
 discouraged except during rolling updates, in which case this field is
 automatically managed by the VitessCluster controller that owns this
-VitessKeyspace.</p>
+VitessKeyspace, or else when a user has specified a keyspace-level
+images on VitessKeyspaceTemplate.</p>
 </td>
 </tr>
 <tr>
@@ -5911,18 +5956,51 @@ map[string]string
 <td>
 <code>images</code></br>
 <em>
-<a href="#planetscale.com/v2.VitessKeyspaceImages">
-VitessKeyspaceImages
+<a href="#planetscale.com/v2.VitessKeyspaceTemplateImages">
+VitessKeyspaceTemplateImages
 </a>
 </em>
 </td>
 <td>
-<p>Users are encouraged to let the VitessCluster controller automatically
-propagate image changes from the VitessCluster to the VitessKeyspace
-via rolling updates.</p>
 <p>For special cases, users may specify per-VitessKeyspace images. An
 example: migrating from MySQL 5.7 to MySQL 8.0 via a <code>MoveTables</code>
 operation, after which the source keyspace is destroyed.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="planetscale.com/v2.VitessKeyspaceTemplateImages">VitessKeyspaceTemplateImages
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#planetscale.com/v2.VitessKeyspaceTemplate">VitessKeyspaceTemplate</a>)
+</p>
+<p>
+<p>VitessKeyspaceTemplateImages specifies user-definable container images to
+use for this keyspace.</p>
+</p>
+<table class="table table-striped">
+<thead class="thead-dark">
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>mysqld</code></br>
+<em>
+<a href="#planetscale.com/v2.MysqldImageNew">
+MysqldImageNew
+</a>
+</em>
+</td>
+<td>
+<p>Mysqld specifies the container image to use for mysqld, as well as
+declaring which MySQL flavor setting in Vitess the image is
+compatible with. Only one flavor image may be provided at a time.
+mysqld running alongside each tablet.</p>
 </td>
 </tr>
 </tbody>

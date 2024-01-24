@@ -244,9 +244,21 @@ type VitessImages struct {
 	MysqldExporter string `json:"mysqldExporter,omitempty"`
 }
 
-// MysqldImage specifies the container image to use for mysqld,
+// MysqldImageNew specifies the container image to use for mysqld,
 // as well as declaring which MySQL flavor setting in Vitess the
 // image is compatible with.
+//
+// TODO: rename this to MysqldImage once MysqldImage is removed.
+type MysqldImageNew struct {
+	// Mysql56Compatible is a container image (including version tag) for mysqld
+	// that's compatible with the Vitess "MySQL56" flavor setting.
+	Mysql56Compatible string `json:"mysql56Compatible,omitempty"`
+	// Mysql80Compatible is a container image (including version tag) for mysqld
+	// that's compatible with the Vitess "MySQL80" flavor setting.
+	Mysql80Compatible string `json:"mysql80Compatible,omitempty"`
+}
+
+// TODO: Remove this once everything is migrated to MysqldImageNew.
 type MysqldImage struct {
 	// Mysql56Compatible is a container image (including version tag) for mysqld
 	// that's compatible with the Vitess "MySQL56" flavor setting.
