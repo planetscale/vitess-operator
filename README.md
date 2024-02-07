@@ -28,6 +28,7 @@ compatible with certain Vitess and Kubernetes versions, as shown in this table:
 | `v2.9.*`                | `v16.0.*`                   | `v1.22.*`, `v1.23.*`, or `v1.24.*`            |
 | `v2.10.*`               | `v17.0.*`                   | `v1.22.*`, `v1.23.*`, `v1.24.*`, or `v1.25.*` |
 | `v2.11.*`               | `v18.0.*`                   | `v1.22.*`, `v1.23.*`, `v1.24.*`, or `v1.25.*` |
+| `v2.12.*`               | `v19.0.*`                   | `v1.25.*`, `v1.26.*`, `v1.27.*`, or `v1.28.*` |
 | `latest`                | `latest`                    | `v1.25.*`, `v1.26.*`, `v1.27.*`, or `v1.28.*` |
 
 If for some reason you must attempt to use versions outside the recommend
