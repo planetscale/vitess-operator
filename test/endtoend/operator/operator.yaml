@@ -2819,6 +2819,45 @@ spec:
                                               required:
                                                 - resources
                                               type: object
+                                            mysqldExporter:
+                                              properties:
+                                                resources:
+                                                  properties:
+                                                    claims:
+                                                      items:
+                                                        properties:
+                                                          name:
+                                                            type: string
+                                                        required:
+                                                          - name
+                                                        type: object
+                                                      type: array
+                                                      x-kubernetes-list-map-keys:
+                                                        - name
+                                                      x-kubernetes-list-type: map
+                                                    limits:
+                                                      additionalProperties:
+                                                        anyOf:
+                                                          - type: integer
+                                                          - type: string
+                                                        pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                                        x-kubernetes-int-or-string: true
+                                                      type: object
+                                                    requests:
+                                                      additionalProperties:
+                                                        anyOf:
+                                                          - type: integer
+                                                          - type: string
+                                                        pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                                        x-kubernetes-int-or-string: true
+                                                      type: object
+                                                  type: object
+                                              required:
+                                                - resources
+                                              type: object
+                                            name:
+                                              default: ""
+                                              type: string
                                             replicas:
                                               format: int32
                                               minimum: 0
@@ -2876,6 +2915,9 @@ spec:
                                                         x-kubernetes-int-or-string: true
                                                       type: object
                                                   type: object
+                                                terminationGracePeriodSeconds:
+                                                  format: int64
+                                                  type: integer
                                               required:
                                                 - resources
                                               type: object
@@ -2889,6 +2931,7 @@ spec:
                                         x-kubernetes-list-map-keys:
                                           - type
                                           - cell
+                                          - name
                                         x-kubernetes-list-type: map
                                     required:
                                       - databaseInitScriptSecret
@@ -3214,6 +3257,45 @@ spec:
                                             required:
                                               - resources
                                             type: object
+                                          mysqldExporter:
+                                            properties:
+                                              resources:
+                                                properties:
+                                                  claims:
+                                                    items:
+                                                      properties:
+                                                        name:
+                                                          type: string
+                                                      required:
+                                                        - name
+                                                      type: object
+                                                    type: array
+                                                    x-kubernetes-list-map-keys:
+                                                      - name
+                                                    x-kubernetes-list-type: map
+                                                  limits:
+                                                    additionalProperties:
+                                                      anyOf:
+                                                        - type: integer
+                                                        - type: string
+                                                      pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                                      x-kubernetes-int-or-string: true
+                                                    type: object
+                                                  requests:
+                                                    additionalProperties:
+                                                      anyOf:
+                                                        - type: integer
+                                                        - type: string
+                                                      pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                                      x-kubernetes-int-or-string: true
+                                                    type: object
+                                                type: object
+                                            required:
+                                              - resources
+                                            type: object
+                                          name:
+                                            default: ""
+                                            type: string
                                           replicas:
                                             format: int32
                                             minimum: 0
@@ -3271,6 +3353,9 @@ spec:
                                                       x-kubernetes-int-or-string: true
                                                     type: object
                                                 type: object
+                                              terminationGracePeriodSeconds:
+                                                format: int64
+                                                type: integer
                                             required:
                                               - resources
                                             type: object
@@ -3284,6 +3369,7 @@ spec:
                                       x-kubernetes-list-map-keys:
                                         - type
                                         - cell
+                                        - name
                                       x-kubernetes-list-type: map
                                   required:
                                     - databaseInitScriptSecret
@@ -4521,6 +4607,45 @@ spec:
                                         required:
                                           - resources
                                         type: object
+                                      mysqldExporter:
+                                        properties:
+                                          resources:
+                                            properties:
+                                              claims:
+                                                items:
+                                                  properties:
+                                                    name:
+                                                      type: string
+                                                  required:
+                                                    - name
+                                                  type: object
+                                                type: array
+                                                x-kubernetes-list-map-keys:
+                                                  - name
+                                                x-kubernetes-list-type: map
+                                              limits:
+                                                additionalProperties:
+                                                  anyOf:
+                                                    - type: integer
+                                                    - type: string
+                                                  pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                                  x-kubernetes-int-or-string: true
+                                                type: object
+                                              requests:
+                                                additionalProperties:
+                                                  anyOf:
+                                                    - type: integer
+                                                    - type: string
+                                                  pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                                  x-kubernetes-int-or-string: true
+                                                type: object
+                                            type: object
+                                        required:
+                                          - resources
+                                        type: object
+                                      name:
+                                        default: ""
+                                        type: string
                                       replicas:
                                         format: int32
                                         minimum: 0
@@ -4578,6 +4703,9 @@ spec:
                                                   x-kubernetes-int-or-string: true
                                                 type: object
                                             type: object
+                                          terminationGracePeriodSeconds:
+                                            format: int64
+                                            type: integer
                                         required:
                                           - resources
                                         type: object
@@ -4591,6 +4719,7 @@ spec:
                                   x-kubernetes-list-map-keys:
                                     - type
                                     - cell
+                                    - name
                                   x-kubernetes-list-type: map
                               required:
                                 - databaseInitScriptSecret
@@ -4916,6 +5045,45 @@ spec:
                                       required:
                                         - resources
                                       type: object
+                                    mysqldExporter:
+                                      properties:
+                                        resources:
+                                          properties:
+                                            claims:
+                                              items:
+                                                properties:
+                                                  name:
+                                                    type: string
+                                                required:
+                                                  - name
+                                                type: object
+                                              type: array
+                                              x-kubernetes-list-map-keys:
+                                                - name
+                                              x-kubernetes-list-type: map
+                                            limits:
+                                              additionalProperties:
+                                                anyOf:
+                                                  - type: integer
+                                                  - type: string
+                                                pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                                x-kubernetes-int-or-string: true
+                                              type: object
+                                            requests:
+                                              additionalProperties:
+                                                anyOf:
+                                                  - type: integer
+                                                  - type: string
+                                                pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                                x-kubernetes-int-or-string: true
+                                              type: object
+                                          type: object
+                                      required:
+                                        - resources
+                                      type: object
+                                    name:
+                                      default: ""
+                                      type: string
                                     replicas:
                                       format: int32
                                       minimum: 0
@@ -4973,6 +5141,9 @@ spec:
                                                 x-kubernetes-int-or-string: true
                                               type: object
                                           type: object
+                                        terminationGracePeriodSeconds:
+                                          format: int64
+                                          type: integer
                                       required:
                                         - resources
                                       type: object
@@ -4986,6 +5157,7 @@ spec:
                                 x-kubernetes-list-map-keys:
                                   - type
                                   - cell
+                                  - name
                                 x-kubernetes-list-type: map
                             required:
                               - databaseInitScriptSecret
@@ -5853,6 +6025,45 @@ spec:
                         required:
                           - resources
                         type: object
+                      mysqldExporter:
+                        properties:
+                          resources:
+                            properties:
+                              claims:
+                                items:
+                                  properties:
+                                    name:
+                                      type: string
+                                  required:
+                                    - name
+                                  type: object
+                                type: array
+                                x-kubernetes-list-map-keys:
+                                  - name
+                                x-kubernetes-list-type: map
+                              limits:
+                                additionalProperties:
+                                  anyOf:
+                                    - type: integer
+                                    - type: string
+                                  pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                  x-kubernetes-int-or-string: true
+                                type: object
+                              requests:
+                                additionalProperties:
+                                  anyOf:
+                                    - type: integer
+                                    - type: string
+                                  pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                  x-kubernetes-int-or-string: true
+                                type: object
+                            type: object
+                        required:
+                          - resources
+                        type: object
+                      name:
+                        default: ""
+                        type: string
                       replicas:
                         format: int32
                         minimum: 0
@@ -5910,6 +6121,9 @@ spec:
                                   x-kubernetes-int-or-string: true
                                 type: object
                             type: object
+                          terminationGracePeriodSeconds:
+                            format: int64
+                            type: integer
                         required:
                           - resources
                         type: object
@@ -5923,6 +6137,7 @@ spec:
                   x-kubernetes-list-map-keys:
                     - type
                     - cell
+                    - name
                   x-kubernetes-list-type: map
                 topologyReconciliation:
                   properties:
@@ -6357,7 +6572,7 @@ spec:
                   fieldPath: metadata.name
             - name: OPERATOR_NAME
               value: vitess-operator
-          image: planetscale/vitess-operator:v2.11.0
+          image: planetscale/vitess-operator:v2.12.0-rc1
           name: vitess-operator
           resources:
             limits:
