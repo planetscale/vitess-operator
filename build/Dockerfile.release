@@ -11,7 +11,7 @@
 # without messing up file permissions, since the Docker container doesn't run as
 # your actual user.
 
-FROM golang:1.21.1 AS build
+FROM golang:1.22.0 AS build
 
 ENV GO111MODULE=on
 WORKDIR /go/src/planetscale.dev/vitess-operator
