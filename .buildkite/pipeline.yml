@@ -7,10 +7,10 @@ steps:
   - name: "Upgrade Test"
     command:
     - apk add g++ make bash gcompat curl mysql mysql-client libc6-compat
-    - wget https://golang.org/dl/go1.21.0.linux-amd64.tar.gz
-    - tar -C /usr/local -xzf go1.21.0.linux-amd64.tar.gz
+    - wget https://golang.org/dl/go1.22.0.linux-amd64.tar.gz
+    - tar -C /usr/local -xzf go1.22.0.linux-amd64.tar.gz
     - export PATH=$PATH:/usr/local/go/bin
-    - rm go1.21.0.linux-amd64.tar.gz
+    - rm go1.22.0.linux-amd64.tar.gz
     - ln -s /lib/libc.so.6 /usr/lib/libresolv.so.2
     - make upgrade-test
     concurrency: 1
@@ -26,10 +26,10 @@ steps:
   - name: "Backup Restore Test"
     command:
     - apk add g++ make bash gcompat curl mysql mysql-client libc6-compat
-    - wget https://golang.org/dl/go1.21.0.linux-amd64.tar.gz
-    - tar -C /usr/local -xzf go1.21.0.linux-amd64.tar.gz
+    - wget https://golang.org/dl/go1.22.0.linux-amd64.tar.gz
+    - tar -C /usr/local -xzf go1.22.0.linux-amd64.tar.gz
     - export PATH=$PATH:/usr/local/go/bin
-    - rm go1.21.0.linux-amd64.tar.gz
+    - rm go1.22.0.linux-amd64.tar.gz
     - ln -s /lib/libc.so.6 /usr/lib/libresolv.so.2
     - make backup-restore-test
     concurrency: 1
@@ -45,10 +45,10 @@ steps:
   - name: "VTOrc and VTAdmin Test"
     command:
     - apk add g++ make bash gcompat curl mysql mysql-client libc6-compat chromium
-    - wget https://golang.org/dl/go1.21.0.linux-amd64.tar.gz
-    - tar -C /usr/local -xzf go1.21.0.linux-amd64.tar.gz
+    - wget https://golang.org/dl/go1.22.0.linux-amd64.tar.gz
+    - tar -C /usr/local -xzf go1.22.0.linux-amd64.tar.gz
     - export PATH=$PATH:/usr/local/go/bin
-    - rm go1.21.0.linux-amd64.tar.gz
+    - rm go1.22.0.linux-amd64.tar.gz
     - ln -s /lib/libc.so.6 /usr/lib/libresolv.so.2
     - make vtorc-vtadmin-test
     concurrency: 1
