@@ -28,6 +28,7 @@ import (
 	topodatapb "vitess.io/vitess/go/vt/proto/topodata"
 	"vitess.io/vitess/go/vt/topo"
 	"vitess.io/vitess/go/vt/topo/topoproto"
+	"vitess.io/vitess/go/vt/vtctl/reparentutil"
 	"vitess.io/vitess/go/vt/wrangler"
 
 	corev1 "k8s.io/api/core/v1"
@@ -312,7 +313,12 @@ func (r *ReconcileVitessShard) reconcileDrain(ctx context.Context, vts *planetsc
 	if vts.Spec.UsingExternalDatastore() {
 		reparentErr = r.handleExternalReparent(ctx, vts, wr, newPrimary.Alias, shard.PrimaryAlias)
 	} else {
-		reparentErr = wr.PlannedReparentShard(reparentCtx, keyspaceName, vts.Spec.Name, newPrimary.Alias, nil, plannedReparentTimeout, tolerableReplicationLag)
+		reparentErr = wr.PlannedReparentShard(reparentCtx, keyspaceName, vts.Spec.Name, reparentutil.PlannedReparentOptions{
+			NewPrimaryAlias:     newPrimary.Alias,
+			AvoidPrimaryAlias:   nil,
+			WaitReplicasTimeout: plannedReparentTimeout,
+			TolerableReplLag:    tolerableReplicationLag,
+		})
 	}
 
 	if reparentErr != nil {
