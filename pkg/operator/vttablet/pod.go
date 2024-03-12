@@ -168,6 +168,11 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	var mysqldExporterContainer *corev1.Container
 
 	mysqlctldAllFlags := mysqlctldFlags.Get(spec)
+	// Ensure that binary logs are restored to/from a location that all containers
+	// in the pod can access if no location was explicitly provided.
+	if _, ok := mysqlctldAllFlags["builtinbackup-incremental-restore-path"]; !ok {
+		mysqlctldAllFlags["builtinbackup-incremental-restore-path"] = vtDataRootPath
+	}
 	mysql.UpdateMySQLServerVersion(mysqlctldAllFlags, spec.Images.Mysqld.Image())
 
 	if spec.Mysqld != nil {
