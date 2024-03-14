@@ -38,6 +38,16 @@ func (r *ReconcileEtcdLockserver) reconcileServices(ctx context.Context, ls *pla
 	labels := map[string]string{
 		etcd.LockserverLabel: lockserverName,
 	}
+	// Backward-compatible labels change
+	// We shouldn't pass the extended labels to the reconciler directly, because it compares the labels,
+	// but we can use the extended labels in the reconciler.Strategy for creation/update.
+	extendedLabels := map[string]string{
+		etcd.LockserverLabel:         lockserverName,
+		planetscalev2.ComponentLabel: planetscalev2.EtcdComponentName,
+	}
+	if _, hasClusterLabel := ls.Labels[planetscalev2.ClusterLabel]; hasClusterLabel {
+		extendedLabels[planetscalev2.ClusterLabel] = ls.Labels[planetscalev2.ClusterLabel]
+	}
 
 	// Reconcile the client Service.
 	if *ls.Spec.CreateClientService {
@@ -49,13 +59,13 @@ func (r *ReconcileEtcdLockserver) reconcileServices(ctx context.Context, ls *pla
 			Kind: &corev1.Service{},
 
 			New: func(key client.ObjectKey) runtime.Object {
-				svc := etcd.NewClientService(key, labels)
+				svc := etcd.NewClientService(key, extendedLabels)
 				update.ServiceOverrides(svc, ls.Spec.ClientService)
 				return svc
 			},
 			UpdateInPlace: func(key client.ObjectKey, obj runtime.Object) {
 				svc := obj.(*corev1.Service)
-				etcd.UpdateClientService(svc, labels)
+				etcd.UpdateClientService(svc, extendedLabels)
 				update.InPlaceServiceOverrides(svc, ls.Spec.ClientService)
 			},
 		})
@@ -74,13 +84,13 @@ func (r *ReconcileEtcdLockserver) reconcileServices(ctx context.Context, ls *pla
 			Kind: &corev1.Service{},
 
 			New: func(key client.ObjectKey) runtime.Object {
-				svc := etcd.NewPeerService(key, labels)
+				svc := etcd.NewPeerService(key, extendedLabels)
 				update.ServiceOverrides(svc, ls.Spec.PeerService)
 				return svc
 			},
 			UpdateInPlace: func(key client.ObjectKey, obj runtime.Object) {
 				svc := obj.(*corev1.Service)
-				etcd.UpdatePeerService(svc, labels)
+				etcd.UpdatePeerService(svc, extendedLabels)
 				update.InPlaceServiceOverrides(svc, ls.Spec.PeerService)
 			},
 		})
