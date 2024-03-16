@@ -1410,6 +1410,49 @@ EtcdLockserverStatus
 </tr>
 </tbody>
 </table>
+<h3 id="planetscale.com/v2.MysqlctldSpec">MysqlctldSpec
+</h3>
+<p>
+<p>MysqlctldSpec configures the local mysqlctld gRPC server within a tablet.</p>
+</p>
+<table class="table table-striped">
+<thead class="thead-dark">
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>resources</code></br>
+<em>
+<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#resourcerequirements-v1-core">
+Kubernetes core/v1.ResourceRequirements
+</a>
+</em>
+</td>
+<td>
+<p>Resources specify the compute resources to allocate for just the MySQL Control Daemon.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>extraFlags</code></br>
+<em>
+map[string]string
+</em>
+</td>
+<td>
+<p>ExtraFlags can optionally be used to override default flags set by the
+operator, or pass additional flags to mysqlctld. All entries must be
+key-value string pairs of the form &ldquo;flag&rdquo;: &ldquo;value&rdquo;. The flag name should
+not have any prefix (just &ldquo;flag&rdquo;, not &ldquo;-flag&rdquo;). To set a boolean flag,
+set the string value to either &ldquo;true&rdquo; or &ldquo;false&rdquo;.</p>
+</td>
+</tr>
+</tbody>
+</table>
 <h3 id="planetscale.com/v2.MysqldExporterSpec">MysqldExporterSpec
 </h3>
 <p>
