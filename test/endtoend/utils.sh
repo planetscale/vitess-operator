@@ -114,7 +114,7 @@ function restoreBackup() {
   fi
 
   # Issue the PITR restore command to vtctldclient.
-  vtctldclient RestoreFromBackup --restore-to-timestamp $(date -u "+%Y-%m-%dT%H:%M:%S") "${tabletAlias}"
+  vtctldclient RestoreFromBackup --restore-to-timestamp $(date -u "+%Y-%m-%d.%H%M%S") "${tabletAlias}"
 
   if [[ $? -ne 0 ]]; then
     echo "Restore failed"
