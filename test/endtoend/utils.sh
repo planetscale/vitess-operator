@@ -104,6 +104,20 @@ function takeBackup() {
   exit 1
 }
 
+# restoreBackup:
+# $1: tablet alias for which the backup needs to be restored
+function restoreBackup() {
+  tabletAlias=$1
+
+  # Issue the PITR restore command to vtctldclient.
+  vtctldclient RestoreFromBackup --restore-to-timestamp $(date --rfc-3339=seconds) "${tabletAlias}"
+
+  if [[ $? -ne 0 ]]; then
+    echo "Restore failed"
+    exit 1
+  fi
+}
+
 function verifyListBackupsOutput() {
   backupCount=$(kubectl get vtb --no-headers | wc -l)
   for i in {1..600} ; do
