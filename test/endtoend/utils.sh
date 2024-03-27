@@ -108,9 +108,13 @@ function takeBackup() {
 # $1: tablet alias for which the backup needs to be restored
 function restoreBackup() {
   tabletAlias=$1
+  if [[ -z "$tabletAlias" ]]; then
+    echo "Tablet alias not provided as restore target"
+    exit 1
+  fi
 
   # Issue the PITR restore command to vtctldclient.
-  vtctldclient RestoreFromBackup --restore-to-timestamp $(date --rfc-3339=seconds) "${tabletAlias}"
+  vtctldclient RestoreFromBackup --restore-to-timestamp $(date -u "+%Y-%m-%dT%H:%M:%S") "${tabletAlias}"
 
   if [[ $? -ne 0 ]]; then
     echo "Restore failed"
