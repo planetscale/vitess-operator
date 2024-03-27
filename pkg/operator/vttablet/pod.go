@@ -91,10 +91,12 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	// Ensure that binary logs are restored to/from a location that all containers
 	// in the pod can access if no location was explicitly provided.
 	if _, ok := vttabletAllFlags["builtinbackup-incremental-restore-path"]; !ok {
+		// This flag only exists in 2.12.0 and later as it includes vitess
+		// 20.0 as a dependency.
 		parts := strings.Split(version.Version, ".")
-		if len(parts) > 1 {
-			major, _ := strconv.Atoi(parts[1])
-			minor, _ := strconv.Atoi(parts[2])
+		if len(parts) > 0 {
+			major, _ := strconv.Atoi(parts[0])
+			minor, _ := strconv.Atoi(parts[1])
 			if major >= 2 && minor >= 12 {
 				vttabletAllFlags["builtinbackup-incremental-restore-path"] = vtDataRootPath
 			}

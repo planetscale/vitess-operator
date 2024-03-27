@@ -83,24 +83,47 @@ function removeBackupFiles() {
 
 # takeBackup:
 # $1: keyspace-shard for which the backup needs to be taken
+declare INCREMENTAL_RESTORE_TIMESTAMP=""
 function takeBackup() {
   keyspaceShard=$1
   initialBackupCount=$(kubectl get vtb --no-headers | wc -l)
   finalBackupCount=$((initialBackupCount+1))
 
-  # issue the backupShard command to vtctldclient
-  vtctldclient BackupShard "$keyspaceShard"
+  # Issue the BackupShard command to vtctldclient.
+  vtctldclient BackupShard "${keyspaceShard}"
 
   for i in {1..600} ; do
     out=$(kubectl get vtb --no-headers | wc -l)
-    echo "$out" | grep "$finalBackupCount" > /dev/null 2>&1
-    if [ $? -eq 0 ]; then
-      echo "Backup created"
+    if echo "${out}" | grep -c "${finalBackupCount}" >/dev/null; then
+      echo "Full backup created"
+      break
+    fi
+    sleep 3
+  done
+
+  sleep 10
+
+  # Now perform an incremental backup.
+  insertWithRetry
+  INCREMENTAL_RESTORE_TIMESTAMP=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
+  sleep 1
+  insertWithRetry
+
+  sleep 10
+
+  vtctldclient BackupShard --incremental-from-pos=auto "${keyspaceShard}"
+  let finalBackupCount=${finalBackupCount}+1
+
+  for i in {1..600} ; do
+    out=$(kubectl get vtb --no-headers | wc -l)
+    if echo "${out}" | grep -c "${finalBackupCount}" >/dev/null; then
+      echo "Incremental backup created"
       return 0
     fi
     sleep 3
   done
-  echo -e "ERROR: Backup not created - $out. $backupCount backups expected."
+
+  echo -e "ERROR: Backups not created - ${out}. ${backupCount} backups expected."
   exit 1
 }
 
@@ -108,18 +131,33 @@ function takeBackup() {
 # $1: tablet alias for which the backup needs to be restored
 function restoreBackup() {
   tabletAlias=$1
-  if [[ -z "$tabletAlias" ]]; then
+  if [[ -z "${tabletAlias}" ]]; then
     echo "Tablet alias not provided as restore target"
     exit 1
   fi
 
   # Issue the PITR restore command to vtctldclient.
-  vtctldclient RestoreFromBackup --restore-to-timestamp $(date -u "+%Y-%m-%d.%H%M%S") "${tabletAlias}"
-
-  if [[ $? -ne 0 ]]; then
-    echo "Restore failed"
+  # This should restore the last full backup, followed by applying the
+  # binary logs to reach the desired timestamp.
+  if ! vtctldclient RestoreFromBackup --restore-to-timestamp "${INCREMENTAL_RESTORE_TIMESTAMP}" "${tabletAlias}"; then
+    echo "ERROR: failed to perform incremental restore"
     exit 1
   fi
+
+  cell="${tabletAlias%-*}"
+  uid="${tabletAlias##*-}"
+
+  for i in {1..600} ; do
+    out=$(kubectl get pods --no-headers -l "planetscale.com/cell=${cell},planetscale.com/tablet-uid=${uid}" | grep "Running" | wc -l)
+    if echo "$out" | grep -c "1" >/dev/null; then
+      echo "Tablet ${tabletAlias} restore complete"
+      return 0
+    fi
+    sleep 3
+  done
+
+  echo -e "ERROR: restored tablet ${tabletAlias} did not become healthy after the restore."
+  exit 1
 }
 
 function verifyListBackupsOutput() {
