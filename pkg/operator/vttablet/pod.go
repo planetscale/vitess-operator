@@ -26,6 +26,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/pointer"
 	"planetscale.dev/vitess-operator/pkg/operator/mysql"
+	"planetscale.dev/vitess-operator/version"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	topodatapb "vitess.io/vitess/go/vt/proto/topodata"
 	"vitess.io/vitess/go/vt/topo/topoproto"
@@ -90,7 +91,14 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	// Ensure that binary logs are restored to/from a location that all containers
 	// in the pod can access if no location was explicitly provided.
 	if _, ok := vttabletAllFlags["builtinbackup-incremental-restore-path"]; !ok {
-		vttabletAllFlags["builtinbackup-incremental-restore-path"] = vtDataRootPath
+		parts := strings.Split(version.Version, ".")
+		if len(parts) > 1 {
+			major, _ := strconv.Atoi(parts[1])
+			minor, _ := strconv.Atoi(parts[2])
+			if major >= 2 && minor >= 12 {
+				vttabletAllFlags["builtinbackup-incremental-restore-path"] = vtDataRootPath
+			}
+		}
 	}
 	mysql.UpdateMySQLServerVersion(vttabletAllFlags, spec.Images.Mysqld.Image())
 
@@ -113,7 +121,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 
 	securityContext := &corev1.SecurityContext{}
 	if planetscalev2.DefaultVitessRunAsUser >= 0 {
-		securityContext.RunAsUser = pointer.Int64Ptr(planetscalev2.DefaultVitessRunAsUser)
+		securityContext.RunAsUser = pointer.Int64(planetscalev2.DefaultVitessRunAsUser)
 	}
 
 	vttabletLifecycle := &spec.Vttablet.Lifecycle
@@ -320,13 +328,13 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 		obj.Spec.SecurityContext = &corev1.PodSecurityContext{}
 	}
 	if planetscalev2.DefaultVitessFSGroup >= 0 {
-		obj.Spec.SecurityContext.FSGroup = pointer.Int64Ptr(planetscalev2.DefaultVitessFSGroup)
+		obj.Spec.SecurityContext.FSGroup = pointer.Int64(planetscalev2.DefaultVitessFSGroup)
 	}
 
 	if spec.Vttablet.TerminationGracePeriodSeconds != nil {
 		obj.Spec.TerminationGracePeriodSeconds = spec.Vttablet.TerminationGracePeriodSeconds
 	} else {
-		obj.Spec.TerminationGracePeriodSeconds = pointer.Int64Ptr(defaultTerminationGracePeriodSeconds)
+		obj.Spec.TerminationGracePeriodSeconds = pointer.Int64(defaultTerminationGracePeriodSeconds)
 	}
 
 	// In both the case of the user injecting their own affinity and the default, we
