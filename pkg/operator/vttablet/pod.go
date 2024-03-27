@@ -87,6 +87,11 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 		key = strings.TrimLeft(key, "-")
 		vttabletAllFlags[key] = value
 	}
+	// Ensure that binary logs are restored to/from a location that all containers
+	// in the pod can access if no location was explicitly provided.
+	if _, ok := vttabletAllFlags["builtinbackup-incremental-restore-path"]; !ok {
+		vttabletAllFlags["builtinbackup-incremental-restore-path"] = vtDataRootPath
+	}
 	mysql.UpdateMySQLServerVersion(vttabletAllFlags, spec.Images.Mysqld.Image())
 
 	// Compute all operator-generated env vars first.
@@ -168,11 +173,6 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	var mysqldExporterContainer *corev1.Container
 
 	mysqlctldAllFlags := mysqlctldFlags.Get(spec)
-	// Ensure that binary logs are restored to/from a location that all containers
-	// in the pod can access if no location was explicitly provided.
-	if _, ok := vttabletAllFlags["builtinbackup-incremental-restore-path"]; !ok {
-		vttabletAllFlags["builtinbackup-incremental-restore-path"] = vtDataRootPath
-	}
 	mysql.UpdateMySQLServerVersion(mysqlctldAllFlags, spec.Images.Mysqld.Image())
 
 	if spec.Mysqld != nil {
