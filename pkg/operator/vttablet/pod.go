@@ -26,7 +26,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/pointer"
 	"planetscale.dev/vitess-operator/pkg/operator/mysql"
-	"planetscale.dev/vitess-operator/version"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	topodatapb "vitess.io/vitess/go/vt/proto/topodata"
 	"vitess.io/vitess/go/vt/topo/topoproto"
@@ -93,14 +92,17 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	if _, ok := vttabletAllFlags["builtinbackup-incremental-restore-path"]; !ok {
 		// This flag only exists in 2.12.0 and later as it includes vitess
 		// 20.0 as a dependency.
-		parts := strings.Split(version.Version, ".")
-		if len(parts) > 0 {
-			major, _ := strconv.Atoi(parts[0])
-			minor, _ := strconv.Atoi(parts[1])
-			if major >= 2 && minor >= 12 {
-				vttabletAllFlags["builtinbackup-incremental-restore-path"] = vtDataRootPath
+		/*
+			parts := strings.Split(version.Version, ".")
+			if len(parts) > 0 {
+				major, _ := strconv.Atoi(parts[0])
+				minor, _ := strconv.Atoi(parts[1])
+				if major >= 2 && minor >= 12 {
+					vttabletAllFlags["builtinbackup-incremental-restore-path"] = vtDataRootPath
+				}
 			}
-		}
+		*/
+		vttabletAllFlags["builtinbackup-incremental-restore-path"] = vtDataRootPath
 	}
 	mysql.UpdateMySQLServerVersion(vttabletAllFlags, spec.Images.Mysqld.Image())
 

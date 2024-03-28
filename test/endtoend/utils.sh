@@ -103,16 +103,21 @@ function takeBackup() {
 
   sleep 10
 
+  mysql 'commerce:-' -e "flush binary logs" || echo "flushing binlogs failed"
+
   # Now perform an incremental backup.
   insertWithRetry
   INCREMENTAL_RESTORE_TIMESTAMP=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
   sleep 1
-  insertWithRetry
+
+  mysql 'commerce:-' -e "flush binary logs" || echo "flushing binlogs failed"
 
   sleep 10
 
   vtctldclient BackupShard --incremental-from-pos=auto "${keyspaceShard}"
   let finalBackupCount=${finalBackupCount}+1
+
+  mysql 'commerce:-' -e "flush binary logs" || echo "flushing binlogs failed"
 
   for i in {1..600} ; do
     out=$(kubectl get vtb --no-headers | wc -l)
