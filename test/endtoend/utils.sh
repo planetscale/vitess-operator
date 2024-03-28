@@ -83,7 +83,7 @@ function removeBackupFiles() {
 
 # takeBackup:
 # $1: keyspace-shard for which the backup needs to be taken
-declare INCREMENTAL_RESTORE_TIMESTAMP=""
+declare INCREMENTAL_RESTORE_POS=""
 function takeBackup() {
   keyspaceShard=$1
   initialBackupCount=$(kubectl get vtb --no-headers | wc -l)
@@ -102,18 +102,13 @@ function takeBackup() {
   done
 
   # Now perform an incremental backup.
-  echo "Checking @@gtid_exeuted just after full backup:"
-  mysql -e "select @@gtid_executed;"
   insertWithRetry
-  echo "Checking @@gtid_exeuted after some writes and before taking timestamp:"
-  mysql -e "select @@gtid_executed;"
+  pos=$(mysql -sN -e "select @@global.gtid_executed")
+  INCREMENTAL_RESTORE_POS="MySQL56/${pos//\\n/}"
   sleep 2
-  INCREMENTAL_RESTORE_TIMESTAMP=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
-  echo "Timestamp is $INCREMENTAL_RESTORE_TIMESTAMP"
+  echo "Backup position is $INCREMENTAL_RESTORE_POS"
   sleep 2
   insertWithRetry
-  echo "Checking @@gtid_exeuted jbefore taking incremental backup:"
-  mysql -e "select @@gtid_executed;"
 
   vtctldclient BackupShard --incremental-from-pos=auto "${keyspaceShard}"
   let finalBackupCount=${finalBackupCount}+1
@@ -146,8 +141,8 @@ function restoreBackup() {
   echo "Listing backups"
   vtctldclient GetBackups "$keyspaceShard"
   echo "End listing backups"
-  echo "Restoring tablet ${tabletAlias} to timestamp ${INCREMENTAL_RESTORE_TIMESTAMP}"
-  if ! vtctldclient RestoreFromBackup --restore-to-timestamp "${INCREMENTAL_RESTORE_TIMESTAMP}" "${tabletAlias}"; then
+  echo "Restoring tablet ${tabletAlias} to position ${INCREMENTAL_RESTORE_POS}"
+  if ! vtctldclient RestoreFromBackup --restore-to-pos "${INCREMENTAL_RESTORE_POS}" "${tabletAlias}"; then
     echo "ERROR: failed to perform incremental restore"
     exit 1
   fi
