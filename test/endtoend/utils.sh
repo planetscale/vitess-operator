@@ -144,7 +144,7 @@ function restoreBackup() {
   # This should restore the last full backup, followed by applying the
   # binary logs to reach the desired timestamp.
   echo "Listing backups"
-  vtctldclient ListBackups "$keyspaceShard"
+  vtctldclient GetBackups "$keyspaceShard"
   echo "End listing backups"
   echo "Restoring tablet ${tabletAlias} to timestamp ${INCREMENTAL_RESTORE_TIMESTAMP}"
   if ! vtctldclient RestoreFromBackup --restore-to-timestamp "${INCREMENTAL_RESTORE_TIMESTAMP}" "${tabletAlias}"; then
