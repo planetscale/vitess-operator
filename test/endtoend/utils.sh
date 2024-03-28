@@ -143,7 +143,9 @@ function restoreBackup() {
   # Issue the PITR restore command to vtctldclient.
   # This should restore the last full backup, followed by applying the
   # binary logs to reach the desired timestamp.
-  find "$VTDATAROOT" -name MANIFEST | xargs cat
+  echo "Listing backups"
+  vtctldclient ListBackups "$keyspaceShard"
+  echo "End listing backups"
   echo "Restoring tablet ${tabletAlias} to timestamp ${INCREMENTAL_RESTORE_TIMESTAMP}"
   if ! vtctldclient RestoreFromBackup --restore-to-timestamp "${INCREMENTAL_RESTORE_TIMESTAMP}" "${tabletAlias}"; then
     echo "ERROR: failed to perform incremental restore"
