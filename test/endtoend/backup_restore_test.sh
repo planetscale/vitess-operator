@@ -107,6 +107,7 @@ verifyVtGateVersion "20.0.0"
 checkSemiSyncSetup
 takeBackup "commerce/-"
 verifyListBackupsOutput
+restoreBackup "$(vtctldclient GetTablets --keyspace commerce --tablet-type replica --shard '-' | head -1 | awk '{print $1}')"
 takedownShard
 resurrectShard
 checkSemiSyncSetup

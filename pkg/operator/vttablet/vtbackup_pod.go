@@ -122,11 +122,11 @@ func NewBackupPod(key client.ObjectKey, backupSpec *BackupSpec, mysqldImage stri
 
 	podSecurityContext := &corev1.PodSecurityContext{}
 	if planetscalev2.DefaultVitessFSGroup >= 0 {
-		podSecurityContext.FSGroup = pointer.Int64Ptr(planetscalev2.DefaultVitessFSGroup)
+		podSecurityContext.FSGroup = pointer.Int64(planetscalev2.DefaultVitessFSGroup)
 	}
 	securityContext := &corev1.SecurityContext{}
 	if planetscalev2.DefaultVitessRunAsUser >= 0 {
-		securityContext.RunAsUser = pointer.Int64Ptr(planetscalev2.DefaultVitessRunAsUser)
+		securityContext.RunAsUser = pointer.Int64(planetscalev2.DefaultVitessRunAsUser)
 	}
 
 	var containerResources corev1.ResourceRequirements
@@ -134,6 +134,11 @@ func NewBackupPod(key client.ObjectKey, backupSpec *BackupSpec, mysqldImage stri
 	update.ResourceRequirements(&containerResources, &tabletSpec.Mysqld.Resources)
 
 	vtbackupAllFlags := vtbackupFlags.Get(backupSpec)
+	// Ensure that binary logs are restored to/from a location that all containers
+	// in the pod can access if no location was explicitly provided.
+	if _, ok := vtbackupAllFlags["builtinbackup-incremental-restore-path"]; !ok {
+		vtbackupAllFlags["builtinbackup-incremental-restore-path"] = vtDataRootPath
+	}
 	mysql.UpdateMySQLServerVersion(vtbackupAllFlags, mysqldImage)
 	pod := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{

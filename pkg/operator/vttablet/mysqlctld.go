@@ -29,6 +29,7 @@ const (
 	vtRootInitScript = `set -ex
 mkdir -p /mnt/vt/bin
 cp --no-clobber /vt/bin/mysqlctld /mnt/vt/bin/
+cp --no-clobber $(command -v mysqlbinlog) /mnt/vt/bin/ || true
 mkdir -p /mnt/vt/config
 if [[ -d /vt/config/mycnf ]]; then
   cp --no-clobber -R /vt/config/mycnf /mnt/vt/config/
@@ -68,7 +69,7 @@ func init() {
 
 		securityContext := &corev1.SecurityContext{}
 		if planetscalev2.DefaultVitessRunAsUser >= 0 {
-			securityContext.RunAsUser = pointer.Int64Ptr(planetscalev2.DefaultVitessRunAsUser)
+			securityContext.RunAsUser = pointer.Int64(planetscalev2.DefaultVitessRunAsUser)
 		}
 
 		// Use an init container to copy only the files we need from the Vitess image.

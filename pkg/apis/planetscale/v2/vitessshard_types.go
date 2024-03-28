@@ -315,6 +315,19 @@ type MysqldSpec struct {
 	ConfigOverrides string `json:"configOverrides,omitempty"`
 }
 
+// MysqlctldSpec configures the local mysqlctld gRPC server within a tablet.
+type MysqlctldSpec struct {
+	// Resources specify the compute resources to allocate for just the MySQL Control Daemon.
+	Resources corev1.ResourceRequirements `json:"resources"`
+
+	// ExtraFlags can optionally be used to override default flags set by the
+	// operator, or pass additional flags to mysqlctld. All entries must be
+	// key-value string pairs of the form "flag": "value". The flag name should
+	// not have any prefix (just "flag", not "-flag"). To set a boolean flag,
+	// set the string value to either "true" or "false".
+	ExtraFlags map[string]string `json:"extraFlags,omitempty"`
+}
+
 // MysqldExporterSpec configures the local MySQL exporter within a tablet.
 type MysqldExporterSpec struct {
 	// Resources specify the compute resources to allocate for just the MySQL Exporter.
