@@ -102,11 +102,18 @@ function takeBackup() {
   done
 
   # Now perform an incremental backup.
+  echo "Checking @@gtid_exeuted just after full backup:"
+  mysql -e "select @@gtid_executed;"
   insertWithRetry
+  echo "Checking @@gtid_exeuted after some writes and before taking timestamp:"
+  mysql -e "select @@gtid_executed;"
   sleep 2
   INCREMENTAL_RESTORE_TIMESTAMP=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
+  echo "Timestamp is $INCREMENTAL_RESTORE_TIMESTAMP"
   sleep 2
   insertWithRetry
+  echo "Checking @@gtid_exeuted jbefore taking incremental backup:"
+  mysql -e "select @@gtid_executed;"
 
   vtctldclient BackupShard --incremental-from-pos=auto "${keyspaceShard}"
   let finalBackupCount=${finalBackupCount}+1
@@ -136,6 +143,7 @@ function restoreBackup() {
   # Issue the PITR restore command to vtctldclient.
   # This should restore the last full backup, followed by applying the
   # binary logs to reach the desired timestamp.
+  echo "Restoring tablet ${tabletAlias} to timestamp ${INCREMENTAL_RESTORE_TIMESTAMP}"
   if ! vtctldclient RestoreFromBackup --restore-to-timestamp "${INCREMENTAL_RESTORE_TIMESTAMP}" "${tabletAlias}"; then
     echo "ERROR: failed to perform incremental restore"
     exit 1
