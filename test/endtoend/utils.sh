@@ -19,7 +19,7 @@ function checkSemiSyncSetup() {
 function checkSemiSyncWithRetry() {
   vttablet=$1
   for i in {1..600} ; do
-    kubectl exec "$vttablet" -c mysqld -- mysql -S "/vt/socket/mysql.sock" -u root -e "show variables like 'rpl_semi_sync_slave_enabled'" | grep "ON"
+    kubectl exec "$vttablet" -c mysqld -- mysql -S "/vt/socket/mysql.sock" -u root -e "show variables like 'rpl_semi_sync_%_enabled'" | grep "ON"
     if [ $? -eq 0 ]; then
       return
     fi
