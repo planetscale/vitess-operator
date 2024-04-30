@@ -21,7 +21,7 @@ spec:
     vtorc: vitess/lite:latest
     vtbackup: vitess/lite:latest
     mysqld:
-      mysql56Compatible: vitess/lite:latest
+      mysql80Compatible: mysql:8.0.30
     mysqldExporter: prom/mysqld-exporter:v0.11.0
   cells:
   - name: zone1
@@ -78,12 +78,13 @@ spec:
             vttablet:
               extraFlags:
                 db_charset: utf8mb4
+                wait_for_backup_interval: "0"
               resources:
                 limits:
-                  memory: 256Mi
+                  memory: 512Mi
                 requests:
                   cpu: 100m
-                  memory: 256Mi
+                  memory: 512Mi
             mysqld:
               resources:
                 limits:

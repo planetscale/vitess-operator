@@ -178,7 +178,7 @@ EOF
 }
 
 function waitAndVerifySetup() {
-  sleep 300
+  sleep 10
   checkPodStatusWithTimeout "example-zone1-vtctld(.*)1/1(.*)Running(.*)"
   checkPodStatusWithTimeout "example-zone1-vtgate(.*)1/1(.*)Running(.*)"
   checkPodStatusWithTimeout "example-etcd(.*)1/1(.*)Running(.*)" 3
