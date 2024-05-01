@@ -29,7 +29,7 @@ const (
 	vtRootInitScript = `set -ex
 mkdir -p /mnt/vt/bin
 cp --no-clobber /vt/bin/mysqlctld /mnt/vt/bin/
-cp --no-clobber $(command -v mysqlbinlog) /mnt/vt/bin/ || true
+cp --no-clobber /usr/bin/mysqlbinlog /mnt/vt/bin/
 mkdir -p /mnt/vt/config
 if [[ -d /vt/config/mycnf ]]; then
   cp --no-clobber -R /vt/config/mycnf /mnt/vt/config/
