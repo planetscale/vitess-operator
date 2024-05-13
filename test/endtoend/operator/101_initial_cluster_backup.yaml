@@ -15,7 +15,10 @@ spec:
           path: /backup
           type: Directory
     schedule:
+      name: "every-minute"
       schedule: "* * * * *"
+      successfulJobsHistoryLimit: 2
+      failedJobsHistoryLimit: 3
   images:
     vtctld: vitess/lite:latest
     vtgate: vitess/lite:latest

@@ -154,18 +154,36 @@ spec:
                     type: array
                   schedule:
                     properties:
+                      concurrencyPolicy:
+                        enum:
+                        - Allow
+                        - Forbid
+                        - Replace
+                        type: string
                       failedJobsHistoryLimit:
                         format: int32
                         minimum: 0
                         type: integer
+                      name:
+                        maxLength: 63
+                        minLength: 1
+                        pattern: ^[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?$
+                        type: string
                       schedule:
                         minLength: 0
                         type: string
+                      startingDeadlineSeconds:
+                        format: int64
+                        minimum: 0
+                        type: integer
                       successfulJobsHistoryLimit:
                         format: int32
                         minimum: 0
                         type: integer
+                      suspend:
+                        type: boolean
                     required:
+                    - name
                     - schedule
                     type: object
                   subcontroller:

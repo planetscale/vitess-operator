@@ -17,7 +17,6 @@ func NewVitessBackupSchedule(key client.ObjectKey, vt *planetscalev2.VitessClust
 		return nil
 	}
 
-	schedule := vt.Spec.Backup.Schedule
 	return &planetscalev2.VitessBackupSchedule{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      key.Name,
@@ -25,7 +24,13 @@ func NewVitessBackupSchedule(key client.ObjectKey, vt *planetscalev2.VitessClust
 			Labels:    labels,
 		},
 		Spec: planetscalev2.VitessBackupScheduleSpec{
-			VitessBackupScheduleTemplate: schedule,
+			// We simply re-apply the same template that was written by the user.
+			VitessBackupScheduleTemplate: vt.Spec.Backup.Schedule,
+
+			// To take backups we only care about having the vtctldclient installed in the container.
+			// For this reason, we re-use the vtctld Docker image and the same image pull policy.
+			Image:           vt.Spec.Images.Vtctld,
+			ImagePullPolicy: vt.Spec.ImagePullPolicies.Vtctld,
 		},
 	}
 }

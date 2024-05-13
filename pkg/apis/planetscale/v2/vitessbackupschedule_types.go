@@ -50,46 +50,21 @@ type VitessBackupScheduleSpec struct {
 	// All remaining fields will be handled/filled by the controller.
 	VitessBackupScheduleTemplate `json:",inline"`
 
-	// TODO: add non-user-aware fields below (image, etc...)
+	// Image should be any image that already contains vtctldclient installed.
+	// The controller will re-use the vtctld image by default.
+	Image string `json:"image,omitempty"`
 
-	// // +kubebuilder:validation:Minimum=0
-	// // Optional deadlines in seconds for starting the job if it misses scheduled
-	// // time for any reason. Missed jobs executions will be counted as failed ones.
-	// // +optional
-	// StartingDeadlineSeconds *int64 `json:"startingDeadlineSeconds,omitempty"`
-	//
-	// // Specifies ho to treat concurrent executions of a Job.
-	// // Valid values are:
-	// // - "Allow" (default): allows CronJobs to run concurrently;
-	// // - "Forbid": forbids concurrent runs, skipping next run if previous run hasn't finished yet;
-	// // - "Replace": cancels currently running job and replaces it with a new one.
-	// // +optional
-	// ConcurrencyPolicy ConcurrencyPolicy `json:"concurrencyPolicy,omitempty"`
-	//
-	// // This flag tells the controller to suspend subsequent executions, it does not apply to already
-	// // started executions. Defaults to false.
-	// // +optional
-	// Suspend *bool `json:"suspend,omitempty"`
-	//
-	// // Specifies the job that will be created when executing a VitessBackupSchedule.
-	// JobTemplate v1beta1.JobTemplateSpec `json:"jobTemplate"`
-	//
-	// // +kubebuilder:validation:Minimum=0
-	//
-	// // The number of successful finished jobs to retain. This is a pointer to distinguish between
-	// // explicit zero and not specified.
-	// // +optional
-	// SuccessfulJobsHistoryLimit *int32 `json:"successfulJobsHistoryLimit,omitempty"`
-	//
-	// // +kubebuilder:validation:Minimum=0
-	//
-	// // The number of failed finished jobs to retain. This is a pointer to distinguish between
-	// // explicit zero and not specified.
-	// // +optional
-	// FailedJobsHistoryLimit *int32 `json:"failedJobsHistoryLimit,omitempty"`
+	// ImagePullPolicy will be set by the controller to what is set for vtctld.
+	ImagePullPolicy corev1.PullPolicy `json:"imagePullPolicy,omitempty"`
 }
 
 type VitessBackupScheduleTemplate struct {
+	// Name is the schedule name.
+	// +kubebuilder:validation:MinLength=1
+	// +kubebuilder:validation:MaxLength=63
+	// +kubebuilder:validation:Pattern=^[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?$
+	Name string `json:"name"`
+
 	// The schedule in Cron format, see https://en.wikipedia.org/wiki/Cron.
 	// +kubebuilder:validation:MinLength=0
 	Schedule string `json:"schedule"`
@@ -105,6 +80,25 @@ type VitessBackupScheduleTemplate struct {
 	// +optional
 	// +kubebuilder:validation:Minimum=0
 	FailedJobsHistoryLimit *int32 `json:"failedJobsHistoryLimit,omitempty"`
+
+	// This flag tells the controller to suspend subsequent executions, it does not apply to already
+	// started executions. Defaults to false.
+	// +optional
+	Suspend *bool `json:"suspend,omitempty"`
+
+	// +kubebuilder:validation:Minimum=0
+	// Optional deadlines in seconds for starting the job if it misses scheduled
+	// time for any reason. Missed jobs executions will be counted as failed ones.
+	// +optional
+	StartingDeadlineSeconds *int64 `json:"startingDeadlineSeconds,omitempty"`
+
+	// Specifies ho to treat concurrent executions of a Job.
+	// Valid values are:
+	// - "Allow" (default): allows CronJobs to run concurrently;
+	// - "Forbid": forbids concurrent runs, skipping next run if previous run hasn't finished yet;
+	// - "Replace": cancels currently running job and replaces it with a new one.
+	// +optional
+	ConcurrencyPolicy ConcurrencyPolicy `json:"concurrencyPolicy,omitempty"`
 }
 
 // VitessBackupScheduleStatus defines the observed state of VitessBackupSchedule

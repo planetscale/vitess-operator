@@ -697,6 +697,10 @@ VitessBackupScheduleTemplate
 <h3 id="planetscale.com/v2.ConcurrencyPolicy">ConcurrencyPolicy
 (<code>string</code> alias)</p></h3>
 <p>
+(<em>Appears on:</em>
+<a href="#planetscale.com/v2.VitessBackupScheduleTemplate">VitessBackupScheduleTemplate</a>)
+</p>
+<p>
 <p>ConcurrencyPolicy describes how the job will be handled. Only one of the following concurrent
 policies may be specified. If none of the following policies is specified, the default one
 is AllowConcurrent.</p>
@@ -2345,6 +2349,31 @@ These are the parts that are configurable through the VitessCluster CRD.
 All remaining fields will be handled/filled by the controller.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>image</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Image should be any image that already contains vtctldclient installed.
+The controller will re-use the vtctld image by default.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>imagePullPolicy</code></br>
+<em>
+<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#pullpolicy-v1-core">
+Kubernetes core/v1.PullPolicy
+</a>
+</em>
+</td>
+<td>
+<p>ImagePullPolicy will be set by the controller to what is set for vtctld.</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -2395,6 +2424,31 @@ VitessBackupScheduleTemplate
 <p>VitessBackupScheduleTemplate contains the user-specific parts of VitessBackupScheduleSpec.
 These are the parts that are configurable through the VitessCluster CRD.
 All remaining fields will be handled/filled by the controller.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>image</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Image should be any image that already contains vtctldclient installed.
+The controller will re-use the vtctld image by default.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>imagePullPolicy</code></br>
+<em>
+<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#pullpolicy-v1-core">
+Kubernetes core/v1.PullPolicy
+</a>
+</em>
+</td>
+<td>
+<p>ImagePullPolicy will be set by the controller to what is set for vtctld.</p>
 </td>
 </tr>
 </tbody>
@@ -2465,6 +2519,17 @@ Kubernetes meta/v1.Time
 <tbody>
 <tr>
 <td>
+<code>name</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Name is the schedule name.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>schedule</code></br>
 <em>
 string
@@ -2498,6 +2563,50 @@ int32
 <em>(Optional)</em>
 <p>The number of failed finished jobs to retain. This is a pointer to distinguish between
 explicit zero and not specified.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>suspend</code></br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>This flag tells the controller to suspend subsequent executions, it does not apply to already
+started executions. Defaults to false.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>startingDeadlineSeconds</code></br>
+<em>
+int64
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Optional deadlines in seconds for starting the job if it misses scheduled
+time for any reason. Missed jobs executions will be counted as failed ones.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>concurrencyPolicy</code></br>
+<em>
+<a href="#planetscale.com/v2.ConcurrencyPolicy">
+ConcurrencyPolicy
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Specifies ho to treat concurrent executions of a Job.
+Valid values are:
+- &ldquo;Allow&rdquo; (default): allows CronJobs to run concurrently;
+- &ldquo;Forbid&rdquo;: forbids concurrent runs, skipping next run if previous run hasn&rsquo;t finished yet;
+- &ldquo;Replace&rdquo;: cancels currently running job and replaces it with a new one.</p>
 </td>
 </tr>
 </tbody>

@@ -128,11 +128,9 @@ var (
 func (r *ReconcileVitessBackupsSchedule) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	resultBuilder := &results.Builder{}
 
-	log.Info("Reconciling VitessBackupsSchedule")
-
 	// Load CronJob by name:
-	var cronJob planetscalev2.VitessBackupSchedule
-	if err := r.client.Get(ctx, req.NamespacedName, &cronJob); err != nil {
+	var vbsc planetscalev2.VitessBackupSchedule
+	if err := r.client.Get(ctx, req.NamespacedName, &vbsc); err != nil {
 		log.Error(err, " unable to fetch CronJob")
 		if apierrors.IsNotFound(err) {
 			// Request object not found, could have been deleted after reconcile request.
@@ -144,16 +142,12 @@ func (r *ReconcileVitessBackupsSchedule) Reconcile(ctx context.Context, req ctrl
 		return resultBuilder.Error(err)
 	}
 
-	log.Info("Loaded cronJob")
-
 	// List all active jobs:
 	var childJobs kbatch.JobList
 	if err := r.client.List(ctx, &childJobs, client.InNamespace(req.Namespace)); err != nil && !apierrors.IsNotFound(err) {
 		log.Error(err, " unable to list child Jobs")
 		return ctrl.Result{}, err
 	}
-
-	log.Info("Loaded childJobs")
 
 	// find the active list of jobs
 	var activeJobs []*kbatch.Job
@@ -214,30 +208,30 @@ func (r *ReconcileVitessBackupsSchedule) Reconcile(ctx context.Context, req ctrl
 	}
 
 	if mostRecentTime != nil {
-		cronJob.Status.LastScheduledTime = &metav1.Time{Time: *mostRecentTime}
+		vbsc.Status.LastScheduledTime = &metav1.Time{Time: *mostRecentTime}
 	} else {
-		cronJob.Status.LastScheduledTime = nil
+		vbsc.Status.LastScheduledTime = nil
 	}
 
-	cronJob.Status.Active = nil
+	vbsc.Status.Active = nil
 	for _, activeJob := range activeJobs {
 		jobRef, err := ref.GetReference(r.scheme, activeJob)
 		if err != nil {
 			log.Error(err, "unable to make reference to active job", "job", activeJob)
 			continue
 		}
-		cronJob.Status.Active = append(cronJob.Status.Active, *jobRef)
+		vbsc.Status.Active = append(vbsc.Status.Active, *jobRef)
 	}
 
 	log.Info("job count", "active jobs", len(activeJobs), "successful jobs", len(successfulJobs), "failed jobs", len(failedJobs))
 
-	if err := r.client.Status().Update(ctx, &cronJob); err != nil {
+	if err := r.client.Status().Update(ctx, &vbsc); err != nil {
 		log.Error(err, "unable to update CronJob status")
 		return ctrl.Result{}, err
 	}
 
 	// Clean up old jobs according to the history limit
-	if cronJob.Spec.FailedJobsHistoryLimit != nil {
+	if vbsc.Spec.FailedJobsHistoryLimit != nil {
 		sort.Slice(failedJobs, func(i, j int) bool {
 			if failedJobs[i].Status.StartTime == nil {
 				return failedJobs[j].Status.StartTime != nil
@@ -246,7 +240,7 @@ func (r *ReconcileVitessBackupsSchedule) Reconcile(ctx context.Context, req ctrl
 		})
 
 		for i, job := range failedJobs {
-			if int32(i) >= int32(len(failedJobs))-*cronJob.Spec.FailedJobsHistoryLimit {
+			if int32(i) >= int32(len(failedJobs))-*vbsc.Spec.FailedJobsHistoryLimit {
 				break
 			}
 			if err := r.client.Delete(ctx, job, client.PropagationPolicy(metav1.DeletePropagationBackground)); client.IgnoreNotFound(err) != nil {
@@ -257,7 +251,7 @@ func (r *ReconcileVitessBackupsSchedule) Reconcile(ctx context.Context, req ctrl
 		}
 	}
 
-	if cronJob.Spec.SuccessfulJobsHistoryLimit != nil {
+	if vbsc.Spec.SuccessfulJobsHistoryLimit != nil {
 		sort.Slice(successfulJobs, func(i, j int) bool {
 			if successfulJobs[i].Status.StartTime == nil {
 				return successfulJobs[j].Status.StartTime != nil
@@ -266,7 +260,7 @@ func (r *ReconcileVitessBackupsSchedule) Reconcile(ctx context.Context, req ctrl
 		})
 
 		for i, job := range successfulJobs {
-			if int32(i) >= int32(len(successfulJobs))-*cronJob.Spec.SuccessfulJobsHistoryLimit {
+			if int32(i) >= int32(len(successfulJobs))-*vbsc.Spec.SuccessfulJobsHistoryLimit {
 				break
 			}
 			if err := r.client.Delete(ctx, job, client.PropagationPolicy(metav1.DeletePropagationBackground)); (err) != nil {
@@ -278,10 +272,10 @@ func (r *ReconcileVitessBackupsSchedule) Reconcile(ctx context.Context, req ctrl
 	}
 
 	// Check if we’re suspended
-	// if cronJob.Spec.Suspend != nil && *cronJob.Spec.Suspend {
-	// 	log.Info("cronjob suspended, skipping")
-	// 	return ctrl.Result{}, nil
-	// }
+	if vbsc.Spec.Suspend != nil && *vbsc.Spec.Suspend {
+		log.Info("cronjob suspended, skipping")
+		return ctrl.Result{}, nil
+	}
 
 	getNextSchedule := func(cronJob *planetscalev2.VitessBackupSchedule, now time.Time) (lastMissed time.Time, next time.Time, err error) {
 		sched, err := cron.ParseStandard(cronJob.Spec.Schedule)
@@ -299,14 +293,14 @@ func (r *ReconcileVitessBackupsSchedule) Reconcile(ctx context.Context, req ctrl
 			earliestTime = cronJob.ObjectMeta.CreationTimestamp.Time
 		}
 
-		// if cronJob.Spec.StartingDeadlineSeconds != nil {
-		// 	// controller is not going to schedule anything below this point
-		// 	schedulingDeadline := now.Add(-time.Second * time.Duration(*cronJob.Spec.StartingDeadlineSeconds))
-		//
-		// 	if schedulingDeadline.After(earliestTime) {
-		// 		earliestTime = schedulingDeadline
-		// 	}
-		// }
+		if vbsc.Spec.StartingDeadlineSeconds != nil {
+			// controller is not going to schedule anything below this point
+			schedulingDeadline := now.Add(-time.Second * time.Duration(*vbsc.Spec.StartingDeadlineSeconds))
+
+			if schedulingDeadline.After(earliestTime) {
+				earliestTime = schedulingDeadline
+			}
+		}
 
 		if earliestTime.After(now) {
 			return time.Time{}, sched.Next(now), nil
@@ -341,7 +335,7 @@ func (r *ReconcileVitessBackupsSchedule) Reconcile(ctx context.Context, req ctrl
 	}
 
 	// Figure out the nex times that we need to create jobs at (or anything we missed)
-	missedRun, nextRun, err := getNextSchedule(&cronJob, time.Now())
+	missedRun, nextRun, err := getNextSchedule(&vbsc, time.Now())
 	if err != nil {
 		log.Error(err, "unable to figure out CronJob schedule")
 		// We don't really care about requeuing until we get an update that fixes the schedule, so don't return an error
@@ -361,41 +355,41 @@ func (r *ReconcileVitessBackupsSchedule) Reconcile(ctx context.Context, req ctrl
 	// make sure we're not too late to start the run
 	log.Info("current run", missedRun)
 	tooLate := false
-	// if cronJob.Spec.StartingDeadlineSeconds != nil {
-	// 	tooLate = missedRun.Add(time.Duration(*cronJob.Spec.StartingDeadlineSeconds) * time.Second).Before(time.Now())
-	// }
+	if vbsc.Spec.StartingDeadlineSeconds != nil {
+		tooLate = missedRun.Add(time.Duration(*vbsc.Spec.StartingDeadlineSeconds) * time.Second).Before(time.Now())
+	}
 	if tooLate {
 		log.Info("missed starting deadline for last run, sleeping till next")
 		return scheduledResult, nil
 	}
 
-	// // figure out how to run this job -- concurrency policy might forbid us from running multiple at the same time...
-	// if cronJob.Spec.ConcurrencyPolicy == planetscalev2.ForbidConcurrent && len(activeJobs) > 0 {
-	// 	log.Info("concurrency policy blocks concurrent runs, skipping", "num active", len(activeJobs))
-	// 	return scheduledResult, nil
-	// }
+	// figure out how to run this job -- concurrency policy might forbid us from running multiple at the same time...
+	if vbsc.Spec.ConcurrencyPolicy == planetscalev2.ForbidConcurrent && len(activeJobs) > 0 {
+		log.Info("concurrency policy blocks concurrent runs, skipping", "num active", len(activeJobs))
+		return scheduledResult, nil
+	}
 
-	// // ...or instruct us to replace existing ones...
-	// if cronJob.Spec.ConcurrencyPolicy == planetscalev2.ReplaceConcurrent {
-	// 	for _, activeJob := range activeJobs {
-	// 		// we don't care if the job was already deleted
-	// 		if err := r.client.Delete(ctx, activeJob, client.PropagationPolicy(metav1.DeletePropagationBackground)); client.IgnoreNotFound(err) != nil {
-	// 			log.Error(err, "unable to delete active job", "job", activeJob)
-	// 			return ctrl.Result{}, err
-	// 		}
-	// 	}
-	// }
+	// ...or instruct us to replace existing ones...
+	if vbsc.Spec.ConcurrencyPolicy == planetscalev2.ReplaceConcurrent {
+		for _, activeJob := range activeJobs {
+			// we don't care if the job was already deleted
+			if err := r.client.Delete(ctx, activeJob, client.PropagationPolicy(metav1.DeletePropagationBackground)); client.IgnoreNotFound(err) != nil {
+				log.Error(err, "unable to delete active job", "job", activeJob)
+				return ctrl.Result{}, err
+			}
+		}
+	}
 
 	// create desired job:
-	constructJobForCronJob := func(cronJob *planetscalev2.VitessBackupSchedule, scheduledTime time.Time) (*kbatch.Job, error) {
-		// We want job names for a given nominal start time to have a deterministic name to avoid the same job being created twice
-		name := fmt.Sprintf("%s-%d", cronJob.Name, scheduledTime.Unix())
+	constructJobForCronJob := func(vbsc *planetscalev2.VitessBackupSchedule, scheduledTime time.Time) (*kbatch.Job, error) {
+		shortName := fmt.Sprintf("%s-%s", vbsc.Name, vbsc.Spec.Name)
+		name := fmt.Sprintf("%s-%d", shortName, scheduledTime.Unix())
 
 		meta := metav1.ObjectMeta{
 			Labels:      make(map[string]string),
 			Annotations: make(map[string]string),
 			Name:        name,
-			Namespace:   cronJob.Namespace,
+			Namespace:   vbsc.Namespace,
 		}
 		job := &kbatch.Job{
 			ObjectMeta: meta,
@@ -404,25 +398,26 @@ func (r *ReconcileVitessBackupsSchedule) Reconcile(ctx context.Context, req ctrl
 					ObjectMeta: meta,
 					Spec: corev1.PodSpec{
 						Containers: []corev1.Container{{
-							Name:  "hello",
-							Image: "busybox",
-							Args:  []string{"/bin/sh", "-c", "date; echo Hello from the cron container"},
+							Name:            shortName,
+							Image:           vbsc.Spec.Image,
+							ImagePullPolicy: vbsc.Spec.ImagePullPolicy,
+							Args:            []string{"/bin/sh", "-c", "date; echo Hello from the cron container"},
 						}},
 						RestartPolicy: corev1.RestartPolicyOnFailure,
 					},
 				},
 			},
 		}
-		for k, v := range cronJob.Annotations {
+		for k, v := range vbsc.Annotations {
 			job.Annotations[k] = v
 		}
 		job.Annotations[scheduledTimeAnnotation] = scheduledTime.Format(time.RFC3339)
 
-		for k, v := range cronJob.Labels {
+		for k, v := range vbsc.Labels {
 			job.Labels[k] = v
 		}
 
-		if err := ctrl.SetControllerReference(cronJob, job, r.scheme); err != nil {
+		if err := ctrl.SetControllerReference(vbsc, job, r.scheme); err != nil {
 			return nil, err
 		}
 
@@ -430,7 +425,7 @@ func (r *ReconcileVitessBackupsSchedule) Reconcile(ctx context.Context, req ctrl
 	}
 
 	// actually make the job...
-	job, err := constructJobForCronJob(&cronJob, missedRun)
+	job, err := constructJobForCronJob(&vbsc, missedRun)
 	if err != nil {
 		log.Error(err, "unable to construct job from template")
 		// don't bother requeuing until we get a change to the spec
