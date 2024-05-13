@@ -50,9 +50,6 @@ type VitessBackupScheduleSpec struct {
 	// All remaining fields will be handled/filled by the controller.
 	VitessBackupScheduleTemplate `json:",inline"`
 
-	// The schedule in Cron format, see https://en.wikipedia.org/wiki/Cron.
-	Schedule string `json:"schedule"`
-
 	// TODO: add non-user-aware fields below (image, etc...)
 
 	// // +kubebuilder:validation:Minimum=0

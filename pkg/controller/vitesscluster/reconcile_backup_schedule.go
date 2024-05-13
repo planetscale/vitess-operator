@@ -19,9 +19,9 @@ package vitesscluster
 import (
 	"context"
 
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"planetscale.dev/vitess-operator/pkg/operator/update"
+	"planetscale.dev/vitess-operator/pkg/operator/vitessbackup"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
@@ -35,28 +35,14 @@ func (r *ReconcileVitessCluster) reconcileBackupSchedule(ctx context.Context, vt
 
 	key := client.ObjectKey{
 		Namespace: vt.Namespace,
-		Name:      "toto",
+		Name:      vitessbackup.ScheduleName(vt.Name),
 	}
 
 	return r.reconciler.ReconcileObject(ctx, vt, key, labels, true, reconciler.Strategy{
 		Kind: &planetscalev2.VitessBackupSchedule{},
 
 		New: func(key client.ObjectKey) runtime.Object {
-			if vt.Spec.Backup != nil && vt.Spec.Backup.Schedule.Schedule != "" {
-				schedule := vt.Spec.Backup.Schedule
-				return &planetscalev2.VitessBackupSchedule{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      key.Name,
-						Namespace: key.Namespace,
-						Labels:    labels,
-					},
-					Spec: planetscalev2.VitessBackupScheduleSpec{
-						VitessBackupScheduleTemplate: schedule,
-						Schedule:                     schedule.Schedule,
-					},
-				}
-			}
-			return nil
+			return vitessbackup.NewVitessBackupSchedule(key, vt, labels)
 		},
 
 		UpdateInPlace: func(key client.ObjectKey, obj runtime.Object) {
