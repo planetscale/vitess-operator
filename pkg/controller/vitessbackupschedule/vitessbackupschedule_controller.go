@@ -278,10 +278,10 @@ func (r *ReconcileVitessBackupsSchedule) Reconcile(ctx context.Context, req ctrl
 	}
 
 	// Check if we’re suspended
-	if cronJob.Spec.Suspend != nil && *cronJob.Spec.Suspend {
-		log.Info("cronjob suspended, skipping")
-		return ctrl.Result{}, nil
-	}
+	// if cronJob.Spec.Suspend != nil && *cronJob.Spec.Suspend {
+	// 	log.Info("cronjob suspended, skipping")
+	// 	return ctrl.Result{}, nil
+	// }
 
 	getNextSchedule := func(cronJob *planetscalev2.VitessBackupSchedule, now time.Time) (lastMissed time.Time, next time.Time, err error) {
 		sched, err := cron.ParseStandard(cronJob.Spec.Schedule)
@@ -299,14 +299,14 @@ func (r *ReconcileVitessBackupsSchedule) Reconcile(ctx context.Context, req ctrl
 			earliestTime = cronJob.ObjectMeta.CreationTimestamp.Time
 		}
 
-		if cronJob.Spec.StartingDeadlineSeconds != nil {
-			// controller is not going to schedule anything below this point
-			schedulingDeadline := now.Add(-time.Second * time.Duration(*cronJob.Spec.StartingDeadlineSeconds))
-
-			if schedulingDeadline.After(earliestTime) {
-				earliestTime = schedulingDeadline
-			}
-		}
+		// if cronJob.Spec.StartingDeadlineSeconds != nil {
+		// 	// controller is not going to schedule anything below this point
+		// 	schedulingDeadline := now.Add(-time.Second * time.Duration(*cronJob.Spec.StartingDeadlineSeconds))
+		//
+		// 	if schedulingDeadline.After(earliestTime) {
+		// 		earliestTime = schedulingDeadline
+		// 	}
+		// }
 
 		if earliestTime.After(now) {
 			return time.Time{}, sched.Next(now), nil
@@ -361,51 +361,64 @@ func (r *ReconcileVitessBackupsSchedule) Reconcile(ctx context.Context, req ctrl
 	// make sure we're not too late to start the run
 	log.Info("current run", missedRun)
 	tooLate := false
-	if cronJob.Spec.StartingDeadlineSeconds != nil {
-		tooLate = missedRun.Add(time.Duration(*cronJob.Spec.StartingDeadlineSeconds) * time.Second).Before(time.Now())
-	}
+	// if cronJob.Spec.StartingDeadlineSeconds != nil {
+	// 	tooLate = missedRun.Add(time.Duration(*cronJob.Spec.StartingDeadlineSeconds) * time.Second).Before(time.Now())
+	// }
 	if tooLate {
 		log.Info("missed starting deadline for last run, sleeping till next")
 		return scheduledResult, nil
 	}
 
-	// figure out how to run this job -- concurrency policy might forbid us from running multiple at the same time...
-	if cronJob.Spec.ConcurrencyPolicy == planetscalev2.ForbidConcurrent && len(activeJobs) > 0 {
-		log.Info("concurrency policy blocks concurrent runs, skipping", "num active", len(activeJobs))
-		return scheduledResult, nil
-	}
+	// // figure out how to run this job -- concurrency policy might forbid us from running multiple at the same time...
+	// if cronJob.Spec.ConcurrencyPolicy == planetscalev2.ForbidConcurrent && len(activeJobs) > 0 {
+	// 	log.Info("concurrency policy blocks concurrent runs, skipping", "num active", len(activeJobs))
+	// 	return scheduledResult, nil
+	// }
 
-	// ...or instruct us to replace existing ones...
-	if cronJob.Spec.ConcurrencyPolicy == planetscalev2.ReplaceConcurrent {
-		for _, activeJob := range activeJobs {
-			// we don't care if the job was already deleted
-			if err := r.client.Delete(ctx, activeJob, client.PropagationPolicy(metav1.DeletePropagationBackground)); client.IgnoreNotFound(err) != nil {
-				log.Error(err, "unable to delete active job", "job", activeJob)
-				return ctrl.Result{}, err
-			}
-		}
-	}
+	// // ...or instruct us to replace existing ones...
+	// if cronJob.Spec.ConcurrencyPolicy == planetscalev2.ReplaceConcurrent {
+	// 	for _, activeJob := range activeJobs {
+	// 		// we don't care if the job was already deleted
+	// 		if err := r.client.Delete(ctx, activeJob, client.PropagationPolicy(metav1.DeletePropagationBackground)); client.IgnoreNotFound(err) != nil {
+	// 			log.Error(err, "unable to delete active job", "job", activeJob)
+	// 			return ctrl.Result{}, err
+	// 		}
+	// 	}
+	// }
 
 	// create desired job:
 	constructJobForCronJob := func(cronJob *planetscalev2.VitessBackupSchedule, scheduledTime time.Time) (*kbatch.Job, error) {
 		// We want job names for a given nominal start time to have a deterministic name to avoid the same job being created twice
 		name := fmt.Sprintf("%s-%d", cronJob.Name, scheduledTime.Unix())
 
-		job := &kbatch.Job{
-			ObjectMeta: metav1.ObjectMeta{
-				Labels:      make(map[string]string),
-				Annotations: make(map[string]string),
-				Name:        name,
-				Namespace:   cronJob.Namespace,
-			},
-			Spec: *cronJob.Spec.JobTemplate.Spec.DeepCopy(),
+		meta := metav1.ObjectMeta{
+			Labels:      make(map[string]string),
+			Annotations: make(map[string]string),
+			Name:        name,
+			Namespace:   cronJob.Namespace,
 		}
-		for k, v := range cronJob.Spec.JobTemplate.Annotations {
+		job := &kbatch.Job{
+			ObjectMeta: meta,
+			Spec: kbatch.JobSpec{
+				Template: corev1.PodTemplateSpec{
+					ObjectMeta: meta,
+					Spec: corev1.PodSpec{
+						Containers: []corev1.Container{{
+							Name:  "hello",
+							Image: "busybox",
+							Args:  []string{"/bin/sh", "-c", "date; echo Hello from the cron container"},
+						}},
+						RestartPolicy: corev1.RestartPolicyOnFailure,
+					},
+				},
+			},
+		}
+		for k, v := range cronJob.Annotations {
 			job.Annotations[k] = v
 		}
 		job.Annotations[scheduledTimeAnnotation] = scheduledTime.Format(time.RFC3339)
 
-		for k, v := range cronJob.Spec.JobTemplate.Labels {
+		for k, v := range cronJob.Labels {
 			job.Labels[k] = v
 		}
 

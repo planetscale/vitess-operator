@@ -14,6 +14,8 @@ spec:
         hostPath:
           path: /backup
           type: Directory
+    schedule:
+      schedule: "* * * * *"
   images:
     vtctld: vitess/lite:latest
     vtgate: vitess/lite:latest

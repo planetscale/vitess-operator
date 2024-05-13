@@ -186,6 +186,11 @@ func (r *ReconcileVitessCluster) Reconcile(cctx context.Context, request reconci
 		resultBuilder.Error(err)
 	}
 
+	// Create/update VitessBackupSchedule object.
+	if err := r.reconcileBackupSchedule(ctx, vt); err != nil {
+		resultBuilder.Error(err)
+	}
+
 	// Create/update desired VitessCells.
 	if err := r.reconcileCells(ctx, vt); err != nil {
 		resultBuilder.Error(err)

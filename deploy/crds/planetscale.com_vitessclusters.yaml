@@ -152,6 +152,22 @@ spec:
                       type: object
                     minItems: 1
                     type: array
+                  schedule:
+                    properties:
+                      failedJobsHistoryLimit:
+                        format: int32
+                        minimum: 0
+                        type: integer
+                      schedule:
+                        minLength: 0
+                        type: string
+                      successfulJobsHistoryLimit:
+                        format: int32
+                        minimum: 0
+                        type: integer
+                    required:
+                    - schedule
+                    type: object
                   subcontroller:
                     properties:
                       serviceAccountName:
