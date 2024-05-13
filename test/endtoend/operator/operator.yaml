@@ -433,6 +433,35 @@ spec:
                   format: int64
                   minimum: 0
                   type: integer
+                strategy:
+                  properties:
+                    backupShard:
+                      properties:
+                        allow_primary:
+                          type: boolean
+                        keyspace:
+                          minLength: 1
+                          type: string
+                        shard:
+                          minLength: 1
+                          type: string
+                        upgrade_safe:
+                          type: boolean
+                      required:
+                        - keyspace
+                        - shard
+                      type: object
+                    backupTablet:
+                      properties:
+                        tablet:
+                          minLength: 1
+                          type: string
+                        upgrade_safe:
+                          type: boolean
+                      required:
+                        - tablet
+                      type: object
+                  type: object
                 successfulJobsHistoryLimit:
                   format: int32
                   minimum: 0
@@ -442,6 +471,7 @@ spec:
               required:
                 - name
                 - schedule
+                - strategy
               type: object
             status:
               properties:
@@ -1589,6 +1619,35 @@ spec:
                           format: int64
                           minimum: 0
                           type: integer
+                        strategy:
+                          properties:
+                            backupShard:
+                              properties:
+                                allow_primary:
+                                  type: boolean
+                                keyspace:
+                                  minLength: 1
+                                  type: string
+                                shard:
+                                  minLength: 1
+                                  type: string
+                                upgrade_safe:
+                                  type: boolean
+                              required:
+                                - keyspace
+                                - shard
+                              type: object
+                            backupTablet:
+                              properties:
+                                tablet:
+                                  minLength: 1
+                                  type: string
+                                upgrade_safe:
+                                  type: boolean
+                              required:
+                                - tablet
+                              type: object
+                          type: object
                         successfulJobsHistoryLimit:
                           format: int32
                           minimum: 0
@@ -1598,6 +1657,7 @@ spec:
                       required:
                         - name
                         - schedule
+                        - strategy
                       type: object
                     subcontroller:
                       properties:

@@ -2391,6 +2391,71 @@ VitessBackupScheduleStatus
 </tr>
 </tbody>
 </table>
+<h3 id="planetscale.com/v2.VitessBackupScheduleShard">VitessBackupScheduleShard
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#planetscale.com/v2.VitessBackupScheduleStrategy">VitessBackupScheduleStrategy</a>)
+</p>
+<p>
+</p>
+<table class="table table-striped">
+<thead class="thead-dark">
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>keyspace</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Keyspace defines the keyspace in which the shard can be found.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>shard</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Shard defines the shard we want to take a backup on.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>upgrade_safe</code></br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>UpgradeSafe indicates if the backup should be taken with innodb_fast_shutdown=0
+so that it&rsquo;s a backup that can be used for an upgrade.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>allow_primary</code></br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>AllowPrimary allows the backup to occur on a PRIMARY tablet.</p>
+</td>
+</tr>
+</tbody>
+</table>
 <h3 id="planetscale.com/v2.VitessBackupScheduleSpec">VitessBackupScheduleSpec
 </h3>
 <p>
@@ -2500,6 +2565,103 @@ Kubernetes meta/v1.Time
 </tr>
 </tbody>
 </table>
+<h3 id="planetscale.com/v2.VitessBackupScheduleStrategy">VitessBackupScheduleStrategy
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#planetscale.com/v2.VitessBackupScheduleTemplate">VitessBackupScheduleTemplate</a>)
+</p>
+<p>
+<p>VitessBackupScheduleStrategy defines how we are going to take a backup.
+There are two options:
+- Using &ldquo;vtctldclient Backup&rdquo; for a tablet backup.
+- Using &ldquo;vtctldclient BackupShard&rdquo; for a shard backup.</p>
+</p>
+<table class="table table-striped">
+<thead class="thead-dark">
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>backupTablet</code></br>
+<em>
+<a href="#planetscale.com/v2.VitessBackupScheduleTablet">
+VitessBackupScheduleTablet
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>BackupTablet defines whether we are going to take the backup using &ldquo;vtctldclient Backup&rdquo; or not.
+This option allows backups of a single tablet at a time.
+BackupTablet and BackupShard cannot be used at the same time in the same VitessBackupScheduleStrategy.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>backupShard</code></br>
+<em>
+<a href="#planetscale.com/v2.VitessBackupScheduleShard">
+VitessBackupScheduleShard
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>BackupShard defines whether we are going to take the backup using &ldquo;vtctldclient BackupShard&rdquo; or not.
+This option allows backups of a single shard at a time.`
+BackupShard and BackupTablet cannot be used at the same time in the same VitessBackupScheduleStrategy.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="planetscale.com/v2.VitessBackupScheduleTablet">VitessBackupScheduleTablet
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#planetscale.com/v2.VitessBackupScheduleStrategy">VitessBackupScheduleStrategy</a>)
+</p>
+<p>
+<p>VitessBackupScheduleTablet uses &ldquo;vtctldclient Backup&rdquo; to take backups.</p>
+</p>
+<table class="table table-striped">
+<thead class="thead-dark">
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>tablet</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Tablet is the tablet alias we want to take a backup on.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>upgrade_safe</code></br>
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>UpgradeSafe indicates if the backup should be taken with innodb_fast_shutdown=0
+so that it&rsquo;s a backup that can be used for an upgrade.</p>
+</td>
+</tr>
+</tbody>
+</table>
 <h3 id="planetscale.com/v2.VitessBackupScheduleTemplate">VitessBackupScheduleTemplate
 </h3>
 <p>
@@ -2537,6 +2699,22 @@ string
 </td>
 <td>
 <p>The schedule in Cron format, see <a href="https://en.wikipedia.org/wiki/Cron">https://en.wikipedia.org/wiki/Cron</a>.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>strategy</code></br>
+<em>
+<a href="#planetscale.com/v2.VitessBackupScheduleStrategy">
+VitessBackupScheduleStrategy
+</a>
+</em>
+</td>
+<td>
+<p>Strategy defines how we are going to take a backup.
+There are two options:
+- Using &ldquo;vtctldclient Backup&rdquo; for a tablet backup.
+- Using &ldquo;vtctldclient BackupShard&rdquo; for a shard backup.</p>
 </td>
 </tr>
 <tr>

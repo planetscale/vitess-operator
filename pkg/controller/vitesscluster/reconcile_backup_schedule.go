@@ -20,7 +20,6 @@ import (
 	"context"
 
 	"k8s.io/apimachinery/pkg/runtime"
-	"planetscale.dev/vitess-operator/pkg/operator/update"
 	"planetscale.dev/vitess-operator/pkg/operator/vitessbackup"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -46,8 +45,9 @@ func (r *ReconcileVitessCluster) reconcileBackupSchedule(ctx context.Context, vt
 		},
 
 		UpdateInPlace: func(key client.ObjectKey, obj runtime.Object) {
-			vbsc := obj.(*planetscalev2.VitessBackupSchedule)
-			update.Labels(&vbsc.Labels, labels)
+			newObj := obj.(*planetscalev2.VitessBackupSchedule)
+			newVbsc := vitessbackup.NewVitessBackupSchedule(key, vt, labels).(*planetscalev2.VitessBackupSchedule)
+			newObj.Spec = newVbsc.Spec
 		},
 	})
 }

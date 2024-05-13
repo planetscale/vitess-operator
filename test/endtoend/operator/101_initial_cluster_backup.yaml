@@ -19,6 +19,10 @@ spec:
       schedule: "* * * * *"
       successfulJobsHistoryLimit: 2
       failedJobsHistoryLimit: 3
+      strategy:
+        backupShard:
+          keyspace: "commerce"
+          shard: "-"
   images:
     vtctld: vitess/lite:latest
     vtgate: vitess/lite:latest

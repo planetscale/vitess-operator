@@ -69,6 +69,12 @@ type VitessBackupScheduleTemplate struct {
 	// +kubebuilder:validation:MinLength=0
 	Schedule string `json:"schedule"`
 
+	// Strategy defines how we are going to take a backup.
+	// There are two options:
+	// 		- Using "vtctldclient Backup" for a tablet backup.
+	//		- Using "vtctldclient BackupShard" for a shard backup.
+	Strategy VitessBackupScheduleStrategy `json:"strategy"`
+
 	// The number of successful finished jobs to retain. This is a pointer to distinguish between
 	// explicit zero and not specified.
 	// +optional
@@ -99,6 +105,55 @@ type VitessBackupScheduleTemplate struct {
 	// - "Replace": cancels currently running job and replaces it with a new one.
 	// +optional
 	ConcurrencyPolicy ConcurrencyPolicy `json:"concurrencyPolicy,omitempty"`
+}
+
+// VitessBackupScheduleStrategy defines how we are going to take a backup.
+// There are two options:
+//   - Using "vtctldclient Backup" for a tablet backup.
+//   - Using "vtctldclient BackupShard" for a shard backup.
+type VitessBackupScheduleStrategy struct {
+	// BackupTablet defines whether we are going to take the backup using "vtctldclient Backup" or not.
+	// This option allows backups of a single tablet at a time.
+	// BackupTablet and BackupShard cannot be used at the same time in the same VitessBackupScheduleStrategy.
+	// +optional
+	BackupTablet *VitessBackupScheduleTablet `json:"backupTablet,omitempty"`
+
+	// BackupShard defines whether we are going to take the backup using "vtctldclient BackupShard" or not.
+	// This option allows backups of a single shard at a time.`
+	// BackupShard and BackupTablet cannot be used at the same time in the same VitessBackupScheduleStrategy.
+	// +optional
+	BackupShard *VitessBackupScheduleShard `json:"backupShard,omitempty"`
+}
+
+// VitessBackupScheduleTablet uses "vtctldclient Backup" to take backups.
+type VitessBackupScheduleTablet struct {
+	// Tablet is the tablet alias we want to take a backup on.
+	// +kubebuilder:validation:MinLength=1
+	Tablet string `json:"tablet"`
+
+	// UpgradeSafe indicates if the backup should be taken with innodb_fast_shutdown=0
+	// so that it's a backup that can be used for an upgrade.
+	// +optional
+	UpgradeSafe bool `json:"upgrade_safe,omitempty"`
+}
+
+type VitessBackupScheduleShard struct {
+	// Keyspace defines the keyspace in which the shard can be found.
+	// +kubebuilder:validation:MinLength=1
+	Keyspace string `json:"keyspace"`
+
+	// Shard defines the shard we want to take a backup on.
+	// +kubebuilder:validation:MinLength=1
+	Shard string `json:"shard"`
+
+	// UpgradeSafe indicates if the backup should be taken with innodb_fast_shutdown=0
+	// so that it's a backup that can be used for an upgrade.
+	// +optional
+	UpgradeSafe bool `json:"upgrade_safe,omitempty"`
+
+	// AllowPrimary allows the backup to occur on a PRIMARY tablet.
+	// +optional
+	AllowPrimary bool `json:"allow_primary,omitempty"`
 }
 
 // VitessBackupScheduleStatus defines the observed state of VitessBackupSchedule
