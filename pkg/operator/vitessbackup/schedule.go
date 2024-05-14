@@ -2,7 +2,6 @@ package vitessbackup
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 	"planetscale.dev/vitess-operator/pkg/operator/names"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -12,7 +11,7 @@ func ScheduleName(clusterName string) string {
 	return names.JoinWithConstraints(names.DefaultConstraints, clusterName, "backupschedule")
 }
 
-func NewVitessBackupSchedule(key client.ObjectKey, vt *planetscalev2.VitessCluster, labels map[string]string) runtime.Object {
+func NewVitessBackupSchedule(key client.ObjectKey, vt *planetscalev2.VitessCluster, labels map[string]string) *planetscalev2.VitessBackupSchedule {
 	if vt.Spec.Backup == nil || vt.Spec.Backup.Schedule.Schedule == "" {
 		return nil
 	}

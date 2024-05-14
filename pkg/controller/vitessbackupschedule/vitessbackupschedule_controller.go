@@ -449,7 +449,6 @@ func (r *ReconcileVitessBackupsSchedule) createJobPod(ctx context.Context, vbsc 
 	var args []string
 	if vbsc.Spec.Strategy.BackupShard != nil {
 		// vtctldclient --server=<vtctld_host>:<vtctld_port> BackupShard [--allow_primary=false] [--upgrade-safe=false] <keyspace/shard>
-
 		args = append(args, vtctldclientPath, fmt.Sprintf("--server=%s", vtctldServer), "BackupShard")
 
 		if vbsc.Spec.Strategy.BackupShard.AllowPrimary {
@@ -462,9 +461,16 @@ func (r *ReconcileVitessBackupsSchedule) createJobPod(ctx context.Context, vbsc 
 
 		args = append(args, fmt.Sprintf("%s/%s", vbsc.Spec.Strategy.BackupShard.Keyspace, vbsc.Spec.Strategy.BackupShard.Shard))
 	} else if vbsc.Spec.Strategy.BackupTablet != nil {
+		// vtctldclient --server=<vtctld_host>:<vtctld_port> Backup [--upgrade-safe=false] <tablet-alias>
+		args = append(args, vtctldclientPath, fmt.Sprintf("--server=%s", vtctldServer), "Backup")
 
+		if vbsc.Spec.Strategy.BackupTablet.UpgradeSafe {
+			args = append(args, "--upgrade-safe=true")
+		}
+
+		args = append(args, vbsc.Spec.Strategy.BackupTablet.Tablet)
 	} else {
-
+		return pod, fmt.Errorf("invalid strategy VitessBackupSchedule, could not find either backupShard or backupTablet")
 	}
 
 	pod = corev1.PodSpec{

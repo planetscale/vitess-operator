@@ -1,5 +1,5 @@
 /*
-Copyright 2019 PlanetScale Inc.
+Copyright 2024 PlanetScale Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -45,16 +45,24 @@ func (r *ReconcileVitessCluster) reconcileBackupSchedule(ctx context.Context, vt
 			if vbsc == nil {
 				return &planetscalev2.VitessBackupSchedule{}
 			}
+			if vbsc.Spec.Strategy.BackupTablet == nil && vbsc.Spec.Strategy.BackupShard == nil {
+				log.Error("no backup strategy specified for VitessBackupSchedule")
+				return &planetscalev2.VitessBackupSchedule{}
+			}
+			if vbsc.Spec.Strategy.BackupShard != nil && vbsc.Spec.Strategy.BackupTablet != nil {
+				log.Error("both BackupShard and BackupTablet strategies specified for VitessBackupSchedule")
+				return &planetscalev2.VitessBackupSchedule{}
+			}
 			return vbsc
 		},
 
 		UpdateInPlace: func(key client.ObjectKey, obj runtime.Object) {
 			newObj := obj.(*planetscalev2.VitessBackupSchedule)
-			newVbscObj := vitessbackup.NewVitessBackupSchedule(key, vt, labels)
-			if newVbscObj == nil {
+			newVbsc := vitessbackup.NewVitessBackupSchedule(key, vt, labels)
+			if newVbsc == nil {
 				return
 			}
-			newObj.Spec = newVbscObj.(*planetscalev2.VitessBackupSchedule).Spec
+			newObj.Spec = newVbsc.Spec
 		},
 
 		PrepareForTurndown: func(key client.ObjectKey, newObj runtime.Object) *planetscalev2.OrphanStatus {
