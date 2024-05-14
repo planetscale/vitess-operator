@@ -17,6 +17,12 @@ spec:
     schedule:
       name: "every-minute"
       schedule: "* * * * *"
+      resources:
+        requests:
+          cpu: 100m
+          memory: 1024Mi
+        limits:
+          memory: 1024Mi
       successfulJobsHistoryLimit: 2
       failedJobsHistoryLimit: 3
       strategy:
@@ -90,10 +96,10 @@ spec:
                 wait_for_backup_interval: "0"
               resources:
                 limits:
-                  memory: 256Mi
+                  memory: 512Mi
                 requests:
                   cpu: 100m
-                  memory: 256Mi
+                  memory: 512Mi
             mysqld:
               resources:
                 limits:

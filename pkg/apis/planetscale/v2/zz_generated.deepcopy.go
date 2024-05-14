@@ -888,6 +888,7 @@ func (in *VitessBackupScheduleTablet) DeepCopy() *VitessBackupScheduleTablet {
 func (in *VitessBackupScheduleTemplate) DeepCopyInto(out *VitessBackupScheduleTemplate) {
 	*out = *in
 	in.Strategy.DeepCopyInto(&out.Strategy)
+	in.Resources.DeepCopyInto(&out.Resources)
 	if in.SuccessfulJobsHistoryLimit != nil {
 		in, out := &in.SuccessfulJobsHistoryLimit, &out.SuccessfulJobsHistoryLimit
 		*out = new(int32)

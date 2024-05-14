@@ -75,6 +75,9 @@ type VitessBackupScheduleTemplate struct {
 	//		- Using "vtctldclient BackupShard" for a shard backup.
 	Strategy VitessBackupScheduleStrategy `json:"strategy"`
 
+	// Resources specify the compute resources to allocate for the pod that backups Vitess.
+	Resources corev1.ResourceRequirements `json:"resources"`
+
 	// The number of successful finished jobs to retain. This is a pointer to distinguish between
 	// explicit zero and not specified.
 	// +optional

@@ -14,6 +14,7 @@ import (
 	kbatch "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	apilabels "k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/tools/record"
 	"planetscale.dev/vitess-operator/pkg/operator/reconciler"
 	"planetscale.dev/vitess-operator/pkg/operator/results"
@@ -33,7 +34,8 @@ import (
 )
 
 const (
-	controllerName = "vitessbackupschedule-controller"
+	controllerName   = "vitessbackupschedule-controller"
+	vtctldclientPath = "/vt/bin/vtctldclient"
 )
 
 var (
@@ -156,30 +158,6 @@ func (r *ReconcileVitessBackupsSchedule) Reconcile(ctx context.Context, req ctrl
 
 	// find the last run, so we can update the status
 	var mostRecentTime *time.Time
-
-	isJobFinished := func(job *kbatch.Job) (bool, kbatch.JobConditionType) {
-		for _, c := range job.Status.Conditions {
-			if (c.Type == kbatch.JobComplete || c.Type == kbatch.JobFailed) && c.Status == corev1.ConditionTrue {
-				return true, c.Type
-			}
-		}
-
-		return false, ""
-	}
-
-	getScheduledTimeForJob := func(job *kbatch.Job) (*time.Time, error) {
-		timeRaw := job.Annotations[scheduledTimeAnnotation]
-		if len(timeRaw) == 0 {
-			return nil, nil
-		}
-
-		timeParsed, err := time.Parse(time.RFC3339, timeRaw)
-		if err != nil {
-			return nil, err
-		}
-
-		return &timeParsed, nil
-	}
 
 	for i, job := range childJobs.Items {
 		_, finishedType := isJobFinished(&job)
@@ -380,55 +358,10 @@ func (r *ReconcileVitessBackupsSchedule) Reconcile(ctx context.Context, req ctrl
 		}
 	}
 
-	// create desired job:
-	constructJobForCronJob := func(vbsc *planetscalev2.VitessBackupSchedule, scheduledTime time.Time) (*kbatch.Job, error) {
-		shortName := fmt.Sprintf("%s-%s", vbsc.Name, vbsc.Spec.Name)
-		name := fmt.Sprintf("%s-%d", shortName, scheduledTime.Unix())
-
-		meta := metav1.ObjectMeta{
-			Labels:      make(map[string]string),
-			Annotations: make(map[string]string),
-			Name:        name,
-			Namespace:   vbsc.Namespace,
-		}
-		job := &kbatch.Job{
-			ObjectMeta: meta,
-			Spec: kbatch.JobSpec{
-				Template: corev1.PodTemplateSpec{
-					ObjectMeta: meta,
-					Spec: corev1.PodSpec{
-						Containers: []corev1.Container{{
-							Name:            shortName,
-							Image:           vbsc.Spec.Image,
-							ImagePullPolicy: vbsc.Spec.ImagePullPolicy,
-							Args:            []string{"/bin/sh", "-c", "date; echo Hello from the cron container"},
-						}},
-						RestartPolicy: corev1.RestartPolicyOnFailure,
-					},
-				},
-			},
-		}
-		for k, v := range vbsc.Annotations {
-			job.Annotations[k] = v
-		}
-		job.Annotations[scheduledTimeAnnotation] = scheduledTime.Format(time.RFC3339)
-
-		for k, v := range vbsc.Labels {
-			job.Labels[k] = v
-		}
-
-		if err := ctrl.SetControllerReference(vbsc, job, r.scheme); err != nil {
-			return nil, err
-		}
-
-		return job, nil
-	}
-
 	// actually make the job...
-	job, err := constructJobForCronJob(&vbsc, missedRun)
+	job, err := r.createJob(ctx, &vbsc, missedRun)
 	if err != nil {
 		log.Error(err, "unable to construct job from template")
-		// don't bother requeuing until we get a change to the spec
 		return scheduledResult, nil
 	}
 
@@ -441,4 +374,137 @@ func (r *ReconcileVitessBackupsSchedule) Reconcile(ctx context.Context, req ctrl
 	log.Info("created Job for CronJob run", "job", job)
 
 	return scheduledResult, nil
+}
+
+func isJobFinished(job *kbatch.Job) (bool, kbatch.JobConditionType) {
+	for _, c := range job.Status.Conditions {
+		if (c.Type == kbatch.JobComplete || c.Type == kbatch.JobFailed) && c.Status == corev1.ConditionTrue {
+			return true, c.Type
+		}
+	}
+
+	return false, ""
+}
+
+func getScheduledTimeForJob(job *kbatch.Job) (*time.Time, error) {
+	timeRaw := job.Annotations[scheduledTimeAnnotation]
+	if len(timeRaw) == 0 {
+		return nil, nil
+	}
+
+	timeParsed, err := time.Parse(time.RFC3339, timeRaw)
+	if err != nil {
+		return nil, err
+	}
+
+	return &timeParsed, nil
+}
+
+func (r *ReconcileVitessBackupsSchedule) createJob(ctx context.Context, vbsc *planetscalev2.VitessBackupSchedule, scheduledTime time.Time) (*kbatch.Job, error) {
+	shortName := fmt.Sprintf("%s-%s", vbsc.Name, vbsc.Spec.Name)
+	name := fmt.Sprintf("%s-%d", shortName, scheduledTime.Unix())
+
+	meta := metav1.ObjectMeta{
+		Labels:      make(map[string]string),
+		Annotations: make(map[string]string),
+		Name:        name,
+		Namespace:   vbsc.Namespace,
+	}
+	pod, err := r.createJobPod(ctx, vbsc, shortName)
+	if err != nil {
+		return nil, err
+	}
+	job := &kbatch.Job{
+		ObjectMeta: meta,
+		Spec: kbatch.JobSpec{
+			Template: corev1.PodTemplateSpec{
+				ObjectMeta: meta,
+				Spec:       pod,
+			},
+		},
+	}
+	for k, v := range vbsc.Annotations {
+		job.Annotations[k] = v
+	}
+	job.Annotations[scheduledTimeAnnotation] = scheduledTime.Format(time.RFC3339)
+
+	for k, v := range vbsc.Labels {
+		job.Labels[k] = v
+	}
+
+	if err := ctrl.SetControllerReference(vbsc, job, r.scheme); err != nil {
+		return nil, err
+	}
+
+	return job, nil
+}
+
+func (r *ReconcileVitessBackupsSchedule) createJobPod(ctx context.Context, vbsc *planetscalev2.VitessBackupSchedule, shortName string) (pod corev1.PodSpec, err error) {
+	vtctldServiceName, vtctldServicePort, err := r.getVtctldServiceName(ctx, vbsc)
+	if err != nil {
+		return corev1.PodSpec{}, err
+	}
+	vtctldServer := fmt.Sprintf("%s:%d", vtctldServiceName, vtctldServicePort)
+
+	var args []string
+	if vbsc.Spec.Strategy.BackupShard != nil {
+		// vtctldclient --server=<vtctld_host>:<vtctld_port> BackupShard [--allow_primary=false] [--upgrade-safe=false] <keyspace/shard>
+
+		args = append(args, vtctldclientPath, fmt.Sprintf("--server=%s", vtctldServer), "BackupShard")
+
+		if vbsc.Spec.Strategy.BackupShard.AllowPrimary {
+			args = append(args, "--allow_primary=true")
+		}
+
+		if vbsc.Spec.Strategy.BackupShard.UpgradeSafe {
+			args = append(args, "--upgrade-safe=true")
+		}
+
+		args = append(args, fmt.Sprintf("%s/%s", vbsc.Spec.Strategy.BackupShard.Keyspace, vbsc.Spec.Strategy.BackupShard.Shard))
+	} else if vbsc.Spec.Strategy.BackupTablet != nil {
+
+	} else {
+
+	}
+
+	pod = corev1.PodSpec{
+		Containers: []corev1.Container{{
+			Name:            shortName,
+			Image:           vbsc.Spec.Image,
+			ImagePullPolicy: vbsc.Spec.ImagePullPolicy,
+			Resources:       vbsc.Spec.Resources,
+			Args:            args,
+		}},
+		RestartPolicy: corev1.RestartPolicyOnFailure,
+	}
+	return pod, nil
+}
+
+func (r *ReconcileVitessBackupsSchedule) getVtctldServiceName(ctx context.Context, vbsc *planetscalev2.VitessBackupSchedule) (svcName string, svcPort int32, err error) {
+	svcList := &corev1.ServiceList{}
+	listOpts := &client.ListOptions{
+		Namespace: vbsc.Namespace,
+		LabelSelector: apilabels.Set{
+			planetscalev2.ComponentLabel: planetscalev2.VtctldComponentName,
+		}.AsSelector(),
+	}
+	if err = r.client.List(ctx, svcList, listOpts); err != nil {
+		return "", 0, fmt.Errorf("unable to list vtctld service in %q: %v", vbsc.Namespace, err)
+	}
+
+	if len(svcList.Items) > 0 {
+		service := svcList.Items[0]
+		svcName = service.Name
+		for _, port := range service.Spec.Ports {
+			if port.Name == planetscalev2.DefaultGrpcPortName {
+				svcPort = port.Port
+				break
+			}
+		}
+	}
+
+	if svcName == "" || svcPort == 0 {
+		return "", 0, fmt.Errorf("no vtctld service in %q found", vbsc.Namespace)
+	}
+	return svcName, svcPort, nil
 }

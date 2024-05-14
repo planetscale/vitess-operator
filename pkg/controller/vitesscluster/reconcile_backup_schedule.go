@@ -41,7 +41,11 @@ func (r *ReconcileVitessCluster) reconcileBackupSchedule(ctx context.Context, vt
 		Kind: &planetscalev2.VitessBackupSchedule{},
 
 		New: func(key client.ObjectKey) runtime.Object {
-			return vitessbackup.NewVitessBackupSchedule(key, vt, labels)
+			vbsc := vitessbackup.NewVitessBackupSchedule(key, vt, labels)
+			if vbsc == nil {
+				return &planetscalev2.VitessBackupSchedule{}
+			}
+			return vbsc
 		},
 
 		UpdateInPlace: func(key client.ObjectKey, obj runtime.Object) {
