@@ -46,8 +46,16 @@ func (r *ReconcileVitessCluster) reconcileBackupSchedule(ctx context.Context, vt
 
 		UpdateInPlace: func(key client.ObjectKey, obj runtime.Object) {
 			newObj := obj.(*planetscalev2.VitessBackupSchedule)
-			newVbsc := vitessbackup.NewVitessBackupSchedule(key, vt, labels).(*planetscalev2.VitessBackupSchedule)
-			newObj.Spec = newVbsc.Spec
+			newVbscObj := vitessbackup.NewVitessBackupSchedule(key, vt, labels)
+			if newVbscObj == nil {
+				return
+			}
+			newObj.Spec = newVbscObj.(*planetscalev2.VitessBackupSchedule).Spec
+		},
+
+		PrepareForTurndown: func(key client.ObjectKey, newObj runtime.Object) *planetscalev2.OrphanStatus {
+			// If we want to remove the schedule, delete it immediately.
+			return nil
 		},
 	})
 }
