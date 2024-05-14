@@ -27,6 +27,9 @@ spec:
             type: object
           spec:
             properties:
+              allowedMissedRun:
+                minimum: 0
+                type: integer
               concurrencyPolicy:
                 enum:
                 - Allow

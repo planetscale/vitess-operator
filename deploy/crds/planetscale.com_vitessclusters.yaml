@@ -154,6 +154,9 @@ spec:
                     type: array
                   schedule:
                     properties:
+                      allowedMissedRun:
+                        minimum: 0
+                        type: integer
                       concurrencyPolicy:
                         enum:
                         - Allow

@@ -95,10 +95,10 @@ type VitessBackupScheduleTemplate struct {
 	// +optional
 	Suspend *bool `json:"suspend,omitempty"`
 
-	// +kubebuilder:validation:Minimum=0
 	// Optional deadlines in seconds for starting the job if it misses scheduled
-	// time for any reason. Missed jobs executions will be counted as failed ones.
+	// time for any reason.
 	// +optional
+	// +kubebuilder:validation:Minimum=0
 	StartingDeadlineSeconds *int64 `json:"startingDeadlineSeconds,omitempty"`
 
 	// Specifies ho to treat concurrent executions of a Job.
@@ -108,6 +108,18 @@ type VitessBackupScheduleTemplate struct {
 	// - "Replace": cancels currently running job and replaces it with a new one.
 	// +optional
 	ConcurrencyPolicy ConcurrencyPolicy `json:"concurrencyPolicy,omitempty"`
+
+	// AllowedMissedRun defines how many missed run of the schedule will be allowed before giving up on finding the last job.
+	// If the operator's clocked is skewed and we end-up missing a certain number of jobs, finding the last
+	// job might be very consuming, depending on the frequency of the schedule and the duration during which
+	// the operator's clock was misbehaving, also depending on how laggy the clock is, we can end-up with thousands
+	// or missed runs. For this reason, AllowedMissedRun, which is set to 100 by default, will allow us to give up finding
+	// the last job and simply wait for the next job on the schedule.
+	// Unless you are experiencing issue with missed runs due to a misconfiguration of the clock, we recommend leaving
+	// this field to its default value.
+	// +optional
+	// +kubebuilder:validation:Minimum=0
+	AllowedMissedRun *int `json:"allowedMissedRun,omitempty"`
 }
 
 // VitessBackupScheduleStrategy defines how we are going to take a backup.

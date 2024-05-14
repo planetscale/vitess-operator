@@ -407,6 +407,9 @@ spec:
               type: object
             spec:
               properties:
+                allowedMissedRun:
+                  minimum: 0
+                  type: integer
                 concurrencyPolicy:
                   enum:
                     - Allow
@@ -1629,6 +1632,9 @@ spec:
                       type: array
                     schedule:
                       properties:
+                        allowedMissedRun:
+                          minimum: 0
+                          type: integer
                         concurrencyPolicy:
                           enum:
                             - Allow
