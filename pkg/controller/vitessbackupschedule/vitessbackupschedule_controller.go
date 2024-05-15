@@ -147,7 +147,7 @@ func (r *ReconcileVitessBackupsSchedule) Reconcile(ctx context.Context, req ctrl
 		return resultBuilder.Error(err)
 	}
 
-	jobs, mostRecentTime, err := r.getJobsList(ctx, req)
+	jobs, mostRecentTime, err := r.getJobsList(ctx, req, vbsc.Name)
 	if err != nil {
 		// We had an error reading the jobs, we can requeue.
 		return resultBuilder.Error(err)
@@ -216,12 +216,12 @@ func (r *ReconcileVitessBackupsSchedule) Reconcile(ctx context.Context, req ctrl
 		log.WithError(err).Error("unable to construct job from template")
 		return scheduledResult, nil
 	}
-	if err := r.client.Create(ctx, job); err != nil {
-		log.WithError(err).Error("unable to create Job: %s", job.Name)
-		return ctrl.Result{}, err
+	if err = r.client.Create(ctx, job); err != nil {
+		// Simply re-queue here
+		return resultBuilder.Error(err)
 	}
 
-	log.Infof("created new job: %s", job.Name)
+	log.Infof("created new job: %s, next job scheduled in %s", job.Name, scheduledResult.RequeueAfter.String())
 
 	return scheduledResult, nil
 }
@@ -299,11 +299,12 @@ func (r *ReconcileVitessBackupsSchedule) updateVitessBackupScheduleStatus(ctx co
 // getJobsList fetches all existing Jobs in the cluster and return them by categories: active, failed or successful.
 // It also returns at what time was the last job created, which is needed to update VitessBackupSchedule's status,
 // and plan future jobs.
-func (r *ReconcileVitessBackupsSchedule) getJobsList(ctx context.Context, req ctrl.Request) (jobsList, *time.Time, error) {
+func (r *ReconcileVitessBackupsSchedule) getJobsList(ctx context.Context, req ctrl.Request, vbscName string) (jobsList, *time.Time, error) {
 	var existingJobs kbatch.JobList
-	// TODO: list only those that respect labels
-	if err := r.client.List(ctx, &existingJobs, client.InNamespace(req.Namespace), client.HasLabels{}); err != nil && !apierrors.IsNotFound(err) {
-		log.WithError(err).Error(" unable to list child Jobs")
+
+	err := r.client.List(ctx, &existingJobs, client.InNamespace(req.Namespace), client.MatchingLabels{planetscalev2.BackupScheduleLabel: vbscName})
+	if err != nil && !apierrors.IsNotFound(err) {
+		log.WithError(err).Error("unable to list Jobs in cluster")
 		return jobsList{}, nil, err
 	}
 
@@ -393,13 +394,23 @@ func (r *ReconcileVitessBackupsSchedule) createJob(ctx context.Context, vbsc *pl
 	shortName := fmt.Sprintf("%s-%s", vbsc.Name, vbsc.Spec.Name)
 	name := fmt.Sprintf("%s-%d", shortName, scheduledTime.Unix())
 
-	// TODO: set labels
 	meta := metav1.ObjectMeta{
-		Labels:      make(map[string]string),
+		Labels: map[string]string{
+			planetscalev2.BackupScheduleLabel: vbsc.Name,
+		},
 		Annotations: make(map[string]string),
 		Name:        name,
 		Namespace:   vbsc.Namespace,
 	}
+	for k, v := range vbsc.Annotations {
+		meta.Annotations[k] = v
+	}
+	meta.Annotations[scheduledTimeAnnotation] = scheduledTime.Format(time.RFC3339)
+
+	for k, v := range vbsc.Labels {
+		meta.Labels[k] = v
+	}
+
 	pod, err := r.createJobPod(ctx, vbsc, shortName)
 	if err != nil {
 		return nil, err
@@ -412,14 +423,6 @@ func (r *ReconcileVitessBackupsSchedule) createJob(ctx context.Context, vbsc *pl
 				Spec:       pod,
 			},
 		},
-	}
-	for k, v := range vbsc.Annotations {
-		job.Annotations[k] = v
-	}
-	job.Annotations[scheduledTimeAnnotation] = scheduledTime.Format(time.RFC3339)
-
-	for k, v := range vbsc.Labels {
-		job.Labels[k] = v
 	}
 
 	if err := ctrl.SetControllerReference(vbsc, job, r.scheme); err != nil {
