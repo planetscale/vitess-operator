@@ -319,8 +319,6 @@ func (r *ReconcileVitessBackupsSchedule) getJobsList(ctx context.Context, req ct
 		return jobsList{}, nil, err
 	}
 
-	log.Infof("found %d existing jobs", len(existingJobs.Items))
-
 	var jobs jobsList
 
 	var mostRecentTime *time.Time
