@@ -83,7 +83,6 @@ func newReconciler(mgr manager.Manager) (*ReconcileVitessBackupsSchedule, error)
 	scheme := mgr.GetScheme()
 	recorder := mgr.GetEventRecorderFor(controllerName)
 
-	log.Info("CREATED ONE VitessBackupSchedule RECONCILE")
 	return &ReconcileVitessBackupsSchedule{
 		client:     c,
 		scheme:     scheme,
