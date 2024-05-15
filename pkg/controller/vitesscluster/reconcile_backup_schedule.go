@@ -56,14 +56,6 @@ func (r *ReconcileVitessCluster) reconcileBackupSchedule(ctx context.Context, vt
 			if vbsc == nil {
 				return &planetscalev2.VitessBackupSchedule{}
 			}
-			if vbsc.Spec.Strategy.BackupTablet == nil && vbsc.Spec.Strategy.BackupShard == nil {
-				log.Error("no backup strategy specified for VitessBackupSchedule")
-				return &planetscalev2.VitessBackupSchedule{}
-			}
-			if vbsc.Spec.Strategy.BackupShard != nil && vbsc.Spec.Strategy.BackupTablet != nil {
-				log.Error("both BackupShard and BackupTablet strategies specified for VitessBackupSchedule")
-				return &planetscalev2.VitessBackupSchedule{}
-			}
 			return vbsc
 		},
 

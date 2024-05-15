@@ -210,35 +210,28 @@ spec:
                           format: int64
                           minimum: 0
                           type: integer
-                        strategy:
-                          properties:
-                            backupShard:
-                              properties:
-                                allow_primary:
-                                  type: boolean
-                                keyspace:
-                                  minLength: 1
-                                  type: string
-                                shard:
-                                  minLength: 1
-                                  type: string
-                                upgrade_safe:
-                                  type: boolean
-                              required:
-                              - keyspace
-                              - shard
-                              type: object
-                            backupTablet:
-                              properties:
-                                tablet:
-                                  minLength: 1
-                                  type: string
-                                upgrade_safe:
-                                  type: boolean
-                              required:
-                              - tablet
-                              type: object
-                          type: object
+                        strategies:
+                          items:
+                            properties:
+                              allowPrimary:
+                                type: boolean
+                              keyspaceShard:
+                                example: commerce/-
+                                type: string
+                              name:
+                                enum:
+                                - BackupTablet
+                                - BackupShard
+                                type: string
+                              tablet:
+                                type: string
+                              upgradeSafe:
+                                type: boolean
+                            required:
+                            - name
+                            type: object
+                          minItems: 1
+                          type: array
                         successfulJobsHistoryLimit:
                           format: int32
                           minimum: 0
@@ -249,7 +242,7 @@ spec:
                       - name
                       - resources
                       - schedule
-                      - strategy
+                      - strategies
                       type: object
                     type: array
                   subcontroller:

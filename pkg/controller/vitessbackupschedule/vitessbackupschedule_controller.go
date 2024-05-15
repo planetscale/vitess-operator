@@ -220,8 +220,9 @@ func (r *ReconcileVitessBackupsSchedule) Reconcile(ctx context.Context, req ctrl
 	// Now that the different policies are checked, we can create and apply our new job.
 	job, err := r.createJob(ctx, &vbsc, missedRun)
 	if err != nil {
+		// Re-queuing here does not make sense as we have an error with the template and the user needs to fix it first.
 		log.WithError(err).Error("unable to construct job from template")
-		return scheduledResult, nil
+		return ctrl.Result{}, err
 	}
 	if err = r.client.Create(ctx, job); err != nil {
 		// if the job already exists it means another reconciling loop created the job since we latched fetched
@@ -448,35 +449,55 @@ func (r *ReconcileVitessBackupsSchedule) createJobPod(ctx context.Context, vbsc 
 		return corev1.PodSpec{}, err
 	}
 	vtctldServer := fmt.Sprintf("%s:%d", vtctldServiceName, vtctldServicePort)
+	vtctldclientServerArg := fmt.Sprintf("--server=%s", vtctldServer)
 
-	var args []string
-	if vbsc.Spec.Strategy.BackupShard != nil {
-		// vtctldclient --server=<vtctld_host>:<vtctld_port> BackupShard [--allow_primary=false] [--upgrade-safe=false] <keyspace/shard>
-		args = append(args, vtctldclientPath, fmt.Sprintf("--server=%s", vtctldServer), "BackupShard")
+	// It is fine to not have any default in the event there is no strategy as the CRD validation
+	// ensures that there will be at least one item in this list. The YAML cannot be applied with
+	// empty list of strategies.
+	args := []string{"/bin/sh", "-c"}
+	var cmd string
 
-		if vbsc.Spec.Strategy.BackupShard.AllowPrimary {
-			args = append(args, "--allow_primary=true")
+	for i, strategy := range vbsc.Spec.Strategy {
+		if i > 0 {
+			cmd = fmt.Sprintf("%s && ", cmd)
+		}
+		// At this point, strategy.Name is either BackupShard or BackupTablet, the validation
+		// is made at the CRD level on the YAML directly.
+
+		cmd = fmt.Sprintf("%s%s %s", cmd, vtctldclientPath, vtctldclientServerArg)
+
+		// Add the vtctldclient command
+		switch strategy.Name {
+		case planetscalev2.BackupShard:
+			cmd = fmt.Sprintf("%s BackupShard", cmd)
+		case planetscalev2.BackupTablet:
+			cmd = fmt.Sprintf("%s Backup", cmd)
 		}
 
-		if vbsc.Spec.Strategy.BackupShard.UpgradeSafe {
-			args = append(args, "--upgrade-safe=true")
+		// Add flags
+		if strategy.AllowPrimary {
+			cmd = fmt.Sprintf("%s --allow_primary=true", cmd)
 		}
 
-		args = append(args, fmt.Sprintf("%s/%s", vbsc.Spec.Strategy.BackupShard.Keyspace, vbsc.Spec.Strategy.BackupShard.Shard))
-	} else if vbsc.Spec.Strategy.BackupTablet != nil {
-		// vtctldclient --server=<vtctld_host>:<vtctld_port> Backup [--upgrade-safe=false] <tablet-alias>
-		args = append(args, vtctldclientPath, fmt.Sprintf("--server=%s", vtctldServer), "Backup")
-
-		if vbsc.Spec.Strategy.BackupTablet.UpgradeSafe {
-			args = append(args, "--upgrade-safe=true")
+		if strategy.UpgradeSafe {
+			cmd = fmt.Sprintf("%s --upgrade-safe=true", cmd)
 		}
 
-		args = append(args, vbsc.Spec.Strategy.BackupTablet.Tablet)
-	} else {
-		// Theoretically we should never get here as we already check for this condition in VitessCluster's reconciling
-		// loop, but it does not hurt to check.
-		return pod, fmt.Errorf("invalid strategy VitessBackupSchedule, could not find either backupShard or backupTablet")
+		// Add keyspace/shard or tablet alias
+		switch strategy.Name {
+		case planetscalev2.BackupShard:
+			if strategy.KeyspaceShard == "" {
+				return pod, fmt.Errorf("the KeyspaceShard field is missing from VitessBackupScheduleStrategy %s", planetscalev2.BackupShard)
+			}
+			cmd = fmt.Sprintf("%s %s", cmd, strategy.KeyspaceShard)
+		case planetscalev2.BackupTablet:
+			if strategy.Tablet == "" {
+				return pod, fmt.Errorf("the Tablet field is missing from VitessBackupScheduleStrategy %s", planetscalev2.BackupTablet)
+			}
+			cmd = fmt.Sprintf("%s %s", cmd, strategy.Tablet)
+		}
 	}
+	args = append(args, cmd)
 
 	pod = corev1.PodSpec{
 		Containers: []corev1.Container{{

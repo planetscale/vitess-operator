@@ -25,24 +25,25 @@ spec:
             memory: 1024Mi
         successfulJobsHistoryLimit: 2
         failedJobsHistoryLimit: 3
-        strategy:
-          backupShard:
-            keyspace: "commerce"
-            shard: "-"
-      - name: "every-five-minute"
-        schedule: "*/5 * * * *"
-        resources:
-          requests:
-            cpu: 100m
-            memory: 1024Mi
-          limits:
-            memory: 1024Mi
-        successfulJobsHistoryLimit: 2
-        failedJobsHistoryLimit: 3
-        strategy:
-          backupShard:
-            keyspace: "commerce"
-            shard: "-"
+        strategies:
+          - name: BackupShard
+            keyspaceShard: "commerce/-"
+          - name: BackupShard
+            keyspaceShard: "commerce/-"
+#      - name: "every-five-minute"
+#        schedule: "*/5 * * * *"
+#        resources:
+#          requests:
+#            cpu: 100m
+#            memory: 1024Mi
+#          limits:
+#            memory: 1024Mi
+#        successfulJobsHistoryLimit: 2
+#        failedJobsHistoryLimit: 3
+#        strategy:
+#          backupShard:
+#            keyspace: "commerce"
+#            shard: "-"
   images:
     vtctld: vitess/lite:latest
     vtgate: vitess/lite:latest
