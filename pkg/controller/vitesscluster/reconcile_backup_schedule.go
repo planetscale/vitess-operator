@@ -32,16 +32,27 @@ func (r *ReconcileVitessCluster) reconcileBackupSchedule(ctx context.Context, vt
 		planetscalev2.ClusterLabel: vt.Name,
 	}
 
-	key := client.ObjectKey{
-		Namespace: vt.Namespace,
-		Name:      vitessbackup.ScheduleName(vt.Name),
+	// Generate keys (object names) for all desired cells.
+	// Keep a map back from generated names to the  specs.
+	var keys []client.ObjectKey
+	scheduleMap := make(map[client.ObjectKey]*planetscalev2.VitessBackupScheduleTemplate)
+	if vt.Spec.Backup != nil {
+		for i := range vt.Spec.Backup.Schedules {
+			schedule := &vt.Spec.Backup.Schedules[i]
+			key := client.ObjectKey{
+				Namespace: vt.Namespace,
+				Name:      vitessbackup.ScheduleName(vt.Name, schedule.Name),
+			}
+			keys = append(keys, key)
+			scheduleMap[key] = schedule
+		}
 	}
 
-	return r.reconciler.ReconcileObject(ctx, vt, key, labels, true, reconciler.Strategy{
+	return r.reconciler.ReconcileObjectSet(ctx, vt, keys, labels, reconciler.Strategy{
 		Kind: &planetscalev2.VitessBackupSchedule{},
 
 		New: func(key client.ObjectKey) runtime.Object {
-			vbsc := vitessbackup.NewVitessBackupSchedule(key, vt, labels)
+			vbsc := vitessbackup.NewVitessBackupSchedule(key, vt, scheduleMap[key], labels)
 			if vbsc == nil {
 				return &planetscalev2.VitessBackupSchedule{}
 			}
@@ -58,7 +69,7 @@ func (r *ReconcileVitessCluster) reconcileBackupSchedule(ctx context.Context, vt
 
 		UpdateInPlace: func(key client.ObjectKey, obj runtime.Object) {
 			newObj := obj.(*planetscalev2.VitessBackupSchedule)
-			newVbsc := vitessbackup.NewVitessBackupSchedule(key, vt, labels)
+			newVbsc := vitessbackup.NewVitessBackupSchedule(key, vt, scheduleMap[key], labels)
 			if newVbsc == nil {
 				return
 			}

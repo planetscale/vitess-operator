@@ -22,10 +22,9 @@ const (
 	ReplaceConcurrent ConcurrencyPolicy = "Replace"
 )
 
+// VitessBackupSchedule is the Schema for the cronjobs API
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
-
-// VitessBackupSchedule is the Schema for the cronjobs API
 type VitessBackupSchedule struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -34,9 +33,8 @@ type VitessBackupSchedule struct {
 	Status VitessBackupScheduleStatus `json:"status,omitempty"`
 }
 
-// +kubebuilder:object:root=true
-
 // VitessBackupScheduleList contains a list of VitessBackupSchedule
+// +kubebuilder:object:root=true
 type VitessBackupScheduleList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
@@ -61,7 +59,6 @@ type VitessBackupScheduleSpec struct {
 type VitessBackupScheduleTemplate struct {
 	// Name is the schedule name.
 	// +kubebuilder:validation:MinLength=1
-	// +kubebuilder:validation:MaxLength=63
 	// +kubebuilder:validation:Pattern=^[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?$
 	Name string `json:"name"`
 

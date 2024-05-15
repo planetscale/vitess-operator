@@ -7,12 +7,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func ScheduleName(clusterName string) string {
-	return names.JoinWithConstraints(names.DefaultConstraints, clusterName, "backupschedule")
+func ScheduleName(clusterName string, scheduleName string) string {
+	return names.JoinWithConstraints(names.DefaultConstraints, clusterName, "vbsc", scheduleName)
 }
 
-func NewVitessBackupSchedule(key client.ObjectKey, vt *planetscalev2.VitessCluster, labels map[string]string) *planetscalev2.VitessBackupSchedule {
-	if vt.Spec.Backup == nil || vt.Spec.Backup.Schedule.Schedule == "" {
+func NewVitessBackupSchedule(key client.ObjectKey, vt *planetscalev2.VitessCluster, vbsc *planetscalev2.VitessBackupScheduleTemplate, labels map[string]string) *planetscalev2.VitessBackupSchedule {
+	if vt.Spec.Backup == nil || vbsc == nil || vbsc.Schedule == "" {
 		return nil
 	}
 
@@ -24,7 +24,7 @@ func NewVitessBackupSchedule(key client.ObjectKey, vt *planetscalev2.VitessClust
 		},
 		Spec: planetscalev2.VitessBackupScheduleSpec{
 			// We simply re-apply the same template that was written by the user.
-			VitessBackupScheduleTemplate: vt.Spec.Backup.Schedule,
+			VitessBackupScheduleTemplate: *vbsc,
 
 			// To take backups we only care about having the vtctldclient installed in the container.
 			// For this reason, we re-use the vtctld Docker image and the same image pull policy.

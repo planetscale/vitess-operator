@@ -14,21 +14,35 @@ spec:
         hostPath:
           path: /backup
           type: Directory
-    schedule:
-      name: "every-minute"
-      schedule: "* * * * *"
-      resources:
-        requests:
-          cpu: 100m
-          memory: 1024Mi
-        limits:
-          memory: 1024Mi
-      successfulJobsHistoryLimit: 2
-      failedJobsHistoryLimit: 3
-      strategy:
-        backupShard:
-          keyspace: "commerce"
-          shard: "-"
+    schedules:
+      - name: "every-minute"
+        schedule: "* * * * *"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 1024Mi
+          limits:
+            memory: 1024Mi
+        successfulJobsHistoryLimit: 2
+        failedJobsHistoryLimit: 3
+        strategy:
+          backupShard:
+            keyspace: "commerce"
+            shard: "-"
+      - name: "every-five-minute"
+        schedule: "*/5 * * * *"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 1024Mi
+          limits:
+            memory: 1024Mi
+        successfulJobsHistoryLimit: 2
+        failedJobsHistoryLimit: 3
+        strategy:
+          backupShard:
+            keyspace: "commerce"
+            shard: "-"
   images:
     vtctld: vitess/lite:latest
     vtgate: vitess/lite:latest

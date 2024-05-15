@@ -83,6 +83,7 @@ func newReconciler(mgr manager.Manager) (*ReconcileVitessBackupsSchedule, error)
 	scheme := mgr.GetScheme()
 	recorder := mgr.GetEventRecorderFor(controllerName)
 
+	log.Info("CREATED ONE VitessBackupSchedule RECONCILE")
 	return &ReconcileVitessBackupsSchedule{
 		client:     c,
 		scheme:     scheme,
@@ -133,6 +134,12 @@ func add(mgr manager.Manager, r *ReconcileVitessBackupsSchedule) error {
 //   - Create a new Job if needed
 func (r *ReconcileVitessBackupsSchedule) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	resultBuilder := &results.Builder{}
+
+	log = log.WithFields(logrus.Fields{
+		"namespace":            req.Namespace,
+		"VitessBackupSchedule": req.Name,
+	})
+	log.Info("Reconciling VitessBackupSchedule")
 
 	var vbsc planetscalev2.VitessBackupSchedule
 	if err := r.client.Get(ctx, req.NamespacedName, &vbsc); err != nil {
@@ -217,12 +224,16 @@ func (r *ReconcileVitessBackupsSchedule) Reconcile(ctx context.Context, req ctrl
 		return scheduledResult, nil
 	}
 	if err = r.client.Create(ctx, job); err != nil {
+		// if the job already exists it means another reconciling loop created the job since we latched fetched
+		// the list of job to create, we can safely return without failing.
+		if apierrors.IsAlreadyExists(err) {
+			return ctrl.Result{}, nil
+		}
 		// Simply re-queue here
 		return resultBuilder.Error(err)
 	}
 
 	log.Infof("created new job: %s, next job scheduled in %s", job.Name, scheduledResult.RequeueAfter.String())
-
 	return scheduledResult, nil
 }
 
@@ -308,6 +319,8 @@ func (r *ReconcileVitessBackupsSchedule) getJobsList(ctx context.Context, req ct
 		return jobsList{}, nil, err
 	}
 
+	log.Infof("found %d existing jobs", len(existingJobs.Items))
+
 	var jobs jobsList
 
 	var mostRecentTime *time.Time
@@ -347,11 +360,11 @@ func (r *ReconcileVitessBackupsSchedule) cleanupJobsWithLimit(ctx context.Contex
 		return
 	}
 
-	sort.Slice(jobs, func(i, j int) bool {
+	sort.SliceStable(jobs, func(i, j int) bool {
 		if jobs[i].Status.StartTime == nil {
 			return jobs[j].Status.StartTime != nil
 		}
-		return jobs[j].Status.StartTime.Before(jobs[j].Status.StartTime)
+		return jobs[i].Status.StartTime.Before(jobs[j].Status.StartTime)
 	})
 
 	for i, job := range jobs {
@@ -391,8 +404,7 @@ func getScheduledTimeForJob(job *kbatch.Job) (*time.Time, error) {
 }
 
 func (r *ReconcileVitessBackupsSchedule) createJob(ctx context.Context, vbsc *planetscalev2.VitessBackupSchedule, scheduledTime time.Time) (*kbatch.Job, error) {
-	shortName := fmt.Sprintf("%s-%s", vbsc.Name, vbsc.Spec.Name)
-	name := fmt.Sprintf("%s-%d", shortName, scheduledTime.Unix())
+	name := fmt.Sprintf("%s-%d", vbsc.Name, scheduledTime.Unix())
 
 	meta := metav1.ObjectMeta{
 		Labels: map[string]string{
@@ -411,7 +423,7 @@ func (r *ReconcileVitessBackupsSchedule) createJob(ctx context.Context, vbsc *pl
 		meta.Labels[k] = v
 	}
 
-	pod, err := r.createJobPod(ctx, vbsc, shortName)
+	pod, err := r.createJobPod(ctx, vbsc, name)
 	if err != nil {
 		return nil, err
 	}
@@ -432,7 +444,7 @@ func (r *ReconcileVitessBackupsSchedule) createJob(ctx context.Context, vbsc *pl
 	return job, nil
 }
 
-func (r *ReconcileVitessBackupsSchedule) createJobPod(ctx context.Context, vbsc *planetscalev2.VitessBackupSchedule, shortName string) (pod corev1.PodSpec, err error) {
+func (r *ReconcileVitessBackupsSchedule) createJobPod(ctx context.Context, vbsc *planetscalev2.VitessBackupSchedule, name string) (pod corev1.PodSpec, err error) {
 	vtctldServiceName, vtctldServicePort, err := r.getVtctldServiceName(ctx, vbsc)
 	if err != nil {
 		return corev1.PodSpec{}, err
@@ -470,7 +482,7 @@ func (r *ReconcileVitessBackupsSchedule) createJobPod(ctx context.Context, vbsc 
 
 	pod = corev1.PodSpec{
 		Containers: []corev1.Container{{
-			Name:            shortName,
+			Name:            name,
 			Image:           vbsc.Spec.Image,
 			ImagePullPolicy: vbsc.Spec.ImagePullPolicy,
 			Resources:       vbsc.Spec.Resources,
