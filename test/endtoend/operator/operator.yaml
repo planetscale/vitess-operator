@@ -415,6 +415,7 @@ spec:
                     - Allow
                     - Forbid
                     - Replace
+                  example: Forbid
                   type: string
                 failedJobsHistoryLimit:
                   format: int32
@@ -425,6 +426,7 @@ spec:
                 imagePullPolicy:
                   type: string
                 name:
+                  example: every-minute
                   minLength: 1
                   pattern: ^[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?$
                   type: string
@@ -460,6 +462,7 @@ spec:
                       type: object
                   type: object
                 schedule:
+                  example: '* * * * *'
                   minLength: 0
                   type: string
                 startingDeadlineSeconds:
@@ -479,7 +482,8 @@ spec:
                           - BackupTablet
                           - BackupShard
                         type: string
-                      tablet:
+                      tabletAlias:
+                        example: zone1-0000000102
                         type: string
                       upgradeSafe:
                         type: boolean
@@ -1633,12 +1637,14 @@ spec:
                               - Allow
                               - Forbid
                               - Replace
+                            example: Forbid
                             type: string
                           failedJobsHistoryLimit:
                             format: int32
                             minimum: 0
                             type: integer
                           name:
+                            example: every-minute
                             minLength: 1
                             pattern: ^[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?$
                             type: string
@@ -1674,6 +1680,7 @@ spec:
                                 type: object
                             type: object
                           schedule:
+                            example: '* * * * *'
                             minLength: 0
                             type: string
                           startingDeadlineSeconds:
@@ -1693,7 +1700,8 @@ spec:
                                     - BackupTablet
                                     - BackupShard
                                   type: string
-                                tablet:
+                                tabletAlias:
+                                  example: zone1-0000000102
                                   type: string
                                 upgradeSafe:
                                   type: boolean

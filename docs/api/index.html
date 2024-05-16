@@ -583,7 +583,7 @@ SecretSource
 </p>
 <p>
 <p>BackupStrategyName describes the vtctldclient command that will be used to take a backup.
-When scheduling a backup, you must specify at least one strategy</p>
+When scheduling a backup, you must specify at least one strategy.</p>
 </p>
 <h3 id="planetscale.com/v2.CephBackupLocation">CephBackupLocation
 </h3>
@@ -699,7 +699,9 @@ VitessBackupSubcontrollerSpec
 </em>
 </td>
 <td>
-<p>Schedules defines how often we want to perform a backup and how to perform the backup.</p>
+<p>Schedules defines how often we want to perform a backup and how to perform the backup.
+This is a list of VitessBackupScheduleTemplate where the &ldquo;name&rdquo; field has to be unique
+across all the items of the list.</p>
 </td>
 </tr>
 </tbody>
@@ -711,9 +713,8 @@ VitessBackupSubcontrollerSpec
 <a href="#planetscale.com/v2.VitessBackupScheduleTemplate">VitessBackupScheduleTemplate</a>)
 </p>
 <p>
-<p>ConcurrencyPolicy describes how the job will be handled. Only one of the following concurrent
-policies may be specified. If none of the following policies is specified, the default one
-is AllowConcurrent.</p>
+<p>ConcurrencyPolicy describes how the concurrency of new jobs created by VitessBackupSchedule
+is handled, the default is set to AllowConcurrent.</p>
 </p>
 <h3 id="planetscale.com/v2.EtcdLockserverSpec">EtcdLockserverSpec
 </h3>
@@ -2304,7 +2305,7 @@ that need access to this backup storage location.</p>
 <h3 id="planetscale.com/v2.VitessBackupSchedule">VitessBackupSchedule
 </h3>
 <p>
-<p>VitessBackupSchedule is the Schema for the cronjobs API</p>
+<p>VitessBackupSchedule is the Schema for the VitessBackupSchedule API.</p>
 </p>
 <table class="table table-striped">
 <thead class="thead-dark">
@@ -2355,8 +2356,7 @@ VitessBackupScheduleTemplate
 (Members of <code>VitessBackupScheduleTemplate</code> are embedded into this type.)
 </p>
 <p>VitessBackupScheduleTemplate contains the user-specific parts of VitessBackupScheduleSpec.
-These are the parts that are configurable through the VitessCluster CRD.
-All remaining fields will be handled/filled by the controller.</p>
+These are the parts that are configurable through the VitessCluster CRD.</p>
 </td>
 </tr>
 <tr>
@@ -2381,7 +2381,8 @@ Kubernetes core/v1.PullPolicy
 </em>
 </td>
 <td>
-<p>ImagePullPolicy will be set by the controller to what is set for vtctld.</p>
+<p>ImagePullPolicy defines the policy to pull the Docker image in the job&rsquo;s pod.
+The PullPolicy used will be the same as the one used to pull the vtctld image.</p>
 </td>
 </tr>
 </table>
@@ -2408,7 +2409,7 @@ VitessBackupScheduleStatus
 <a href="#planetscale.com/v2.VitessBackupSchedule">VitessBackupSchedule</a>)
 </p>
 <p>
-<p>VitessBackupScheduleSpec defines the desired state of VitessBackupSchedule</p>
+<p>VitessBackupScheduleSpec defines the desired state of VitessBackupSchedule.</p>
 </p>
 <table class="table table-striped">
 <thead class="thead-dark">
@@ -2432,8 +2433,7 @@ VitessBackupScheduleTemplate
 (Members of <code>VitessBackupScheduleTemplate</code> are embedded into this type.)
 </p>
 <p>VitessBackupScheduleTemplate contains the user-specific parts of VitessBackupScheduleSpec.
-These are the parts that are configurable through the VitessCluster CRD.
-All remaining fields will be handled/filled by the controller.</p>
+These are the parts that are configurable through the VitessCluster CRD.</p>
 </td>
 </tr>
 <tr>
@@ -2458,7 +2458,8 @@ Kubernetes core/v1.PullPolicy
 </em>
 </td>
 <td>
-<p>ImagePullPolicy will be set by the controller to what is set for vtctld.</p>
+<p>ImagePullPolicy defines the policy to pull the Docker image in the job&rsquo;s pod.
+The PullPolicy used will be the same as the one used to pull the vtctld image.</p>
 </td>
 </tr>
 </tbody>
@@ -2517,7 +2518,9 @@ Kubernetes meta/v1.Time
 <a href="#planetscale.com/v2.VitessBackupScheduleTemplate">VitessBackupScheduleTemplate</a>)
 </p>
 <p>
-<p>VitessBackupScheduleStrategy defines how we are going to take a backup.</p>
+<p>VitessBackupScheduleStrategy defines how we are going to take a backup.
+The VitessBackupSchedule controller uses this data to build the vtctldclient
+command line that will be executed in the Job&rsquo;s pod.</p>
 </p>
 <table class="table table-striped">
 <thead class="thead-dark">
@@ -2557,14 +2560,16 @@ This field will be ignored if we have picked the strategy BackupTablet.</p>
 </tr>
 <tr>
 <td>
-<code>tablet</code></br>
+<code>tabletAlias</code></br>
 <em>
 string
 </em>
 </td>
 <td>
 <em>(Optional)</em>
-<p>Tablet is the tablet alias we want to take a backup on.</p>
+<p>TabletAlias is the tablet alias we want to take a backup on.
+This field is mandatory if we have picked the strategy BackupTablet.
+This field will be ignored if we have picked the strategy BackupShard.</p>
 </td>
 </tr>
 <tr>
@@ -2604,6 +2609,8 @@ This will use the flag &ldquo;&ndash;allow_primary=true&rdquo; when calling vtct
 <a href="#planetscale.com/v2.VitessBackupScheduleSpec">VitessBackupScheduleSpec</a>)
 </p>
 <p>
+<p>VitessBackupScheduleTemplate contains all the user-specific fields that the user will be
+able to define when writing their YAML file.</p>
 </p>
 <table class="table table-striped">
 <thead class="thead-dark">
@@ -2621,7 +2628,8 @@ string
 </em>
 </td>
 <td>
-<p>Name is the schedule name.</p>
+<p>Name is the schedule name, this name must be unique across all the different VitessBackupSchedule
+objects in the cluster.</p>
 </td>
 </tr>
 <tr>
@@ -2664,7 +2672,7 @@ Kubernetes core/v1.ResourceRequirements
 </em>
 </td>
 <td>
-<p>Resources specify the compute resources to allocate for the pod that backups Vitess.</p>
+<p>Resources specify the compute resources to allocate for every Jobs&rsquo;s pod.</p>
 </td>
 </tr>
 <tr>
@@ -2676,8 +2684,7 @@ int32
 </td>
 <td>
 <em>(Optional)</em>
-<p>The number of successful finished jobs to retain. This is a pointer to distinguish between
-explicit zero and not specified.</p>
+<p>SuccessfulJobsHistoryLimit defines how many successful jobs will be kept around.</p>
 </td>
 </tr>
 <tr>
@@ -2689,8 +2696,7 @@ int32
 </td>
 <td>
 <em>(Optional)</em>
-<p>The number of failed finished jobs to retain. This is a pointer to distinguish between
-explicit zero and not specified.</p>
+<p>FailedJobsHistoryLimit defines how many failed jobs will be kept around.</p>
 </td>
 </tr>
 <tr>
@@ -2702,8 +2708,9 @@ bool
 </td>
 <td>
 <em>(Optional)</em>
-<p>This flag tells the controller to suspend subsequent executions, it does not apply to already
-started executions. Defaults to false.</p>
+<p>Suspend enables the suspension of the VitessBackupSchedule, pausing any further scheduled
+runs until Suspend is set to false again. This is useful if you want to pause backup without
+having to remove the entire VitessBackupSchedule object from the cluster.</p>
 </td>
 </tr>
 <tr>
@@ -2715,8 +2722,8 @@ int64
 </td>
 <td>
 <em>(Optional)</em>
-<p>Optional deadlines in seconds for starting the job if it misses scheduled
-time for any reason.</p>
+<p>StartingDeadlineSeconds allows for the VitessBackupSchedule controller to start jobs that late
+by the given amount of seconds.</p>
 </td>
 </tr>
 <tr>
@@ -2730,7 +2737,7 @@ ConcurrencyPolicy
 </td>
 <td>
 <em>(Optional)</em>
-<p>Specifies ho to treat concurrent executions of a Job.
+<p>ConcurrencyPolicy specifies ho to treat concurrent executions of a Job.
 Valid values are:
 - &ldquo;Allow&rdquo; (default): allows CronJobs to run concurrently;
 - &ldquo;Forbid&rdquo;: forbids concurrent runs, skipping next run if previous run hasn&rsquo;t finished yet;
