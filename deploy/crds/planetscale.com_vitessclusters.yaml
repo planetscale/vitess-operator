@@ -220,8 +220,10 @@ spec:
                         strategies:
                           items:
                             properties:
-                              allowPrimary:
-                                type: boolean
+                              extraFlags:
+                                additionalProperties:
+                                  type: string
+                                type: object
                               keyspaceShard:
                                 example: commerce/-
                                 type: string
@@ -233,8 +235,6 @@ spec:
                               tabletAlias:
                                 example: zone1-0000000102
                                 type: string
-                              upgradeSafe:
-                                type: boolean
                             required:
                             - name
                             type: object

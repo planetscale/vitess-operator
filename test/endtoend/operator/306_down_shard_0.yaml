@@ -3,42 +3,6 @@ kind: VitessCluster
 metadata:
   name: example
 spec:
-  backup:
-    engine: xtrabackup
-    locations:
-      - volume:
-          hostPath:
-            path: /backup
-            type: Directory
-    schedules:
-      - name: "every-minute-customer"
-        schedule: "* * * * *"
-        resources:
-          requests:
-            cpu: 100m
-            memory: 1024Mi
-          limits:
-            memory: 1024Mi
-        successfulJobsHistoryLimit: 2
-        failedJobsHistoryLimit: 3
-        strategies:
-          - name: BackupShard
-            keyspaceShard: "customer/-80"
-          - name: BackupShard
-            keyspaceShard: "customer/80-"
-      - name: "every-minute-commerce"
-        schedule: "* * * * *"
-        resources:
-          requests:
-            cpu: 100m
-            memory: 1024Mi
-          limits:
-            memory: 1024Mi
-        successfulJobsHistoryLimit: 2
-        failedJobsHistoryLimit: 3
-        strategies:
-          - name: BackupShard
-            keyspaceShard: "commerce/-"
   images:
     vtctld: vitess/lite:latest
     vtgate: vitess/lite:latest

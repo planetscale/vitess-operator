@@ -183,16 +183,9 @@ type VitessBackupScheduleStrategy struct {
 	// +kubebuilder:example="zone1-0000000102"
 	TabletAlias string `json:"tabletAlias"`
 
-	// UpgradeSafe indicates if the backup should be taken with innodb_fast_shutdown=0
-	// so that it's a backup that can be used for an upgrade.
-	// This will use the flag "--upgrade-safe=true" when calling vtctldclient.
+	// ExtraFlags is a map of flags that will be sent down to vtctldclient when taking the backup.
 	// +optional
-	UpgradeSafe bool `json:"upgradeSafe,omitempty"`
-
-	// AllowPrimary allows the backup to occur on a PRIMARY tablet.
-	// This will use the flag "--allow_primary=true" when calling vtctldclient.
-	// +optional
-	AllowPrimary bool `json:"allowPrimary,omitempty"`
+	ExtraFlags map[string]string `json:"extraFlags,omitempty"`
 }
 
 // VitessBackupScheduleStatus defines the observed state of VitessBackupSchedule

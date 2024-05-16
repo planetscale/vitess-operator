@@ -2574,29 +2574,14 @@ This field will be ignored if we have picked the strategy BackupShard.</p>
 </tr>
 <tr>
 <td>
-<code>upgradeSafe</code></br>
+<code>extraFlags</code></br>
 <em>
-bool
+map[string]string
 </em>
 </td>
 <td>
 <em>(Optional)</em>
-<p>UpgradeSafe indicates if the backup should be taken with innodb_fast_shutdown=0
-so that it&rsquo;s a backup that can be used for an upgrade.
-This will use the flag &ldquo;&ndash;upgrade-safe=true&rdquo; when calling vtctldclient.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>allowPrimary</code></br>
-<em>
-bool
-</em>
-</td>
-<td>
-<em>(Optional)</em>
-<p>AllowPrimary allows the backup to occur on a PRIMARY tablet.
-This will use the flag &ldquo;&ndash;allow_primary=true&rdquo; when calling vtctldclient.</p>
+<p>ExtraFlags is a map of flags that will be sent down to vtctldclient when taking the backup.</p>
 </td>
 </tr>
 </tbody>

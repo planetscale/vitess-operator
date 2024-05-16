@@ -232,7 +232,7 @@ func (r *ReconcileVitessBackupsSchedule) Reconcile(ctx context.Context, req ctrl
 	if vbsc.Spec.ConcurrencyPolicy == planetscalev2.ReplaceConcurrent {
 		for _, activeJob := range jobs.active {
 			if err := r.client.Delete(ctx, activeJob, client.PropagationPolicy(metav1.DeletePropagationBackground)); client.IgnoreNotFound(err) != nil {
-				log.WithError(err).Error("unable to delete active job: %s", activeJob.Name)
+				log.WithError(err).Errorf("unable to delete active job: %s", activeJob.Name)
 				return ctrl.Result{}, err
 			}
 		}
@@ -515,13 +515,9 @@ func (r *ReconcileVitessBackupsSchedule) createJobPod(ctx context.Context, vbsc 
 			cmd = fmt.Sprintf("%s Backup", cmd)
 		}
 
-		// Add flags
-		if strategy.AllowPrimary {
-			cmd = fmt.Sprintf("%s --allow_primary=true", cmd)
-		}
-
-		if strategy.UpgradeSafe {
-			cmd = fmt.Sprintf("%s --upgrade-safe=true", cmd)
+		// Add any flags
+		for key, value := range strategy.ExtraFlags {
+			cmd = fmt.Sprintf("%s --%s=%s", cmd, key, value)
 		}
 
 		// Add keyspace/shard or tablet alias
