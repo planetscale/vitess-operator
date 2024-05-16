@@ -108,17 +108,17 @@ killall kubectl
 setupKubectlAccessForCI
 
 get_started "operator-latest.yaml" "101_initial_cluster_backup.yaml"
-#verifyVtGateVersion "20.0.0"
-#checkSemiSyncSetup
-#takeBackup "commerce/-"
-#verifyListBackupsOutput
-#takedownShard
-#resurrectShard
-#checkSemiSyncSetup
-#
-## Teardown
-#echo "Removing the temporary directory"
-#removeBackupFiles
-#rm -rf "$STARTING_DIR/vtdataroot"
-#echo "Deleting Kind cluster. This also deletes the volume associated with it"
-#kind delete cluster --name kind-${BUILDKITE_BUILD_ID}
+verifyVtGateVersion "20.0.0"
+checkSemiSyncSetup
+takeBackup "commerce/-"
+verifyListBackupsOutput
+takedownShard
+resurrectShard
+checkSemiSyncSetup
+
+# Teardown
+echo "Removing the temporary directory"
+removeBackupFiles
+rm -rf "$STARTING_DIR/vtdataroot"
+echo "Deleting Kind cluster. This also deletes the volume associated with it"
+kind delete cluster --name kind-${BUILDKITE_BUILD_ID}

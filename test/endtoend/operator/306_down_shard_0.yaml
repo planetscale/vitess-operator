@@ -67,11 +67,10 @@ spec:
             vttablet:
               extraFlags:
                 db_charset: utf8mb4
-                wait_for_backup_interval: "0"
               resources:
                 requests:
                   cpu: 100m
-                  memory: 1024Mi
+                  memory: 256Mi
             mysqld:
               resources:
                 requests:
@@ -108,11 +107,10 @@ spec:
             vttablet:
               extraFlags:
                 db_charset: utf8mb4
-                wait_for_backup_interval: "0"
               resources:
                 requests:
                   cpu: 100m
-                  memory: 1024Mi
+                  memory: 256Mi
             mysqld:
               resources:
                 requests:
