@@ -1,3 +1,19 @@
+/*
+Copyright 2024 PlanetScale Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package vitessbackupschedule
 
 import (
@@ -42,7 +58,7 @@ var (
 
 	scheduledTimeAnnotation = "planetscale.com/backup-scheduled-at"
 
-	log = logrus.WithField("controller", "VitessBackupSchedules")
+	log = logrus.WithField("controller", "VitessBackupSchedule")
 )
 
 // watchResources should contain all the resource types that this controller creates.
@@ -224,8 +240,8 @@ func (r *ReconcileVitessBackupsSchedule) Reconcile(ctx context.Context, req ctrl
 		return ctrl.Result{}, err
 	}
 	if err = r.client.Create(ctx, job); err != nil {
-		// if the job already exists it means another reconciling loop created the job since we latched fetched
-		// the list of job to create, we can safely return without failing.
+		// if the job already exists it means another reconciling loop created the job since we last fetched
+		// the list of jobs to create, we can safely return without failing.
 		if apierrors.IsAlreadyExists(err) {
 			return ctrl.Result{}, nil
 		}
@@ -490,10 +506,10 @@ func (r *ReconcileVitessBackupsSchedule) createJobPod(ctx context.Context, vbsc 
 			}
 			cmd = fmt.Sprintf("%s %s", cmd, strategy.KeyspaceShard)
 		case planetscalev2.BackupTablet:
-			if strategy.Tablet == "" {
-				return pod, fmt.Errorf("the Tablet field is missing from VitessBackupScheduleStrategy %s", planetscalev2.BackupTablet)
+			if strategy.TabletAlias == "" {
+				return pod, fmt.Errorf("the TabletAlias field is missing from VitessBackupScheduleStrategy %s", planetscalev2.BackupTablet)
 			}
-			cmd = fmt.Sprintf("%s %s", cmd, strategy.Tablet)
+			cmd = fmt.Sprintf("%s %s", cmd, strategy.TabletAlias)
 		}
 	}
 	args = append(args, cmd)
