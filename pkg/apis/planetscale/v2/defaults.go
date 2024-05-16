@@ -103,6 +103,7 @@ const (
 	DefaultMysqlPortName = "mysql"
 
 	defaultVitessLiteImage = "vitess/lite:latest"
+	defaultMySQLImage      = "mysql:8.0.30"
 
 	DefaultInitCPURequestMillis   = 100
 	DefaultInitMemoryRequestBytes = 32 * (1 << 20) // 32 MiB
@@ -132,7 +133,7 @@ var DefaultImages = &VitessImages{
 	// has easy access to other programs we include in the Vitess image, like
 	// Percona XtraBackup.
 	Mysqld: &MysqldImage{
-		Mysql56Compatible: defaultVitessLiteImage,
+		Mysql80Compatible: defaultMySQLImage,
 	},
 
 	MysqldExporter: "prom/mysqld-exporter:v0.11.0",

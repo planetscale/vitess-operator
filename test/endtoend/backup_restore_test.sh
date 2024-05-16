@@ -21,6 +21,11 @@ function resurrectShard() {
 
   sleep 10
 
+  killall kubectl
+  ./pf.sh > /dev/null 2>&1 &
+
+  sleep 10
+
   waitForKeyspaceToBeServing commerce - 2
   sleep 5
 
