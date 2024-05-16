@@ -45,6 +45,10 @@ spec:
                 type: string
               imagePullPolicy:
                 type: string
+              jobTimeoutMinute:
+                format: int32
+                minimum: 0
+                type: integer
               name:
                 example: every-minute
                 minLength: 1

@@ -169,6 +169,10 @@ spec:
                           format: int32
                           minimum: 0
                           type: integer
+                        jobTimeoutMinute:
+                          format: int32
+                          minimum: 0
+                          type: integer
                         name:
                           example: every-minute
                           minLength: 1

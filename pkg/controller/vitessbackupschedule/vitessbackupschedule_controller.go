@@ -186,6 +186,12 @@ func (r *ReconcileVitessBackupsSchedule) Reconcile(ctx context.Context, req ctrl
 	r.cleanupJobsWithLimit(ctx, jobs.failed, vbsc.GetFailedJobsLimit())
 	r.cleanupJobsWithLimit(ctx, jobs.successful, vbsc.GetSuccessfulJobsLimit())
 
+	err = r.removeTimeoutJobs(ctx, jobs.successful, vbsc.GetJobTimeoutMinute())
+	if err != nil {
+		// We had an error while removing timed out jobs, we can requeue
+		return resultBuilder.Error(err)
+	}
+
 	// If the Suspend setting is set to true, we can skip adding any job, our work is done here.
 	if vbsc.Spec.Suspend != nil && *vbsc.Spec.Suspend {
 		log.Info("VitessBackupSchedule suspended, skipping")
@@ -391,6 +397,26 @@ func (r *ReconcileVitessBackupsSchedule) cleanupJobsWithLimit(ctx context.Contex
 			log.Infof("deleted old job: %s", job.Name)
 		}
 	}
+}
+
+func (r *ReconcileVitessBackupsSchedule) removeTimeoutJobs(ctx context.Context, jobs []*kbatch.Job, timeout int32) error {
+	if timeout == -1 {
+		return nil
+	}
+	for _, job := range jobs {
+		jobStartTime, err := getScheduledTimeForJob(job)
+		if err != nil {
+			return err
+		}
+		if jobStartTime.After(time.Now().Add(time.Minute * time.Duration(timeout))) {
+			if err := r.client.Delete(ctx, job, client.PropagationPolicy(metav1.DeletePropagationBackground)); (err) != nil {
+				log.WithError(err).Errorf("unable to delete timed out job: %s", job.Name)
+			} else {
+				log.Infof("deleted timed out job: %s", job.Name)
+			}
+		}
+	}
+	return nil
 }
 
 func isJobFinished(job *kbatch.Job) (bool, kbatch.JobConditionType) {

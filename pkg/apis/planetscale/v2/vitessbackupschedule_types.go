@@ -154,6 +154,11 @@ type VitessBackupScheduleTemplate struct {
 	// +optional
 	// +kubebuilder:validation:Minimum=0
 	AllowedMissedRun *int `json:"allowedMissedRun,omitempty"`
+
+	// JobTimeoutMinute defines after how many minutes a job that has not yet finished should be stopped and removed.
+	// +optional
+	// +kubebuilder:validation:Minimum=0
+	JobTimeoutMinute *int32 `json:"jobTimeoutMinute,omitempty"`
 }
 
 // VitessBackupScheduleStrategy defines how we are going to take a backup.

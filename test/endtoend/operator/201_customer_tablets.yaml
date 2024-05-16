@@ -3,6 +3,13 @@ kind: VitessCluster
 metadata:
   name: example
 spec:
+  backup:
+    engine: xtrabackup
+    locations:
+      - volume:
+          hostPath:
+            path: /backup
+            type: Directory
   images:
     vtctld: vitess/lite:latest
     vtgate: vitess/lite:latest
@@ -67,6 +74,7 @@ spec:
             vttablet:
               extraFlags:
                 db_charset: utf8mb4
+                wait_for_backup_interval: "0"
               resources:
                 limits:
                   memory: 256Mi
@@ -111,6 +119,7 @@ spec:
             vttablet:
               extraFlags:
                 db_charset: utf8mb4
+                wait_for_backup_interval: "0"
               resources:
                 limits:
                   memory: 256Mi

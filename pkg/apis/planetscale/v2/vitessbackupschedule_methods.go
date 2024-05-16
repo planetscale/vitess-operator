@@ -34,6 +34,16 @@ func (vbsc *VitessBackupSchedule) GetSuccessfulJobsLimit() int32 {
 	return *vbsc.Spec.SuccessfulJobsHistoryLimit
 }
 
+// GetJobTimeoutMinute returns the timeout in minute after which we should delete
+// jobs that are still in progress.
+// Returns -1 if the value was not specified by the user.
+func (vbsc *VitessBackupSchedule) GetJobTimeoutMinute() int32 {
+	if vbsc.Spec.JobTimeoutMinute == nil {
+		return -1
+	}
+	return *vbsc.Spec.JobTimeoutMinute
+}
+
 // DefaultAllowedMissedRuns is the default that will be used in case of bug in the operator,
 // which could be caused by the apiserver's clock for instance. In the event of such bug,
 // the VitessBackupSchedule will try catching up the missed scheduled runs one by one
