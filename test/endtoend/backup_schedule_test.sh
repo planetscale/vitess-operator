@@ -45,7 +45,7 @@ function verifyListBackupsOutputWithSchedule() {
 
   echo -e "Check for Jobs' pods"
   checkPodStatusWithTimeout "example-vbsc-every-minute-(.*)0/1(.*)Completed(.*)" 3
-  checkPodStatusWithTimeout "example-vbsc-every-five-minute-(.*)0/1(.*)Completed(.*)"
+  checkPodStatusWithTimeout "example-vbsc-every-five-minute-(.*)0/1(.*)Completed(.*)" 2
 }
 
 function setupKindConfig() {
