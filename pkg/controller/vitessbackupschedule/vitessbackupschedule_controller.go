@@ -186,7 +186,7 @@ func (r *ReconcileVitessBackupsSchedule) Reconcile(ctx context.Context, req ctrl
 	r.cleanupJobsWithLimit(ctx, jobs.failed, vbsc.GetFailedJobsLimit())
 	r.cleanupJobsWithLimit(ctx, jobs.successful, vbsc.GetSuccessfulJobsLimit())
 
-	err = r.removeTimeoutJobs(ctx, jobs.successful, vbsc.GetJobTimeoutMinute())
+	err = r.removeTimeoutJobs(ctx, jobs.successful, vbsc.Spec.JobTimeoutMinute)
 	if err != nil {
 		// We had an error while removing timed out jobs, we can requeue
 		return resultBuilder.Error(err)
