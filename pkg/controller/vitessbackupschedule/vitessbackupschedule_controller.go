@@ -295,10 +295,9 @@ func getNextSchedule(vbsc planetscalev2.VitessBackupSchedule, now time.Time) (ti
 		lastMissed = t
 		missedRuns++
 
-		// If we have too many missed jobs, just bail out as given on the clock lag, looping over the schedule might take forever.
+		// If we have too many missed jobs, just bail out as the clock lag is too big
 		if missedRuns > vbsc.GetMissedRunsLimit() {
-			log.Warnf("too many missed runs, skipping all previous runs and forwarding to the next scheduled time")
-			return time.Time{}, sched.Next(now), nil
+			return time.Time{}, time.Time{}, fmt.Errorf("too many missed runs, check clock skew or increase .spec.allowedMissedRun")
 		}
 	}
 

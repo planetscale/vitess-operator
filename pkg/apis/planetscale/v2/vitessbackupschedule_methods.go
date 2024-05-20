@@ -39,7 +39,7 @@ func (vbsc *VitessBackupSchedule) GetSuccessfulJobsLimit() int32 {
 // the VitessBackupSchedule will try catching up the missed scheduled runs one by one
 // this can be extremely lengthy in the even of a big clock skew, if the number of missed scheduled
 // jobs reaches either DefaultAllowedMissedRuns or the value specified by the user, the controller
-// will give up looking for the previously missed run and simply wait until the next scheduled run.
+// will give up looking for the previously missed run and error out.
 // Setting the default to 100 is fair, catching up a up to 100 missed scheduled runs is not lengthy.
 const DefaultAllowedMissedRuns = 100
 
