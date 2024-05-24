@@ -2693,7 +2693,7 @@ bool
 </td>
 <td>
 <em>(Optional)</em>
-<p>Suspend enables the suspension of the VitessBackupSchedule, pausing any further scheduled
+<p>Suspend pause the associated backup schedule. Pausing any further scheduled
 runs until Suspend is set to false again. This is useful if you want to pause backup without
 having to remove the entire VitessBackupSchedule object from the cluster.</p>
 </td>
@@ -2707,8 +2707,11 @@ int64
 </td>
 <td>
 <em>(Optional)</em>
-<p>StartingDeadlineSeconds allows for the VitessBackupSchedule controller to start jobs that late
-by the given amount of seconds.</p>
+<p>StartingDeadlineSeconds enables the VitessBackupSchedule to start a job even though it is late by
+the given amount of seconds. Let&rsquo;s say for some reason the controller process a schedule run on
+second after its scheduled time, if StartingDeadlineSeconds is set to 0, the job will be skipped
+as it&rsquo;s too late, but on the other hand, if StartingDeadlineSeconds is greater than one second,
+the job will be processed as usual.</p>
 </td>
 </tr>
 <tr>
@@ -2738,12 +2741,12 @@ int
 </td>
 <td>
 <em>(Optional)</em>
-<p>AllowedMissedRun defines how many missed run of the schedule will be allowed before giving up on finding the last job.
-If the operator&rsquo;s clocked is skewed and we end-up missing a certain number of jobs, finding the last
-job might be very consuming, depending on the frequency of the schedule and the duration during which
-the operator&rsquo;s clock was misbehaving, also depending on how laggy the clock is, we can end-up with thousands
-or missed runs. For this reason, AllowedMissedRun, which is set to 100 by default, will allow us to give up finding
-the last job and simply wait for the next job on the schedule.
+<p>AllowedMissedRuns defines how many missed run of the schedule will be allowed before giving up on finding the last job.
+If the operator&rsquo;s clock is skewed and we end-up missing a certain number of jobs, finding the last
+job might be very time-consuming, depending on the frequency of the schedule and the duration during which
+the operator&rsquo;s clock was misbehaving. Also depending on how laggy the clock is, we can end-up with thousands
+of missed runs. For this reason, AllowedMissedRun, which is set to 100 by default, will short circuit the search
+and simply wait for the next job on the schedule.
 Unless you are experiencing issue with missed runs due to a misconfiguration of the clock, we recommend leaving
 this field to its default value.</p>
 </td>
@@ -2757,7 +2760,7 @@ int32
 </td>
 <td>
 <em>(Optional)</em>
-<p>JobTimeoutMinute defines after how many minutes a job that has not yet finished should be stopped and removed.
+<p>JobTimeoutMinutes defines after how many minutes a job that has not yet finished should be stopped and removed.
 Default value is 10 minutes.</p>
 </td>
 </tr>

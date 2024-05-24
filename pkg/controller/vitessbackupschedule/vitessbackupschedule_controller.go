@@ -20,6 +20,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"strings"
 
 	"sort"
 	"time"
@@ -186,7 +187,7 @@ func (r *ReconcileVitessBackupsSchedule) Reconcile(ctx context.Context, req ctrl
 	r.cleanupJobsWithLimit(ctx, jobs.failed, vbsc.GetFailedJobsLimit())
 	r.cleanupJobsWithLimit(ctx, jobs.successful, vbsc.GetSuccessfulJobsLimit())
 
-	err = r.removeTimeoutJobs(ctx, jobs.successful, vbsc.Spec.JobTimeoutMinute)
+	err = r.removeTimeoutJobs(ctx, jobs.successful, vbsc.Spec.JobTimeoutMinutes)
 	if err != nil {
 		// We had an error while removing timed out jobs, we can requeue
 		return resultBuilder.Error(err)
@@ -262,36 +263,35 @@ func (r *ReconcileVitessBackupsSchedule) Reconcile(ctx context.Context, req ctrl
 func getNextSchedule(vbsc planetscalev2.VitessBackupSchedule, now time.Time) (time.Time, time.Time, error) {
 	sched, err := cron.ParseStandard(vbsc.Spec.Schedule)
 	if err != nil {
-		return time.Time{}, time.Time{}, fmt.Errorf("unparaseable schedule %q: %v", vbsc.Spec.Schedule, err)
+		return time.Time{}, time.Time{}, fmt.Errorf("unable to parse schedule %q: %v", vbsc.Spec.Schedule, err)
 	}
 
-	// for optimization purposes, cheat a bit and start from our last observed run time
-	// we could reconstitute this here, but there's not much point, since we've
-	// just updated it.
-	var earliestTime time.Time
+	// Set the last scheduled time by either looking at the VitessBackupSchedule's Status or
+	// by looking at its creation time.
+	var latestRun time.Time
 	if vbsc.Status.LastScheduledTime != nil {
-		earliestTime = vbsc.Status.LastScheduledTime.Time
+		latestRun = vbsc.Status.LastScheduledTime.Time
 	} else {
-		earliestTime = vbsc.ObjectMeta.CreationTimestamp.Time
+		latestRun = vbsc.ObjectMeta.CreationTimestamp.Time
 	}
 
 	if vbsc.Spec.StartingDeadlineSeconds != nil {
 		// controller is not going to schedule anything below this point
 		schedulingDeadline := now.Add(-time.Second * time.Duration(*vbsc.Spec.StartingDeadlineSeconds))
 
-		if schedulingDeadline.After(earliestTime) {
-			earliestTime = schedulingDeadline
+		if schedulingDeadline.After(latestRun) {
+			latestRun = schedulingDeadline
 		}
 	}
 
 	// Next schedule is later, simply return the next scheduled time.
-	if earliestTime.After(now) {
+	if latestRun.After(now) {
 		return time.Time{}, sched.Next(now), nil
 	}
 
 	var lastMissed time.Time
 	missedRuns := 0
-	for t := sched.Next(earliestTime); !t.After(now); t = sched.Next(t) {
+	for t := sched.Next(latestRun); !t.After(now); t = sched.Next(t) {
 		lastMissed = t
 		missedRuns++
 
@@ -311,7 +311,7 @@ func (r *ReconcileVitessBackupsSchedule) updateVitessBackupScheduleStatus(ctx co
 		vbsc.Status.LastScheduledTime = nil
 	}
 
-	vbsc.Status.Active = nil
+	vbsc.Status.Active = make([]corev1.ObjectReference, 0, len(activeJobs))
 	for _, activeJob := range activeJobs {
 		jobRef, err := ref.GetReference(r.scheme, activeJob)
 		if err != nil {
@@ -361,12 +361,8 @@ func (r *ReconcileVitessBackupsSchedule) getJobsList(ctx context.Context, req ct
 			log.WithError(err).Errorf("unable to parse schedule time for existing job, found: %s", job.Annotations[scheduledTimeAnnotation])
 			continue
 		}
-		if scheduledTimeForJob != nil {
-			if mostRecentTime == nil {
-				mostRecentTime = scheduledTimeForJob
-			} else if mostRecentTime.Before(*scheduledTimeForJob) {
-				mostRecentTime = scheduledTimeForJob
-			}
+		if scheduledTimeForJob != nil && (mostRecentTime == nil || mostRecentTime.Before(*scheduledTimeForJob)) {
+			mostRecentTime = scheduledTimeForJob
 		}
 	}
 	return jobs, mostRecentTime, nil
@@ -407,7 +403,7 @@ func (r *ReconcileVitessBackupsSchedule) removeTimeoutJobs(ctx context.Context, 
 		if err != nil {
 			return err
 		}
-		if jobStartTime.After(time.Now().Add(time.Minute * time.Duration(timeout))) {
+		if jobStartTime.Add(time.Minute * time.Duration(timeout)).After(time.Now()) {
 			if err := r.client.Delete(ctx, job, client.PropagationPolicy(metav1.DeletePropagationBackground)); (err) != nil {
 				log.WithError(err).Errorf("unable to delete timed out job: %s", job.Name)
 			} else {
@@ -495,28 +491,28 @@ func (r *ReconcileVitessBackupsSchedule) createJobPod(ctx context.Context, vbsc 
 	// ensures that there will be at least one item in this list. The YAML cannot be applied with
 	// empty list of strategies.
 	args := []string{"/bin/sh", "-c"}
-	var cmd string
+	var cmd strings.Builder
 
 	for i, strategy := range vbsc.Spec.Strategy {
 		if i > 0 {
-			cmd = fmt.Sprintf("%s && ", cmd)
+			cmd.WriteString(fmt.Sprintf("%s && ", cmd))
 		}
 		// At this point, strategy.Name is either BackupShard or BackupTablet, the validation
 		// is made at the CRD level on the YAML directly.
 
-		cmd = fmt.Sprintf("%s%s %s", cmd, vtctldclientPath, vtctldclientServerArg)
+		cmd.WriteString(fmt.Sprintf("%s%s %s", cmd, vtctldclientPath, vtctldclientServerArg))
 
 		// Add the vtctldclient command
 		switch strategy.Name {
 		case planetscalev2.BackupShard:
-			cmd = fmt.Sprintf("%s BackupShard", cmd)
+			cmd.WriteString(fmt.Sprintf("%s BackupShard", cmd))
 		case planetscalev2.BackupTablet:
-			cmd = fmt.Sprintf("%s Backup", cmd)
+			cmd.WriteString(fmt.Sprintf("%s Backup", cmd))
 		}
 
 		// Add any flags
 		for key, value := range strategy.ExtraFlags {
-			cmd = fmt.Sprintf("%s --%s=%s", cmd, key, value)
+			cmd.WriteString(fmt.Sprintf("%s --%s=%s", cmd, key, value))
 		}
 
 		// Add keyspace/shard or tablet alias
@@ -525,15 +521,15 @@ func (r *ReconcileVitessBackupsSchedule) createJobPod(ctx context.Context, vbsc 
 			if strategy.KeyspaceShard == "" {
 				return pod, fmt.Errorf("the KeyspaceShard field is missing from VitessBackupScheduleStrategy %s", planetscalev2.BackupShard)
 			}
-			cmd = fmt.Sprintf("%s %s", cmd, strategy.KeyspaceShard)
+			cmd.WriteString(fmt.Sprintf("%s %s", cmd, strategy.KeyspaceShard))
 		case planetscalev2.BackupTablet:
 			if strategy.TabletAlias == "" {
 				return pod, fmt.Errorf("the TabletAlias field is missing from VitessBackupScheduleStrategy %s", planetscalev2.BackupTablet)
 			}
-			cmd = fmt.Sprintf("%s %s", cmd, strategy.TabletAlias)
+			cmd.WriteString(fmt.Sprintf("%s %s", cmd, strategy.TabletAlias))
 		}
 	}
-	args = append(args, cmd)
+	args = append(args, cmd.String())
 
 	pod = corev1.PodSpec{
 		Containers: []corev1.Container{{
@@ -572,7 +568,7 @@ func (r *ReconcileVitessBackupsSchedule) getVtctldServiceName(ctx context.Contex
 	}
 
 	if svcName == "" || svcPort == 0 {
-		return "", 0, fmt.Errorf("no vtctld service in %q found", vbsc.Namespace)
+		return "", 0, fmt.Errorf("no vtctld service found in %q namespace", vbsc.Namespace)
 	}
 	return svcName, svcPort, nil
 }

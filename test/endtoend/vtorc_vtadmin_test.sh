@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -euo pipefail
+
 source ./tools/test.env
 source ./test/endtoend/utils.sh
 
@@ -31,7 +33,7 @@ function get_started_vtorc_vtadmin() {
 
     applySchemaWithRetry create_commerce_schema.sql commerce drop_all_commerce_tables.sql
     vtctldclient ApplyVSchema --vschema-file="vschema_commerce_initial.json" commerce
-    if [ $? -ne 0 ]; then
+    if [[ $? -ne 0 ]]; then
       echo "ApplySchema failed for initial commerce"
       printMysqlErrorFiles
       exit 1
@@ -39,14 +41,14 @@ function get_started_vtorc_vtadmin() {
     sleep 5
 
     echo "show databases;" | mysql | grep "commerce" > /dev/null 2>&1
-    if [ $? -ne 0 ]; then
+    if [[ $? -ne 0 ]]; then
       echo "Could not find commerce database"
       printMysqlErrorFiles
       exit 1
     fi
 
     echo "show tables;" | mysql commerce | grep -E 'corder|customer|product' | wc -l | grep 3 > /dev/null 2>&1
-    if [ $? -ne 0 ]; then
+    if [[ $? -ne 0 ]]; then
       echo "Could not find commerce's tables"
       printMysqlErrorFiles
       exit 1
@@ -159,9 +161,9 @@ function chromiumHeadlessRequest() {
   for i in {1..600} ; do
     chromiumBinary=$(getChromiumBinaryName)
     res=$($chromiumBinary --headless --no-sandbox --disable-gpu --enable-logging --dump-dom  --virtual-time-budget=900000000 "$url")
-    if [ $? -eq 0 ]; then
+    if [[ $? -eq 0 ]]; then
       echo "$res" | grep "$dataToAssert" > /dev/null 2>&1
-      if [ $? -ne 0 ]; then
+      if [[ $? -ne 0 ]]; then
         echo -e "The data in $url is incorrect, got:\n$res, retrying"
         sleep 1
         continue
@@ -175,12 +177,12 @@ function chromiumHeadlessRequest() {
 
 function getChromiumBinaryName() {
   which chromium-browser > /dev/null
-  if [ $? -eq 0 ]; then
+  if [[ $? -eq 0 ]]; then
       echo "chromium-browser"
       return
   fi
   which chromium > /dev/null
-  if [ $? -eq 0 ]; then
+  if [[ $? -eq 0 ]]; then
       echo "chromium"
       return
   fi
@@ -191,9 +193,9 @@ function curlGetRequestWithRetry() {
   dataToAssert=$2
   for i in {1..600} ; do
     res=$(curl "$url")
-    if [ $? -eq 0 ]; then
+    if [[ $? -eq 0 ]]; then
       echo "$res" | grep "$dataToAssert" > /dev/null 2>&1
-      if [ $? -ne 0 ]; then
+      if [[ $? -ne 0 ]]; then
         echo -e "The data in $url is incorrect, got:\n$res"
         exit 1
       fi
@@ -208,12 +210,12 @@ function curlDeleteRequest() {
   url=$1
   dataToAssert=$2
   res=$(curl -X DELETE "$url")
-  if [ $? -ne 0 ]; then
+  if [[ $? -ne 0 ]]; then
     echo -e "The DELETE request to $url failed\n"
     exit 1
   fi
   echo "$res" | grep "$dataToAssert" > /dev/null 2>&1
-  if [ $? -ne 0 ]; then
+  if [[ $? -ne 0 ]]; then
     echo -e "The data in delete request to $url is incorrect, got:\n$res"
     exit 1
   fi
@@ -223,7 +225,7 @@ function curlPostRequest() {
   url=$1
   data=$2
   curl -X POST -d "$data" "$url"
-  if [ $? -ne 0 ]; then
+  if [[ $? -ne 0 ]]; then
     echo -e "The POST request to $url with data $data failed\n"
     exit 1
   fi
@@ -233,7 +235,7 @@ function curlPostRequest() {
 echo "Building the docker image"
 docker build -f build/Dockerfile.release -t vitess-operator-pr:latest .
 echo "Creating Kind cluster"
-kind create cluster --wait 30s --name kind-${BUILDKITE_BUILD_ID} --image kindest/node:v1.28.0
+kind create cluster --wait 30s --name kind-${BUILDKITE_BUILD_ID} --image ${KIND_VERSION}
 echo "Loading docker image into Kind cluster"
 kind load docker-image vitess-operator-pr:latest --name kind-${BUILDKITE_BUILD_ID}
 

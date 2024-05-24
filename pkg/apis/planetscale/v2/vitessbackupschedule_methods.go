@@ -46,8 +46,8 @@ const DefaultAllowedMissedRuns = 100
 // GetMissedRunsLimit returns the maximum number of missed run we can allow.
 // Returns DefaultAllowedMissedRuns if the value was not specified by the user.
 func (vbsc *VitessBackupSchedule) GetMissedRunsLimit() int {
-	if vbsc.Spec.AllowedMissedRun == nil {
+	if vbsc.Spec.AllowedMissedRuns == nil {
 		return DefaultAllowedMissedRuns
 	}
-	return *vbsc.Spec.AllowedMissedRun
+	return *vbsc.Spec.AllowedMissedRuns
 }

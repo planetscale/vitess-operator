@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -euo pipefail
+
 source ./tools/test.env
 source ./test/endtoend/utils.sh
 
@@ -15,9 +17,8 @@ function checkVitessBackupScheduleStatusWithTimeout() {
   regex=$1
 
   for i in {1..1200} ; do
-    out=$(kubectl get VitessBackupSchedule)
-    echo "$out" | grep -E "$regex" | wc -l | grep "1" > /dev/null 2>&1
-    if [ $? -eq 0 ]; then
+    kubectl get VitessBackupSchedule | grep -E "$regex" | wc -l | grep "1" > /dev/null 2>&1
+    if [[ $? -eq 0 ]]; then
       echo "$regex found"
       return
     fi
@@ -38,7 +39,7 @@ function verifyListBackupsOutputWithSchedule() {
   sleep 360
 
   backupCount=$(kubectl get vtb --no-headers | wc -l)
-  if [ "${backupCount}" -lt 7 ]; then
+  if [[ "${backupCount}" -lt 7 ]]; then
     echo "Did not find at least 7 backups"
     return 0
   fi
@@ -49,7 +50,7 @@ function verifyListBackupsOutputWithSchedule() {
 }
 
 function setupKindConfig() {
-  if [ "$BUILDKITE_BUILD_ID" != "0" ]; then
+  if [[ "$BUILDKITE_BUILD_ID" != "0" ]]; then
     # The script is being run from buildkite, so we can't mount the current
     # working directory to kind. The current directory in the docker is workdir
     # So if we try and mount that, we get an error. Instead we need to mount the
@@ -72,7 +73,7 @@ docker build -f build/Dockerfile.release -t vitess-operator-pr:latest .
 echo "Setting up the kind config"
 setupKindConfig
 echo "Creating Kind cluster"
-kind create cluster --wait 30s --name kind-${BUILDKITE_BUILD_ID} --config ./vtdataroot/config.yaml --image kindest/node:v1.28.0
+kind create cluster --wait 30s --name kind-${BUILDKITE_BUILD_ID} --config ./vtdataroot/config.yaml --image ${KIND_VERSION}
 echo "Loading docker image into Kind cluster"
 kind load docker-image vitess-operator-pr:latest --name kind-${BUILDKITE_BUILD_ID}
 

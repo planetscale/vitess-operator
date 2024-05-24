@@ -888,8 +888,8 @@ func (in *VitessBackupScheduleTemplate) DeepCopyInto(out *VitessBackupScheduleTe
 		*out = new(int64)
 		**out = **in
 	}
-	if in.AllowedMissedRun != nil {
-		in, out := &in.AllowedMissedRun, &out.AllowedMissedRun
+	if in.AllowedMissedRuns != nil {
+		in, out := &in.AllowedMissedRuns, &out.AllowedMissedRuns
 		*out = new(int)
 		**out = **in
 	}

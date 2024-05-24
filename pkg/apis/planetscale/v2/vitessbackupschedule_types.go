@@ -122,14 +122,17 @@ type VitessBackupScheduleTemplate struct {
 	// +kubebuilder:validation:Minimum=0
 	FailedJobsHistoryLimit *int32 `json:"failedJobsHistoryLimit,omitempty"`
 
-	// Suspend enables the suspension of the VitessBackupSchedule, pausing any further scheduled
+	// Suspend pause the associated backup schedule. Pausing any further scheduled
 	// runs until Suspend is set to false again. This is useful if you want to pause backup without
 	// having to remove the entire VitessBackupSchedule object from the cluster.
 	// +optional
 	Suspend *bool `json:"suspend,omitempty"`
 
-	// StartingDeadlineSeconds allows for the VitessBackupSchedule controller to start jobs that late
-	// by the given amount of seconds.
+	// StartingDeadlineSeconds enables the VitessBackupSchedule to start a job even though it is late by
+	// the given amount of seconds. Let's say for some reason the controller process a schedule run on
+	// second after its scheduled time, if StartingDeadlineSeconds is set to 0, the job will be skipped
+	// as it's too late, but on the other hand, if StartingDeadlineSeconds is greater than one second,
+	// the job will be processed as usual.
 	// +optional
 	// +kubebuilder:validation:Minimum=0
 	StartingDeadlineSeconds *int64 `json:"startingDeadlineSeconds,omitempty"`
@@ -143,24 +146,24 @@ type VitessBackupScheduleTemplate struct {
 	// +kubebuilder:example="Forbid"
 	ConcurrencyPolicy ConcurrencyPolicy `json:"concurrencyPolicy,omitempty"`
 
-	// AllowedMissedRun defines how many missed run of the schedule will be allowed before giving up on finding the last job.
-	// If the operator's clocked is skewed and we end-up missing a certain number of jobs, finding the last
-	// job might be very consuming, depending on the frequency of the schedule and the duration during which
-	// the operator's clock was misbehaving, also depending on how laggy the clock is, we can end-up with thousands
-	// or missed runs. For this reason, AllowedMissedRun, which is set to 100 by default, will allow us to give up finding
-	// the last job and simply wait for the next job on the schedule.
+	// AllowedMissedRuns defines how many missed run of the schedule will be allowed before giving up on finding the last job.
+	// If the operator's clock is skewed and we end-up missing a certain number of jobs, finding the last
+	// job might be very time-consuming, depending on the frequency of the schedule and the duration during which
+	// the operator's clock was misbehaving. Also depending on how laggy the clock is, we can end-up with thousands
+	// of missed runs. For this reason, AllowedMissedRun, which is set to 100 by default, will short circuit the search
+	// and simply wait for the next job on the schedule.
 	// Unless you are experiencing issue with missed runs due to a misconfiguration of the clock, we recommend leaving
 	// this field to its default value.
 	// +optional
 	// +kubebuilder:validation:Minimum=0
-	AllowedMissedRun *int `json:"allowedMissedRun,omitempty"`
+	AllowedMissedRuns *int `json:"allowedMissedRun,omitempty"`
 
-	// JobTimeoutMinute defines after how many minutes a job that has not yet finished should be stopped and removed.
+	// JobTimeoutMinutes defines after how many minutes a job that has not yet finished should be stopped and removed.
 	// Default value is 10 minutes.
 	// +optional
 	// +kubebuilder:validation:Minimum=0
 	// +kubebuilder:default=10
-	JobTimeoutMinute int32 `json:"jobTimeoutMinute,omitempty"`
+	JobTimeoutMinutes int32 `json:"jobTimeoutMinute,omitempty"`
 }
 
 // VitessBackupScheduleStrategy defines how we are going to take a backup.
