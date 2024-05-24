@@ -91,12 +91,12 @@ type VitessBackupScheduleTemplate struct {
 	// objects in the cluster.
 	// +kubebuilder:validation:MinLength=1
 	// +kubebuilder:validation:Pattern=^[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?$
-	// +kubebuilder:example="every-minute"
+	// +kubebuilder:example="every-day"
 	Name string `json:"name"`
 
 	// The schedule in Cron format, see https://en.wikipedia.org/wiki/Cron.
 	// +kubebuilder:validation:MinLength=0
-	// +kubebuilder:example="* * * * *"
+	// +kubebuilder:example="0 0 * * *"
 	Schedule string `json:"schedule"`
 
 	// Strategy defines how we are going to take a backup.

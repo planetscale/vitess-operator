@@ -175,7 +175,7 @@ spec:
                           minimum: 0
                           type: integer
                         name:
-                          example: every-minute
+                          example: every-day
                           minLength: 1
                           pattern: ^[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?$
                           type: string
@@ -211,7 +211,7 @@ spec:
                               type: object
                           type: object
                         schedule:
-                          example: '* * * * *'
+                          example: 0 0 * * *
                           minLength: 0
                           type: string
                         startingDeadlineSeconds:
