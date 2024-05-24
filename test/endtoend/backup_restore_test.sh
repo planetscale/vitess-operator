@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -euo pipefail
+set -uo pipefail
 
 source ./tools/test.env
 source ./test/endtoend/utils.sh
