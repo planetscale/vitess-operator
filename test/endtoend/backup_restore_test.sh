@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -uo pipefail
-
 source ./tools/test.env
 source ./test/endtoend/utils.sh
 

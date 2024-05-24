@@ -2545,31 +2545,42 @@ BackupStrategyName
 </tr>
 <tr>
 <td>
-<code>keyspaceShard</code></br>
+<code>cluster</code></br>
 <em>
 string
 </em>
 </td>
 <td>
-<em>(Optional)</em>
-<p>KeyspaceShard defines the keyspace and shard on which we want to take a backup.
-It has to be formatted as follows: <keyspace>/<shard>
-This field is mandatory if we have picked the strategy BackupShard.
-This field will be ignored if we have picked the strategy BackupTablet.</p>
+<p>Cluster defines on which cluster you want to take the backup.
+This field is mandatory regardless of the chosen strategy.</p>
 </td>
 </tr>
 <tr>
 <td>
-<code>tabletAlias</code></br>
+<code>keyspace</code></br>
 <em>
 string
 </em>
 </td>
 <td>
 <em>(Optional)</em>
-<p>TabletAlias is the tablet alias we want to take a backup on.
-This field is mandatory if we have picked the strategy BackupTablet.
-This field will be ignored if we have picked the strategy BackupShard.</p>
+<p>Keyspace defines the keyspace on which we want to take the backup.
+If we have chosen the strategy BackupKeyspace or BackupShard this field
+is mandatory. In other cases, the field will be ignored.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>shard</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Shard defines the shard on which we want to take a backup. If we have
+chosen the strategy BackupShard this field is mandatory, in other cases
+the field will be ignored.</p>
 </td>
 </tr>
 <tr>

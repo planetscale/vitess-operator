@@ -221,7 +221,7 @@ function waitForKeyspaceToBeServing() {
   for i in {1..600} ; do
     out=$(mysql --table --execute="show vitess_tablets")
     numtablets=$(echo "$out" | grep -E "$ks(.*)$shard(.*)PRIMARY(.*)SERVING|$ks(.*)$shard(.*)REPLICA(.*)SERVING" | wc -l)
-    if [[[ $numtablets -ge $((nb_of_replica+1)) ]]]; then
+    if [[ $numtablets -ge $((nb_of_replica+1)) ]]; then
       echo "Shard $ks/$shard is serving"
       return
     fi

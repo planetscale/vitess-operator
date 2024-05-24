@@ -187,7 +187,7 @@ func (r *ReconcileVitessBackupsSchedule) Reconcile(ctx context.Context, req ctrl
 	r.cleanupJobsWithLimit(ctx, jobs.failed, vbsc.GetFailedJobsLimit())
 	r.cleanupJobsWithLimit(ctx, jobs.successful, vbsc.GetSuccessfulJobsLimit())
 
-	err = r.removeTimeoutJobs(ctx, jobs.successful, vbsc.Spec.JobTimeoutMinutes)
+	err = r.removeTimeoutJobs(ctx, jobs.active, vbsc.Spec.JobTimeoutMinutes)
 	if err != nil {
 		// We had an error while removing timed out jobs, we can requeue
 		return resultBuilder.Error(err)
@@ -403,7 +403,7 @@ func (r *ReconcileVitessBackupsSchedule) removeTimeoutJobs(ctx context.Context, 
 		if err != nil {
 			return err
 		}
-		if jobStartTime.Add(time.Minute * time.Duration(timeout)).After(time.Now()) {
+		if jobStartTime.Add(time.Minute * time.Duration(timeout)).Before(time.Now()) {
 			if err := r.client.Delete(ctx, job, client.PropagationPolicy(metav1.DeletePropagationBackground)); (err) != nil {
 				log.WithError(err).Errorf("unable to delete timed out job: %s", job.Name)
 			} else {
@@ -480,56 +480,69 @@ func (r *ReconcileVitessBackupsSchedule) createJob(ctx context.Context, vbsc *pl
 }
 
 func (r *ReconcileVitessBackupsSchedule) createJobPod(ctx context.Context, vbsc *planetscalev2.VitessBackupSchedule, name string) (pod corev1.PodSpec, err error) {
-	vtctldServiceName, vtctldServicePort, err := r.getVtctldServiceName(ctx, vbsc)
-	if err != nil {
-		return corev1.PodSpec{}, err
+	getVtctldServiceName := func(cluster string) (string, error) {
+		vtctldServiceName, vtctldServicePort, err := r.getVtctldServiceName(ctx, vbsc, cluster)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("--server=%s:%d", vtctldServiceName, vtctldServicePort), nil
 	}
-	vtctldServer := fmt.Sprintf("%s:%d", vtctldServiceName, vtctldServicePort)
-	vtctldclientServerArg := fmt.Sprintf("--server=%s", vtctldServer)
 
 	// It is fine to not have any default in the event there is no strategy as the CRD validation
 	// ensures that there will be at least one item in this list. The YAML cannot be applied with
 	// empty list of strategies.
-	args := []string{"/bin/sh", "-c"}
 	var cmd strings.Builder
 
-	for i, strategy := range vbsc.Spec.Strategy {
+	addNewCmd := func(i int) {
 		if i > 0 {
-			cmd.WriteString(fmt.Sprintf("%s && ", cmd))
-		}
-		// At this point, strategy.Name is either BackupShard or BackupTablet, the validation
-		// is made at the CRD level on the YAML directly.
-
-		cmd.WriteString(fmt.Sprintf("%s%s %s", cmd, vtctldclientPath, vtctldclientServerArg))
-
-		// Add the vtctldclient command
-		switch strategy.Name {
-		case planetscalev2.BackupShard:
-			cmd.WriteString(fmt.Sprintf("%s BackupShard", cmd))
-		case planetscalev2.BackupTablet:
-			cmd.WriteString(fmt.Sprintf("%s Backup", cmd))
-		}
-
-		// Add any flags
-		for key, value := range strategy.ExtraFlags {
-			cmd.WriteString(fmt.Sprintf("%s --%s=%s", cmd, key, value))
-		}
-
-		// Add keyspace/shard or tablet alias
-		switch strategy.Name {
-		case planetscalev2.BackupShard:
-			if strategy.KeyspaceShard == "" {
-				return pod, fmt.Errorf("the KeyspaceShard field is missing from VitessBackupScheduleStrategy %s", planetscalev2.BackupShard)
-			}
-			cmd.WriteString(fmt.Sprintf("%s %s", cmd, strategy.KeyspaceShard))
-		case planetscalev2.BackupTablet:
-			if strategy.TabletAlias == "" {
-				return pod, fmt.Errorf("the TabletAlias field is missing from VitessBackupScheduleStrategy %s", planetscalev2.BackupTablet)
-			}
-			cmd.WriteString(fmt.Sprintf("%s %s", cmd, strategy.TabletAlias))
+			cmd.WriteString(" && ")
 		}
 	}
-	args = append(args, cmd.String())
+
+	for i, strategy := range vbsc.Spec.Strategy {
+		vtctldclientServerArg, err := getVtctldServiceName(strategy.Cluster)
+		if err != nil {
+			return corev1.PodSpec{}, err
+		}
+
+		addNewCmd(i)
+		switch strategy.Name {
+		case planetscalev2.BackupShard:
+			if strategy.Keyspace == "" {
+				return pod, fmt.Errorf("the Keyspace field is missing from VitessBackupScheduleStrategy %s", planetscalev2.BackupShard)
+			}
+			if strategy.Shard == "" {
+				return pod, fmt.Errorf("the Shard field is missing from VitessBackupScheduleStrategy %s", planetscalev2.BackupShard)
+			}
+			createVtctldClientCommand(&cmd, vtctldclientServerArg, strategy.ExtraFlags, strategy.Keyspace, strategy.Shard)
+		case planetscalev2.BackupKeyspace:
+			if strategy.Keyspace == "" {
+				return pod, fmt.Errorf("the Keyspace field is missing from VitessBackupScheduleStrategy %s", planetscalev2.BackupKeyspace)
+			}
+			shards, err := r.getAllShardsInKeyspace(ctx, vbsc.Namespace, strategy.Cluster, strategy.Keyspace)
+			if err != nil {
+				return corev1.PodSpec{}, err
+			}
+			for j, shard := range shards {
+				addNewCmd(j)
+				createVtctldClientCommand(&cmd, vtctldclientServerArg, strategy.ExtraFlags, strategy.Keyspace, shard)
+			}
+		case planetscalev2.BackupCluster:
+			keyspaces, err := r.getAllShardsInCluster(ctx, vbsc.Namespace, strategy.Cluster)
+			if err != nil {
+				return corev1.PodSpec{}, err
+			}
+			for ksIndex, ks := range keyspaces {
+				for shardIndex, shard := range ks.shards {
+					if shardIndex > 0 || ksIndex > 0 {
+						cmd.WriteString(" && ")
+					}
+					createVtctldClientCommand(&cmd, vtctldclientServerArg, strategy.ExtraFlags, ks.name, shard)
+				}
+			}
+		}
+
+	}
 
 	pod = corev1.PodSpec{
 		Containers: []corev1.Container{{
@@ -537,18 +550,31 @@ func (r *ReconcileVitessBackupsSchedule) createJobPod(ctx context.Context, vbsc 
 			Image:           vbsc.Spec.Image,
 			ImagePullPolicy: vbsc.Spec.ImagePullPolicy,
 			Resources:       vbsc.Spec.Resources,
-			Args:            args,
+			Args:            []string{"/bin/sh", "-c", cmd.String()},
 		}},
 		RestartPolicy: corev1.RestartPolicyOnFailure,
 	}
 	return pod, nil
 }
 
-func (r *ReconcileVitessBackupsSchedule) getVtctldServiceName(ctx context.Context, vbsc *planetscalev2.VitessBackupSchedule) (svcName string, svcPort int32, err error) {
+func createVtctldClientCommand(cmd *strings.Builder, serverAddr string, extraFlags map[string]string, keyspace, shard string) {
+	cmd.WriteString(fmt.Sprintf("%s %s BackupShard", vtctldclientPath, serverAddr))
+
+	// Add any flags
+	for key, value := range extraFlags {
+		cmd.WriteString(fmt.Sprintf(" --%s=%s", key, value))
+	}
+
+	// Add keyspace/shard or tablet alias
+	cmd.WriteString(fmt.Sprintf(" %s/%s", keyspace, shard))
+}
+
+func (r *ReconcileVitessBackupsSchedule) getVtctldServiceName(ctx context.Context, vbsc *planetscalev2.VitessBackupSchedule, cluster string) (svcName string, svcPort int32, err error) {
 	svcList := &corev1.ServiceList{}
 	listOpts := &client.ListOptions{
 		Namespace: vbsc.Namespace,
 		LabelSelector: apilabels.Set{
+			planetscalev2.ClusterLabel:   cluster,
 			planetscalev2.ComponentLabel: planetscalev2.VtctldComponentName,
 		}.AsSelector(),
 	}
@@ -571,4 +597,54 @@ func (r *ReconcileVitessBackupsSchedule) getVtctldServiceName(ctx context.Contex
 		return "", 0, fmt.Errorf("no vtctld service found in %q namespace", vbsc.Namespace)
 	}
 	return svcName, svcPort, nil
+}
+
+func (r *ReconcileVitessBackupsSchedule) getAllShardsInKeyspace(ctx context.Context, namespace, cluster, keyspace string) ([]string, error) {
+	shardsList := &planetscalev2.VitessShardList{}
+	listOpts := &client.ListOptions{
+		Namespace: namespace,
+		LabelSelector: apilabels.Set{
+			planetscalev2.ClusterLabel:  cluster,
+			planetscalev2.KeyspaceLabel: keyspace,
+		}.AsSelector(),
+	}
+	if err := r.client.List(ctx, shardsList, listOpts); err != nil {
+		return nil, fmt.Errorf("unable to list shards of keyspace %s in %s: %v", keyspace, namespace, err)
+	}
+	var result []string
+	for _, item := range shardsList.Items {
+		result = append(result, item.Spec.Name)
+	}
+	return result, nil
+}
+
+type keyspace struct {
+	name   string
+	shards []string
+}
+
+func (r *ReconcileVitessBackupsSchedule) getAllShardsInCluster(ctx context.Context, namespace, cluster string) ([]keyspace, error) {
+	ksList := &planetscalev2.VitessKeyspaceList{}
+	listOpts := &client.ListOptions{
+		Namespace: namespace,
+		LabelSelector: apilabels.Set{
+			planetscalev2.ClusterLabel: cluster,
+		}.AsSelector(),
+	}
+	if err := r.client.List(ctx, ksList, listOpts); err != nil {
+		return nil, fmt.Errorf("unable to list keyspaces in namespace %s: %v", namespace, err)
+	}
+	var result []keyspace
+	for _, item := range ksList.Items {
+		ks := keyspace{
+			name: item.Spec.Name,
+		}
+		for shardName := range item.Status.Shards {
+			ks.shards = append(ks.shards, shardName)
+		}
+		if len(ks.shards) > 0 {
+			result = append(result, ks)
+		}
+	}
+	return result, nil
 }

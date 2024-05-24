@@ -39,15 +39,20 @@ const (
 
 // BackupStrategyName describes the vtctldclient command that will be used to take a backup.
 // When scheduling a backup, you must specify at least one strategy.
-// +kubebuilder:validation:Enum=BackupTablet;BackupShard
+// +kubebuilder:validation:Enum=BackupShard;BackupKeyspace;BackupCluster
 type BackupStrategyName string
 
 const (
-	// BackupTablet will use the "vtctldclient Backup" command to take a backup
-	BackupTablet BackupStrategyName = "BackupTablet"
-
 	// BackupShard will use the "vtctldclient BackupShard" command to take a backup
 	BackupShard BackupStrategyName = "BackupShard"
+
+	// BackupKeyspace will use the "vtctldclient BackupShard" command multiple times
+	// to take a backup of all the shards in the given keyspace.
+	BackupKeyspace BackupStrategyName = "BackupKeyspace"
+
+	// BackupCluster will use the "vtctldclient BackupShard" command multiple times
+	// to take a backup of every shard in the entire Vitess cluster.
+	BackupCluster BackupStrategyName = "BackupCluster"
 )
 
 // VitessBackupSchedule is the Schema for the VitessBackupSchedule API.
@@ -173,20 +178,23 @@ type VitessBackupScheduleStrategy struct {
 	// Name of the backup strategy.
 	Name BackupStrategyName `json:"name"`
 
-	// KeyspaceShard defines the keyspace and shard on which we want to take a backup.
-	// It has to be formatted as follows: <keyspace>/<shard>
-	// This field is mandatory if we have picked the strategy BackupShard.
-	// This field will be ignored if we have picked the strategy BackupTablet.
-	// +optional
-	// +kubebuilder:example="commerce/-"
-	KeyspaceShard string `json:"keyspaceShard,omitempty"`
+	// Cluster defines on which cluster you want to take the backup.
+	// This field is mandatory regardless of the chosen strategy.
+	Cluster string `json:"cluster"`
 
-	// TabletAlias is the tablet alias we want to take a backup on.
-	// This field is mandatory if we have picked the strategy BackupTablet.
-	// This field will be ignored if we have picked the strategy BackupShard.
+	// Keyspace defines the keyspace on which we want to take the backup.
+	// If we have chosen the strategy BackupKeyspace or BackupShard this field
+	// is mandatory. In other cases, the field will be ignored.
 	// +optional
-	// +kubebuilder:example="zone1-0000000102"
-	TabletAlias string `json:"tabletAlias"`
+	// +kubebuilder:example="commerce"
+	Keyspace string `json:"keyspace"`
+
+	// Shard defines the shard on which we want to take a backup. If we have
+	// chosen the strategy BackupShard this field is mandatory, in other cases
+	// the field will be ignored.
+	// +optional
+	// +kubebuilder:example="-"
+	Shard string `json:"shard"`
 
 	// ExtraFlags is a map of flags that will be sent down to vtctldclient when taking the backup.
 	// +optional

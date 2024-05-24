@@ -221,22 +221,26 @@ spec:
                         strategies:
                           items:
                             properties:
+                              cluster:
+                                type: string
                               extraFlags:
                                 additionalProperties:
                                   type: string
                                 type: object
-                              keyspaceShard:
-                                example: commerce/-
+                              keyspace:
+                                example: commerce
                                 type: string
                               name:
                                 enum:
-                                - BackupTablet
                                 - BackupShard
+                                - BackupKeyspace
+                                - BackupCluster
                                 type: string
-                              tabletAlias:
-                                example: zone1-0000000102
+                              shard:
+                                example: '-'
                                 type: string
                             required:
+                            - cluster
                             - name
                             type: object
                           minItems: 1
