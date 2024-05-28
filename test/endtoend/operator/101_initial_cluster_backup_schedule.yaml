@@ -28,7 +28,8 @@ spec:
         jobTimeoutMinute: 5
         strategies:
           - name: BackupShard
-            keyspaceShard: "commerce/-"
+            keyspace: "commerce"
+            shard: "-"
       - name: "every-five-minute"
         schedule: "*/5 * * * *"
         resources:
@@ -42,7 +43,8 @@ spec:
         jobTimeoutMinute: 5
         strategies:
           - name: BackupShard
-            keyspaceShard: "commerce/-"
+            keyspace: "commerce"
+            shard: "-"
   images:
     vtctld: vitess/lite:latest
     vtgate: vitess/lite:latest
