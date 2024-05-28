@@ -410,6 +410,8 @@ spec:
                 allowedMissedRun:
                   minimum: 0
                   type: integer
+                cluster:
+                  type: string
                 concurrencyPolicy:
                   enum:
                     - Allow
@@ -477,8 +479,6 @@ spec:
                 strategies:
                   items:
                     properties:
-                      cluster:
-                        type: string
                       extraFlags:
                         additionalProperties:
                           type: string
@@ -496,7 +496,6 @@ spec:
                         example: '-'
                         type: string
                     required:
-                      - cluster
                       - name
                     type: object
                   minItems: 1
@@ -508,6 +507,7 @@ spec:
                 suspend:
                   type: boolean
               required:
+                - cluster
                 - name
                 - resources
                 - schedule
@@ -1704,8 +1704,6 @@ spec:
                           strategies:
                             items:
                               properties:
-                                cluster:
-                                  type: string
                                 extraFlags:
                                   additionalProperties:
                                     type: string
@@ -1723,7 +1721,6 @@ spec:
                                   example: '-'
                                   type: string
                               required:
-                                - cluster
                                 - name
                               type: object
                             minItems: 1

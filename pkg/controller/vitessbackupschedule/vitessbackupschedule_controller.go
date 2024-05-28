@@ -500,7 +500,7 @@ func (r *ReconcileVitessBackupsSchedule) createJobPod(ctx context.Context, vbsc 
 	}
 
 	for i, strategy := range vbsc.Spec.Strategy {
-		vtctldclientServerArg, err := getVtctldServiceName(strategy.Cluster)
+		vtctldclientServerArg, err := getVtctldServiceName(vbsc.Spec.Cluster)
 		if err != nil {
 			return corev1.PodSpec{}, err
 		}
@@ -519,7 +519,7 @@ func (r *ReconcileVitessBackupsSchedule) createJobPod(ctx context.Context, vbsc 
 			if strategy.Keyspace == "" {
 				return pod, fmt.Errorf("the Keyspace field is missing from VitessBackupScheduleStrategy %s", planetscalev2.BackupKeyspace)
 			}
-			shards, err := r.getAllShardsInKeyspace(ctx, vbsc.Namespace, strategy.Cluster, strategy.Keyspace)
+			shards, err := r.getAllShardsInKeyspace(ctx, vbsc.Namespace, vbsc.Spec.Cluster, strategy.Keyspace)
 			if err != nil {
 				return corev1.PodSpec{}, err
 			}
@@ -528,7 +528,7 @@ func (r *ReconcileVitessBackupsSchedule) createJobPod(ctx context.Context, vbsc 
 				createVtctldClientCommand(&cmd, vtctldclientServerArg, strategy.ExtraFlags, strategy.Keyspace, shard)
 			}
 		case planetscalev2.BackupCluster:
-			keyspaces, err := r.getAllShardsInCluster(ctx, vbsc.Namespace, strategy.Cluster)
+			keyspaces, err := r.getAllShardsInCluster(ctx, vbsc.Namespace, vbsc.Spec.Cluster)
 			if err != nil {
 				return corev1.PodSpec{}, err
 			}

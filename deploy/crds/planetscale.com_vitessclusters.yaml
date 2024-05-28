@@ -221,8 +221,6 @@ spec:
                         strategies:
                           items:
                             properties:
-                              cluster:
-                                type: string
                               extraFlags:
                                 additionalProperties:
                                   type: string
@@ -240,7 +238,6 @@ spec:
                                 example: '-'
                                 type: string
                             required:
-                            - cluster
                             - name
                             type: object
                           minItems: 1

@@ -80,6 +80,9 @@ type VitessBackupScheduleSpec struct {
 	// These are the parts that are configurable through the VitessCluster CRD.
 	VitessBackupScheduleTemplate `json:",inline"`
 
+	// Cluster on which this schedule runs.
+	Cluster string `json:"cluster"`
+
 	// Image should be any image that already contains vtctldclient installed.
 	// The controller will re-use the vtctld image by default.
 	Image string `json:"image,omitempty"`
@@ -177,10 +180,6 @@ type VitessBackupScheduleTemplate struct {
 type VitessBackupScheduleStrategy struct {
 	// Name of the backup strategy.
 	Name BackupStrategyName `json:"name"`
-
-	// Cluster defines on which cluster you want to take the backup.
-	// This field is mandatory regardless of the chosen strategy.
-	Cluster string `json:"cluster"`
 
 	// Keyspace defines the keyspace on which we want to take the backup.
 	// If we have chosen the strategy BackupKeyspace or BackupShard this field

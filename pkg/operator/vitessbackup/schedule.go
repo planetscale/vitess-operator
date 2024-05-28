@@ -42,6 +42,8 @@ func NewVitessBackupSchedule(key client.ObjectKey, vt *planetscalev2.VitessClust
 			// We simply re-apply the same template that was written by the user.
 			VitessBackupScheduleTemplate: *vbsc,
 
+			Cluster: vt.Name,
+
 			// To take backups we only care about having the vtctldclient installed in the container.
 			// For this reason, we re-use the vtctld Docker image and the same image pull policy.
 			Image:           vt.Spec.Images.Vtctld,

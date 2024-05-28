@@ -2361,6 +2361,17 @@ These are the parts that are configurable through the VitessCluster CRD.</p>
 </tr>
 <tr>
 <td>
+<code>cluster</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Cluster on which this schedule runs.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>image</code></br>
 <em>
 string
@@ -2434,6 +2445,17 @@ VitessBackupScheduleTemplate
 </p>
 <p>VitessBackupScheduleTemplate contains the user-specific parts of VitessBackupScheduleSpec.
 These are the parts that are configurable through the VitessCluster CRD.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>cluster</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Cluster on which this schedule runs.</p>
 </td>
 </tr>
 <tr>
@@ -2541,18 +2563,6 @@ BackupStrategyName
 </td>
 <td>
 <p>Name of the backup strategy.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>cluster</code></br>
-<em>
-string
-</em>
-</td>
-<td>
-<p>Cluster defines on which cluster you want to take the backup.
-This field is mandatory regardless of the chosen strategy.</p>
 </td>
 </tr>
 <tr>
