@@ -495,14 +495,14 @@ spec:
                       name:
                         enum:
                           - BackupShard
-                          - BackupKeyspace
-                          - BackupCluster
                         type: string
                       shard:
                         example: '-'
                         type: string
                     required:
+                      - keyspace
                       - name
+                      - shard
                     type: object
                   minItems: 1
                   type: array
@@ -1726,14 +1726,14 @@ spec:
                                 name:
                                   enum:
                                     - BackupShard
-                                    - BackupKeyspace
-                                    - BackupCluster
                                   type: string
                                 shard:
                                   example: '-'
                                   type: string
                               required:
+                                - keyspace
                                 - name
+                                - shard
                               type: object
                             minItems: 1
                             type: array

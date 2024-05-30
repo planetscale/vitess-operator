@@ -522,38 +522,7 @@ func (r *ReconcileVitessBackupsSchedule) createJobPod(ctx context.Context, vbsc 
 		addNewCmd(i)
 		switch strategy.Name {
 		case planetscalev2.BackupShard:
-			if strategy.Keyspace == "" {
-				return pod, fmt.Errorf("the Keyspace field is missing from VitessBackupScheduleStrategy %s", planetscalev2.BackupShard)
-			}
-			if strategy.Shard == "" {
-				return pod, fmt.Errorf("the Shard field is missing from VitessBackupScheduleStrategy %s", planetscalev2.BackupShard)
-			}
 			createVtctldClientCommand(&cmd, vtctldclientServerArg, strategy.ExtraFlags, strategy.Keyspace, strategy.Shard)
-		case planetscalev2.BackupKeyspace:
-			if strategy.Keyspace == "" {
-				return pod, fmt.Errorf("the Keyspace field is missing from VitessBackupScheduleStrategy %s", planetscalev2.BackupKeyspace)
-			}
-			shards, err := r.getAllShardsInKeyspace(ctx, vbsc.Namespace, vbsc.Spec.Cluster, strategy.Keyspace)
-			if err != nil {
-				return corev1.PodSpec{}, err
-			}
-			for j, shard := range shards {
-				addNewCmd(j)
-				createVtctldClientCommand(&cmd, vtctldclientServerArg, strategy.ExtraFlags, strategy.Keyspace, shard)
-			}
-		case planetscalev2.BackupCluster:
-			keyspaces, err := r.getAllShardsInCluster(ctx, vbsc.Namespace, vbsc.Spec.Cluster)
-			if err != nil {
-				return corev1.PodSpec{}, err
-			}
-			for ksIndex, ks := range keyspaces {
-				for shardIndex, shard := range ks.shards {
-					if shardIndex > 0 || ksIndex > 0 {
-						cmd.WriteString(" && ")
-					}
-					createVtctldClientCommand(&cmd, vtctldclientServerArg, strategy.ExtraFlags, ks.name, shard)
-				}
-			}
 		}
 
 	}
