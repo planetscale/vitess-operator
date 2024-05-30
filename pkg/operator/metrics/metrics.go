@@ -34,6 +34,8 @@ const (
 	ShardLabel = "shard"
 	// BackupStorageLabel is the label whose value gives the name of a VitessBackupStorage object.
 	BackupStorageLabel = "backup_storage"
+	// BackupScheduleLabel is the label whose value gives the name of a VitessBackupSchedule object.
+	BackupScheduleLabel = "backup_schedule"
 
 	// ResultLabel is a common metrics label for the success/failure of an operation.
 	ResultLabel = "result"

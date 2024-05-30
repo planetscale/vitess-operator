@@ -27,16 +27,29 @@ const (
 )
 
 var (
+	backupScheduleLabels = []string{
+		metrics.BackupScheduleLabel,
+		metrics.ResultLabel,
+	}
+
 	reconcileCount = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Namespace: metrics.Namespace,
 		Subsystem: metricsSubsystemName,
 		Name:      "reconcile_count",
 		Help:      "Reconciliation attempts for a VitessBackupSchedule",
-	}, []string{metrics.BackupStorageLabel, metrics.ResultLabel})
+	}, backupScheduleLabels)
+
+	timeoutJobsCount = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Namespace: metrics.Namespace,
+		Subsystem: metricsSubsystemName,
+		Name:      "timeout_jobs_removed_count",
+		Help:      "Number of timed out jobs that were removed for a VitessBackupSchedule",
+	}, backupScheduleLabels)
 )
 
 func init() {
 	metrics.Registry.MustRegister(
 		reconcileCount,
+		timeoutJobsCount,
 	)
 }
