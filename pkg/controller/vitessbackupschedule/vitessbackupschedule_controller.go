@@ -452,6 +452,12 @@ func (r *ReconcileVitessBackupsSchedule) createJob(ctx context.Context, vbsc *pl
 	for k, v := range vbsc.Annotations {
 		meta.Annotations[k] = v
 	}
+
+	// Add the user-defined annotations
+	for k, v := range vbsc.Spec.Annotations {
+		meta.Annotations[k] = v
+	}
+
 	meta.Annotations[scheduledTimeAnnotation] = scheduledTime.Format(time.RFC3339)
 
 	for k, v := range vbsc.Labels {
@@ -553,6 +559,7 @@ func (r *ReconcileVitessBackupsSchedule) createJobPod(ctx context.Context, vbsc 
 			Args:            []string{"/bin/sh", "-c", cmd.String()},
 		}},
 		RestartPolicy: corev1.RestartPolicyOnFailure,
+		Affinity:      vbsc.Spec.Affinity,
 	}
 	return pod, nil
 }

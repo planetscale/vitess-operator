@@ -172,6 +172,18 @@ type VitessBackupScheduleTemplate struct {
 	// +kubebuilder:validation:Minimum=0
 	// +kubebuilder:default=10
 	JobTimeoutMinutes int32 `json:"jobTimeoutMinute,omitempty"`
+
+	// Annotations are the set of annotations that will be attached to the pods created by VitessBackupSchedule.
+	// +optional
+	Annotations map[string]string `json:"annotations,omitempty"`
+
+	// Affinity allows you to set rules that constrain the scheduling of the pods that take backups.
+	// WARNING: These affinity rules will override all default affinities that we set; in turn, we can't
+	// guarantee optimal scheduling of your pods if you choose to set this field.
+	// +optional
+	// +kubebuilder:validation:Schemaless
+	// +kubebuilder:pruning:PreserveUnknownFields
+	Affinity *corev1.Affinity `json:"affinity,omitempty"`
 }
 
 // VitessBackupScheduleStrategy defines how we are going to take a backup.

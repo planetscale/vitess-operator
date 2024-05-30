@@ -155,9 +155,15 @@ spec:
                   schedules:
                     items:
                       properties:
+                        affinity:
+                          x-kubernetes-preserve-unknown-fields: true
                         allowedMissedRun:
                           minimum: 0
                           type: integer
+                        annotations:
+                          additionalProperties:
+                            type: string
+                          type: object
                         concurrencyPolicy:
                           enum:
                           - Allow
