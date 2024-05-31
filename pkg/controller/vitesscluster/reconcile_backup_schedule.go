@@ -34,8 +34,8 @@ func (r *ReconcileVitessCluster) reconcileBackupSchedule(ctx context.Context, vt
 
 	// Generate keys (object names) for all desired cells.
 	// Keep a map back from generated names to the  specs.
-	keys := make([]client.ObjectKey, 0, len(vt.Spec.Backup.Schedules))
-	scheduleMap := make(map[client.ObjectKey]*planetscalev2.VitessBackupScheduleTemplate, len(vt.Spec.Backup.Schedules))
+	var keys []client.ObjectKey
+	scheduleMap := make(map[client.ObjectKey]*planetscalev2.VitessBackupScheduleTemplate)
 	if vt.Spec.Backup != nil {
 		for i := range vt.Spec.Backup.Schedules {
 			schedule := &vt.Spec.Backup.Schedules[i]
