@@ -87,6 +87,23 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 		key = strings.TrimLeft(key, "-")
 		vttabletAllFlags[key] = value
 	}
+	// Ensure that binary logs are restored to/from a location that all containers
+	// in the pod can access if no location was explicitly provided.
+	if _, ok := vttabletAllFlags["builtinbackup-incremental-restore-path"]; !ok {
+		// This flag only exists in 2.12.0 and later as it includes vitess
+		// 20.0 as a dependency.
+		/*
+			parts := strings.Split(version.Version, ".")
+			if len(parts) > 0 {
+				major, _ := strconv.Atoi(parts[0])
+				minor, _ := strconv.Atoi(parts[1])
+				if major >= 2 && minor >= 12 {
+					vttabletAllFlags["builtinbackup-incremental-restore-path"] = vtDataRootPath
+				}
+			}
+		*/
+		vttabletAllFlags["builtinbackup-incremental-restore-path"] = vtDataRootPath
+	}
 	mysql.UpdateMySQLServerVersion(vttabletAllFlags, spec.Images.Mysqld.Image())
 
 	// Compute all operator-generated env vars first.
@@ -108,7 +125,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 
 	securityContext := &corev1.SecurityContext{}
 	if planetscalev2.DefaultVitessRunAsUser >= 0 {
-		securityContext.RunAsUser = pointer.Int64Ptr(planetscalev2.DefaultVitessRunAsUser)
+		securityContext.RunAsUser = pointer.Int64(planetscalev2.DefaultVitessRunAsUser)
 	}
 
 	vttabletLifecycle := &spec.Vttablet.Lifecycle
@@ -315,13 +332,13 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 		obj.Spec.SecurityContext = &corev1.PodSecurityContext{}
 	}
 	if planetscalev2.DefaultVitessFSGroup >= 0 {
-		obj.Spec.SecurityContext.FSGroup = pointer.Int64Ptr(planetscalev2.DefaultVitessFSGroup)
+		obj.Spec.SecurityContext.FSGroup = pointer.Int64(planetscalev2.DefaultVitessFSGroup)
 	}
 
 	if spec.Vttablet.TerminationGracePeriodSeconds != nil {
 		obj.Spec.TerminationGracePeriodSeconds = spec.Vttablet.TerminationGracePeriodSeconds
 	} else {
-		obj.Spec.TerminationGracePeriodSeconds = pointer.Int64Ptr(defaultTerminationGracePeriodSeconds)
+		obj.Spec.TerminationGracePeriodSeconds = pointer.Int64(defaultTerminationGracePeriodSeconds)
 	}
 
 	// In both the case of the user injecting their own affinity and the default, we
