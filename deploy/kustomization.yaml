@@ -11,3 +11,4 @@ resources:
 - crds/planetscale.com_vitessbackups.yaml
 - crds/planetscale.com_vitessbackupstorages.yaml
 - crds/planetscale.com_etcdlockservers.yaml
+- crds/planetscale.com_vitessbackupschedules.yaml

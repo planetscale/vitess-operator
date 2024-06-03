@@ -320,6 +320,13 @@ type ClusterBackupSpec struct {
 	Engine VitessBackupEngine `json:"engine,omitempty"`
 	// Subcontroller specifies any parameters needed for launching the VitessBackupStorage subcontroller pod.
 	Subcontroller *VitessBackupSubcontrollerSpec `json:"subcontroller,omitempty"`
+
+	// Schedules defines how often we want to perform a backup and how to perform the backup.
+	// This is a list of VitessBackupScheduleTemplate where the "name" field has to be unique
+	// across all the items of the list.
+	// +patchMergeKey=name
+	// +patchStrategy=merge
+	Schedules []VitessBackupScheduleTemplate `json:"schedules,omitempty"`
 }
 
 // VitessBackupEngine is the backup implementation to use.

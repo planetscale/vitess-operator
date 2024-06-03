@@ -68,5 +68,14 @@ rules:
   - vitessbackupstorages
   - vitessbackupstorages/status
   - vitessbackupstorages/finalizers
+  - vitessbackupschedules
+  - vitessbackupschedules/status
+  - vitessbackupschedules/finalizers
+  verbs:
+  - '*'
+- apiGroups:
+  - batch
+  resources:
+  - jobs
   verbs:
   - '*'

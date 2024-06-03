@@ -20,7 +20,7 @@ function checkSemiSyncWithRetry() {
   vttablet=$1
   for i in {1..600} ; do
     kubectl exec "$vttablet" -c mysqld -- mysql -S "/vt/socket/mysql.sock" -u root -e "show variables like 'rpl_semi_sync_%_enabled'" | grep "ON"
-    if [ $? -eq 0 ]; then
+    if [[ $? -eq 0 ]]; then
       return
     fi
     sleep 1
@@ -44,7 +44,7 @@ function runSQLWithRetry() {
   query=$1
   for i in {1..600} ; do
     mysql -e "$query"
-    if [ $? -eq 0 ]; then
+    if [[ $? -eq 0 ]]; then
       return
     fi
     echo "failed to run query $query, retrying (attempt #$i) ..."
@@ -94,7 +94,7 @@ function takeBackup() {
   for i in {1..600} ; do
     out=$(kubectl get vtb --no-headers | wc -l)
     echo "$out" | grep "$finalBackupCount" > /dev/null 2>&1
-    if [ $? -eq 0 ]; then
+    if [[ $? -eq 0 ]]; then
       echo "Backup created"
       return 0
     fi
@@ -109,7 +109,7 @@ function verifyListBackupsOutput() {
   for i in {1..600} ; do
     out=$(vtctldclient LegacyVtctlCommand -- ListBackups "$keyspaceShard" | wc -l)
     echo "$out" | grep "$backupCount" > /dev/null 2>&1
-    if [ $? -eq 0 ]; then
+    if [[ $? -eq 0 ]]; then
       echo "ListBackupsOutputCorrect"
       return 0
     fi
@@ -134,7 +134,7 @@ function checkPodStatusWithTimeout() {
   nb=$2
 
   # Number of pods to match defaults to one
-  if [ -z "$nb" ]; then
+  if [[ -z "$nb" ]]; then
     nb=1
   fi
 
@@ -143,7 +143,7 @@ function checkPodStatusWithTimeout() {
   for i in {1..1200} ; do
     out=$(kubectl get pods)
     echo "$out" | grep -E "$regex" | wc -l | grep "$nb" > /dev/null 2>&1
-    if [ $? -eq 0 ]; then
+    if [[ $? -eq 0 ]]; then
       echo "$regex found"
       return
     fi
@@ -151,7 +151,7 @@ function checkPodStatusWithTimeout() {
   done
   echo -e "ERROR: checkPodStatusWithTimeout timeout to find pod matching:\ngot:\n$out\nfor regex: $regex"
   echo "$regex" | grep "vttablet" > /dev/null 2>&1
-  if [ $? -eq 0 ]; then
+  if [[ $? -eq 0 ]]; then
     printMysqlErrorFiles
   fi
   exit 1
@@ -171,7 +171,7 @@ function ensurePodResourcesSet() {
 
     numContainers=$(echo "$out" | grep -E "$regex" | awk '{print $2}' | awk -F ',' '{print NF}')
     numContainersWithResources=$(echo "$out" | grep -E "$regex" | awk '{print $3}' | awk -F ',' '{print NF}')
-    if [ $numContainers != $numContainersWithResources ]; then
+    if [[ $numContainers != $numContainersWithResources ]]; then
       echo "one or more containers in pods with $regex do not have $resource set"
       exit 1
     fi
@@ -181,7 +181,7 @@ function ensurePodResourcesSet() {
 function insertWithRetry() {
   for i in {1..600} ; do
     mysql --table < ../common/delete_commerce_data.sql && mysql --table < ../common/insert_commerce_data.sql
-    if [ $? -eq 0 ]; then
+    if [[ $? -eq 0 ]]; then
       return
     fi
     echo "failed to insert commerce data, retrying (attempt #$i) ..."
@@ -194,7 +194,7 @@ function verifyVtGateVersion() {
   podName=$(kubectl get pods --no-headers -o custom-columns=":metadata.name" | grep "vtgate")
   data=$(kubectl logs "$podName" | head)
   echo "$data" | grep "$version" > /dev/null 2>&1
-  if [ $? -ne 0 ]; then
+  if [[ $? -ne 0 ]]; then
     echo -e "The vtgate version is incorrect, expected: $version, got:\n$data"
     exit 1
   fi
@@ -208,7 +208,7 @@ function verifyDurabilityPolicy() {
   durabilityPolicy=$2
   data=$(vtctldclient LegacyVtctlCommand -- GetKeyspace "$keyspace")
   echo "$data" | grep "\"durability_policy\": \"$durabilityPolicy\"" > /dev/null 2>&1
-  if [ $? -ne 0 ]; then
+  if [[ $? -ne 0 ]]; then
     echo -e "The durability policy in $keyspace is incorrect, got:\n$data"
     exit 1
   fi
@@ -237,10 +237,10 @@ function applySchemaWithRetry() {
   drop_sql=$3
   for i in {1..600} ; do
     vtctldclient ApplySchema --sql-file="$schema" $ks
-    if [ $? -eq 0 ]; then
+    if [[ $? -eq 0 ]]; then
       return
     fi
-    if [ -n "$drop_sql" ]; then
+    if [[ -n "$drop_sql" ]]; then
       mysql --table < $drop_sql
     fi
     echo "failed to apply schema $schema, retrying (attempt #$i) ..."
@@ -254,14 +254,14 @@ function assertSelect() {
   expected=$3
   data=$(mysql --table < $sql)
   echo "$data" | grep "$expected" > /dev/null 2>&1
-  if [ $? -ne 0 ]; then
+  if [[ $? -ne 0 ]]; then
     echo -e "The data in $shard's tables is incorrect, got:\n$data"
     exit 1
   fi
 }
 
 function setupKubectlAccessForCI() {
-  if [ "$BUILDKITE_BUILD_ID" != "0" ]; then
+  if [[ "$BUILDKITE_BUILD_ID" != "0" ]]; then
     # The script is being run from buildkite, so we need to do stuff
     # https://github.com/kubernetes-sigs/kind/issues/1846#issuecomment-691565834
     # Since kind is running in a sibling container, communicating with it through kubectl is not trivial.
@@ -301,7 +301,7 @@ function get_started() {
 
     applySchemaWithRetry create_commerce_schema.sql commerce drop_all_commerce_tables.sql
     vtctldclient ApplyVSchema --vschema-file="vschema_commerce_initial.json" commerce
-    if [ $? -ne 0 ]; then
+    if [[ $? -ne 0 ]]; then
       echo "ApplySchema failed for initial commerce"
       printMysqlErrorFiles
       exit 1
@@ -309,14 +309,14 @@ function get_started() {
     sleep 5
 
     echo "show databases;" | mysql | grep "commerce" > /dev/null 2>&1
-    if [ $? -ne 0 ]; then
+    if [[ $? -ne 0 ]]; then
       echo "Could not find commerce database"
       printMysqlErrorFiles
       exit 1
     fi
 
     echo "show tables;" | mysql commerce | grep -E 'corder|customer|product' | wc -l | grep 3 > /dev/null 2>&1
-    if [ $? -ne 0 ]; then
+    if [[ $? -ne 0 ]]; then
       echo "Could not find commerce's tables"
       printMysqlErrorFiles
       exit 1
