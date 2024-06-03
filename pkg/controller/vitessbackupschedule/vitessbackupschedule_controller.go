@@ -228,7 +228,7 @@ func (r *ReconcileVitessBackupsSchedule) Reconcile(ctx context.Context, req ctrl
 		tooLate = missedRun.Add(time.Duration(*vbsc.Spec.StartingDeadlineSeconds) * time.Second).Before(time.Now())
 	}
 	if tooLate {
-		log.Info("missed starting deadline for latest run; skipping; next run is scheduled for: %v", nextRun.Format(time.RFC3339))
+		log.Infof("missed starting deadline for latest run; skipping; next run is scheduled for: %s", nextRun.Format(time.RFC3339))
 		return scheduledResult, nil
 	}
 
