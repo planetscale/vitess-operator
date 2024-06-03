@@ -23,7 +23,7 @@ import (
 
 // ConcurrencyPolicy describes how the concurrency of new jobs created by VitessBackupSchedule
 // is handled, the default is set to AllowConcurrent.
-// +kubebuilder:validation:Enum=Allow;Forbid;Replace
+// +kubebuilder:validation:Enum=Allow;Forbid
 type ConcurrencyPolicy string
 
 const (
@@ -32,9 +32,6 @@ const (
 
 	// ForbidConcurrent forbids concurrent runs, skipping next run if previous hasn't finished yet.
 	ForbidConcurrent ConcurrencyPolicy = "Forbid"
-
-	// ReplaceConcurrent cancels currently running job and replaces it with a new one.
-	ReplaceConcurrent ConcurrencyPolicy = "Replace"
 )
 
 // BackupStrategyName describes the vtctldclient command that will be used to take a backup.

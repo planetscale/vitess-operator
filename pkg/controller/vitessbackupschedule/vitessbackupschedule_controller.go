@@ -236,16 +236,6 @@ func (r *ReconcileVitessBackupsSchedule) Reconcile(ctx context.Context, req ctrl
 		return scheduledResult, nil
 	}
 
-	// Check concurrency policy to know if we should replace existing jobs
-	if vbsc.Spec.ConcurrencyPolicy == planetscalev2.ReplaceConcurrent {
-		for _, activeJob := range jobs.active {
-			if err = r.client.Delete(ctx, activeJob, client.PropagationPolicy(metav1.DeletePropagationBackground)); client.IgnoreNotFound(err) != nil {
-				log.WithError(err).Errorf("unable to delete active job: %s", activeJob.Name)
-				return ctrl.Result{}, err
-			}
-		}
-	}
-
 	// Now that the different policies are checked, we can create and apply our new job.
 	job, err := r.createJob(ctx, &vbsc, missedRun)
 	if err != nil {

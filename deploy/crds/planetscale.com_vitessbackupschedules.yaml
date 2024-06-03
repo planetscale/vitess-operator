@@ -42,7 +42,6 @@ spec:
                 enum:
                 - Allow
                 - Forbid
-                - Replace
                 example: Forbid
                 type: string
               failedJobsHistoryLimit:
