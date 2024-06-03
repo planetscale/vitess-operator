@@ -20,6 +20,8 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"maps"
+	"math/rand/v2"
 	"strings"
 
 	"sort"
@@ -56,7 +58,7 @@ const (
 )
 
 var (
-	maxConcurrentReconciles = flag.Int("vitessbackupschedule_concurrent_reconciles", 10, "the maximum number of different vitessbackupschedule to reconcile concurrently")
+	maxConcurrentReconciles = flag.Int("vitessbackupschedule_concurrent_reconciles", 10, "the maximum number of different vitessbackupschedule resources to reconcile concurrently")
 
 	scheduledTimeAnnotation = "planetscale.com/backup-scheduled-at"
 
@@ -226,7 +228,7 @@ func (r *ReconcileVitessBackupsSchedule) Reconcile(ctx context.Context, req ctrl
 		tooLate = missedRun.Add(time.Duration(*vbsc.Spec.StartingDeadlineSeconds) * time.Second).Before(time.Now())
 	}
 	if tooLate {
-		log.Info("missed starting deadline for last run, sleeping till next")
+		log.Info("missed starting deadline for latest run; skipping; next run is scheduled for: %v", nextRun.Format(time.RFC3339))
 		return scheduledResult, nil
 	}
 
@@ -342,15 +344,16 @@ func (r *ReconcileVitessBackupsSchedule) getJobsList(ctx context.Context, req ct
 	var mostRecentTime *time.Time
 
 	for i, job := range existingJobs.Items {
-		_, finishedType := isJobFinished(&job)
-		switch finishedType {
-		case kbatch.JobFailed:
+		_, jobType := isJobFinished(&job)
+		switch jobType {
+		case kbatch.JobFailed, kbatch.JobFailureTarget:
 			jobs.failed = append(jobs.failed, &existingJobs.Items[i])
 		case kbatch.JobComplete:
 			jobs.successful = append(jobs.successful, &existingJobs.Items[i])
-		default:
-			// Either: Suspended, FailureTarget or simply ongoing
+		case kbatch.JobSuspended, "":
 			jobs.active = append(jobs.active, &existingJobs.Items[i])
+		default:
+			return jobsList{}, nil, fmt.Errorf("unknown job type: %s", jobType)
 		}
 
 		scheduledTimeForJob, err := getScheduledTimeForJob(&job)
@@ -447,20 +450,12 @@ func (r *ReconcileVitessBackupsSchedule) createJob(ctx context.Context, vbsc *pl
 		Name:        name,
 		Namespace:   vbsc.Namespace,
 	}
-	for k, v := range vbsc.Annotations {
-		meta.Annotations[k] = v
-	}
-
-	// Add the user-defined annotations
-	for k, v := range vbsc.Spec.Annotations {
-		meta.Annotations[k] = v
-	}
+	maps.Copy(meta.Annotations, vbsc.Annotations)
+	maps.Copy(meta.Annotations, vbsc.Spec.Annotations)
 
 	meta.Annotations[scheduledTimeAnnotation] = scheduledTime.Format(time.RFC3339)
 
-	for k, v := range vbsc.Labels {
-		meta.Labels[k] = v
-	}
+	maps.Copy(meta.Labels, vbsc.Labels)
 
 	pod, err := r.createJobPod(ctx, vbsc, name)
 	if err != nil {
@@ -539,7 +534,7 @@ func createVtctldClientCommand(cmd *strings.Builder, serverAddr string, extraFla
 		cmd.WriteString(fmt.Sprintf(" --%s=%s", key, value))
 	}
 
-	// Add keyspace/shard or tablet alias
+	// Add keyspace/shard
 	cmd.WriteString(fmt.Sprintf(" %s/%s", keyspace, shard))
 }
 
@@ -557,7 +552,7 @@ func (r *ReconcileVitessBackupsSchedule) getVtctldServiceName(ctx context.Contex
 	}
 
 	if len(svcList.Items) > 0 {
-		service := svcList.Items[0]
+		service := svcList.Items[rand.IntN(len(svcList.Items)-1)]
 		svcName = service.Name
 		for _, port := range service.Spec.Ports {
 			if port.Name == planetscalev2.DefaultGrpcPortName {
@@ -606,9 +601,9 @@ func (r *ReconcileVitessBackupsSchedule) getAllShardsInCluster(ctx context.Conte
 		}.AsSelector(),
 	}
 	if err := r.client.List(ctx, ksList, listOpts); err != nil {
-		return nil, fmt.Errorf("unable to list keyspaces in namespace %s: %v", namespace, err)
+		return nil, fmt.Errorf("unable to list shards in namespace %s: %v", namespace, err)
 	}
-	var result []keyspace
+	result := make([]keyspace, 0, len(ksList.Items))
 	for _, item := range ksList.Items {
 		ks := keyspace{
 			name: item.Spec.Name,

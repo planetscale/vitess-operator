@@ -15,8 +15,7 @@ function checkVitessBackupScheduleStatusWithTimeout() {
   regex=$1
 
   for i in {1..1200} ; do
-    kubectl get VitessBackupSchedule | grep -E "$regex" | wc -l | grep "1" > /dev/null 2>&1
-    if [[ $? -eq 0 ]]; then
+    if [[ $(kubectl get VitessBackupSchedule | grep -E "${regex}" | wc -l) -eq 1 ]]; then
       echo "$regex found"
       return
     fi
