@@ -552,7 +552,7 @@ func (r *ReconcileVitessBackupsSchedule) getVtctldServiceName(ctx context.Contex
 	}
 
 	if len(svcList.Items) > 0 {
-		service := svcList.Items[rand.IntN(len(svcList.Items)-1)]
+		service := svcList.Items[rand.IntN(len(svcList.Items))]
 		svcName = service.Name
 		for _, port := range service.Spec.Ports {
 			if port.Name == planetscalev2.DefaultGrpcPortName {
