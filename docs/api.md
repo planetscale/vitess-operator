@@ -1526,6 +1526,22 @@ EtcdLockserverStatus
 <tbody>
 <tr>
 <td>
+<code>extraFlags</code><br>
+<em>
+map[string]string
+</em>
+</td>
+<td>
+<p>ExtraFlags can optionally be used to override default flags set by the
+operator, or pass additional flags to mysqld_exporter. All entries must be
+key-value string pairs of the form &ldquo;flag&rdquo;: &ldquo;value&rdquo;. The flag name should
+not have any prefix (just &ldquo;flag&rdquo;, not &ldquo;-flag&rdquo;). To set a boolean flag,
+set the string value to either &ldquo;true&rdquo; or &ldquo;false&rdquo;; the flag will be
+automatically converted to the format expected by mysqld_exporter.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>resources</code><br>
 <em>
 <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#resourcerequirements-v1-core">

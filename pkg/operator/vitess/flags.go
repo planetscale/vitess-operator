@@ -19,6 +19,7 @@ package vitess
 import (
 	"fmt"
 	"sort"
+	"strings"
 )
 
 // Flags represents values for flags to be passed to Vitess binaries.
@@ -57,6 +58,44 @@ func (f Flags) FormatArgs() []string {
 		// accepts either one or two dashes, because some wrappers like
 		// pflags require two dashes.
 		args = append(args, fmt.Sprintf("--%v=%v", key, f[key]))
+	}
+	return args
+}
+
+// FormatArgsConvertBoolean returns the flags as a flattened list of
+// command-line args with boolean values formatted as `--flag` or `--no-flag`.
+// This format is used by some tools, like mysqld_exporter.
+// Method is based on FormatArgs().
+func (f Flags) FormatArgsConvertBoolean() []string {
+	// Sort flag names so the ordering is deterministic,
+	// which is important when diffing object specs.
+	// This also makes it easier for humans to find things.
+	keys := make([]string, 0, len(f))
+	for key := range f {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+
+	// Make formatted args list.
+	args := make([]string, 0, len(f))
+	for _, key := range keys {
+		// These args are passed to the command as a string array,
+		// so we don't need to worry about quotes or escaping.
+		//
+		// We use two dashes (--) even though the standard flag parser
+		// accepts either one or two dashes, because some wrappers like
+		// pflags require two dashes.
+		//
+		// All boolean values are formatted as `--flag` or `--no-flag`.
+		value := f[key].(string)
+		switch value := strings.ToLower(value); value {
+		case "true":
+			args = append(args, fmt.Sprintf("--%v", key))
+		case "false":
+			args = append(args, fmt.Sprintf("--no-%v", key))
+		default:
+			args = append(args, fmt.Sprintf("--%v=%v", key, value))
+		}
 	}
 	return args
 }

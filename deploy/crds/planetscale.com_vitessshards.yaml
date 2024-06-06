@@ -536,6 +536,10 @@ spec:
                       type: object
                     mysqldExporter:
                       properties:
+                        extraFlags:
+                          additionalProperties:
+                            type: string
+                          type: object
                         resources:
                           properties:
                             claims:
