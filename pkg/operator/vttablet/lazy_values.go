@@ -52,6 +52,8 @@ var (
 	vttabletFlags lazy.VitessFlags
 	// mysqlctldFlags are the flags for mysqlctld.
 	mysqlctldFlags lazy.VitessFlags
+	// mysqldExporterFlags are the flags for mysqld_exporter.
+	mysqldExporterFlags lazy.VitessFlags
 	// vtbackupFlags are the flags for vtbackup.
 	vtbackupFlags lazy.VitessFlags
 )
