@@ -242,7 +242,7 @@ killall kubectl
 setupKubectlAccessForCI
 
 get_started_vtorc_vtadmin
-verifyVtGateVersion "20.0.0-rc2"
+verifyVtGateVersion "20.0.0"
 checkSemiSyncSetup
 
 # Check Vtadmin is setup
