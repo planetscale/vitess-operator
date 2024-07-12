@@ -30,14 +30,14 @@ function resurrectShard() {
   sleep 5
 
   echo "show databases;" | mysql | grep "commerce" > /dev/null 2>&1
-  if [ $? -ne 0 ]; then
+  if [[ $? -ne 0 ]]; then
     echo "Could not find commerce database"
     printMysqlErrorFiles
     exit 1
   fi
 
   echo "show tables;" | mysql commerce | grep -E 'corder|customer|product' | wc -l | grep 3 > /dev/null 2>&1
-  if [ $? -ne 0 ]; then
+  if [[ $? -ne 0 ]]; then
     echo "Could not find commerce's tables"
     printMysqlErrorFiles
     exit 1
@@ -76,7 +76,7 @@ EOF
 }
 
 function setupKindConfig() {
-  if [ "$BUILDKITE_BUILD_ID" != "0" ]; then
+  if [[ "$BUILDKITE_BUILD_ID" != "0" ]]; then
     # The script is being run from buildkite, so we can't mount the current
     # working directory to kind. The current directory in the docker is workdir
     # So if we try and mount that, we get an error. Instead we need to mount the
@@ -99,7 +99,7 @@ docker build -f build/Dockerfile.release -t vitess-operator-pr:latest .
 echo "Setting up the kind config"
 setupKindConfig
 echo "Creating Kind cluster"
-kind create cluster --wait 30s --name kind-${BUILDKITE_BUILD_ID} --config ./vtdataroot/config.yaml --image kindest/node:v1.28.0
+kind create cluster --wait 30s --name kind-${BUILDKITE_BUILD_ID} --config ./vtdataroot/config.yaml --image ${KIND_VERSION}
 echo "Loading docker image into Kind cluster"
 kind load docker-image vitess-operator-pr:latest --name kind-${BUILDKITE_BUILD_ID}
 
@@ -108,7 +108,7 @@ killall kubectl
 setupKubectlAccessForCI
 
 get_started "operator-latest.yaml" "101_initial_cluster_backup.yaml"
-verifyVtGateVersion "20.0.0"
+verifyVtGateVersion "21.0.0"
 checkSemiSyncSetup
 takeBackup "commerce/-"
 verifyListBackupsOutput

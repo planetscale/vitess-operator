@@ -40,6 +40,8 @@ const (
 	TabletPoolNameLabel = LabelPrefix + "/" + "pool-name"
 	// TabletIndexLabel is the key for identifying the index of a Vitess tablet within its pool.
 	TabletIndexLabel = LabelPrefix + "/" + "tablet-index"
+	// BackupScheduleLabel is the key for identifying to which VitessBackupSchedule a Job belongs to.
+	BackupScheduleLabel = LabelPrefix + "/" + "backup-schedule"
 
 	// VtctldComponentName is the ComponentLabel value for vtctld.
 	VtctldComponentName = "vtctld"

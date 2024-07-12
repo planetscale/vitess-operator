@@ -7,12 +7,50 @@ kind: VitessCluster
 metadata:
   name: example
 spec:
+  backup:
+    engine: xtrabackup
+    locations:
+    - volume:
+        hostPath:
+          path: /backup
+          type: Directory
+    schedules:
+      - name: "every-minute"
+        schedule: "* * * * *"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 1024Mi
+          limits:
+            memory: 1024Mi
+        successfulJobsHistoryLimit: 2
+        failedJobsHistoryLimit: 3
+        jobTimeoutMinute: 5
+        strategies:
+          - name: BackupShard
+            keyspace: "commerce"
+            shard: "-"
+      - name: "every-five-minute"
+        schedule: "*/5 * * * *"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 1024Mi
+          limits:
+            memory: 1024Mi
+        successfulJobsHistoryLimit: 2
+        failedJobsHistoryLimit: 3
+        jobTimeoutMinute: 5
+        strategies:
+          - name: BackupShard
+            keyspace: "commerce"
+            shard: "-"
   images:
-    vtctld: vitess/lite:v20.0.0-rc2
-    vtgate: vitess/lite:v20.0.0-rc2
-    vttablet: vitess/lite:v20.0.0-rc2
-    vtorc: vitess/lite:v20.0.0-rc2
-    vtbackup: vitess/lite:v20.0.0-rc2
+    vtctld: vitess/lite:latest
+    vtgate: vitess/lite:latest
+    vttablet: vitess/lite:latest
+    vtorc: vitess/lite:latest
+    vtbackup: vitess/lite:latest
     mysqld:
       mysql80Compatible: mysql:8.0.30
     mysqldExporter: prom/mysqld-exporter:v0.11.0
@@ -71,12 +109,13 @@ spec:
             vttablet:
               extraFlags:
                 db_charset: utf8mb4
+                wait_for_backup_interval: "0"
               resources:
                 limits:
-                  memory: 256Mi
+                  memory: 1024Mi
                 requests:
                   cpu: 100m
-                  memory: 256Mi
+                  memory: 1024Mi
             mysqld:
               resources:
                 limits:
@@ -185,7 +224,6 @@ stringData:
     GRANT REPLICATION SLAVE ON *.* TO 'vt_repl'@'%';
 
     # User for Vitess filtered replication (binlog player).
-    # Same permissions as vt_app.
     CREATE USER 'vt_filtered'@'localhost';
     GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, RELOAD, PROCESS, FILE,
       REFERENCES, INDEX, ALTER, SHOW DATABASES, CREATE TEMPORARY TABLES,
@@ -193,13 +231,18 @@ stringData:
       SHOW VIEW, CREATE ROUTINE, ALTER ROUTINE, CREATE USER, EVENT, TRIGGER
       ON *.* TO 'vt_filtered'@'localhost';
 
+    # User for Orchestrator (https://github.com/openark/orchestrator).
+    # TODO: Reenable when the password is randomly generated.
+    #CREATE USER 'orc_client_user'@'%' IDENTIFIED BY 'orc_client_user_password';
+    #GRANT SUPER, PROCESS, REPLICATION SLAVE, RELOAD
+    #  ON *.* TO 'orc_client_user'@'%';
+    #GRANT SELECT
+    #  ON _vt.* TO 'orc_client_user'@'%';
+
     FLUSH PRIVILEGES;
 
     RESET SLAVE ALL;
     RESET MASTER;
-
-    # custom sql is used to add custom scripts like creating users/passwords. We use it in our tests
-    # {{custom_sql}}
 
     # We need to set super_read_only back to what it was before
     SET GLOBAL super_read_only=IFNULL(@original_super_read_only, 'ON');

@@ -14,11 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package version
+package controller
 
-// DO NOT EDIT
-// THIS FILE IS AUTO-GENERATED DURING NEW RELEASES BY THE VITESS-RELEASER
-
-var (
-	Version = "2.13.0"
+import (
+	"planetscale.dev/vitess-operator/pkg/controller/vitessbackupschedule"
 )
+
+func init() {
+	// AddToManagerFuncs is a list of functions to create controllers and add them to a manager.
+	AddToManagerFuncs = append(AddToManagerFuncs, vitessbackupschedule.Add)
+}

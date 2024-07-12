@@ -1,4 +1,3 @@
----
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
@@ -379,6 +378,177 @@ spec:
           type: object
       served: true
       storage: true
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.11.3
+  creationTimestamp: null
+  name: vitessbackupschedules.planetscale.com
+spec:
+  group: planetscale.com
+  names:
+    kind: VitessBackupSchedule
+    listKind: VitessBackupScheduleList
+    plural: vitessbackupschedules
+    singular: vitessbackupschedule
+  scope: Namespaced
+  versions:
+    - name: v2
+      schema:
+        openAPIV3Schema:
+          properties:
+            apiVersion:
+              type: string
+            kind:
+              type: string
+            metadata:
+              type: object
+            spec:
+              properties:
+                affinity:
+                  x-kubernetes-preserve-unknown-fields: true
+                allowedMissedRun:
+                  minimum: 0
+                  type: integer
+                annotations:
+                  additionalProperties:
+                    type: string
+                  type: object
+                cluster:
+                  type: string
+                concurrencyPolicy:
+                  enum:
+                    - Allow
+                    - Forbid
+                  example: Forbid
+                  type: string
+                failedJobsHistoryLimit:
+                  format: int32
+                  minimum: 0
+                  type: integer
+                image:
+                  type: string
+                imagePullPolicy:
+                  type: string
+                jobTimeoutMinute:
+                  default: 10
+                  format: int32
+                  minimum: 0
+                  type: integer
+                name:
+                  example: every-day
+                  minLength: 1
+                  pattern: ^[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?$
+                  type: string
+                resources:
+                  properties:
+                    claims:
+                      items:
+                        properties:
+                          name:
+                            type: string
+                        required:
+                          - name
+                        type: object
+                      type: array
+                      x-kubernetes-list-map-keys:
+                        - name
+                      x-kubernetes-list-type: map
+                    limits:
+                      additionalProperties:
+                        anyOf:
+                          - type: integer
+                          - type: string
+                        pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                        x-kubernetes-int-or-string: true
+                      type: object
+                    requests:
+                      additionalProperties:
+                        anyOf:
+                          - type: integer
+                          - type: string
+                        pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                        x-kubernetes-int-or-string: true
+                      type: object
+                  type: object
+                schedule:
+                  example: 0 0 * * *
+                  minLength: 0
+                  type: string
+                startingDeadlineSeconds:
+                  format: int64
+                  minimum: 0
+                  type: integer
+                strategies:
+                  items:
+                    properties:
+                      extraFlags:
+                        additionalProperties:
+                          type: string
+                        type: object
+                      keyspace:
+                        example: commerce
+                        type: string
+                      name:
+                        enum:
+                          - BackupShard
+                        type: string
+                      shard:
+                        example: '-'
+                        type: string
+                    required:
+                      - keyspace
+                      - name
+                      - shard
+                    type: object
+                  minItems: 1
+                  type: array
+                successfulJobsHistoryLimit:
+                  format: int32
+                  minimum: 0
+                  type: integer
+                suspend:
+                  type: boolean
+              required:
+                - cluster
+                - name
+                - resources
+                - schedule
+                - strategies
+              type: object
+            status:
+              properties:
+                active:
+                  items:
+                    properties:
+                      apiVersion:
+                        type: string
+                      fieldPath:
+                        type: string
+                      kind:
+                        type: string
+                      name:
+                        type: string
+                      namespace:
+                        type: string
+                      resourceVersion:
+                        type: string
+                      uid:
+                        type: string
+                    type: object
+                    x-kubernetes-map-type: atomic
+                  type: array
+                lastScheduledTime:
+                  format: date-time
+                  type: string
+              type: object
+          type: object
+      served: true
+      storage: true
+      subresources:
+        status: {}
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
@@ -1470,6 +1640,114 @@ spec:
                         type: object
                       minItems: 1
                       type: array
+                    schedules:
+                      items:
+                        properties:
+                          affinity:
+                            x-kubernetes-preserve-unknown-fields: true
+                          allowedMissedRun:
+                            minimum: 0
+                            type: integer
+                          annotations:
+                            additionalProperties:
+                              type: string
+                            type: object
+                          concurrencyPolicy:
+                            enum:
+                              - Allow
+                              - Forbid
+                            example: Forbid
+                            type: string
+                          failedJobsHistoryLimit:
+                            format: int32
+                            minimum: 0
+                            type: integer
+                          jobTimeoutMinute:
+                            default: 10
+                            format: int32
+                            minimum: 0
+                            type: integer
+                          name:
+                            example: every-day
+                            minLength: 1
+                            pattern: ^[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?$
+                            type: string
+                          resources:
+                            properties:
+                              claims:
+                                items:
+                                  properties:
+                                    name:
+                                      type: string
+                                  required:
+                                    - name
+                                  type: object
+                                type: array
+                                x-kubernetes-list-map-keys:
+                                  - name
+                                x-kubernetes-list-type: map
+                              limits:
+                                additionalProperties:
+                                  anyOf:
+                                    - type: integer
+                                    - type: string
+                                  pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                  x-kubernetes-int-or-string: true
+                                type: object
+                              requests:
+                                additionalProperties:
+                                  anyOf:
+                                    - type: integer
+                                    - type: string
+                                  pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                  x-kubernetes-int-or-string: true
+                                type: object
+                            type: object
+                          schedule:
+                            example: 0 0 * * *
+                            minLength: 0
+                            type: string
+                          startingDeadlineSeconds:
+                            format: int64
+                            minimum: 0
+                            type: integer
+                          strategies:
+                            items:
+                              properties:
+                                extraFlags:
+                                  additionalProperties:
+                                    type: string
+                                  type: object
+                                keyspace:
+                                  example: commerce
+                                  type: string
+                                name:
+                                  enum:
+                                    - BackupShard
+                                  type: string
+                                shard:
+                                  example: '-'
+                                  type: string
+                              required:
+                                - keyspace
+                                - name
+                                - shard
+                              type: object
+                            minItems: 1
+                            type: array
+                          successfulJobsHistoryLimit:
+                            format: int32
+                            minimum: 0
+                            type: integer
+                          suspend:
+                            type: boolean
+                        required:
+                          - name
+                          - resources
+                          - schedule
+                          - strategies
+                        type: object
+                      type: array
                     subcontroller:
                       properties:
                         serviceAccountName:
@@ -2490,6 +2768,16 @@ spec:
                         type: string
                       durabilityPolicy:
                         type: string
+                      images:
+                        properties:
+                          mysqld:
+                            properties:
+                              mysql56Compatible:
+                                type: string
+                              mysql80Compatible:
+                                type: string
+                            type: object
+                        type: object
                       name:
                         maxLength: 63
                         minLength: 1
@@ -6518,6 +6806,15 @@ rules:
       - vitessbackupstorages
       - vitessbackupstorages/status
       - vitessbackupstorages/finalizers
+      - vitessbackupschedules
+      - vitessbackupschedules/status
+      - vitessbackupschedules/finalizers
+    verbs:
+      - '*'
+  - apiGroups:
+      - batch
+    resources:
+      - jobs
     verbs:
       - '*'
 ---
@@ -6532,6 +6829,22 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: vitess-operator
+---
+apiVersion: scheduling.k8s.io/v1
+description: Vitess components (vttablet, vtgate, vtctld, etcd)
+globalDefault: false
+kind: PriorityClass
+metadata:
+  name: vitess
+value: 1000
+---
+apiVersion: scheduling.k8s.io/v1
+description: The vitess-operator control plane.
+globalDefault: false
+kind: PriorityClass
+metadata:
+  name: vitess-operator-control-plane
+value: 5000
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -6572,7 +6885,7 @@ spec:
                   fieldPath: metadata.name
             - name: OPERATOR_NAME
               value: vitess-operator
-          image: planetscale/vitess-operator:v2.12.0
+          image: planetscale/vitess-operator:v2.13.0
           name: vitess-operator
           resources:
             limits:
@@ -6582,19 +6895,3 @@ spec:
               memory: 128Mi
       priorityClassName: vitess-operator-control-plane
       serviceAccountName: vitess-operator
----
-apiVersion: scheduling.k8s.io/v1
-description: The vitess-operator control plane.
-globalDefault: false
-kind: PriorityClass
-metadata:
-  name: vitess-operator-control-plane
-value: 5000
----
-apiVersion: scheduling.k8s.io/v1
-description: Vitess components (vttablet, vtgate, vtctld, etcd)
-globalDefault: false
-kind: PriorityClass
-metadata:
-  name: vitess
-value: 1000

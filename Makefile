@@ -66,6 +66,10 @@ backup-restore-test: build e2e-test-setup
 	echo "Running Backup-Restore test"
 	test/endtoend/backup_restore_test.sh
 
+backup-schedule-test: build e2e-test-setup
+	echo "Running Backup-Schedule test"
+	test/endtoend/backup_schedule_test.sh
+
 vtorc-vtadmin-test: build e2e-test-setup
 	echo "Running VTOrc and VtAdmin test"
 	test/endtoend/vtorc_vtadmin_test.sh
