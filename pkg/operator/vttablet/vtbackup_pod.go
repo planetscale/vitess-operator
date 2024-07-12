@@ -116,6 +116,12 @@ func NewBackupPod(key client.ObjectKey, backupSpec *BackupSpec, mysqldImage stri
 			MountPath: sslCertsPath,
 			SubPath:   "certs",
 		},
+		{
+			Name:      vtRootVolumeName,
+			ReadOnly:  true,
+			MountPath: vtBinPath,
+			SubPath:   "bin",
+		},
 	}
 	volumeMounts = append(volumeMounts, mysqldVolumeMounts.Get(tabletSpec)...)
 	volumeMounts = append(volumeMounts, tabletVolumeMounts.Get(tabletSpec)...)
