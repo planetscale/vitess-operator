@@ -59,6 +59,33 @@ func InitFlags() {
 		}
 	}
 
+	// expose flags to configure TLS communication to topology service and vttablets
+	// vttablet set contains all required flags
+	vttabletFlags := servenv.GetFlagSetFor("vttablet")
+	tlsFlags := map[string]bool{
+		"tablet_manager_grpc_ca":          false,
+		"tablet_manager_grpc_server_name": false,
+		"topo_global_server_address":      false,
+		"topo_etcd_tls_ca":                false,
+		"topo_etcd_tls_cert":              false,
+		"topo_etcd_tls_key":               false,
+	}
+	vttabletFlags.VisitAll(func(f *pflag.Flag) {
+		_, isRequired := tlsFlags[f.Name]
+		if isRequired {
+			isAlreadyAdded := pflag.CommandLine.Lookup(f.Name) != nil
+			if !isAlreadyAdded {
+				pflag.CommandLine.AddFlag(f)
+				tlsFlags[f.Name] = true
+			}
+		}
+	})
+	for flagName, wasAdded := range tlsFlags {
+		if !wasAdded {
+			fmt.Fprintf(os.Stderr, "unable to add the flag - %s\n", flagName)
+		}
+	}
+
 	// Add flags registered by imported packages (e.g. glog and
 	// controller-runtime)
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
