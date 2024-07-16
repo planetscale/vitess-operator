@@ -81,8 +81,6 @@ const (
 	dbConfigReplUname     = "vt_repl"
 	dbConfigFilteredUname = "vt_filtered"
 
-	vreplicationTabletType = "master"
-
 	dbInitScriptDirName = "db-init-script"
 
 	externalDatastoreCredentialsDirName = "external-datastore-credentials"

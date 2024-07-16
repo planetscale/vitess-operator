@@ -126,7 +126,6 @@ func externalDatastoreFlags(spec *Spec) vitess.Flags {
 		"enable_replication_reporter": false,
 
 		"enforce_strict_trans_tables": false,
-		"vreplication_tablet_type":    vreplicationTabletType,
 	}
 
 	return flags
