@@ -2,8 +2,6 @@ module planetscale.dev/vitess-operator
 
 go 1.21.10
 
-toolchain go1.22.5
-
 require (
 	github.com/ahmetb/gen-crd-api-reference-docs v0.1.5-0.20190629210212-52e137b8d003
 	github.com/google/uuid v1.3.1
