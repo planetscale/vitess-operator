@@ -73,3 +73,7 @@ backup-schedule-test: build e2e-test-setup
 vtorc-vtadmin-test: build e2e-test-setup
 	echo "Running VTOrc and VtAdmin test"
 	test/endtoend/vtorc_vtadmin_test.sh
+
+unmanaged-tablet-test: build e2e-test-setup
+	echo "Running Unmanaged Tablet test"
+	test/endtoend/unmanaged_tablet_test.sh
