@@ -245,12 +245,12 @@ killall kubectl
 setupKubectlAccessForCI
 
 get_started "operator.yaml" "101_initial_cluster.yaml"
-verifyVtGateVersion "16.0.5"
+verifyVtGateVersion "16.0.7"
 checkSemiSyncSetup
 # Initially too durability policy should be specified
 verifyDurabilityPolicy "commerce" "semi_sync"
 upgradeToLatest
-verifyVtGateVersion "17.0.3"
+verifyVtGateVersion "17.0.7"
 checkSemiSyncSetup
 # After upgrading, we verify that the durability policy is still semi_sync
 verifyDurabilityPolicy "commerce" "semi_sync"
