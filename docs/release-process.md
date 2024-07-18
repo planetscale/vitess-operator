@@ -107,7 +107,7 @@ from the pull request, so in order to have the tag on the release branche's hist
 
 ##### Update the test output
 
-The `upgrade_test.sh`, `backup_restore_test.sh` and `vtorc_vtadmin_test.sh` files must be updated with the proper release increment. Change the `verifyVtGateVersion` function calls to use the proper version (current version being released and latest previous version (only used in `upgrade_test.sh`)).
+The `upgrade_test.sh`, `backup_restore_test.sh`, `vtorc_vtadmin_test.sh` and `unmanaged_tablet_test.sh` files must be updated with the proper release increment. Change the `verifyVtGateVersion` function calls to use the proper version (current version being released and latest previous version (only used in `upgrade_test.sh`)).
 
 ##### CI Failures
 
