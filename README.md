@@ -16,17 +16,6 @@ compatible with certain Vitess and Kubernetes versions, as shown in this table:
 
 | Vitess Operator Version | Recommended Vitess Versions | Recommended Kubernetes Versions               |
 |-------------------------|-----------------------------|-----------------------------------------------|
-| `v2.0.*`                | `v6.0.*`                    | `v1.13.*`, `v1.14.*`, or `v1.15.*`            |
-| `v2.1.*`                | `v7.0.*`                    | `v1.15.*`, `v1.16.*`, or `v1.17.*`            |
-| `v2.2.*`                | `v8.0.*`                    | `v1.15.*`, `v1.16.*`, or `v1.17.*`            |
-| `v2.3.*`                | `v9.0.*`                    | `v1.15.*`, `v1.16.*`, or `v1.17.*`            |
-| `v2.4.*`                | `v10.0.*`                   | `v1.15.*`, `v1.16.*`, or `v1.17.*`            |
-| `v2.5.*`                | `v12.0.*`                   | `v1.17.*`, `v1.18.*`, or `v1.19.*`            |
-| `v2.6.*`                | `v12.0.*`, or `v13.0.*`     | `v1.20.*`, `v1.21.*`, or `v1.22.*`            |
-| `v2.7.*`                | `v14.0.*`                   | `v1.20.*`, `v1.21.*`, or `v1.22.*`            |
-| `v2.8.*`                | `v15.0.*`                   | `v1.22.*`, `v1.23.*`, or `v1.24.*`            |
-| `v2.9.*`                | `v16.0.*`                   | `v1.22.*`, `v1.23.*`, or `v1.24.*`            |
-| `v2.10.*`               | `v17.0.*`                   | `v1.22.*`, `v1.23.*`, `v1.24.*`, or `v1.25.*` |
 | `v2.11.*`               | `v18.0.*`                   | `v1.22.*`, `v1.23.*`, `v1.24.*`, or `v1.25.*` |
 | `v2.12.*`               | `v19.0.*`                   | `v1.25.*`, `v1.26.*`, `v1.27.*`, or `v1.28.*` |
 | `v2.13.*`               | `v20.0.*`                   | `v1.25.*`, `v1.26.*`, `v1.27.*`, or `v1.28.*` |
@@ -37,16 +26,18 @@ window, we still welcome bug reports since a workaround might be possible.
 However, in some cases we may be unable to overcome the underlying limitations
 in our dependencies.
 
-### Update Schedule
+### Release Cycle
 
-Recommended versions for HEAD of Vitess Operator can change over time.
-However, patch releases (e.g. `v2.0.*`) will retain the same compatibility windows
-as the original release in that minor series (e.g. `v2.0.0`).
+For each major release of Vitess there will be a minor release of the vitess-operator.
+Each minor release of the vitess-operator follows the same lifecycle as Vitess' releases:
+1-year-long lifespan leading to an EOL the same day as the corresponding Vitess major release.
 
-We plan to update HEAD of Vitess Operator to work with each new Vitess version
-soon after it's released. Once we're confident in the compatibility of the new
-pairing, we'll cut a new release of Vitess Operator while incrementing the minor
-version (the `Y` in `vX.Y.Z`).
+We might release new patch release on a need basis or when doing a patch release in Vitess.
+Doing a patch release in Vitess does not necessarily means that there will be a corresponding
+patch release in the vitess-operator, the release lead will take the decision based on what changed
+in the operator since the last patch or major release.
+
+### Supported Kubernetes Versions
 
 Our goal for Kubernetes is for the latest Vitess Operator release to be
 compatible with the latest Kubernetes version that's Generally Available on all
