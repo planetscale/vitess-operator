@@ -32,9 +32,9 @@ For each major release of Vitess there will be a minor release of the vitess-ope
 Each minor release of the vitess-operator follows the same lifecycle as Vitess' releases:
 1-year-long lifespan leading to an EOL the same day as the corresponding Vitess major release.
 
-We might release new patch release on a need basis or when doing a patch release in Vitess.
-Doing a patch release in Vitess does not necessarily means that there will be a corresponding
-patch release in the vitess-operator, the release lead will take the decision based on what changed
+We might make new patch releases on an as- needed basis or when doing a patch release of Vitess.
+Doing a patch release of Vitess does not necessarily mean that there will be a corresponding
+patch release of the vitess-operator. The release lead will make a decision based on what has changed
 in the operator since the last patch or major release.
 
 ### Supported Kubernetes Versions
