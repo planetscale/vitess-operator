@@ -19,7 +19,7 @@ package vttablet
 import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 	"planetscale.dev/vitess-operator/pkg/operator/lazy"
@@ -68,7 +68,7 @@ func init() {
 
 		securityContext := &corev1.SecurityContext{}
 		if planetscalev2.DefaultVitessRunAsUser >= 0 {
-			securityContext.RunAsUser = pointer.Int64Ptr(planetscalev2.DefaultVitessRunAsUser)
+			securityContext.RunAsUser = ptr.To(planetscalev2.DefaultVitessRunAsUser)
 		}
 
 		// Use an init container to copy only the files we need from the Vitess image.

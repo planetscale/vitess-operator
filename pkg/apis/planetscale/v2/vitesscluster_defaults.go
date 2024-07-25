@@ -19,7 +19,7 @@ package v2
 import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 )
 
 // DefaultVitessCluster fills in default values for unspecified fields.
@@ -84,7 +84,7 @@ func DefaultVitessDashboard(dashboard **VitessDashboardSpec) {
 		*dashboard = &VitessDashboardSpec{}
 	}
 	if (*dashboard).Replicas == nil {
-		(*dashboard).Replicas = pointer.Int32Ptr(defaultVtctldReplicas)
+		(*dashboard).Replicas = ptr.To(int32(defaultVtctldReplicas))
 	}
 	if len((*dashboard).Resources.Requests) == 0 {
 		(*dashboard).Resources.Requests = corev1.ResourceList{
@@ -106,7 +106,7 @@ func DefaultVtAdmin(dashboard **VtAdminSpec) {
 		return
 	}
 	if (*dashboard).Replicas == nil {
-		(*dashboard).Replicas = pointer.Int32Ptr(defaultVtadminReplicas)
+		(*dashboard).Replicas = ptr.To(int32(defaultVtadminReplicas))
 	}
 	if len((*dashboard).WebResources.Requests) == 0 {
 		(*dashboard).WebResources.Requests = corev1.ResourceList{
@@ -186,30 +186,30 @@ func DefaultTopoReconcileConfig(confPtr **TopoReconcileConfig) {
 
 	// Defaulting registration code.
 	if conf.RegisterCells == nil {
-		conf.RegisterCells = pointer.BoolPtr(true)
+		conf.RegisterCells = ptr.To(true)
 	}
 	if conf.RegisterCellsAliases == nil {
-		conf.RegisterCellsAliases = pointer.BoolPtr(true)
+		conf.RegisterCellsAliases = ptr.To(true)
 	}
 
 	// Defaulting pruning code.
 	if conf.PruneCells == nil {
-		conf.PruneCells = pointer.BoolPtr(true)
+		conf.PruneCells = ptr.To(true)
 	}
 	if conf.PruneKeyspaces == nil {
-		conf.PruneKeyspaces = pointer.BoolPtr(true)
+		conf.PruneKeyspaces = ptr.To(true)
 	}
 	if conf.PruneShards == nil {
-		conf.PruneShards = pointer.BoolPtr(true)
+		conf.PruneShards = ptr.To(true)
 	}
 	if conf.PruneShardCells == nil {
-		conf.PruneShardCells = pointer.BoolPtr(true)
+		conf.PruneShardCells = ptr.To(true)
 	}
 	if conf.PruneTablets == nil {
-		conf.PruneTablets = pointer.BoolPtr(true)
+		conf.PruneTablets = ptr.To(true)
 	}
 	if conf.PruneSrvKeyspaces == nil {
-		conf.PruneSrvKeyspaces = pointer.BoolPtr(true)
+		conf.PruneSrvKeyspaces = ptr.To(true)
 	}
 }
 

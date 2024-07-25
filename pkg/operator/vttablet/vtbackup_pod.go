@@ -22,7 +22,7 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"planetscale.dev/vitess-operator/pkg/operator/mysql"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -122,11 +122,11 @@ func NewBackupPod(key client.ObjectKey, backupSpec *BackupSpec, mysqldImage stri
 
 	podSecurityContext := &corev1.PodSecurityContext{}
 	if planetscalev2.DefaultVitessFSGroup >= 0 {
-		podSecurityContext.FSGroup = pointer.Int64Ptr(planetscalev2.DefaultVitessFSGroup)
+		podSecurityContext.FSGroup = ptr.To(planetscalev2.DefaultVitessFSGroup)
 	}
 	securityContext := &corev1.SecurityContext{}
 	if planetscalev2.DefaultVitessRunAsUser >= 0 {
-		securityContext.RunAsUser = pointer.Int64Ptr(planetscalev2.DefaultVitessRunAsUser)
+		securityContext.RunAsUser = ptr.To(planetscalev2.DefaultVitessRunAsUser)
 	}
 
 	var containerResources corev1.ResourceRequirements
