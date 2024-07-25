@@ -837,6 +837,8 @@ spec:
                     x-kubernetes-preserve-unknown-fields: true
                   tolerations:
                     x-kubernetes-preserve-unknown-fields: true
+                  topologySpreadConstraints:
+                    x-kubernetes-preserve-unknown-fields: true
                 type: object
               zoneMap:
                 additionalProperties:

@@ -285,6 +285,12 @@ type VitessOrchestratorSpec struct {
 	// +kubebuilder:validation:Schemaless
 	// +kubebuilder:pruning:PreserveUnknownFields
 	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
+
+	// TopologySpreadConstraint can optionally be used to
+	// specify how to spread vtorc pods among the given topology
+	// +kubebuilder:validation:Schemaless
+	// +kubebuilder:pruning:PreserveUnknownFields
+	TopologySpreadConstraints []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty"`
 }
 
 // VitessKeyspaceTurndownPolicy is the policy for turning down a keyspace.
