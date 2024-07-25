@@ -17,7 +17,7 @@ limitations under the License.
 package v2
 
 import (
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 )
 
 // DefaultVitessShard fills in VitessShard defaults for unspecified fields.
@@ -41,16 +41,16 @@ func DefaultVitessShardTemplate(shardTemplate *VitessShardTemplate) {
 func DefaultVitessReplicationSpec(replicationSpec *VitessReplicationSpec) {
 	// Enable initialization of replication by default.
 	if replicationSpec.InitializeMaster == nil {
-		replicationSpec.InitializeMaster = pointer.BoolPtr(true)
+		replicationSpec.InitializeMaster = ptr.To(true)
 	}
 
 	// Enable initialization of backup by default.
 	if replicationSpec.InitializeBackup == nil {
-		replicationSpec.InitializeBackup = pointer.BoolPtr(true)
+		replicationSpec.InitializeBackup = ptr.To(true)
 	}
 
 	// Enable replication repair by default.
 	if replicationSpec.RecoverRestartedMaster == nil {
-		replicationSpec.RecoverRestartedMaster = pointer.BoolPtr(true)
+		replicationSpec.RecoverRestartedMaster = ptr.To(true)
 	}
 }

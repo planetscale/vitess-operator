@@ -24,7 +24,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"planetscale.dev/vitess-operator/pkg/operator/mysql"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	topodatapb "vitess.io/vitess/go/vt/proto/topodata"
@@ -108,7 +108,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 
 	securityContext := &corev1.SecurityContext{}
 	if planetscalev2.DefaultVitessRunAsUser >= 0 {
-		securityContext.RunAsUser = pointer.Int64Ptr(planetscalev2.DefaultVitessRunAsUser)
+		securityContext.RunAsUser = ptr.To(planetscalev2.DefaultVitessRunAsUser)
 	}
 
 	vttabletLifecycle := &spec.Vttablet.Lifecycle
@@ -315,13 +315,13 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 		obj.Spec.SecurityContext = &corev1.PodSecurityContext{}
 	}
 	if planetscalev2.DefaultVitessFSGroup >= 0 {
-		obj.Spec.SecurityContext.FSGroup = pointer.Int64Ptr(planetscalev2.DefaultVitessFSGroup)
+		obj.Spec.SecurityContext.FSGroup = ptr.To(planetscalev2.DefaultVitessFSGroup)
 	}
 
 	if spec.Vttablet.TerminationGracePeriodSeconds != nil {
 		obj.Spec.TerminationGracePeriodSeconds = spec.Vttablet.TerminationGracePeriodSeconds
 	} else {
-		obj.Spec.TerminationGracePeriodSeconds = pointer.Int64Ptr(defaultTerminationGracePeriodSeconds)
+		obj.Spec.TerminationGracePeriodSeconds = ptr.To(int64(defaultTerminationGracePeriodSeconds))
 	}
 
 	// In both the case of the user injecting their own affinity and the default, we
