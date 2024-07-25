@@ -41,3 +41,38 @@ func TestTolerations(t *testing.T) {
 		t.Errorf("val = %#v; want %#v", val, want)
 	}
 }
+
+func TestTopologySpreadConstraints(t *testing.T) {
+	// Make sure we don't touch tolerations that were already there.
+	val := []corev1.TopologySpreadConstraint{
+		{
+			MaxSkew:           1,
+			TopologyKey:       "alreadyExists",
+			WhenUnsatisfiable: corev1.DoNotSchedule,
+		},
+	}
+	want := []corev1.TopologySpreadConstraint{
+		{
+			MaxSkew:           1,
+			TopologyKey:       "alreadyExists",
+			WhenUnsatisfiable: corev1.DoNotSchedule,
+		},
+		{
+			MaxSkew:           2,
+			TopologyKey:       "newKey",
+			WhenUnsatisfiable: corev1.ScheduleAnyway,
+		},
+	}
+
+	TopologySpreadConstraints(&val, []corev1.TopologySpreadConstraint{
+		{
+			MaxSkew:           2,
+			TopologyKey:       "newKey",
+			WhenUnsatisfiable: corev1.ScheduleAnyway,
+		},
+	})
+
+	if !equality.Semantic.DeepEqual(val, want) {
+		t.Errorf("val = %#v; want %#v", val, want)
+	}
+}

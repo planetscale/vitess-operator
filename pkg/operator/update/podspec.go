@@ -20,7 +20,6 @@ import (
 	"reflect"
 
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // Volumes updates entries in 'dst' based on the values in 'src'.
@@ -302,20 +301,10 @@ func TopologySpreadConstraints(dst *[]corev1.TopologySpreadConstraint, src []cor
 srcLoop:
 	for srcIndex := range src {
 		srcObj := &src[srcIndex]
-		srcMap, srcErr := metav1.LabelSelectorAsMap(srcObj.LabelSelector)
-		if srcErr != nil {
-			// There is no return of error for this function
-			// or its callers, which makes this a bit of a hack
-			srcMap = map[string]string{}
-		}
 		// If this item is already there, update it.
 		for dstIndex := range *dst {
 			dstObj := &(*dst)[dstIndex]
-			dstMap, dstErr := metav1.LabelSelectorAsMap(dstObj.LabelSelector)
-			if dstErr != nil {
-				dstMap = map[string]string{}
-			}
-			if reflect.DeepEqual(dstMap, srcMap) {
+			if reflect.DeepEqual(srcObj, dstObj) {
 				*dstObj = *srcObj
 				continue srcLoop
 			}
