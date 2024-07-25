@@ -83,24 +83,83 @@ function removeBackupFiles() {
 
 # takeBackup:
 # $1: keyspace-shard for which the backup needs to be taken
+declare INCREMENTAL_RESTORE_POS=""
 function takeBackup() {
   keyspaceShard=$1
   initialBackupCount=$(kubectl get vtb --no-headers | wc -l)
   finalBackupCount=$((initialBackupCount+1))
 
-  # issue the backupShard command to vtctldclient
-  vtctldclient BackupShard "$keyspaceShard"
+  # Issue the BackupShard command to vtctldclient.
+  vtctldclient BackupShard "${keyspaceShard}"
 
   for i in {1..600} ; do
     out=$(kubectl get vtb --no-headers | wc -l)
-    echo "$out" | grep "$finalBackupCount" > /dev/null 2>&1
-    if [[ $? -eq 0 ]]; then
-      echo "Backup created"
+    if echo "${out}" | grep -c "${finalBackupCount}" >/dev/null; then
+      echo "Full backup created"
+      break
+    fi
+    sleep 3
+  done
+
+  # Now perform an incremental backup.
+  insertWithRetry
+  pos=$(mysql -sN -e "select @@global.gtid_executed")
+  INCREMENTAL_RESTORE_POS="MySQL56/${pos//\\n/}"
+  sleep 2
+  echo "Backup position is $INCREMENTAL_RESTORE_POS"
+  sleep 2
+  insertWithRetry
+
+  vtctldclient BackupShard --incremental-from-pos=auto "${keyspaceShard}"
+  let finalBackupCount=${finalBackupCount}+1
+
+  for i in {1..600} ; do
+    out=$(kubectl get vtb --no-headers | wc -l)
+    if echo "${out}" | grep -c "${finalBackupCount}" >/dev/null; then
+      echo "Incremental backup created"
       return 0
     fi
     sleep 3
   done
-  echo -e "ERROR: Backup not created - $out. $backupCount backups expected."
+
+  echo -e "ERROR: Backups not created - ${out}. ${backupCount} backups expected."
+  exit 1
+}
+
+# restoreBackup:
+# $1: tablet alias for which the backup needs to be restored
+function restoreBackup() {
+  tabletAlias=$1
+  if [[ -z "${tabletAlias}" ]]; then
+    echo "Tablet alias not provided as restore target"
+    exit 1
+  fi
+
+  # Issue the PITR restore command to vtctldclient.
+  # This should restore the last full backup, followed by applying the
+  # binary logs to reach the desired timestamp.
+  echo "Listing backups"
+  vtctldclient GetBackups "$keyspaceShard"
+  echo "End listing backups"
+  echo "Restoring tablet ${tabletAlias} to position ${INCREMENTAL_RESTORE_POS}"
+  if ! vtctldclient RestoreFromBackup --restore-to-pos "${INCREMENTAL_RESTORE_POS}" "${tabletAlias}"; then
+    echo "ERROR: failed to perform incremental restore"
+    exit 1
+  fi
+
+  cell="${tabletAlias%-*}"
+  uid="${tabletAlias##*-}"
+
+  for i in {1..600} ; do
+    out=$(kubectl get pods --no-headers -l "planetscale.com/cell=${cell},planetscale.com/tablet-uid=${uid}" | grep "Running" | wc -l)
+    if echo "$out" | grep -c "1" >/dev/null; then
+      echo "Tablet ${tabletAlias} restore complete"
+      return 0
+    fi
+    sleep 3
+  done
+
+  echo -e "ERROR: restored tablet ${tabletAlias} did not become healthy after the restore."
   exit 1
 }
 
@@ -220,7 +279,9 @@ function waitForKeyspaceToBeServing() {
   nb_of_replica=$3
   for i in {1..600} ; do
     out=$(mysql --table --execute="show vitess_tablets")
+    echo "Serving output: ${out}"
     numtablets=$(echo "$out" | grep -E "$ks(.*)$shard(.*)PRIMARY(.*)SERVING|$ks(.*)$shard(.*)REPLICA(.*)SERVING" | wc -l)
+    echo "Number of serving tablets: ${numtablets}"
     if [[ $numtablets -ge $((nb_of_replica+1)) ]]; then
       echo "Shard $ks/$shard is serving"
       return
