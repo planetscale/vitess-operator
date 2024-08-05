@@ -875,6 +875,8 @@ spec:
                               x-kubernetes-preserve-unknown-fields: true
                             tolerations:
                               x-kubernetes-preserve-unknown-fields: true
+                            topologySpreadConstraints:
+                              x-kubernetes-preserve-unknown-fields: true
                           type: object
                         external:
                           properties:
@@ -1198,6 +1200,8 @@ spec:
                       sidecarContainers:
                         x-kubernetes-preserve-unknown-fields: true
                       tolerations:
+                        x-kubernetes-preserve-unknown-fields: true
+                      topologySpreadConstraints:
                         x-kubernetes-preserve-unknown-fields: true
                     type: object
                   external:
@@ -2334,6 +2338,8 @@ spec:
                           x-kubernetes-preserve-unknown-fields: true
                         tolerations:
                           x-kubernetes-preserve-unknown-fields: true
+                        topologySpreadConstraints:
+                          x-kubernetes-preserve-unknown-fields: true
                       type: object
                   required:
                   - name
@@ -2538,6 +2544,8 @@ spec:
                     x-kubernetes-preserve-unknown-fields: true
                   tolerations:
                     x-kubernetes-preserve-unknown-fields: true
+                  topologySpreadConstraints:
+                    x-kubernetes-preserve-unknown-fields: true
                 type: object
               vtadmin:
                 properties:
@@ -2710,6 +2718,8 @@ spec:
                   sidecarContainers:
                     x-kubernetes-preserve-unknown-fields: true
                   tolerations:
+                    x-kubernetes-preserve-unknown-fields: true
+                  topologySpreadConstraints:
                     x-kubernetes-preserve-unknown-fields: true
                   webResources:
                     properties:
