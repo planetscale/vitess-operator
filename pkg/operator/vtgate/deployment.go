@@ -23,7 +23,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"planetscale.dev/vitess-operator/pkg/operator/mysql"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -121,8 +121,8 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec, mysqldImage string) {
 	obj.Spec.Template.Annotations = spec.Annotations
 
 	// Deployment options.
-	obj.Spec.Replicas = pointer.Int32Ptr(spec.Replicas)
-	obj.Spec.RevisionHistoryLimit = pointer.Int32Ptr(0)
+	obj.Spec.Replicas = ptr.To(spec.Replicas)
+	obj.Spec.RevisionHistoryLimit = ptr.To(int32(0))
 
 	// Reset the list of volumes in the template so we remove old ones.
 	obj.Spec.Template.Spec.Volumes = nil
@@ -169,7 +169,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec, mysqldImage string) {
 
 	securityContext := &corev1.SecurityContext{}
 	if planetscalev2.DefaultVitessRunAsUser >= 0 {
-		securityContext.RunAsUser = pointer.Int64Ptr(planetscalev2.DefaultVitessRunAsUser)
+		securityContext.RunAsUser = ptr.To(planetscalev2.DefaultVitessRunAsUser)
 	}
 
 	// Start building the main Container to put in the Pod template.
