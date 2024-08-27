@@ -52,26 +52,27 @@ func DeploymentName(clusterName, cellName string) string {
 // Spec specifies all the internal parameters needed to deploy vtctld,
 // as opposed to the API type planetscalev2.VitessDashboardSpec, which is the public API.
 type Spec struct {
-	GlobalLockserver  *planetscalev2.VitessLockserverParams
-	Cell              *planetscalev2.VitessCellTemplate
-	Image             string
-	ImagePullPolicy   corev1.PullPolicy
-	ImagePullSecrets  []corev1.LocalObjectReference
-	Labels            map[string]string
-	Replicas          int32
-	Resources         corev1.ResourceRequirements
-	Affinity          *corev1.Affinity
-	ExtraFlags        map[string]string
-	ExtraEnv          []corev1.EnvVar
-	ExtraVolumes      []corev1.Volume
-	ExtraVolumeMounts []corev1.VolumeMount
-	InitContainers    []corev1.Container
-	SidecarContainers []corev1.Container
-	Annotations       map[string]string
-	ExtraLabels       map[string]string
-	Tolerations       []corev1.Toleration
-	BackupLocation    *planetscalev2.VitessBackupLocation
-	BackupEngine      planetscalev2.VitessBackupEngine
+	GlobalLockserver          *planetscalev2.VitessLockserverParams
+	Cell                      *planetscalev2.VitessCellTemplate
+	Image                     string
+	ImagePullPolicy           corev1.PullPolicy
+	ImagePullSecrets          []corev1.LocalObjectReference
+	Labels                    map[string]string
+	Replicas                  int32
+	Resources                 corev1.ResourceRequirements
+	Affinity                  *corev1.Affinity
+	ExtraFlags                map[string]string
+	ExtraEnv                  []corev1.EnvVar
+	ExtraVolumes              []corev1.Volume
+	ExtraVolumeMounts         []corev1.VolumeMount
+	InitContainers            []corev1.Container
+	SidecarContainers         []corev1.Container
+	Annotations               map[string]string
+	ExtraLabels               map[string]string
+	Tolerations               []corev1.Toleration
+	TopologySpreadConstraints []corev1.TopologySpreadConstraint
+	BackupLocation            *planetscalev2.VitessBackupLocation
+	BackupEngine              planetscalev2.VitessBackupEngine
 }
 
 // NewDeployment creates a new Deployment object for vtctld.
@@ -141,6 +142,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec, mysqldImage string) {
 	obj.Spec.Template.Spec.PriorityClassName = planetscalev2.DefaultVitessPriorityClass
 	obj.Spec.Template.Spec.ServiceAccountName = planetscalev2.DefaultVitessServiceAccount
 	obj.Spec.Template.Spec.Tolerations = spec.Tolerations
+	obj.Spec.Template.Spec.TopologySpreadConstraints = spec.TopologySpreadConstraints
 	volumes := spec.ExtraVolumes
 	volumeMounts := spec.ExtraVolumeMounts
 	env := spec.ExtraEnv
