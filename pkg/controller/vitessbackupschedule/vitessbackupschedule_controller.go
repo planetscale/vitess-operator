@@ -123,18 +123,18 @@ func add(mgr manager.Manager, r *ReconcileVitessBackupsSchedule) error {
 	}
 
 	// Watch for changes to primary resource VitessBackupSchedule
-	if err := c.Watch(source.Kind(mgr.GetCache(), &planetscalev2.VitessBackupSchedule{}), &handler.EnqueueRequestForObject{}); err != nil {
+	if err := c.Watch(source.Kind(mgr.GetCache(), &planetscalev2.VitessBackupSchedule{}, &handler.TypedEnqueueRequestForObject[*planetscalev2.VitessBackupSchedule]{})); err != nil {
 		return err
 	}
 
 	// Watch for changes to kbatch.Job and requeue the owner VitessBackupSchedule.
 	for _, resource := range watchResources {
-		err := c.Watch(source.Kind(mgr.GetCache(), resource), handler.EnqueueRequestForOwner(
+		err := c.Watch(source.Kind(mgr.GetCache(), resource, handler.EnqueueRequestForOwner(
 			mgr.GetScheme(),
 			mgr.GetRESTMapper(),
 			&planetscalev2.VitessBackupStorage{},
 			handler.OnlyControllerOwner(),
-		))
+		)))
 		if err != nil {
 			return err
 		}
