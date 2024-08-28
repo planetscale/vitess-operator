@@ -23,9 +23,7 @@ steps:
         - export PATH=$PATH:/usr/local/go/bin
         - rm $GO_VERSION_FILE
         - ln -s /lib/libc.so.6 /usr/lib/libresolv.so.2
-        - make upgrade-test
-        env:
-          K8S_VERSION: ${{matrix.k8s_version}}
+        - K8S_VERSION={{matrix.k8s_version}} make upgrade-test
         concurrency: 1
         concurrency_group: 'vtop/upgrade-downgrade-test'
         timeout_in_minutes: 60
@@ -51,9 +49,7 @@ steps:
         - export PATH=$PATH:/usr/local/go/bin
         - rm $GO_VERSION_FILE
         - ln -s /lib/libc.so.6 /usr/lib/libresolv.so.2
-        - make backup-restore-test
-        env:
-          K8S_VERSION: ${{matrix.k8s_version}}
+        - K8S_VERSION={{matrix.k8s_version}} make backup-restore-test
         concurrency: 1
         concurrency_group: 'vtop/backup-restore-test'
         timeout_in_minutes: 60
@@ -79,9 +75,7 @@ steps:
           - export PATH=$PATH:/usr/local/go/bin
           - rm $GO_VERSION_FILE
           - ln -s /lib/libc.so.6 /usr/lib/libresolv.so.2
-          - make backup-schedule-test
-        env:
-          K8S_VERSION: ${{matrix.k8s_version}}
+          - K8S_VERSION={{matrix.k8s_version}} make backup-schedule-test
         concurrency: 1
         concurrency_group: 'vtop/backup-schedule-test'
         timeout_in_minutes: 60
@@ -107,9 +101,7 @@ steps:
         - export PATH=$PATH:/usr/local/go/bin
         - rm $GO_VERSION_FILE
         - ln -s /lib/libc.so.6 /usr/lib/libresolv.so.2
-        - make vtorc-vtadmin-test
-        env:
-          K8S_VERSION: ${{matrix.k8s_version}}
+        - K8S_VERSION={{matrix.k8s_version}} make vtorc-vtadmin-test
         concurrency: 1
         concurrency_group: 'vtop/vtorc-vtadmin-test'
         timeout_in_minutes: 60
@@ -135,9 +127,7 @@ steps:
         - export PATH=$PATH:/usr/local/go/bin
         - rm $GO_VERSION_FILE
         - ln -s /lib/libc.so.6 /usr/lib/libresolv.so.2
-        - make unmanaged-tablet-test
-        env:
-          K8S_VERSION: ${{matrix.k8s_version}}
+        - K8S_VERSION={{matrix.k8s_version}} make unmanaged-tablet-test
         concurrency: 1
         concurrency_group: 'vtop/unmanaged-tablet-test'
         timeout_in_minutes: 60
