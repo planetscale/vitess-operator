@@ -10,7 +10,8 @@ env:
 steps:
   - group: "Upgrade Test"
     steps:
-      - matrix:
+      - label: "Upgrade Test {{matrix.k8s_version}}"
+        matrix:
           setup:
             k8s_version:
               - "1.31.0"
@@ -36,7 +37,8 @@ steps:
 
   - group: "Backup Restore Test"
     steps:
-      - matrix:
+      - label: "Backup Restore Test {{matrix.k8s_version}}"
+        matrix:
           setup:
             k8s_version:
               - "1.31.0"
@@ -62,7 +64,8 @@ steps:
 
   - group: "Backup Schedule Test"
     steps:
-      - matrix:
+      - label: "Backup Schedule Test {{matrix.k8s_version}}"
+        matrix:
           setup:
             k8s_version:
               - "1.31.0"
@@ -88,7 +91,8 @@ steps:
 
   - group: "VTOrc and VTAdmin Test"
     steps:
-      - matrix:
+      - label: "VTOrc and VTAdmin Test {{matrix.k8s_version}}"
+        matrix:
           setup:
             k8s_version:
               - "1.31.0"
@@ -114,7 +118,8 @@ steps:
 
   - group: "Unmanaged Tablet Test"
     steps:
-      - matrix:
+      - label: "Unmanaged Tablet Test {{matrix.k8s_version}}"
+        matrix:
           setup:
             k8s_version:
               - "1.31.0"
