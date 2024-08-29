@@ -10,13 +10,11 @@ env:
 steps:
   - group: "Upgrade Test"
     steps:
-      - label: "Upgrade Test {{matrix.k8s_version | replace:'.',' '}}"
+      - label: "Upgrade Test {{matrix}}"
         matrix:
-          setup:
-            k8s_version:
-              - "1.31.0"
-              - "1.30.4"
-              - "1.29.8"
+          - "1.31.0"
+          - "1.30.4"
+          - "1.29.8"
         command:
         - apk add g++ make bash gcompat curl mysql mysql-client libc6-compat
         - wget https://golang.org/dl/$GO_VERSION_FILE
@@ -24,7 +22,7 @@ steps:
         - export PATH=$PATH:/usr/local/go/bin
         - rm $GO_VERSION_FILE
         - ln -s /lib/libc.so.6 /usr/lib/libresolv.so.2
-        - K8S_VERSION={{matrix.k8s_version}} make upgrade-test
+        - K8S_VERSION={{matrix}} make upgrade-test
         concurrency: 1
         concurrency_group: 'vtop/upgrade-downgrade-test'
         timeout_in_minutes: 60
@@ -37,13 +35,11 @@ steps:
 
   - group: "Backup Restore Test"
     steps:
-      - label: "Backup Restore Test {{matrix.k8s_version | replace:'.',' '}}"
+      - label: "Backup Restore Test {{matrix}}"
         matrix:
-          setup:
-            k8s_version:
-              - "1.31.0"
-              - "1.30.4"
-              - "1.29.8"
+          - "1.31.0"
+          - "1.30.4"
+          - "1.29.8"
         command:
         - apk add g++ make bash gcompat curl mysql mysql-client libc6-compat
         - wget https://golang.org/dl/$GO_VERSION_FILE
@@ -51,7 +47,7 @@ steps:
         - export PATH=$PATH:/usr/local/go/bin
         - rm $GO_VERSION_FILE
         - ln -s /lib/libc.so.6 /usr/lib/libresolv.so.2
-        - K8S_VERSION={{matrix.k8s_version}} make backup-restore-test
+        - K8S_VERSION={{matrix}} make backup-restore-test
         concurrency: 1
         concurrency_group: 'vtop/backup-restore-test'
         timeout_in_minutes: 60
@@ -64,13 +60,11 @@ steps:
 
   - group: "Backup Schedule Test"
     steps:
-      - label: "Backup Schedule Test {{matrix.k8s_version | replace:'.',' '}}"
+      - name: "Backup Schedule Test {{matrix}}"
         matrix:
-          setup:
-            k8s_version:
-              - "1.31.0"
-              - "1.30.4"
-              - "1.29.8"
+          - "1.31.0"
+          - "1.30.4"
+          - "1.29.8"
         command:
           - apk add g++ make bash gcompat curl mysql mysql-client libc6-compat
           - wget https://golang.org/dl/$GO_VERSION_FILE
@@ -78,7 +72,7 @@ steps:
           - export PATH=$PATH:/usr/local/go/bin
           - rm $GO_VERSION_FILE
           - ln -s /lib/libc.so.6 /usr/lib/libresolv.so.2
-          - K8S_VERSION={{matrix.k8s_version}} make backup-schedule-test
+          - K8S_VERSION={{matrix}} make backup-schedule-test
         concurrency: 1
         concurrency_group: 'vtop/backup-schedule-test'
         timeout_in_minutes: 60
@@ -91,13 +85,11 @@ steps:
 
   - group: "VTOrc and VTAdmin Test"
     steps:
-      - label: "VTOrc and VTAdmin Test {{matrix.k8s_version | replace:'.',' '}}"
+      - label: "VTOrc and VTAdmin Test {{matrix}}"
         matrix:
-          setup:
-            k8s_version:
-              - "1.31.0"
-              - "1.30.4"
-              - "1.29.8"
+          - "1.31.0"
+          - "1.30.4"
+          - "1.29.8"
         command:
         - apk add g++ make bash gcompat curl mysql mysql-client libc6-compat chromium
         - wget https://golang.org/dl/$GO_VERSION_FILE
@@ -105,7 +97,7 @@ steps:
         - export PATH=$PATH:/usr/local/go/bin
         - rm $GO_VERSION_FILE
         - ln -s /lib/libc.so.6 /usr/lib/libresolv.so.2
-        - K8S_VERSION={{matrix.k8s_version}} make vtorc-vtadmin-test
+        - K8S_VERSION={{matrix}} make vtorc-vtadmin-test
         concurrency: 1
         concurrency_group: 'vtop/vtorc-vtadmin-test'
         timeout_in_minutes: 60
@@ -118,13 +110,11 @@ steps:
 
   - group: "Unmanaged Tablet Test"
     steps:
-      - label: "Unmanaged Tablet Test {{matrix.k8s_version | replace:'.',' '}}"
+      - label: "Unmanaged Tablet Test {{matrix}}"
         matrix:
-          setup:
-            k8s_version:
-              - "1.31.0"
-              - "1.30.4"
-              - "1.29.8"
+          - "1.31.0"
+          - "1.30.4"
+          - "1.29.8"
         command:
         - apk add g++ make bash gcompat curl mysql mysql-client libc6-compat chromium
         - wget https://golang.org/dl/$GO_VERSION_FILE
@@ -132,7 +122,7 @@ steps:
         - export PATH=$PATH:/usr/local/go/bin
         - rm $GO_VERSION_FILE
         - ln -s /lib/libc.so.6 /usr/lib/libresolv.so.2
-        - K8S_VERSION={{matrix.k8s_version}} make unmanaged-tablet-test
+        - K8S_VERSION={{matrix}} make unmanaged-tablet-test
         concurrency: 1
         concurrency_group: 'vtop/unmanaged-tablet-test'
         timeout_in_minutes: 60
