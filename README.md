@@ -19,12 +19,16 @@ compatible with certain Vitess and Kubernetes versions, as shown in this table:
 | `v2.11.*`               | `v18.0.*`                   | `v1.22.*`, `v1.23.*`, `v1.24.*`, or `v1.25.*` |
 | `v2.12.*`               | `v19.0.*`                   | `v1.25.*`, `v1.26.*`, `v1.27.*`, or `v1.28.*` |
 | `v2.13.*`               | `v20.0.*`                   | `v1.25.*`, `v1.26.*`, `v1.27.*`, or `v1.28.*` |
-| `latest`                | `latest`                    | `v1.25.*`, `v1.26.*`, `v1.27.*`, or `v1.28.*` |
+| `latest`                | `latest`                    | `v1.29.*`, `v1.30.*`, `v1.31.*`               |
 
 If for some reason you must attempt to use versions outside the recommend
 window, we still welcome bug reports since a workaround might be possible.
 However, in some cases we may be unable to overcome the underlying limitations
 in our dependencies.
+
+Each major release of the vitess-operator will support the three latest major release of Kubernetes at the time
+of the vitess-operator's major release RC-1. This will ensure that the major release of the vitess-operator will
+always support at least one major release of Kubernetes for its whole lifetime (1 year).
 
 ### Release Cycle
 
