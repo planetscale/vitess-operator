@@ -19,11 +19,11 @@ package vttablet
 import (
 	"fmt"
 
+	corev1 "k8s.io/api/core/v1"
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 	"planetscale.dev/vitess-operator/pkg/operator/lazy"
 	"planetscale.dev/vitess-operator/pkg/operator/vitess"
 	"planetscale.dev/vitess-operator/pkg/operator/vitessbackup"
-	corev1 "k8s.io/api/core/v1"
 )
 
 func xtrabackupFlags(spec *Spec, backupThreads, restoreThreads int) vitess.Flags {
@@ -51,7 +51,8 @@ func init() {
 			"wait_for_backup_interval":     waitForBackupInterval,
 			"backup_engine_implementation": string(spec.BackupEngine),
 		}
-		if spec.BackupEngine == planetscalev2.VitessBackupEngineXtraBackup {
+		switch spec.BackupEngine {
+		case planetscalev2.VitessBackupEngineXtraBackup:
 			// When vttablets take backups, we let them keep serving, so we
 			// limit to single-threaded to reduce the impact.
 			backupThreads := 1
@@ -68,6 +69,11 @@ func init() {
 				restoreThreads = 1
 			}
 			flags.Merge(xtrabackupFlags(spec, backupThreads, restoreThreads))
+		case planetscalev2.VitessBackupEngineMySQLShell:
+			svm := vitessbackup.StorageVolumeMounts(spec.BackupLocation)
+			flags.Merge(vitess.Flags{
+				"mysql-shell-backup-location": svm[0].MountPath,
+			})
 		}
 		clusterName := spec.Labels[planetscalev2.ClusterLabel]
 		storageLocationFlags := vitessbackup.StorageFlags(spec.BackupLocation, clusterName)
