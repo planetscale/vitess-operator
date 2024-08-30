@@ -26,9 +26,10 @@ window, we still welcome bug reports since a workaround might be possible.
 However, in some cases we may be unable to overcome the underlying limitations
 in our dependencies.
 
-Each major release of the vitess-operator will support the three latest major release of Kubernetes at the time
+Each major release of the vitess-operator will support the three latest major releases of Kubernetes at the time
 of the vitess-operator's major release RC-1. This will ensure that the major release of the vitess-operator will
 always support at least one major release of Kubernetes for its whole lifetime (1 year).
+More information about the release cycle of vitess-operator in the following section.
 
 ### Release Cycle
 
