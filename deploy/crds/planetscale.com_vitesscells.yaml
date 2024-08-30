@@ -764,6 +764,12 @@ spec:
                 properties:
                   available:
                     type: string
+                  labelSelector:
+                    type: string
+                  replicas:
+                    format: int32
+                    minimum: 0
+                    type: integer
                   serviceName:
                     type: string
                 type: object
@@ -794,4 +800,8 @@ spec:
     served: true
     storage: true
     subresources:
+      scale:
+        labelSelectorPath: .status.gateway.labelSelector
+        specReplicasPath: .spec.gateway.replicas
+        statusReplicasPath: .status.gateway.replicas
       status: {}

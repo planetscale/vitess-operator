@@ -39,6 +39,7 @@ import (
 // just like a Deployment can manage Pods that run on multiple Nodes.
 // +kubebuilder:resource:path=vitesscells,shortName=vtc
 // +kubebuilder:subresource:status
+// +kubebuilder:subresource:scale:specpath=.spec.gateway.replicas,statuspath=.status.gateway.replicas,selectorpath=.status.gateway.labelSelector
 type VitessCell struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -252,6 +253,13 @@ type VitessCellGatewayStatus struct {
 	Available corev1.ConditionStatus `json:"available,omitempty"`
 	// ServiceName is the name of the Service for this cell's vtgate.
 	ServiceName string `json:"serviceName,omitempty"`
+	// LabelSelector is required by the Scale subresource, which is used by
+	// HorizontalPodAutoscaler when reading pod metrics.
+	LabelSelector string `json:"labelSelector,omitempty"`
+	// Replicas is required by the Scale subresource, which is used by
+	// HorizontalPodAutoscaler to determine the current number of replicas.
+	// +kubebuilder:validation:Minimum=0
+	Replicas int32 `json:"replicas,omitempty"`
 }
 
 // VitessCellStatus defines the observed state of VitessCell

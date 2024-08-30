@@ -3614,6 +3614,30 @@ string
 <p>ServiceName is the name of the Service for this cell&rsquo;s vtgate.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>labelSelector</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>LabelSelector is required by the Scale subresource, which is used by
+HorizontalPodAutoscaler when reading pod metrics.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>replicas</code></br>
+<em>
+int32
+</em>
+</td>
+<td>
+<p>Replicas is required by the Scale subresource, which is used by
+HorizontalPodAutoscaler to determine the current number of replicas.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="planetscale.com/v2.VitessCellImages">VitessCellImages

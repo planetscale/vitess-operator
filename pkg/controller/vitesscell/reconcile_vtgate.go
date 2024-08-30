@@ -160,6 +160,10 @@ func (r *ReconcileVitessCell) reconcileVtgate(ctx context.Context, vtc *planetsc
 			curObj := obj.(*appsv1.Deployment)
 
 			status := &vtc.Status.Gateway
+			if replicas := curObj.Spec.Replicas; replicas != nil {
+				status.Replicas = *replicas
+			}
+			status.LabelSelector = curObj.Spec.Selector.String()
 			if available := conditions.Deployment(curObj.Status.Conditions, appsv1.DeploymentAvailable); available != nil {
 				status.Available = available.Status
 			}
