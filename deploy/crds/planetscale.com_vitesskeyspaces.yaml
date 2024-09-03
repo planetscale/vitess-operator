@@ -3,8 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.11.3
-  creationTimestamp: null
+    controller-gen.kubebuilder.io/version: v0.16.1
   name: vitesskeyspaces.planetscale.com
 spec:
   group: planetscale.com
@@ -194,6 +193,7 @@ spec:
                 items:
                   properties:
                     name:
+                      default: ""
                       type: string
                   type: object
                   x-kubernetes-map-type: atomic
@@ -288,6 +288,7 @@ spec:
                                           items:
                                             type: string
                                           type: array
+                                          x-kubernetes-list-type: atomic
                                         dataSource:
                                           properties:
                                             apiGroup:
@@ -317,18 +318,6 @@ spec:
                                           type: object
                                         resources:
                                           properties:
-                                            claims:
-                                              items:
-                                                properties:
-                                                  name:
-                                                    type: string
-                                                required:
-                                                - name
-                                                type: object
-                                              type: array
-                                              x-kubernetes-list-map-keys:
-                                              - name
-                                              x-kubernetes-list-type: map
                                             limits:
                                               additionalProperties:
                                                 anyOf:
@@ -359,11 +348,13 @@ spec:
                                                     items:
                                                       type: string
                                                     type: array
+                                                    x-kubernetes-list-type: atomic
                                                 required:
                                                 - key
                                                 - operator
                                                 type: object
                                               type: array
+                                              x-kubernetes-list-type: atomic
                                             matchLabels:
                                               additionalProperties:
                                                 type: string
@@ -371,6 +362,8 @@ spec:
                                           type: object
                                           x-kubernetes-map-type: atomic
                                         storageClassName:
+                                          type: string
+                                        volumeAttributesClassName:
                                           type: string
                                         volumeMode:
                                           type: string
@@ -433,6 +426,7 @@ spec:
                                                   key:
                                                     type: string
                                                   name:
+                                                    default: ""
                                                     type: string
                                                   optional:
                                                     type: boolean
@@ -471,6 +465,7 @@ spec:
                                                   key:
                                                     type: string
                                                   name:
+                                                    default: ""
                                                     type: string
                                                   optional:
                                                     type: boolean
@@ -498,6 +493,8 @@ spec:
                                             type: string
                                           readOnly:
                                             type: boolean
+                                          recursiveReadOnly:
+                                            type: string
                                           subPath:
                                             type: string
                                           subPathExpr:
@@ -521,6 +518,8 @@ spec:
                                               items:
                                                 properties:
                                                   name:
+                                                    type: string
+                                                  request:
                                                     type: string
                                                 required:
                                                 - name
@@ -557,6 +556,8 @@ spec:
                                               items:
                                                 properties:
                                                   name:
+                                                    type: string
+                                                  request:
                                                     type: string
                                                 required:
                                                 - name
@@ -620,6 +621,8 @@ spec:
                                               items:
                                                 properties:
                                                   name:
+                                                    type: string
+                                                  request:
                                                     type: string
                                                 required:
                                                 - name
@@ -726,6 +729,7 @@ spec:
                                         items:
                                           type: string
                                         type: array
+                                        x-kubernetes-list-type: atomic
                                       dataSource:
                                         properties:
                                           apiGroup:
@@ -755,18 +759,6 @@ spec:
                                         type: object
                                       resources:
                                         properties:
-                                          claims:
-                                            items:
-                                              properties:
-                                                name:
-                                                  type: string
-                                              required:
-                                              - name
-                                              type: object
-                                            type: array
-                                            x-kubernetes-list-map-keys:
-                                            - name
-                                            x-kubernetes-list-type: map
                                           limits:
                                             additionalProperties:
                                               anyOf:
@@ -797,11 +789,13 @@ spec:
                                                   items:
                                                     type: string
                                                   type: array
+                                                  x-kubernetes-list-type: atomic
                                               required:
                                               - key
                                               - operator
                                               type: object
                                             type: array
+                                            x-kubernetes-list-type: atomic
                                           matchLabels:
                                             additionalProperties:
                                               type: string
@@ -809,6 +803,8 @@ spec:
                                         type: object
                                         x-kubernetes-map-type: atomic
                                       storageClassName:
+                                        type: string
+                                      volumeAttributesClassName:
                                         type: string
                                       volumeMode:
                                         type: string
@@ -871,6 +867,7 @@ spec:
                                                 key:
                                                   type: string
                                                 name:
+                                                  default: ""
                                                   type: string
                                                 optional:
                                                   type: boolean
@@ -909,6 +906,7 @@ spec:
                                                 key:
                                                   type: string
                                                 name:
+                                                  default: ""
                                                   type: string
                                                 optional:
                                                   type: boolean
@@ -936,6 +934,8 @@ spec:
                                           type: string
                                         readOnly:
                                           type: boolean
+                                        recursiveReadOnly:
+                                          type: string
                                         subPath:
                                           type: string
                                         subPathExpr:
@@ -959,6 +959,8 @@ spec:
                                             items:
                                               properties:
                                                 name:
+                                                  type: string
+                                                request:
                                                   type: string
                                               required:
                                               - name
@@ -995,6 +997,8 @@ spec:
                                             items:
                                               properties:
                                                 name:
+                                                  type: string
+                                                request:
                                                   type: string
                                               required:
                                               - name
@@ -1058,6 +1062,8 @@ spec:
                                             items:
                                               properties:
                                                 name:
+                                                  type: string
+                                                request:
                                                   type: string
                                               required:
                                               - name
@@ -1172,6 +1178,7 @@ spec:
                                 key:
                                   type: string
                                 name:
+                                  default: ""
                                   type: string
                                 optional:
                                   type: boolean
@@ -1210,6 +1217,7 @@ spec:
                                 key:
                                   type: string
                                 name:
+                                  default: ""
                                   type: string
                                 optional:
                                   type: boolean
@@ -1241,6 +1249,8 @@ spec:
                           type: string
                         readOnly:
                           type: boolean
+                        recursiveReadOnly:
+                          type: string
                         subPath:
                           type: string
                         subPathExpr:
@@ -1260,6 +1270,8 @@ spec:
                         items:
                           properties:
                             name:
+                              type: string
+                            request:
                               type: string
                           required:
                           - name

@@ -41,8 +41,7 @@ type secretCellsMapper struct {
 
 // Map maps a Secret to a list of requests for VitessCells
 // that reference the secret.
-func (m *secretCellsMapper) Map(ctx context.Context, obj client.Object) []reconcile.Request {
-	secret := obj.(*corev1.Secret)
+func (m *secretCellsMapper) Map(ctx context.Context, secret *corev1.Secret) []reconcile.Request {
 	secretName := secret.Name
 
 	cellList := &planetscalev2.VitessCellList{}
