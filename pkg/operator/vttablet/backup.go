@@ -19,11 +19,11 @@ package vttablet
 import (
 	"fmt"
 
+	corev1 "k8s.io/api/core/v1"
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 	"planetscale.dev/vitess-operator/pkg/operator/lazy"
 	"planetscale.dev/vitess-operator/pkg/operator/vitess"
 	"planetscale.dev/vitess-operator/pkg/operator/vitessbackup"
-	corev1 "k8s.io/api/core/v1"
 )
 
 func xtrabackupFlags(spec *Spec, backupThreads, restoreThreads int) vitess.Flags {
