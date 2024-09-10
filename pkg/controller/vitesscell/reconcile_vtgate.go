@@ -20,6 +20,7 @@ import (
 	"context"
 
 	appsv1 "k8s.io/api/apps/v1"
+	autoscalingv2 "k8s.io/api/autoscaling/v2"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	apitypes "k8s.io/apimachinery/pkg/types"
@@ -167,6 +168,36 @@ func (r *ReconcileVitessCell) reconcileVtgate(ctx context.Context, vtc *planetsc
 			if available := conditions.Deployment(curObj.Status.Conditions, appsv1.DeploymentAvailable); available != nil {
 				status.Available = available.Status
 			}
+		},
+	})
+	if err != nil {
+		resultBuilder.Error(err)
+	}
+
+	var wantHpa bool
+	var hpaSpec *vtgate.HpaSpec
+
+	if vtc.Spec.Gateway.Autoscaler != nil {
+		wantHpa = vtc.Spec.Gateway.Autoscaler.MaxReplicas != nil
+		hpaSpec = &vtgate.HpaSpec{
+			Labels:      labels,
+			MinReplicas: vtc.Spec.Gateway.Autoscaler.MinReplicas,
+			MaxReplicas: vtc.Spec.Gateway.Autoscaler.MaxReplicas,
+			Behavior:    vtc.Spec.Gateway.Autoscaler.Behavior,
+			Metrics:     vtc.Spec.Gateway.Autoscaler.Metrics,
+		}
+	}
+
+	// Reconcile vtgate HorizontalPodAutoscaler.
+	err = r.reconciler.ReconcileObject(ctx, vtc, key, labels, wantHpa, reconciler.Strategy{
+		Kind: &autoscalingv2.HorizontalPodAutoscaler{},
+
+		New: func(key client.ObjectKey) runtime.Object {
+			return vtgate.NewHorizontalPodAutoscaler(key, hpaSpec)
+		},
+		UpdateInPlace: func(key client.ObjectKey, obj runtime.Object) {
+			newObj := obj.(*autoscalingv2.HorizontalPodAutoscaler)
+			vtgate.UpdateHorizontalPodAutoscaler(newObj, hpaSpec)
 		},
 	})
 	if err != nil {

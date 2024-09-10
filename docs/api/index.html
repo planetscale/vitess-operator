@@ -506,6 +506,78 @@ VitessClusterStatus
 </tr>
 </tbody>
 </table>
+<h3 id="planetscale.com/v2.AutoscalerSpec">AutoscalerSpec
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#planetscale.com/v2.VitessCellGatewaySpec">VitessCellGatewaySpec</a>)
+</p>
+<p>
+<p>AutoscalerSpec defines the vtgate&rsquo;s pod autoscaling specification.</p>
+</p>
+<table class="table table-striped">
+<thead class="thead-dark">
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>minReplicas</code></br>
+<em>
+int32
+</em>
+</td>
+<td>
+<p>MinReplicas is the minimum number of instances of vtgate to run in
+this cell when autoscaling is enabled.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>maxReplicas</code></br>
+<em>
+int32
+</em>
+</td>
+<td>
+<p>MaxReplicas is the maximum number of instances of vtgate to run in
+this cell when autoscaling is enabled.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>behavior</code></br>
+<em>
+<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#horizontalpodautoscalerbehavior-v2-autoscaling">
+Kubernetes autoscaling/v2.HorizontalPodAutoscalerBehavior
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+</td>
+</tr>
+<tr>
+<td>
+<code>metrics</code></br>
+<em>
+<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#metricspec-v2-autoscaling">
+[]Kubernetes autoscaling/v2.MetricSpec
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Metrics is meant to provide a customizable way to configure HPA metrics.
+currently the only supported custom metrics is type=Pod.
+Use TargetCPUUtilization or TargetMemoryUtilization instead if scaling on these common resource metrics.</p>
+</td>
+</tr>
+</tbody>
+</table>
 <h3 id="planetscale.com/v2.AzblobBackupLocation">AzblobBackupLocation
 </h3>
 <p>
@@ -3333,6 +3405,21 @@ int32
 </td>
 <td>
 <p>Replicas is the number of vtgate instances to deploy in this cell.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>autoscaler</code></br>
+<em>
+<a href="#planetscale.com/v2.AutoscalerSpec">
+AutoscalerSpec
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Autoscaler specifies the pod autoscaling configuration to use
+for the vtgate workload.</p>
 </td>
 </tr>
 <tr>
