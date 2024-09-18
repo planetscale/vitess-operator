@@ -1,5 +1,5 @@
 /*
-Copyright 2019 PlanetScale Inc.
+Copyright 2024 PlanetScale Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -24,8 +24,8 @@ import (
 	"planetscale.dev/vitess-operator/pkg/operator/update"
 )
 
-// Spec specifies all the internal parameters needed to deploy vtgate,
-// as opposed to the API type planetscalev2.VitessCellGatewaySpec, which is the public API.
+// HpaSpec specifies all the internal parameters needed to create a HorizontalPodAutoscaler
+// for vtgate.
 type HpaSpec struct {
 	Labels      map[string]string
 	MinReplicas *int32
