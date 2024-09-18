@@ -1,6 +1,6 @@
 module planetscale.dev/vitess-operator
 
-go 1.23.0
+go 1.23.1
 
 require (
 	github.com/ahmetb/gen-crd-api-reference-docs v0.3.0
@@ -22,7 +22,7 @@ require (
 	sigs.k8s.io/controller-runtime v0.19.0
 	sigs.k8s.io/controller-tools v0.16.1
 	sigs.k8s.io/kustomize v2.0.3+incompatible
-	vitess.io/vitess v0.10.3-0.20240907153138-10710d87db4c
+	vitess.io/vitess v0.10.3-0.20240913203235-646bfd41c1fd
 )
 
 require (
