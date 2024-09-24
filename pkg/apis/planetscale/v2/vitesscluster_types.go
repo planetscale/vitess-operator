@@ -316,7 +316,7 @@ type ClusterBackupSpec struct {
 	// from one tablet in each shard. Otherwise, new tablets trying to restore
 	// will find that the latest backup was created with the wrong engine.
 	// Default: builtin
-	// +kubebuilder:validation:Enum=builtin;xtrabackup
+	// +kubebuilder:validation:Enum=builtin;xtrabackup;mysqlshell
 	Engine VitessBackupEngine `json:"engine,omitempty"`
 	// Subcontroller specifies any parameters needed for launching the VitessBackupStorage subcontroller pod.
 	Subcontroller *VitessBackupSubcontrollerSpec `json:"subcontroller,omitempty"`
@@ -337,6 +337,8 @@ const (
 	VitessBackupEngineBuiltIn VitessBackupEngine = "builtin"
 	// VitessBackupEngineXtraBackup uses Percona XtraBackup for backups.
 	VitessBackupEngineXtraBackup VitessBackupEngine = "xtrabackup"
+	// VitessBackupEngineMySQLShell uses MySQL Shell for backups.
+	VitessBackupEngineMySQLShell VitessBackupEngine = "mysqlshell"
 )
 
 // LockserverSpec specifies either a deployed or external lockserver,

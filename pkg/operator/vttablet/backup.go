@@ -26,7 +26,7 @@ import (
 	"planetscale.dev/vitess-operator/pkg/operator/vitessbackup"
 )
 
-func xtrabackupFlags(spec *Spec, backupThreads, restoreThreads int) vitess.Flags {
+func xtrabackupFlags(backupThreads, restoreThreads int) vitess.Flags {
 	flags := vitess.Flags{
 		"xtrabackup_user":         xtrabackupUser,
 		"xtrabackup_stream_mode":  xtrabackupStreamMode,
@@ -34,6 +34,15 @@ func xtrabackupFlags(spec *Spec, backupThreads, restoreThreads int) vitess.Flags
 		"xtrabackup_backup_flags": fmt.Sprintf("--parallel=%d", backupThreads),
 		"xbstream_restore_flags":  fmt.Sprintf("--parallel=%d", restoreThreads),
 		"backup_storage_compress": true,
+	}
+
+	return flags
+}
+
+func mysqlshellFlags(backupLocation string) vitess.Flags {
+	flags := vitess.Flags{
+		"mysql-shell-backup-location": backupLocation,
+		"mysql-shell-flags":           mysqlshellExtraFlags,
 	}
 
 	return flags
@@ -51,7 +60,8 @@ func init() {
 			"wait_for_backup_interval":     waitForBackupInterval,
 			"backup_engine_implementation": string(spec.BackupEngine),
 		}
-		if spec.BackupEngine == planetscalev2.VitessBackupEngineXtraBackup {
+		switch spec.BackupEngine {
+		case planetscalev2.VitessBackupEngineXtraBackup:
 			// When vttablets take backups, we let them keep serving, so we
 			// limit to single-threaded to reduce the impact.
 			backupThreads := 1
@@ -67,7 +77,10 @@ func init() {
 			if restoreThreads < 1 {
 				restoreThreads = 1
 			}
-			flags.Merge(xtrabackupFlags(spec, backupThreads, restoreThreads))
+			flags.Merge(xtrabackupFlags(backupThreads, restoreThreads))
+		case planetscalev2.VitessBackupEngineMySQLShell:
+			svm := vitessbackup.StorageVolumeMounts(spec.BackupLocation)
+			flags.Merge(mysqlshellFlags(svm[0].MountPath))
 		}
 		clusterName := spec.Labels[planetscalev2.ClusterLabel]
 		storageLocationFlags := vitessbackup.StorageFlags(spec.BackupLocation, clusterName)
@@ -93,7 +106,7 @@ func init() {
 			if threads < 1 {
 				threads = 1
 			}
-			flags.Merge(xtrabackupFlags(spec, threads, threads))
+			flags.Merge(xtrabackupFlags(threads, threads))
 		}
 		clusterName := spec.Labels[planetscalev2.ClusterLabel]
 		storageLocationFlags := vitessbackup.StorageFlags(spec.BackupLocation, clusterName)

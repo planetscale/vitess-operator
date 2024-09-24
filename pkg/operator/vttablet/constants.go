@@ -109,6 +109,9 @@ const (
 	xtrabackupStripeCount = 8
 	xtrabackupUser        = "vt_dba"
 
+	mysqlshellUser       = "vt_dba"
+	mysqlshellExtraFlags = "--defaults-file=/dev/null --no-password --js -u " + mysqlshellUser + " -S " + mysqlSocketPath
+
 	// mysqlctlWaitTime is how long mysqlctld will wait for mysqld to start up
 	// before assuming it's stuck and trying to restart it. We set this fairly
 	// high because it can take a while to do crash recovery and it's rarely
