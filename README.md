@@ -53,7 +53,7 @@ the new pairing.
 
 ## Build
 
-This secton describes how to build your own Vitess Operator binaries and images.
+This section describes how to build your own Vitess Operator binaries and images.
 See the Getting Started guides above if you just want to deploy Vitess Operator
 from pre-built images.
 
