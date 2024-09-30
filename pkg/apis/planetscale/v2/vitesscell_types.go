@@ -124,19 +124,22 @@ type AutoscalerSpec struct {
 	// MinReplicas is the minimum number of instances of vtgate to run in
 	// this cell when autoscaling is enabled.
 	// +kubebuilder:validation:Minimum=0
+	// +optional
 	MinReplicas *int32 `json:"minReplicas,omitempty"`
 
 	// MaxReplicas is the maximum number of instances of vtgate to run in
 	// this cell when autoscaling is enabled.
 	// +kubebuilder:validation:Minimum=0
-	MaxReplicas *int32 `json:"maxReplicas,omitempty"`
+	MaxReplicas int32 `json:"maxReplicas,omitempty"`
 
+	// Behavior specifies the scaling behavior of the target in both Up and Down directions.
 	// +optional
 	Behavior *autoscalingv2.HorizontalPodAutoscalerBehavior `json:"behavior,omitempty"`
 
 	// Metrics is meant to provide a customizable way to configure HPA metrics.
 	// currently the only supported custom metrics is type=Pod.
 	// Use TargetCPUUtilization or TargetMemoryUtilization instead if scaling on these common resource metrics.
+	// +listType=atomic
 	// +optional
 	Metrics []autoscalingv2.MetricSpec `json:"metrics,omitempty"`
 }

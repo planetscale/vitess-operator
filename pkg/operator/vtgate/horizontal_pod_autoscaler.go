@@ -29,7 +29,7 @@ import (
 type HpaSpec struct {
 	Labels      map[string]string
 	MinReplicas *int32
-	MaxReplicas *int32
+	MaxReplicas int32
 	Behavior    *autoscalingv2.HorizontalPodAutoscalerBehavior `json:"behavior,omitempty"`
 	Metrics     []autoscalingv2.MetricSpec                     `json:"metrics,omitempty"`
 }
@@ -62,7 +62,7 @@ func UpdateHorizontalPodAutoscaler(obj *autoscalingv2.HorizontalPodAutoscaler, s
 
 	// Set the specs for the HorizontalPodAutoscaler object.
 	obj.Spec.MinReplicas = spec.MinReplicas
-	obj.Spec.MaxReplicas = *spec.MaxReplicas
+	obj.Spec.MaxReplicas = spec.MaxReplicas
 	obj.Spec.Metrics = spec.Metrics
 	obj.Spec.Behavior = spec.Behavior
 }

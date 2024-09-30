@@ -18,11 +18,6 @@ func (in *AutoscalerSpec) DeepCopyInto(out *AutoscalerSpec) {
 		*out = new(int32)
 		**out = **in
 	}
-	if in.MaxReplicas != nil {
-		in, out := &in.MaxReplicas, &out.MaxReplicas
-		*out = new(int32)
-		**out = **in
-	}
 	if in.Behavior != nil {
 		in, out := &in.Behavior, &out.Behavior
 		*out = new(autoscalingv2.HorizontalPodAutoscalerBehavior)

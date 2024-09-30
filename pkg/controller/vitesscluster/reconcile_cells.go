@@ -153,7 +153,7 @@ func updateVitessCellInPlace(key client.ObjectKey, vtc *planetscalev2.VitessCell
 	update.Labels(&vtc.Labels, newCell.Labels)
 
 	// Only update replicas if autoscaling is disabled.
-	if vtc.Spec.Gateway.Autoscaler != nil && vtc.Spec.Gateway.Autoscaler.MaxReplicas != nil {
+	if vtc.Spec.Gateway.Autoscaler != nil {
 		// We allow immediate update of replica counts for stateless workloads,
 		// like Deployment does.
 		vtc.Spec.Gateway.Replicas = newCell.Spec.Gateway.Replicas

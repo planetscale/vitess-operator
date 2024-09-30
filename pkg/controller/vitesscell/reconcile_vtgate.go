@@ -174,11 +174,10 @@ func (r *ReconcileVitessCell) reconcileVtgate(ctx context.Context, vtc *planetsc
 		resultBuilder.Error(err)
 	}
 
-	var wantHpa bool
+	var wantHpa = vtc.Spec.Gateway.Autoscaler != nil
 	var hpaSpec *vtgate.HpaSpec
 
 	if vtc.Spec.Gateway.Autoscaler != nil {
-		wantHpa = vtc.Spec.Gateway.Autoscaler.MaxReplicas != nil
 		hpaSpec = &vtgate.HpaSpec{
 			Labels:      labels,
 			MinReplicas: vtc.Spec.Gateway.Autoscaler.MinReplicas,
