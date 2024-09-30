@@ -18,17 +18,17 @@ func (in *AutoscalerSpec) DeepCopyInto(out *AutoscalerSpec) {
 		*out = new(int32)
 		**out = **in
 	}
-	if in.Behavior != nil {
-		in, out := &in.Behavior, &out.Behavior
-		*out = new(autoscalingv2.HorizontalPodAutoscalerBehavior)
-		(*in).DeepCopyInto(*out)
-	}
 	if in.Metrics != nil {
 		in, out := &in.Metrics, &out.Metrics
 		*out = make([]autoscalingv2.MetricSpec, len(*in))
 		for i := range *in {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
+	}
+	if in.Behavior != nil {
+		in, out := &in.Behavior, &out.Behavior
+		*out = new(autoscalingv2.HorizontalPodAutoscalerBehavior)
+		(*in).DeepCopyInto(*out)
 	}
 }
 

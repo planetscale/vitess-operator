@@ -550,20 +550,6 @@ this cell when autoscaling is enabled.</p>
 </tr>
 <tr>
 <td>
-<code>behavior</code></br>
-<em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#horizontalpodautoscalerbehavior-v2-autoscaling">
-Kubernetes autoscaling/v2.HorizontalPodAutoscalerBehavior
-</a>
-</em>
-</td>
-<td>
-<em>(Optional)</em>
-<p>Behavior specifies the scaling behavior of the target in both Up and Down directions.</p>
-</td>
-</tr>
-<tr>
-<td>
 <code>metrics</code></br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#metricspec-v2-autoscaling">
@@ -576,6 +562,20 @@ Kubernetes autoscaling/v2.HorizontalPodAutoscalerBehavior
 <p>Metrics is meant to provide a customizable way to configure HPA metrics.
 currently the only supported custom metrics is type=Pod.
 Use TargetCPUUtilization or TargetMemoryUtilization instead if scaling on these common resource metrics.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>behavior</code></br>
+<em>
+<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#horizontalpodautoscalerbehavior-v2-autoscaling">
+Kubernetes autoscaling/v2.HorizontalPodAutoscalerBehavior
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Behavior specifies the scaling behavior of the target in both Up and Down directions.</p>
 </td>
 </tr>
 </tbody>
