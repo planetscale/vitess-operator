@@ -18,6 +18,7 @@ package vitesscell
 
 import (
 	"context"
+	"strings"
 
 	appsv1 "k8s.io/api/apps/v1"
 	autoscalingv2 "k8s.io/api/autoscaling/v2"
@@ -164,7 +165,11 @@ func (r *ReconcileVitessCell) reconcileVtgate(ctx context.Context, vtc *planetsc
 			if replicas := curObj.Spec.Replicas; replicas != nil {
 				status.Replicas = *replicas
 			}
-			status.LabelSelector = curObj.Spec.Selector.String()
+			labelSelectorExprs := make([]string, 0, len(curObj.Spec.Selector.MatchLabels))
+			for key, value := range curObj.Spec.Selector.MatchLabels {
+				labelSelectorExprs = append(labelSelectorExprs, key+"="+value)
+			}
+			status.LabelSelector = strings.Join(labelSelectorExprs, ",")
 			if available := conditions.Deployment(curObj.Status.Conditions, appsv1.DeploymentAvailable); available != nil {
 				status.Available = available.Status
 			}
