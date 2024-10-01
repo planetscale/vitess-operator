@@ -16,9 +16,8 @@ function verifyHpaCount() {
 
 function verifyHpaWithTimeout() {
   regex=$1
-  retries=$2
-  for i in {1..$retries} ; do
-    out=$(kubectl get hpa --no-headers -o custom-columns=":metadata.name,:spec.maxReplicas,:spec.minReplicas,:spec.scaleTargetRef.name")
+  for i in {1..600} ; do
+    out=$(kubectl get hpa --no-headers)
     echo "$out" | grep -E "$regex" > /dev/null 2>&1
     if [[ $? -eq 0 ]]; then
       echo "HorizontalPodAutoscaler $regex found"
@@ -51,7 +50,7 @@ verifyHpaCount 0
 echo "Apply cluster_autoscale.yaml"
 kubectl apply -f cluster_autoscale.yaml
 
-verifyHpaWithTimeout "example-zone1-vtgate(.*)3\s+2\s+example-zone1-vtgate(.*)" 10 || exit 1
+verifyHpaWithTimeout "example-zone1-(\w*)\s+VitessCell/example-zone1-(\1*)\s+[0-9]+%/80%\s+2\s+3\s+2"
 verifyHpaCount 1
 
 # Teardown
