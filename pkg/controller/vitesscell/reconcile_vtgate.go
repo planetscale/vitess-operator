@@ -34,6 +34,7 @@ import (
 	"planetscale.dev/vitess-operator/pkg/operator/results"
 	"planetscale.dev/vitess-operator/pkg/operator/secrets"
 	"planetscale.dev/vitess-operator/pkg/operator/update"
+	"planetscale.dev/vitess-operator/pkg/operator/vitesscell"
 	"planetscale.dev/vitess-operator/pkg/operator/vtgate"
 )
 
@@ -179,6 +180,7 @@ func (r *ReconcileVitessCell) reconcileVtgate(ctx context.Context, vtc *planetsc
 		resultBuilder.Error(err)
 	}
 
+	key = client.ObjectKey{Namespace: vtc.Namespace, Name: vitesscell.Name(clusterName, vtc.Spec.Name)}
 	var wantHpa = vtc.Spec.Gateway.Autoscaler != nil
 	var hpaSpec *vtgate.HpaSpec
 
