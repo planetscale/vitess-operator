@@ -146,7 +146,7 @@ func verifyBasicVitessCluster(f *framework.Fixture, ns, cluster string) {
 	verifyBasicVitessCell(f, ns, cluster, "cell1")
 	verifyBasicVitessCell(f, ns, cluster, "cell2")
 	verifyBasicVitessCell(f, ns, cluster, "cell3")
-	f.MustGet(ns, names.JoinWithConstraints(names.DefaultConstraints, cluster, "cell3", "vtgate"), &autoscalingv2.HorizontalPodAutoscaler{})
+	f.MustGet(ns, names.JoinWithConstraints(names.DefaultConstraints, cluster, "cell3"), &autoscalingv2.HorizontalPodAutoscaler{})
 
 	// VitessCluster creates VitessKeyspaces.
 	verifyBasicVitessKeyspace(f, ns, cluster, "keyspace1")
