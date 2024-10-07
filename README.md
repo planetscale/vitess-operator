@@ -70,3 +70,4 @@ make build IMAGE_NAME=your.registry/vitess/operator
 If you would like to contribute to this project, please refer to the
 [contributing readme](CONTRIBUTING.md)
 
+test
