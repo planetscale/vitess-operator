@@ -69,3 +69,12 @@ func DefaultVitessKeyspaceImages(dst *VitessKeyspaceImages, clusterDefaults *Vit
 		dst.MysqldExporter = clusterDefaults.MysqldExporter
 	}
 }
+
+// MergeVitessKeyspaceTemplateImages takes non-empty image values from a non-nil src
+// and sets them on dst.
+func MergeVitessKeyspaceTemplateImages(dst *VitessKeyspaceImages, src *VitessKeyspaceTemplateImages) {
+	if src.Mysqld != nil {
+		dst.Mysqld.Mysql56Compatible = src.Mysqld.Mysql56Compatible
+		dst.Mysqld.Mysql80Compatible = src.Mysqld.Mysql80Compatible
+	}
+}

@@ -1172,6 +1172,16 @@ spec:
                       type: string
                     durabilityPolicy:
                       type: string
+                    images:
+                      properties:
+                        mysqld:
+                          properties:
+                            mysql56Compatible:
+                              type: string
+                            mysql80Compatible:
+                              type: string
+                          type: object
+                      type: object
                     name:
                       maxLength: 63
                       minLength: 1
