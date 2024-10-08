@@ -50,7 +50,7 @@ verifyHpaCount 0
 echo "Apply cluster_autoscale.yaml"
 kubectl apply -f cluster_autoscale.yaml
 
-verifyHpaWithTimeout "example-zone1-(\w+)\s+VitessCell/example-zone1-(\w+)\s+[0-9]+%/80%\s+2\s+3\s+2"
+verifyHpaWithTimeout "example-zone1-(\w+)\s+VitessCell/example-zone1-(\w+)\s+cpu:\s+[0-9]+%/80%\s+2\s+3\s+2"
 verifyHpaCount 1
 
 # Teardown
