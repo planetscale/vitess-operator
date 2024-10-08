@@ -1289,6 +1289,14 @@ spec:
                             mysql80Compatible:
                               type: string
                           type: object
+                        mysqldExporter:
+                          type: string
+                        vtbackup:
+                          type: string
+                        vtorc:
+                          type: string
+                        vttablet:
+                          type: string
                       type: object
                     name:
                       maxLength: 63
