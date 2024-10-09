@@ -8,13 +8,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    <title>PlanetScale API Reference</title>
+    <title>Vitess Operator API Reference</title>
 </head>
 
 <body>
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <a class="navbar-brand" href="#">PlanetScale API Reference</a>
+    <a class="navbar-brand" href="#">Vitess Operator API Reference</a>
     <ul class="navbar-nav">
         <li class="nav-item">
             <a class="nav-link" href="#planetscale.com/v2.VitessCluster">VitessCluster</a>
