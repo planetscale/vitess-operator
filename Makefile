@@ -32,6 +32,9 @@ integration-test:
 generate:
 	go run sigs.k8s.io/controller-tools/cmd/controller-gen object crd:maxDescLen=0 paths="./pkg/apis/planetscale/v2" output:crd:artifacts:config=./deploy/crds
 	go run github.com/ahmetb/gen-crd-api-reference-docs -api-dir planetscale.dev/vitess-operator/pkg/apis/planetscale/v2 -config ./docs/api/config.json -template-dir ./docs/api/template -out-file ./docs/api/index.html
+	@echo 'Copying ./docs/api/index.html to ./docs/api.md'
+	@cp ./docs/api/index.html ./docs/api.md && ex -sc '1,2d|x' ./docs/api.md
+	@echo 'Written to ./docs/api.md'
 
 generate-and-diff: generate
 	git add --all
