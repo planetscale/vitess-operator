@@ -18,8 +18,10 @@ package vitesscell
 
 import (
 	"context"
+	"strings"
 
 	appsv1 "k8s.io/api/apps/v1"
+	autoscalingv2 "k8s.io/api/autoscaling/v2"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	apitypes "k8s.io/apimachinery/pkg/types"
@@ -32,6 +34,7 @@ import (
 	"planetscale.dev/vitess-operator/pkg/operator/results"
 	"planetscale.dev/vitess-operator/pkg/operator/secrets"
 	"planetscale.dev/vitess-operator/pkg/operator/update"
+	"planetscale.dev/vitess-operator/pkg/operator/vitesscell"
 	"planetscale.dev/vitess-operator/pkg/operator/vtgate"
 )
 
@@ -160,9 +163,47 @@ func (r *ReconcileVitessCell) reconcileVtgate(ctx context.Context, vtc *planetsc
 			curObj := obj.(*appsv1.Deployment)
 
 			status := &vtc.Status.Gateway
+			if replicas := curObj.Spec.Replicas; replicas != nil {
+				status.Replicas = *replicas
+			}
+			labelSelectorExprs := make([]string, 0, len(curObj.Spec.Selector.MatchLabels))
+			for key, value := range curObj.Spec.Selector.MatchLabels {
+				labelSelectorExprs = append(labelSelectorExprs, key+"="+value)
+			}
+			status.LabelSelector = strings.Join(labelSelectorExprs, ",")
 			if available := conditions.Deployment(curObj.Status.Conditions, appsv1.DeploymentAvailable); available != nil {
 				status.Available = available.Status
 			}
+		},
+	})
+	if err != nil {
+		resultBuilder.Error(err)
+	}
+
+	key = client.ObjectKey{Namespace: vtc.Namespace, Name: vitesscell.Name(clusterName, vtc.Spec.Name)}
+	var wantHpa = vtc.Spec.Gateway.Autoscaler != nil
+	var hpaSpec *vtgate.HpaSpec
+
+	if vtc.Spec.Gateway.Autoscaler != nil {
+		hpaSpec = &vtgate.HpaSpec{
+			Labels:      labels,
+			MinReplicas: vtc.Spec.Gateway.Autoscaler.MinReplicas,
+			MaxReplicas: vtc.Spec.Gateway.Autoscaler.MaxReplicas,
+			Behavior:    vtc.Spec.Gateway.Autoscaler.Behavior,
+			Metrics:     vtc.Spec.Gateway.Autoscaler.Metrics,
+		}
+	}
+
+	// Reconcile vtgate HorizontalPodAutoscaler.
+	err = r.reconciler.ReconcileObject(ctx, vtc, key, labels, wantHpa, reconciler.Strategy{
+		Kind: &autoscalingv2.HorizontalPodAutoscaler{},
+
+		New: func(key client.ObjectKey) runtime.Object {
+			return vtgate.NewHorizontalPodAutoscaler(key, hpaSpec)
+		},
+		UpdateInPlace: func(key client.ObjectKey, obj runtime.Object) {
+			newObj := obj.(*autoscalingv2.HorizontalPodAutoscaler)
+			vtgate.UpdateHorizontalPodAutoscaler(newObj, hpaSpec)
 		},
 	})
 	if err != nil {

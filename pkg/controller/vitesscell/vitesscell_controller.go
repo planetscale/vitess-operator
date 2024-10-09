@@ -37,6 +37,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
+	autoscalingv2 "k8s.io/api/autoscaling/v2"
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 	"planetscale.dev/vitess-operator/pkg/operator/environment"
 	"planetscale.dev/vitess-operator/pkg/operator/metrics"
@@ -60,6 +61,7 @@ var log = logrus.WithField("controller", "VitessCell")
 var watchResources = []client.Object{
 	&corev1.Service{},
 	&appsv1.Deployment{},
+	&autoscalingv2.HorizontalPodAutoscaler{},
 
 	&planetscalev2.EtcdLockserver{},
 }

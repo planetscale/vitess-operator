@@ -79,3 +79,9 @@ rules:
   - jobs
   verbs:
   - '*'
+- apiGroups:
+  - autoscaling
+  resources:
+  - horizontalpodautoscalers
+  verbs:
+  - '*'
