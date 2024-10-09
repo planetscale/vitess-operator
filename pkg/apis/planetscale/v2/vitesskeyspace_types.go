@@ -189,7 +189,14 @@ type VitessKeyspaceTemplate struct {
 
 // VitessKeyspaceTemplateImages specifies user-definable container images to
 // use for this keyspace. The images defined here by the user will override
-// those defined at the top-level in VitessCluster.spec.images
+// those defined at the top-level in VitessCluster.spec.images.
+//
+// While this field allows you to set a different set of Vitess version for
+// some components of Vitess than the version defined at the top level, it
+// is important to note that Vitess only ensure compatibility between one
+// version and the next and previous one. For instance: N is only compatible
+// with N+1 and N-1. Do be careful when specifying multiple versions across
+// your cluster so that they respect this compatibility rule.
 //
 // Note: this structure is a copy of VitessKeyspaceImages, once we have gotten
 // rid of MysqldImage and replaced it by MysqldImageNew (planned for v2.15), we
