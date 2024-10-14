@@ -21,6 +21,7 @@ import (
 	"testing"
 
 	appsv1 "k8s.io/api/apps/v1"
+	autoscalingv2 "k8s.io/api/autoscaling/v2"
 	corev1 "k8s.io/api/core/v1"
 	apilabels "k8s.io/apimachinery/pkg/labels"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -38,6 +39,17 @@ spec:
   - name: cell1
   - name: cell2
   - name: cell3
+    gateway:
+      autoscaler:
+        minReplicas: 1
+        maxReplicas: 2
+        metrics:
+          - type: Resource
+            resource:
+              name: cpu
+              target:
+                type: Utilization
+                averageUtilization: 80
   keyspaces:
   - name: keyspace1
     partitionings:
@@ -134,6 +146,7 @@ func verifyBasicVitessCluster(f *framework.Fixture, ns, cluster string) {
 	verifyBasicVitessCell(f, ns, cluster, "cell1")
 	verifyBasicVitessCell(f, ns, cluster, "cell2")
 	verifyBasicVitessCell(f, ns, cluster, "cell3")
+	f.MustGet(ns, names.JoinWithConstraints(names.DefaultConstraints, cluster, "cell3"), &autoscalingv2.HorizontalPodAutoscaler{})
 
 	// VitessCluster creates VitessKeyspaces.
 	verifyBasicVitessKeyspace(f, ns, cluster, "keyspace1")

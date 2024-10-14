@@ -1,0 +1,103 @@
+# The following example is minimalist. The security policies
+# and resource specifications are not meant to be used in production.
+# Please refer to the operator documentation for recommendations on
+# production settings.
+apiVersion: planetscale.com/v2
+kind: VitessCluster
+metadata:
+  name: example
+spec:
+  images:
+    vtctld: vitess/lite:latest
+    vtgate: vitess/lite:latest
+    vttablet: vitess/lite:latest
+    vtorc: vitess/lite:latest
+    vtbackup: vitess/lite:latest
+    mysqld:
+      mysql80Compatible: mysql:8.0.30
+    mysqldExporter: prom/mysqld-exporter:v0.11.0
+  cells:
+  - name: zone1
+    gateway:
+      autoscaler:
+        minReplicas: 2
+        maxReplicas: 3
+        metrics:
+          - type: Resource
+            resource:
+              name: cpu
+              target:
+                type: Utilization
+                averageUtilization: 80
+      authentication:
+        static:
+          secret:
+            name: example-cluster-config
+            key: users.json
+      replicas: 1
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          memory: 256Mi
+  vitessDashboard:
+    cells:
+    - zone1
+    extraFlags:
+      security_policy: read-only
+    replicas: 1
+    resources:
+      limits:
+        memory: 128Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+
+  keyspaces:
+  - name: commerce
+    durabilityPolicy: semi_sync
+    turndownPolicy: Immediate
+    vitessOrchestrator:
+      resources:
+        limits:
+          memory: 128Mi
+        requests:
+          cpu: 100m
+          memory: 128Mi
+      extraFlags:
+        recovery-period-block-duration: 5s
+    partitionings:
+    - equal:
+        parts: 1
+        shardTemplate:
+          databaseInitScriptSecret:
+            name: example-cluster-config
+            key: init_db.sql
+          tabletPools:
+          - cell: zone1
+            type: replica
+            replicas: 3
+            vttablet:
+              extraFlags:
+                db_charset: utf8mb4
+              resources:
+                limits:
+                  memory: 256Mi
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+            mysqld:
+              resources:
+                limits:
+                  memory: 1024Mi
+                requests:
+                  cpu: 100m
+                  memory: 512Mi
+            dataVolumeClaimTemplate:
+              accessModes: ["ReadWriteOnce"]
+              resources:
+                requests:
+                  storage: 10Gi
+  updateStrategy:
+    type: Immediate

@@ -77,3 +77,7 @@ vtorc-vtadmin-test: build e2e-test-setup
 unmanaged-tablet-test: build e2e-test-setup
 	echo "Running Unmanaged Tablet test"
 	test/endtoend/unmanaged_tablet_test.sh
+
+hpa-test: build e2e-test-setup
+	echo "Running HPA test"
+	test/endtoend/hpa_test.sh

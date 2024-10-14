@@ -17,6 +17,7 @@ limitations under the License.
 package v2
 
 import (
+	autoscalingv2 "k8s.io/api/autoscaling/v2"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -39,6 +40,7 @@ import (
 // just like a Deployment can manage Pods that run on multiple Nodes.
 // +kubebuilder:resource:path=vitesscells,shortName=vtc
 // +kubebuilder:subresource:status
+// +kubebuilder:subresource:scale:specpath=.spec.gateway.replicas,statuspath=.status.gateway.replicas,selectorpath=.status.gateway.labelSelector
 type VitessCell struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
@@ -117,11 +119,41 @@ type VitessCellImages struct {
 	Vtgate string `json:"vtgate,omitempty"`
 }
 
+// AutoscalerSpec defines the vtgate's pod autoscaling specification.
+type AutoscalerSpec struct {
+	// MinReplicas is the minimum number of instances of vtgate to run in
+	// this cell when autoscaling is enabled.
+	// +kubebuilder:validation:Minimum=0
+	// +optional
+	MinReplicas *int32 `json:"minReplicas,omitempty"`
+
+	// MaxReplicas is the maximum number of instances of vtgate to run in
+	// this cell when autoscaling is enabled.
+	// +kubebuilder:validation:Minimum=0
+	MaxReplicas int32 `json:"maxReplicas,omitempty"`
+
+	// Metrics is meant to provide a customizable way to configure HPA metrics.
+	// currently the only supported custom metrics is type=Pod.
+	// Use TargetCPUUtilization or TargetMemoryUtilization instead if scaling on these common resource metrics.
+	// +listType=atomic
+	// +optional
+	Metrics []autoscalingv2.MetricSpec `json:"metrics,omitempty"`
+
+	// Behavior specifies the scaling behavior of the target in both Up and Down directions.
+	// +optional
+	Behavior *autoscalingv2.HorizontalPodAutoscalerBehavior `json:"behavior,omitempty"`
+}
+
 // VitessCellGatewaySpec specifies the per-cell deployment parameters for vtgate.
 type VitessCellGatewaySpec struct {
 	// Replicas is the number of vtgate instances to deploy in this cell.
 	// +kubebuilder:validation:Minimum=0
 	Replicas *int32 `json:"replicas,omitempty"`
+
+	// Autoscaler specifies the pod autoscaling configuration to use
+	// for the vtgate workload.
+	// +optional
+	Autoscaler *AutoscalerSpec `json:"autoscaler,omitempty"`
 
 	// Resources determines the compute resources reserved for each vtgate replica.
 	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
@@ -252,6 +284,13 @@ type VitessCellGatewayStatus struct {
 	Available corev1.ConditionStatus `json:"available,omitempty"`
 	// ServiceName is the name of the Service for this cell's vtgate.
 	ServiceName string `json:"serviceName,omitempty"`
+	// LabelSelector is required by the Scale subresource, which is used by
+	// HorizontalPodAutoscaler when reading pod metrics.
+	LabelSelector string `json:"labelSelector,omitempty"`
+	// Replicas is required by the Scale subresource, which is used by
+	// HorizontalPodAutoscaler to determine the current number of replicas.
+	// +kubebuilder:validation:Minimum=0
+	Replicas int32 `json:"replicas,omitempty"`
 }
 
 // VitessCellStatus defines the observed state of VitessCell

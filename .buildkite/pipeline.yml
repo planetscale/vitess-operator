@@ -101,3 +101,22 @@ steps:
           propagate-environment: true
           volumes:
             - "/var/run/docker.sock:/var/run/docker.sock"
+
+  - name: "HPA Test"
+    command:
+    - apk add g++ make bash gcompat curl mysql mysql-client libc6-compat
+    - wget https://golang.org/dl/$GO_VERSION_FILE
+    - tar -C /usr/local -xzf $GO_VERSION_FILE
+    - export PATH=$PATH:/usr/local/go/bin
+    - rm $GO_VERSION_FILE
+    - ln -s /lib/libc.so.6 /usr/lib/libresolv.so.2
+    - make hpa-test
+    concurrency: 1
+    concurrency_group: 'vtop/hpa-test'
+    timeout_in_minutes: 60
+    plugins:
+      - docker#v3.12.0:
+          image: "docker:latest"
+          propagate-environment: true
+          volumes:
+            - "/var/run/docker.sock:/var/run/docker.sock"
