@@ -188,13 +188,34 @@ type VitessKeyspaceTemplate struct {
 }
 
 // VitessKeyspaceTemplateImages specifies user-definable container images to
-// use for this keyspace.
+// use for this keyspace. The images defined here by the user will override
+// those defined at the top-level in VitessCluster.spec.images.
+//
+// While this field allows you to set a different Vitess version for some
+// components than the version defined at the top level, it is important to
+// note that Vitess only ensures compatibility between one version and the
+// next and previous one. For instance: N is only guaranteed  to be compatible
+// with N+1 and N-1. Do be careful when specifying multiple versions across
+// your cluster so that they respect this compatibility rule.
+//
+// Note: this structure is a copy of VitessKeyspaceImages, once we have gotten
+// rid of MysqldImage and replaced it by MysqldImageNew (planned for v2.15), we
+// should be able to remove VitessKeyspaceTemplateImages entirely and just use
+// VitessKeyspaceImages instead as it contains exactly the same fields.
 type VitessKeyspaceTemplateImages struct {
+	// Vttablet is the container image (including version tag) to use for Vitess Tablet instances.
+	Vttablet string `json:"vttablet,omitempty"`
+	// Vtorc is the container image (including version tag) to use for Vitess Orchestrator instances.
+	Vtorc string `json:"vtorc,omitempty"`
+	// Vtbackup is the container image (including version tag) to use for Vitess Backup jobs.
+	Vtbackup string `json:"vtbackup,omitempty"`
 	// Mysqld specifies the container image to use for mysqld, as well as
 	// declaring which MySQL flavor setting in Vitess the image is
 	// compatible with. Only one flavor image may be provided at a time.
 	// mysqld running alongside each tablet.
 	Mysqld *MysqldImageNew `json:"mysqld,omitempty"`
+	// MysqldExporter specifies the container image for mysqld-exporter.
+	MysqldExporter string `json:"mysqldExporter,omitempty"`
 }
 
 // VitessOrchestratorSpec specifies deployment parameters for vtorc.
