@@ -108,7 +108,7 @@ killall kubectl
 setupKubectlAccessForCI
 
 get_started "operator-latest.yaml" "101_initial_cluster_backup.yaml"
-verifyVtGateVersion "21.0.0"
+verifyVtGateVersion "22.0.0"
 checkSemiSyncSetup
 takeBackup "commerce/-"
 verifyListBackupsOutput
