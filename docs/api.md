@@ -6549,7 +6549,18 @@ operation, after which the source keyspace is destroyed.</p>
 </p>
 <p>
 <p>VitessKeyspaceTemplateImages specifies user-definable container images to
-use for this keyspace.</p>
+use for this keyspace. The images defined here by the user will override
+those defined at the top-level in VitessCluster.spec.images.</p>
+<p>While this field allows you to set a different Vitess version for some
+components than the version defined at the top level, it is important to
+note that Vitess only ensures compatibility between one version and the
+next and previous one. For instance: N is only guaranteed  to be compatible
+with N+1 and N-1. Do be careful when specifying multiple versions across
+your cluster so that they respect this compatibility rule.</p>
+<p>Note: this structure is a copy of VitessKeyspaceImages, once we have gotten
+rid of MysqldImage and replaced it by MysqldImageNew (planned for v2.15), we
+should be able to remove VitessKeyspaceTemplateImages entirely and just use
+VitessKeyspaceImages instead as it contains exactly the same fields.</p>
 </p>
 <table class="table table-striped">
 <thead class="thead-dark">
@@ -6559,6 +6570,39 @@ use for this keyspace.</p>
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+<code>vttablet</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Vttablet is the container image (including version tag) to use for Vitess Tablet instances.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>vtorc</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Vtorc is the container image (including version tag) to use for Vitess Orchestrator instances.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>vtbackup</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Vtbackup is the container image (including version tag) to use for Vitess Backup jobs.</p>
+</td>
+</tr>
 <tr>
 <td>
 <code>mysqld</code></br>
@@ -6573,6 +6617,17 @@ MysqldImageNew
 declaring which MySQL flavor setting in Vitess the image is
 compatible with. Only one flavor image may be provided at a time.
 mysqld running alongside each tablet.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>mysqldExporter</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>MysqldExporter specifies the container image for mysqld-exporter.</p>
 </td>
 </tr>
 </tbody>
