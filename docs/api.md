@@ -504,6 +504,80 @@ VitessClusterStatus
 </tr>
 </tbody>
 </table>
+<h3 id="planetscale.com/v2.AutoscalerSpec">AutoscalerSpec
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#planetscale.com/v2.VitessCellGatewaySpec">VitessCellGatewaySpec</a>)
+</p>
+<p>
+<p>AutoscalerSpec defines the vtgate&rsquo;s pod autoscaling specification.</p>
+</p>
+<table class="table table-striped">
+<thead class="thead-dark">
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>minReplicas</code></br>
+<em>
+int32
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>MinReplicas is the minimum number of instances of vtgate to run in
+this cell when autoscaling is enabled.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>maxReplicas</code></br>
+<em>
+int32
+</em>
+</td>
+<td>
+<p>MaxReplicas is the maximum number of instances of vtgate to run in
+this cell when autoscaling is enabled.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>metrics</code></br>
+<em>
+<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#metricspec-v2-autoscaling">
+[]Kubernetes autoscaling/v2.MetricSpec
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Metrics is meant to provide a customizable way to configure HPA metrics.
+currently the only supported custom metrics is type=Pod.
+Use TargetCPUUtilization or TargetMemoryUtilization instead if scaling on these common resource metrics.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>behavior</code></br>
+<em>
+<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#horizontalpodautoscalerbehavior-v2-autoscaling">
+Kubernetes autoscaling/v2.HorizontalPodAutoscalerBehavior
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Behavior specifies the scaling behavior of the target in both Up and Down directions.</p>
+</td>
+</tr>
+</tbody>
+</table>
 <h3 id="planetscale.com/v2.AzblobBackupLocation">AzblobBackupLocation
 </h3>
 <p>
@@ -3335,6 +3409,21 @@ int32
 </tr>
 <tr>
 <td>
+<code>autoscaler</code></br>
+<em>
+<a href="#planetscale.com/v2.AutoscalerSpec">
+AutoscalerSpec
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Autoscaler specifies the pod autoscaling configuration to use
+for the vtgate workload.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>resources</code></br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#resourcerequirements-v1-core">
@@ -3610,6 +3699,30 @@ string
 </td>
 <td>
 <p>ServiceName is the name of the Service for this cell&rsquo;s vtgate.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>labelSelector</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>LabelSelector is required by the Scale subresource, which is used by
+HorizontalPodAutoscaler when reading pod metrics.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>replicas</code></br>
+<em>
+int32
+</em>
+</td>
+<td>
+<p>Replicas is required by the Scale subresource, which is used by
+HorizontalPodAutoscaler to determine the current number of replicas.</p>
 </td>
 </tr>
 </tbody>
@@ -6549,7 +6662,18 @@ operation, after which the source keyspace is destroyed.</p>
 </p>
 <p>
 <p>VitessKeyspaceTemplateImages specifies user-definable container images to
-use for this keyspace.</p>
+use for this keyspace. The images defined here by the user will override
+those defined at the top-level in VitessCluster.spec.images.</p>
+<p>While this field allows you to set a different Vitess version for some
+components than the version defined at the top level, it is important to
+note that Vitess only ensures compatibility between one version and the
+next and previous one. For instance: N is only guaranteed  to be compatible
+with N+1 and N-1. Do be careful when specifying multiple versions across
+your cluster so that they respect this compatibility rule.</p>
+<p>Note: this structure is a copy of VitessKeyspaceImages, once we have gotten
+rid of MysqldImage and replaced it by MysqldImageNew (planned for v2.15), we
+should be able to remove VitessKeyspaceTemplateImages entirely and just use
+VitessKeyspaceImages instead as it contains exactly the same fields.</p>
 </p>
 <table class="table table-striped">
 <thead class="thead-dark">
@@ -6559,6 +6683,39 @@ use for this keyspace.</p>
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+<code>vttablet</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Vttablet is the container image (including version tag) to use for Vitess Tablet instances.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>vtorc</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Vtorc is the container image (including version tag) to use for Vitess Orchestrator instances.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>vtbackup</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>Vtbackup is the container image (including version tag) to use for Vitess Backup jobs.</p>
+</td>
+</tr>
 <tr>
 <td>
 <code>mysqld</code></br>
@@ -6573,6 +6730,17 @@ MysqldImageNew
 declaring which MySQL flavor setting in Vitess the image is
 compatible with. Only one flavor image may be provided at a time.
 mysqld running alongside each tablet.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>mysqldExporter</code></br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>MysqldExporter specifies the container image for mysqld-exporter.</p>
 </td>
 </tr>
 </tbody>
