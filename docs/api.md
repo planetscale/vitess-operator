@@ -47,7 +47,7 @@ consistency model that Vitess expects of a lockserver.</p>
 <tbody>
 <tr>
 <td>
-<code>apiVersion</code></br>
+<code>apiVersion</code><br>
 string</td>
 <td>
 <code>
@@ -57,14 +57,14 @@ planetscale.com/v2
 </tr>
 <tr>
 <td>
-<code>kind</code></br>
+<code>kind</code><br>
 string
 </td>
 <td><code>EtcdLockserver</code></td>
 </tr>
 <tr>
 <td>
-<code>metadata</code></br>
+<code>metadata</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#objectmeta-v1-meta">
 Kubernetes meta/v1.ObjectMeta
@@ -78,7 +78,7 @@ Refer to the Kubernetes API documentation for the fields of the
 </tr>
 <tr>
 <td>
-<code>spec</code></br>
+<code>spec</code><br>
 <em>
 <a href="#planetscale.com/v2.EtcdLockserverSpec">
 EtcdLockserverSpec
@@ -91,7 +91,7 @@ EtcdLockserverSpec
 <table>
 <tr>
 <td>
-<code>EtcdLockserverTemplate</code></br>
+<code>EtcdLockserverTemplate</code><br>
 <em>
 <a href="#planetscale.com/v2.EtcdLockserverTemplate">
 EtcdLockserverTemplate
@@ -109,7 +109,7 @@ The rest of the fields below are filled in by the parent controller.</p>
 </tr>
 <tr>
 <td>
-<code>zone</code></br>
+<code>zone</code><br>
 <em>
 string
 </em>
@@ -126,7 +126,7 @@ If the Kubernetes Nodes don&rsquo;t have such a label, leave this empty.</p>
 </tr>
 <tr>
 <td>
-<code>status</code></br>
+<code>status</code><br>
 <em>
 <a href="#planetscale.com/v2.EtcdLockserverStatus">
 EtcdLockserverStatus
@@ -156,7 +156,7 @@ the storage location will be represented by its own VitessBackup object.</p>
 <tbody>
 <tr>
 <td>
-<code>apiVersion</code></br>
+<code>apiVersion</code><br>
 string</td>
 <td>
 <code>
@@ -166,14 +166,14 @@ planetscale.com/v2
 </tr>
 <tr>
 <td>
-<code>kind</code></br>
+<code>kind</code><br>
 string
 </td>
 <td><code>VitessBackup</code></td>
 </tr>
 <tr>
 <td>
-<code>metadata</code></br>
+<code>metadata</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#objectmeta-v1-meta">
 Kubernetes meta/v1.ObjectMeta
@@ -187,7 +187,7 @@ Refer to the Kubernetes API documentation for the fields of the
 </tr>
 <tr>
 <td>
-<code>spec</code></br>
+<code>spec</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessBackupSpec">
 VitessBackupSpec
@@ -203,7 +203,7 @@ VitessBackupSpec
 </tr>
 <tr>
 <td>
-<code>status</code></br>
+<code>status</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessBackupStatus">
 VitessBackupStatus
@@ -237,7 +237,7 @@ the VitessCluster object.</p>
 <tbody>
 <tr>
 <td>
-<code>apiVersion</code></br>
+<code>apiVersion</code><br>
 string</td>
 <td>
 <code>
@@ -247,14 +247,14 @@ planetscale.com/v2
 </tr>
 <tr>
 <td>
-<code>kind</code></br>
+<code>kind</code><br>
 string
 </td>
 <td><code>VitessCluster</code></td>
 </tr>
 <tr>
 <td>
-<code>metadata</code></br>
+<code>metadata</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#objectmeta-v1-meta">
 Kubernetes meta/v1.ObjectMeta
@@ -268,7 +268,7 @@ Refer to the Kubernetes API documentation for the fields of the
 </tr>
 <tr>
 <td>
-<code>spec</code></br>
+<code>spec</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessClusterSpec">
 VitessClusterSpec
@@ -281,7 +281,7 @@ VitessClusterSpec
 <table>
 <tr>
 <td>
-<code>images</code></br>
+<code>images</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessImages">
 VitessImages
@@ -296,7 +296,7 @@ Default: Let the operator choose.</p>
 </tr>
 <tr>
 <td>
-<code>imagePullPolicies</code></br>
+<code>imagePullPolicies</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessImagePullPolicies">
 VitessImagePullPolicies
@@ -310,7 +310,7 @@ images defined in the &lsquo;images&rsquo; field.</p>
 </tr>
 <tr>
 <td>
-<code>imagePullSecrets</code></br>
+<code>imagePullSecrets</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#localobjectreference-v1-core">
 []Kubernetes core/v1.LocalObjectReference
@@ -324,7 +324,7 @@ use the images defined in the &lsquo;images&rsquo; field.</p>
 </tr>
 <tr>
 <td>
-<code>backup</code></br>
+<code>backup</code><br>
 <em>
 <a href="#planetscale.com/v2.ClusterBackupSpec">
 ClusterBackupSpec
@@ -340,7 +340,7 @@ of a new tablet in a shard with existing data, as an implementation detail.</p>
 </tr>
 <tr>
 <td>
-<code>globalLockserver</code></br>
+<code>globalLockserver</code><br>
 <em>
 <a href="#planetscale.com/v2.LockserverSpec">
 LockserverSpec
@@ -355,7 +355,7 @@ Default: Deploy an etcd cluster as the global lockserver.</p>
 </tr>
 <tr>
 <td>
-<code>vitessDashboard</code></br>
+<code>vitessDashboard</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessDashboardSpec">
 VitessDashboardSpec
@@ -368,7 +368,7 @@ VitessDashboardSpec
 </tr>
 <tr>
 <td>
-<code>vtadmin</code></br>
+<code>vtadmin</code><br>
 <em>
 <a href="#planetscale.com/v2.VtAdminSpec">
 VtAdminSpec
@@ -381,7 +381,7 @@ VtAdminSpec
 </tr>
 <tr>
 <td>
-<code>cells</code></br>
+<code>cells</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessCellTemplate">
 []VitessCellTemplate
@@ -400,7 +400,7 @@ that no keyspaces are set to deploy to this cell.</p>
 </tr>
 <tr>
 <td>
-<code>keyspaces</code></br>
+<code>keyspaces</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessKeyspaceTemplate">
 []VitessKeyspaceTemplate
@@ -418,7 +418,7 @@ of target cells.</p>
 </tr>
 <tr>
 <td>
-<code>extraVitessFlags</code></br>
+<code>extraVitessFlags</code><br>
 <em>
 map[string]string
 </em>
@@ -434,7 +434,7 @@ set the string value to either &ldquo;true&rdquo; or &ldquo;false&rdquo;.</p>
 </tr>
 <tr>
 <td>
-<code>topologyReconciliation</code></br>
+<code>topologyReconciliation</code><br>
 <em>
 <a href="#planetscale.com/v2.TopoReconcileConfig">
 TopoReconcileConfig
@@ -447,7 +447,7 @@ TopoReconcileConfig
 </tr>
 <tr>
 <td>
-<code>updateStrategy</code></br>
+<code>updateStrategy</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessClusterUpdateStrategy">
 VitessClusterUpdateStrategy
@@ -461,7 +461,7 @@ when a revision is made to the VitessCluster spec.</p>
 </tr>
 <tr>
 <td>
-<code>gatewayService</code></br>
+<code>gatewayService</code><br>
 <em>
 <a href="#planetscale.com/v2.ServiceOverrides">
 ServiceOverrides
@@ -476,7 +476,7 @@ definition.</p>
 </tr>
 <tr>
 <td>
-<code>tabletService</code></br>
+<code>tabletService</code><br>
 <em>
 <a href="#planetscale.com/v2.ServiceOverrides">
 ServiceOverrides
@@ -492,7 +492,7 @@ ServiceOverrides
 </tr>
 <tr>
 <td>
-<code>status</code></br>
+<code>status</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessClusterStatus">
 VitessClusterStatus
@@ -523,7 +523,7 @@ VitessClusterStatus
 <tbody>
 <tr>
 <td>
-<code>minReplicas</code></br>
+<code>minReplicas</code><br>
 <em>
 int32
 </em>
@@ -536,7 +536,7 @@ this cell when autoscaling is enabled.</p>
 </tr>
 <tr>
 <td>
-<code>maxReplicas</code></br>
+<code>maxReplicas</code><br>
 <em>
 int32
 </em>
@@ -548,7 +548,7 @@ this cell when autoscaling is enabled.</p>
 </tr>
 <tr>
 <td>
-<code>metrics</code></br>
+<code>metrics</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#metricspec-v2-autoscaling">
 []Kubernetes autoscaling/v2.MetricSpec
@@ -564,7 +564,7 @@ Use TargetCPUUtilization or TargetMemoryUtilization instead if scaling on these 
 </tr>
 <tr>
 <td>
-<code>behavior</code></br>
+<code>behavior</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#horizontalpodautoscalerbehavior-v2-autoscaling">
 Kubernetes autoscaling/v2.HorizontalPodAutoscalerBehavior
@@ -597,7 +597,7 @@ Kubernetes autoscaling/v2.HorizontalPodAutoscalerBehavior
 <tbody>
 <tr>
 <td>
-<code>account</code></br>
+<code>account</code><br>
 <em>
 string
 </em>
@@ -608,7 +608,7 @@ string
 </tr>
 <tr>
 <td>
-<code>container</code></br>
+<code>container</code><br>
 <em>
 string
 </em>
@@ -619,7 +619,7 @@ string
 </tr>
 <tr>
 <td>
-<code>keyPrefix</code></br>
+<code>keyPrefix</code><br>
 <em>
 string
 </em>
@@ -634,7 +634,7 @@ within a container, regardless of this setting.</p>
 </tr>
 <tr>
 <td>
-<code>authSecret</code></br>
+<code>authSecret</code><br>
 <em>
 <a href="#planetscale.com/v2.SecretSource">
 SecretSource
@@ -676,7 +676,7 @@ When scheduling a backup, you must specify at least one strategy.</p>
 <tbody>
 <tr>
 <td>
-<code>authSecret</code></br>
+<code>authSecret</code><br>
 <em>
 <a href="#planetscale.com/v2.SecretSource">
 SecretSource
@@ -712,7 +712,7 @@ provisioning of a new tablet in a shard with existing data, as an implementation
 <tbody>
 <tr>
 <td>
-<code>locations</code></br>
+<code>locations</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessBackupLocation">
 []VitessBackupLocation
@@ -732,7 +732,7 @@ were originally taken.</p>
 </tr>
 <tr>
 <td>
-<code>engine</code></br>
+<code>engine</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessBackupEngine">
 VitessBackupEngine
@@ -750,7 +750,7 @@ Default: builtin</p>
 </tr>
 <tr>
 <td>
-<code>subcontroller</code></br>
+<code>subcontroller</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessBackupSubcontrollerSpec">
 VitessBackupSubcontrollerSpec
@@ -763,7 +763,7 @@ VitessBackupSubcontrollerSpec
 </tr>
 <tr>
 <td>
-<code>schedules</code></br>
+<code>schedules</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessBackupScheduleTemplate">
 []VitessBackupScheduleTemplate
@@ -807,7 +807,7 @@ is handled, the default is set to AllowConcurrent.</p>
 <tbody>
 <tr>
 <td>
-<code>EtcdLockserverTemplate</code></br>
+<code>EtcdLockserverTemplate</code><br>
 <em>
 <a href="#planetscale.com/v2.EtcdLockserverTemplate">
 EtcdLockserverTemplate
@@ -825,7 +825,7 @@ The rest of the fields below are filled in by the parent controller.</p>
 </tr>
 <tr>
 <td>
-<code>zone</code></br>
+<code>zone</code><br>
 <em>
 string
 </em>
@@ -859,7 +859,7 @@ If the Kubernetes Nodes don&rsquo;t have such a label, leave this empty.</p>
 <tbody>
 <tr>
 <td>
-<code>observedGeneration</code></br>
+<code>observedGeneration</code><br>
 <em>
 int64
 </em>
@@ -870,7 +870,7 @@ int64
 </tr>
 <tr>
 <td>
-<code>available</code></br>
+<code>available</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#conditionstatus-v1-core">
 Kubernetes core/v1.ConditionStatus
@@ -883,7 +883,7 @@ Kubernetes core/v1.ConditionStatus
 </tr>
 <tr>
 <td>
-<code>clientServiceName</code></br>
+<code>clientServiceName</code><br>
 <em>
 string
 </em>
@@ -916,7 +916,7 @@ lockserver.</p>
 <tbody>
 <tr>
 <td>
-<code>image</code></br>
+<code>image</code><br>
 <em>
 string
 </em>
@@ -928,7 +928,7 @@ Default: Let the operator choose.</p>
 </tr>
 <tr>
 <td>
-<code>imagePullPolicy</code></br>
+<code>imagePullPolicy</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#pullpolicy-v1-core">
 Kubernetes core/v1.PullPolicy
@@ -941,7 +941,7 @@ Kubernetes core/v1.PullPolicy
 </tr>
 <tr>
 <td>
-<code>imagePullSecrets</code></br>
+<code>imagePullSecrets</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#localobjectreference-v1-core">
 []Kubernetes core/v1.LocalObjectReference
@@ -955,7 +955,7 @@ etcd Pods.</p>
 </tr>
 <tr>
 <td>
-<code>resources</code></br>
+<code>resources</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#resourcerequirements-v1-core">
 Kubernetes core/v1.ResourceRequirements
@@ -969,7 +969,7 @@ Default: Let the operator choose.</p>
 </tr>
 <tr>
 <td>
-<code>dataVolumeClaimTemplate</code></br>
+<code>dataVolumeClaimTemplate</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#persistentvolumeclaimspec-v1-core">
 Kubernetes core/v1.PersistentVolumeClaimSpec
@@ -988,7 +988,7 @@ Default: Let the operator choose.</p>
 </tr>
 <tr>
 <td>
-<code>extraFlags</code></br>
+<code>extraFlags</code><br>
 <em>
 map[string]string
 </em>
@@ -1003,7 +1003,7 @@ set the string value to either &ldquo;true&rdquo; or &ldquo;false&rdquo;.</p>
 </tr>
 <tr>
 <td>
-<code>extraEnv</code></br>
+<code>extraEnv</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#envvar-v1-core">
 []Kubernetes core/v1.EnvVar
@@ -1017,7 +1017,7 @@ set by the operator, or pass additional environment variables.</p>
 </tr>
 <tr>
 <td>
-<code>extraVolumes</code></br>
+<code>extraVolumes</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volume-v1-core">
 []Kubernetes core/v1.Volume
@@ -1034,7 +1034,7 @@ should be mounted.</p>
 </tr>
 <tr>
 <td>
-<code>extraVolumeMounts</code></br>
+<code>extraVolumeMounts</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volumemount-v1-core">
 []Kubernetes core/v1.VolumeMount
@@ -1049,7 +1049,7 @@ Typically, these are used to mount volumes defined through extraVolumes.</p>
 </tr>
 <tr>
 <td>
-<code>initContainers</code></br>
+<code>initContainers</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core">
 []Kubernetes core/v1.Container
@@ -1063,7 +1063,7 @@ that will be run to completion one after another before any app containers are s
 </tr>
 <tr>
 <td>
-<code>sidecarContainers</code></br>
+<code>sidecarContainers</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core">
 []Kubernetes core/v1.Container
@@ -1077,7 +1077,7 @@ that run alongside the main containers.</p>
 </tr>
 <tr>
 <td>
-<code>affinity</code></br>
+<code>affinity</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#affinity-v1-core">
 Kubernetes core/v1.Affinity
@@ -1093,7 +1093,7 @@ choose to set this field.</p>
 </tr>
 <tr>
 <td>
-<code>annotations</code></br>
+<code>annotations</code><br>
 <em>
 map[string]string
 </em>
@@ -1105,7 +1105,7 @@ created for this component.</p>
 </tr>
 <tr>
 <td>
-<code>extraLabels</code></br>
+<code>extraLabels</code><br>
 <em>
 map[string]string
 </em>
@@ -1117,7 +1117,7 @@ created for this component.</p>
 </tr>
 <tr>
 <td>
-<code>createPDB</code></br>
+<code>createPDB</code><br>
 <em>
 bool
 </em>
@@ -1131,7 +1131,7 @@ member Pods.</p>
 </tr>
 <tr>
 <td>
-<code>createClientService</code></br>
+<code>createClientService</code><br>
 <em>
 bool
 </em>
@@ -1145,7 +1145,7 @@ of etcd member Pods.</p>
 </tr>
 <tr>
 <td>
-<code>createPeerService</code></br>
+<code>createPeerService</code><br>
 <em>
 bool
 </em>
@@ -1159,7 +1159,7 @@ of etcd member Pods.</p>
 </tr>
 <tr>
 <td>
-<code>advertisePeerURLs</code></br>
+<code>advertisePeerURLs</code><br>
 <em>
 []string
 </em>
@@ -1174,7 +1174,7 @@ member index (1,2,3) respectively.</p>
 </tr>
 <tr>
 <td>
-<code>localMemberIndex</code></br>
+<code>localMemberIndex</code><br>
 <em>
 int32
 </em>
@@ -1190,7 +1190,7 @@ index must be 1, 2, or 3.</p>
 </tr>
 <tr>
 <td>
-<code>clientService</code></br>
+<code>clientService</code><br>
 <em>
 <a href="#planetscale.com/v2.ServiceOverrides">
 ServiceOverrides
@@ -1203,7 +1203,7 @@ ServiceOverrides
 </tr>
 <tr>
 <td>
-<code>peerService</code></br>
+<code>peerService</code><br>
 <em>
 <a href="#planetscale.com/v2.ServiceOverrides">
 ServiceOverrides
@@ -1216,7 +1216,7 @@ ServiceOverrides
 </tr>
 <tr>
 <td>
-<code>tolerations</code></br>
+<code>tolerations</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#toleration-v1-core">
 []Kubernetes core/v1.Toleration
@@ -1249,7 +1249,7 @@ externally managed MySQL.</p>
 <tbody>
 <tr>
 <td>
-<code>user</code></br>
+<code>user</code><br>
 <em>
 string
 </em>
@@ -1261,7 +1261,7 @@ carry out necessary actions.  Password for this user must be supplied in the Cre
 </tr>
 <tr>
 <td>
-<code>host</code></br>
+<code>host</code><br>
 <em>
 string
 </em>
@@ -1272,7 +1272,7 @@ string
 </tr>
 <tr>
 <td>
-<code>port</code></br>
+<code>port</code><br>
 <em>
 int32
 </em>
@@ -1283,7 +1283,7 @@ int32
 </tr>
 <tr>
 <td>
-<code>database</code></br>
+<code>database</code><br>
 <em>
 string
 </em>
@@ -1294,7 +1294,7 @@ string
 </tr>
 <tr>
 <td>
-<code>credentialsSecret</code></br>
+<code>credentialsSecret</code><br>
 <em>
 <a href="#planetscale.com/v2.SecretSource">
 SecretSource
@@ -1314,7 +1314,7 @@ Vitess always uses the first password in the password array.</p>
 </tr>
 <tr>
 <td>
-<code>serverCACertSecret</code></br>
+<code>serverCACertSecret</code><br>
 <em>
 <a href="#planetscale.com/v2.SecretSource">
 SecretSource
@@ -1345,7 +1345,7 @@ SecretSource
 <tbody>
 <tr>
 <td>
-<code>allowResourceChanges</code></br>
+<code>allowResourceChanges</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#resourcename-v1-core">
 []Kubernetes core/v1.ResourceName
@@ -1381,7 +1381,7 @@ requests and limits to propagate immediately, bypassing the external rollout too
 <tbody>
 <tr>
 <td>
-<code>bucket</code></br>
+<code>bucket</code><br>
 <em>
 string
 </em>
@@ -1392,7 +1392,7 @@ string
 </tr>
 <tr>
 <td>
-<code>keyPrefix</code></br>
+<code>keyPrefix</code><br>
 <em>
 string
 </em>
@@ -1407,7 +1407,7 @@ within a bucket, regardless of this setting.</p>
 </tr>
 <tr>
 <td>
-<code>authSecret</code></br>
+<code>authSecret</code><br>
 <em>
 <a href="#planetscale.com/v2.SecretSource">
 SecretSource
@@ -1444,7 +1444,7 @@ which can be either global or local.</p>
 <tbody>
 <tr>
 <td>
-<code>external</code></br>
+<code>external</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessLockserverParams">
 VitessLockserverParams
@@ -1459,7 +1459,7 @@ If this is set, all other Lockserver fields are ignored.</p>
 </tr>
 <tr>
 <td>
-<code>etcd</code></br>
+<code>etcd</code><br>
 <em>
 <a href="#planetscale.com/v2.EtcdLockserverTemplate">
 EtcdLockserverTemplate
@@ -1472,7 +1472,7 @@ EtcdLockserverTemplate
 </tr>
 <tr>
 <td>
-<code>cellInfoAddress</code></br>
+<code>cellInfoAddress</code><br>
 <em>
 string
 </em>
@@ -1504,7 +1504,7 @@ Default: etcd client service.</p>
 <tbody>
 <tr>
 <td>
-<code>etcd</code></br>
+<code>etcd</code><br>
 <em>
 <a href="#planetscale.com/v2.EtcdLockserverStatus">
 EtcdLockserverStatus
@@ -1536,7 +1536,7 @@ EtcdLockserverStatus
 <tbody>
 <tr>
 <td>
-<code>resources</code></br>
+<code>resources</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#resourcerequirements-v1-core">
 Kubernetes core/v1.ResourceRequirements
@@ -1569,7 +1569,7 @@ Kubernetes core/v1.ResourceRequirements
 <tbody>
 <tr>
 <td>
-<code>mysql56Compatible</code></br>
+<code>mysql56Compatible</code><br>
 <em>
 string
 </em>
@@ -1581,7 +1581,7 @@ that&rsquo;s compatible with the Vitess &ldquo;MySQL56&rdquo; flavor setting.</p
 </tr>
 <tr>
 <td>
-<code>mysql80Compatible</code></br>
+<code>mysql80Compatible</code><br>
 <em>
 string
 </em>
@@ -1593,7 +1593,7 @@ that&rsquo;s compatible with the Vitess &ldquo;MySQL80&rdquo; flavor setting.</p
 </tr>
 <tr>
 <td>
-<code>mariadbCompatible</code></br>
+<code>mariadbCompatible</code><br>
 <em>
 string
 </em>
@@ -1605,7 +1605,7 @@ that&rsquo;s compatible with the Vitess &ldquo;MariaDB&rdquo; flavor setting.</p
 </tr>
 <tr>
 <td>
-<code>mariadb103Compatible</code></br>
+<code>mariadb103Compatible</code><br>
 <em>
 string
 </em>
@@ -1639,7 +1639,7 @@ image is compatible with.</p>
 <tbody>
 <tr>
 <td>
-<code>mysql56Compatible</code></br>
+<code>mysql56Compatible</code><br>
 <em>
 string
 </em>
@@ -1651,7 +1651,7 @@ that&rsquo;s compatible with the Vitess &ldquo;MySQL56&rdquo; flavor setting.</p
 </tr>
 <tr>
 <td>
-<code>mysql80Compatible</code></br>
+<code>mysql80Compatible</code><br>
 <em>
 string
 </em>
@@ -1682,7 +1682,7 @@ that&rsquo;s compatible with the Vitess &ldquo;MySQL80&rdquo; flavor setting.</p
 <tbody>
 <tr>
 <td>
-<code>resources</code></br>
+<code>resources</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#resourcerequirements-v1-core">
 Kubernetes core/v1.ResourceRequirements
@@ -1697,7 +1697,7 @@ This field is required.</p>
 </tr>
 <tr>
 <td>
-<code>configOverrides</code></br>
+<code>configOverrides</code><br>
 <em>
 string
 </em>
@@ -1731,7 +1731,7 @@ particular MySQL instance.</p>
 <tbody>
 <tr>
 <td>
-<code>reason</code></br>
+<code>reason</code><br>
 <em>
 string
 </em>
@@ -1742,7 +1742,7 @@ string
 </tr>
 <tr>
 <td>
-<code>message</code></br>
+<code>message</code><br>
 <em>
 string
 </em>
@@ -1772,7 +1772,7 @@ string
 <tbody>
 <tr>
 <td>
-<code>workflow</code></br>
+<code>workflow</code><br>
 <em>
 string
 </em>
@@ -1783,7 +1783,7 @@ string
 </tr>
 <tr>
 <td>
-<code>state</code></br>
+<code>state</code><br>
 <em>
 <a href="#planetscale.com/v2.WorkflowState">
 WorkflowState
@@ -1796,7 +1796,7 @@ WorkflowState
 </tr>
 <tr>
 <td>
-<code>sourceShards</code></br>
+<code>sourceShards</code><br>
 <em>
 []string
 </em>
@@ -1807,7 +1807,7 @@ WorkflowState
 </tr>
 <tr>
 <td>
-<code>targetShards</code></br>
+<code>targetShards</code><br>
 <em>
 []string
 </em>
@@ -1818,7 +1818,7 @@ WorkflowState
 </tr>
 <tr>
 <td>
-<code>copyProgress</code></br>
+<code>copyProgress</code><br>
 <em>
 int
 </em>
@@ -1851,7 +1851,7 @@ If we can not compute the copy progress in a timely fashion, we will report -1 t
 <tbody>
 <tr>
 <td>
-<code>region</code></br>
+<code>region</code><br>
 <em>
 string
 </em>
@@ -1862,7 +1862,7 @@ string
 </tr>
 <tr>
 <td>
-<code>bucket</code></br>
+<code>bucket</code><br>
 <em>
 string
 </em>
@@ -1873,7 +1873,7 @@ string
 </tr>
 <tr>
 <td>
-<code>endpoint</code></br>
+<code>endpoint</code><br>
 <em>
 string
 </em>
@@ -1885,7 +1885,7 @@ Default: Use the endpoint associated with <code>region</code> by the driver.</p>
 </tr>
 <tr>
 <td>
-<code>forcePathStyle</code></br>
+<code>forcePathStyle</code><br>
 <em>
 bool
 </em>
@@ -1897,7 +1897,7 @@ Default: false By default the s3 client will try to connect to <bucket>.<endpoin
 </tr>
 <tr>
 <td>
-<code>keyPrefix</code></br>
+<code>keyPrefix</code><br>
 <em>
 string
 </em>
@@ -1912,7 +1912,7 @@ within a bucket, regardless of this setting.</p>
 </tr>
 <tr>
 <td>
-<code>authSecret</code></br>
+<code>authSecret</code><br>
 <em>
 <a href="#planetscale.com/v2.SecretSource">
 SecretSource
@@ -1955,7 +1955,7 @@ Default: Use the default credentials of the Node.</p>
 <tbody>
 <tr>
 <td>
-<code>name</code></br>
+<code>name</code><br>
 <em>
 string
 </em>
@@ -1971,7 +1971,7 @@ with the &lsquo;volumeName&rsquo; field instead.</p>
 </tr>
 <tr>
 <td>
-<code>volumeName</code></br>
+<code>volumeName</code><br>
 <em>
 string
 </em>
@@ -1986,7 +1986,7 @@ If specified, this takes precedence over the &lsquo;name&rsquo; field.</p>
 </tr>
 <tr>
 <td>
-<code>key</code></br>
+<code>key</code><br>
 <em>
 string
 </em>
@@ -2025,7 +2025,7 @@ within that Volume.</p>
 <tbody>
 <tr>
 <td>
-<code>annotations</code></br>
+<code>annotations</code><br>
 <em>
 map[string]string
 </em>
@@ -2038,7 +2038,7 @@ Service object if they are removed here.</p>
 </tr>
 <tr>
 <td>
-<code>clusterIP</code></br>
+<code>clusterIP</code><br>
 <em>
 string
 </em>
@@ -2068,7 +2068,7 @@ a given backup location.</p>
 <tbody>
 <tr>
 <td>
-<code>name</code></br>
+<code>name</code><br>
 <em>
 string
 </em>
@@ -2079,7 +2079,7 @@ string
 </tr>
 <tr>
 <td>
-<code>completeBackups</code></br>
+<code>completeBackups</code><br>
 <em>
 int32
 </em>
@@ -2090,7 +2090,7 @@ int32
 </tr>
 <tr>
 <td>
-<code>incompleteBackups</code></br>
+<code>incompleteBackups</code><br>
 <em>
 int32
 </em>
@@ -2101,7 +2101,7 @@ int32
 </tr>
 <tr>
 <td>
-<code>latestCompleteBackupTime</code></br>
+<code>latestCompleteBackupTime</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#time-v1-meta">
 Kubernetes meta/v1.Time
@@ -2137,7 +2137,7 @@ This should only be necessary if you need to override defaults, and shouldn&rsqu
 <tbody>
 <tr>
 <td>
-<code>registerCellsAliases</code></br>
+<code>registerCellsAliases</code><br>
 <em>
 bool
 </em>
@@ -2149,7 +2149,7 @@ Default: true</p>
 </tr>
 <tr>
 <td>
-<code>registerCells</code></br>
+<code>registerCells</code><br>
 <em>
 bool
 </em>
@@ -2161,7 +2161,7 @@ Default: true</p>
 </tr>
 <tr>
 <td>
-<code>pruneCells</code></br>
+<code>pruneCells</code><br>
 <em>
 bool
 </em>
@@ -2173,7 +2173,7 @@ Default: true</p>
 </tr>
 <tr>
 <td>
-<code>pruneKeyspaces</code></br>
+<code>pruneKeyspaces</code><br>
 <em>
 bool
 </em>
@@ -2185,7 +2185,7 @@ Default: true</p>
 </tr>
 <tr>
 <td>
-<code>pruneSrvKeyspaces</code></br>
+<code>pruneSrvKeyspaces</code><br>
 <em>
 bool
 </em>
@@ -2197,7 +2197,7 @@ Default: true</p>
 </tr>
 <tr>
 <td>
-<code>pruneShards</code></br>
+<code>pruneShards</code><br>
 <em>
 bool
 </em>
@@ -2209,7 +2209,7 @@ Default: true</p>
 </tr>
 <tr>
 <td>
-<code>pruneShardCells</code></br>
+<code>pruneShardCells</code><br>
 <em>
 bool
 </em>
@@ -2221,7 +2221,7 @@ Default: true</p>
 </tr>
 <tr>
 <td>
-<code>pruneTablets</code></br>
+<code>pruneTablets</code><br>
 <em>
 bool
 </em>
@@ -2266,7 +2266,7 @@ Default: true</p>
 <tbody>
 <tr>
 <td>
-<code>name</code></br>
+<code>name</code><br>
 <em>
 string
 </em>
@@ -2283,7 +2283,7 @@ location used when a tablet pool does not specify a backupLocationName.</p>
 </tr>
 <tr>
 <td>
-<code>gcs</code></br>
+<code>gcs</code><br>
 <em>
 <a href="#planetscale.com/v2.GCSBackupLocation">
 GCSBackupLocation
@@ -2296,7 +2296,7 @@ GCSBackupLocation
 </tr>
 <tr>
 <td>
-<code>s3</code></br>
+<code>s3</code><br>
 <em>
 <a href="#planetscale.com/v2.S3BackupLocation">
 S3BackupLocation
@@ -2309,7 +2309,7 @@ S3BackupLocation
 </tr>
 <tr>
 <td>
-<code>azblob</code></br>
+<code>azblob</code><br>
 <em>
 <a href="#planetscale.com/v2.AzblobBackupLocation">
 AzblobBackupLocation
@@ -2322,7 +2322,7 @@ AzblobBackupLocation
 </tr>
 <tr>
 <td>
-<code>ceph</code></br>
+<code>ceph</code><br>
 <em>
 <a href="#planetscale.com/v2.CephBackupLocation">
 CephBackupLocation
@@ -2335,7 +2335,7 @@ CephBackupLocation
 </tr>
 <tr>
 <td>
-<code>volume</code></br>
+<code>volume</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volumesource-v1-core">
 Kubernetes core/v1.VolumeSource
@@ -2350,7 +2350,7 @@ a shared host path for local testing.</p>
 </tr>
 <tr>
 <td>
-<code>volumeSubPath</code></br>
+<code>volumeSubPath</code><br>
 <em>
 string
 </em>
@@ -2362,7 +2362,7 @@ Only used for Volume-backed backup storage, ignored otherwise.</p>
 </tr>
 <tr>
 <td>
-<code>annotations</code></br>
+<code>annotations</code><br>
 <em>
 map[string]string
 </em>
@@ -2389,7 +2389,7 @@ that need access to this backup storage location.</p>
 <tbody>
 <tr>
 <td>
-<code>metadata</code></br>
+<code>metadata</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#objectmeta-v1-meta">
 Kubernetes meta/v1.ObjectMeta
@@ -2403,7 +2403,7 @@ Refer to the Kubernetes API documentation for the fields of the
 </tr>
 <tr>
 <td>
-<code>spec</code></br>
+<code>spec</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessBackupScheduleSpec">
 VitessBackupScheduleSpec
@@ -2416,7 +2416,7 @@ VitessBackupScheduleSpec
 <table>
 <tr>
 <td>
-<code>VitessBackupScheduleTemplate</code></br>
+<code>VitessBackupScheduleTemplate</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessBackupScheduleTemplate">
 VitessBackupScheduleTemplate
@@ -2433,7 +2433,7 @@ These are the parts that are configurable through the VitessCluster CRD.</p>
 </tr>
 <tr>
 <td>
-<code>cluster</code></br>
+<code>cluster</code><br>
 <em>
 string
 </em>
@@ -2444,7 +2444,7 @@ string
 </tr>
 <tr>
 <td>
-<code>image</code></br>
+<code>image</code><br>
 <em>
 string
 </em>
@@ -2456,7 +2456,7 @@ The controller will re-use the vtctld image by default.</p>
 </tr>
 <tr>
 <td>
-<code>imagePullPolicy</code></br>
+<code>imagePullPolicy</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#pullpolicy-v1-core">
 Kubernetes core/v1.PullPolicy
@@ -2473,7 +2473,7 @@ The PullPolicy used will be the same as the one used to pull the vtctld image.</
 </tr>
 <tr>
 <td>
-<code>status</code></br>
+<code>status</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessBackupScheduleStatus">
 VitessBackupScheduleStatus
@@ -2504,7 +2504,7 @@ VitessBackupScheduleStatus
 <tbody>
 <tr>
 <td>
-<code>VitessBackupScheduleTemplate</code></br>
+<code>VitessBackupScheduleTemplate</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessBackupScheduleTemplate">
 VitessBackupScheduleTemplate
@@ -2521,7 +2521,7 @@ These are the parts that are configurable through the VitessCluster CRD.</p>
 </tr>
 <tr>
 <td>
-<code>cluster</code></br>
+<code>cluster</code><br>
 <em>
 string
 </em>
@@ -2532,7 +2532,7 @@ string
 </tr>
 <tr>
 <td>
-<code>image</code></br>
+<code>image</code><br>
 <em>
 string
 </em>
@@ -2544,7 +2544,7 @@ The controller will re-use the vtctld image by default.</p>
 </tr>
 <tr>
 <td>
-<code>imagePullPolicy</code></br>
+<code>imagePullPolicy</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#pullpolicy-v1-core">
 Kubernetes core/v1.PullPolicy
@@ -2577,7 +2577,7 @@ The PullPolicy used will be the same as the one used to pull the vtctld image.</
 <tbody>
 <tr>
 <td>
-<code>active</code></br>
+<code>active</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#objectreference-v1-core">
 []Kubernetes core/v1.ObjectReference
@@ -2591,7 +2591,7 @@ The PullPolicy used will be the same as the one used to pull the vtctld image.</
 </tr>
 <tr>
 <td>
-<code>lastScheduledTime</code></br>
+<code>lastScheduledTime</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#time-v1-meta">
 Kubernetes meta/v1.Time
@@ -2626,7 +2626,7 @@ command line that will be executed in the Job&rsquo;s pod.</p>
 <tbody>
 <tr>
 <td>
-<code>name</code></br>
+<code>name</code><br>
 <em>
 <a href="#planetscale.com/v2.BackupStrategyName">
 BackupStrategyName
@@ -2639,7 +2639,7 @@ BackupStrategyName
 </tr>
 <tr>
 <td>
-<code>keyspace</code></br>
+<code>keyspace</code><br>
 <em>
 string
 </em>
@@ -2650,7 +2650,7 @@ string
 </tr>
 <tr>
 <td>
-<code>shard</code></br>
+<code>shard</code><br>
 <em>
 string
 </em>
@@ -2661,7 +2661,7 @@ string
 </tr>
 <tr>
 <td>
-<code>extraFlags</code></br>
+<code>extraFlags</code><br>
 <em>
 map[string]string
 </em>
@@ -2694,7 +2694,7 @@ able to define when writing their YAML file.</p>
 <tbody>
 <tr>
 <td>
-<code>name</code></br>
+<code>name</code><br>
 <em>
 string
 </em>
@@ -2706,7 +2706,7 @@ objects in the cluster.</p>
 </tr>
 <tr>
 <td>
-<code>schedule</code></br>
+<code>schedule</code><br>
 <em>
 string
 </em>
@@ -2717,7 +2717,7 @@ string
 </tr>
 <tr>
 <td>
-<code>strategies</code></br>
+<code>strategies</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessBackupScheduleStrategy">
 []VitessBackupScheduleStrategy
@@ -2736,7 +2736,7 @@ is executed when the Job&rsquo;s container starts.</p>
 </tr>
 <tr>
 <td>
-<code>resources</code></br>
+<code>resources</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#resourcerequirements-v1-core">
 Kubernetes core/v1.ResourceRequirements
@@ -2749,7 +2749,7 @@ Kubernetes core/v1.ResourceRequirements
 </tr>
 <tr>
 <td>
-<code>successfulJobsHistoryLimit</code></br>
+<code>successfulJobsHistoryLimit</code><br>
 <em>
 int32
 </em>
@@ -2761,7 +2761,7 @@ int32
 </tr>
 <tr>
 <td>
-<code>failedJobsHistoryLimit</code></br>
+<code>failedJobsHistoryLimit</code><br>
 <em>
 int32
 </em>
@@ -2773,7 +2773,7 @@ int32
 </tr>
 <tr>
 <td>
-<code>suspend</code></br>
+<code>suspend</code><br>
 <em>
 bool
 </em>
@@ -2787,7 +2787,7 @@ having to remove the entire VitessBackupSchedule object from the cluster.</p>
 </tr>
 <tr>
 <td>
-<code>startingDeadlineSeconds</code></br>
+<code>startingDeadlineSeconds</code><br>
 <em>
 int64
 </em>
@@ -2803,7 +2803,7 @@ the job will be processed as usual.</p>
 </tr>
 <tr>
 <td>
-<code>concurrencyPolicy</code></br>
+<code>concurrencyPolicy</code><br>
 <em>
 <a href="#planetscale.com/v2.ConcurrencyPolicy">
 ConcurrencyPolicy
@@ -2821,7 +2821,7 @@ Valid values are:
 </tr>
 <tr>
 <td>
-<code>allowedMissedRun</code></br>
+<code>allowedMissedRun</code><br>
 <em>
 int
 </em>
@@ -2840,7 +2840,7 @@ this field to its default value.</p>
 </tr>
 <tr>
 <td>
-<code>jobTimeoutMinute</code></br>
+<code>jobTimeoutMinute</code><br>
 <em>
 int32
 </em>
@@ -2853,7 +2853,7 @@ Default value is 10 minutes.</p>
 </tr>
 <tr>
 <td>
-<code>annotations</code></br>
+<code>annotations</code><br>
 <em>
 map[string]string
 </em>
@@ -2865,7 +2865,7 @@ map[string]string
 </tr>
 <tr>
 <td>
-<code>affinity</code></br>
+<code>affinity</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#affinity-v1-core">
 Kubernetes core/v1.Affinity
@@ -2909,7 +2909,7 @@ guarantee optimal scheduling of your pods if you choose to set this field.</p>
 <tbody>
 <tr>
 <td>
-<code>startTime</code></br>
+<code>startTime</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#time-v1-meta">
 Kubernetes meta/v1.Time
@@ -2922,7 +2922,7 @@ Kubernetes meta/v1.Time
 </tr>
 <tr>
 <td>
-<code>finishedTime</code></br>
+<code>finishedTime</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#time-v1-meta">
 Kubernetes meta/v1.Time
@@ -2935,7 +2935,7 @@ Kubernetes meta/v1.Time
 </tr>
 <tr>
 <td>
-<code>complete</code></br>
+<code>complete</code><br>
 <em>
 bool
 </em>
@@ -2946,7 +2946,7 @@ bool
 </tr>
 <tr>
 <td>
-<code>position</code></br>
+<code>position</code><br>
 <em>
 string
 </em>
@@ -2960,7 +2960,7 @@ This is only available after the backup is complete.</p>
 </tr>
 <tr>
 <td>
-<code>engine</code></br>
+<code>engine</code><br>
 <em>
 string
 </em>
@@ -2971,7 +2971,7 @@ string
 </tr>
 <tr>
 <td>
-<code>storageDirectory</code></br>
+<code>storageDirectory</code><br>
 <em>
 string
 </em>
@@ -2983,7 +2983,7 @@ contains this backup.</p>
 </tr>
 <tr>
 <td>
-<code>storageName</code></br>
+<code>storageName</code><br>
 <em>
 string
 </em>
@@ -3017,7 +3017,7 @@ cluster.</p>
 <tbody>
 <tr>
 <td>
-<code>metadata</code></br>
+<code>metadata</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#objectmeta-v1-meta">
 Kubernetes meta/v1.ObjectMeta
@@ -3031,7 +3031,7 @@ Refer to the Kubernetes API documentation for the fields of the
 </tr>
 <tr>
 <td>
-<code>spec</code></br>
+<code>spec</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessBackupStorageSpec">
 VitessBackupStorageSpec
@@ -3044,7 +3044,7 @@ VitessBackupStorageSpec
 <table>
 <tr>
 <td>
-<code>location</code></br>
+<code>location</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessBackupLocation">
 VitessBackupLocation
@@ -3058,7 +3058,7 @@ storage location.</p>
 </tr>
 <tr>
 <td>
-<code>subcontroller</code></br>
+<code>subcontroller</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessBackupSubcontrollerSpec">
 VitessBackupSubcontrollerSpec
@@ -3074,7 +3074,7 @@ VitessBackupSubcontrollerSpec
 </tr>
 <tr>
 <td>
-<code>status</code></br>
+<code>status</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessBackupStorageStatus">
 VitessBackupStorageStatus
@@ -3105,7 +3105,7 @@ VitessBackupStorageStatus
 <tbody>
 <tr>
 <td>
-<code>location</code></br>
+<code>location</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessBackupLocation">
 VitessBackupLocation
@@ -3119,7 +3119,7 @@ storage location.</p>
 </tr>
 <tr>
 <td>
-<code>subcontroller</code></br>
+<code>subcontroller</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessBackupSubcontrollerSpec">
 VitessBackupSubcontrollerSpec
@@ -3151,7 +3151,7 @@ VitessBackupSubcontrollerSpec
 <tbody>
 <tr>
 <td>
-<code>observedGeneration</code></br>
+<code>observedGeneration</code><br>
 <em>
 int64
 </em>
@@ -3162,7 +3162,7 @@ int64
 </tr>
 <tr>
 <td>
-<code>totalBackupCount</code></br>
+<code>totalBackupCount</code><br>
 <em>
 int32
 </em>
@@ -3193,7 +3193,7 @@ location, across all keyspaces and shards.</p>
 <tbody>
 <tr>
 <td>
-<code>serviceAccountName</code></br>
+<code>serviceAccountName</code><br>
 <em>
 string
 </em>
@@ -3229,7 +3229,7 @@ just like a Deployment can manage Pods that run on multiple Nodes.</p>
 <tbody>
 <tr>
 <td>
-<code>metadata</code></br>
+<code>metadata</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#objectmeta-v1-meta">
 Kubernetes meta/v1.ObjectMeta
@@ -3243,7 +3243,7 @@ Refer to the Kubernetes API documentation for the fields of the
 </tr>
 <tr>
 <td>
-<code>spec</code></br>
+<code>spec</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessCellSpec">
 VitessCellSpec
@@ -3256,7 +3256,7 @@ VitessCellSpec
 <table>
 <tr>
 <td>
-<code>VitessCellTemplate</code></br>
+<code>VitessCellTemplate</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessCellTemplate">
 VitessCellTemplate
@@ -3274,7 +3274,7 @@ The rest of the fields below are filled in by the parent controller.</p>
 </tr>
 <tr>
 <td>
-<code>globalLockserver</code></br>
+<code>globalLockserver</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessLockserverParams">
 VitessLockserverParams
@@ -3287,7 +3287,7 @@ VitessLockserverParams
 </tr>
 <tr>
 <td>
-<code>allCells</code></br>
+<code>allCells</code><br>
 <em>
 []string
 </em>
@@ -3298,7 +3298,7 @@ VitessLockserverParams
 </tr>
 <tr>
 <td>
-<code>images</code></br>
+<code>images</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessCellImages">
 VitessCellImages
@@ -3314,7 +3314,7 @@ controller that owns this VitessCell.</p>
 </tr>
 <tr>
 <td>
-<code>imagePullPolicies</code></br>
+<code>imagePullPolicies</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessImagePullPolicies">
 VitessImagePullPolicies
@@ -3327,7 +3327,7 @@ VitessImagePullPolicies
 </tr>
 <tr>
 <td>
-<code>imagePullSecrets</code></br>
+<code>imagePullSecrets</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#localobjectreference-v1-core">
 []Kubernetes core/v1.LocalObjectReference
@@ -3340,7 +3340,7 @@ VitessImagePullPolicies
 </tr>
 <tr>
 <td>
-<code>extraVitessFlags</code></br>
+<code>extraVitessFlags</code><br>
 <em>
 map[string]string
 </em>
@@ -3351,7 +3351,7 @@ map[string]string
 </tr>
 <tr>
 <td>
-<code>topologyReconciliation</code></br>
+<code>topologyReconciliation</code><br>
 <em>
 <a href="#planetscale.com/v2.TopoReconcileConfig">
 TopoReconcileConfig
@@ -3367,7 +3367,7 @@ TopoReconcileConfig
 </tr>
 <tr>
 <td>
-<code>status</code></br>
+<code>status</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessCellStatus">
 VitessCellStatus
@@ -3398,7 +3398,7 @@ VitessCellStatus
 <tbody>
 <tr>
 <td>
-<code>replicas</code></br>
+<code>replicas</code><br>
 <em>
 int32
 </em>
@@ -3409,7 +3409,7 @@ int32
 </tr>
 <tr>
 <td>
-<code>autoscaler</code></br>
+<code>autoscaler</code><br>
 <em>
 <a href="#planetscale.com/v2.AutoscalerSpec">
 AutoscalerSpec
@@ -3424,7 +3424,7 @@ for the vtgate workload.</p>
 </tr>
 <tr>
 <td>
-<code>resources</code></br>
+<code>resources</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#resourcerequirements-v1-core">
 Kubernetes core/v1.ResourceRequirements
@@ -3437,7 +3437,7 @@ Kubernetes core/v1.ResourceRequirements
 </tr>
 <tr>
 <td>
-<code>authentication</code></br>
+<code>authentication</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessGatewayAuthentication">
 VitessGatewayAuthentication
@@ -3450,7 +3450,7 @@ VitessGatewayAuthentication
 </tr>
 <tr>
 <td>
-<code>secureTransport</code></br>
+<code>secureTransport</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessGatewaySecureTransport">
 VitessGatewaySecureTransport
@@ -3463,7 +3463,7 @@ VitessGatewaySecureTransport
 </tr>
 <tr>
 <td>
-<code>extraFlags</code></br>
+<code>extraFlags</code><br>
 <em>
 map[string]string
 </em>
@@ -3478,7 +3478,7 @@ set the string value to either &ldquo;true&rdquo; or &ldquo;false&rdquo;.</p>
 </tr>
 <tr>
 <td>
-<code>extraEnv</code></br>
+<code>extraEnv</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#envvar-v1-core">
 []Kubernetes core/v1.EnvVar
@@ -3492,7 +3492,7 @@ set by the operator, or pass additional environment variables.</p>
 </tr>
 <tr>
 <td>
-<code>extraVolumes</code></br>
+<code>extraVolumes</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volume-v1-core">
 []Kubernetes core/v1.Volume
@@ -3509,7 +3509,7 @@ should be mounted.</p>
 </tr>
 <tr>
 <td>
-<code>extraVolumeMounts</code></br>
+<code>extraVolumeMounts</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volumemount-v1-core">
 []Kubernetes core/v1.VolumeMount
@@ -3524,7 +3524,7 @@ Typically, these are used to mount volumes defined through extraVolumes.</p>
 </tr>
 <tr>
 <td>
-<code>initContainers</code></br>
+<code>initContainers</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core">
 []Kubernetes core/v1.Container
@@ -3538,7 +3538,7 @@ that will be run to completion one after another before any app containers are s
 </tr>
 <tr>
 <td>
-<code>sidecarContainers</code></br>
+<code>sidecarContainers</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core">
 []Kubernetes core/v1.Container
@@ -3552,7 +3552,7 @@ that run alongside the main containers.</p>
 </tr>
 <tr>
 <td>
-<code>affinity</code></br>
+<code>affinity</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#affinity-v1-core">
 Kubernetes core/v1.Affinity
@@ -3568,7 +3568,7 @@ choose to set this field.</p>
 </tr>
 <tr>
 <td>
-<code>annotations</code></br>
+<code>annotations</code><br>
 <em>
 map[string]string
 </em>
@@ -3581,7 +3581,7 @@ Pods that the vtgate Deployment creates.</p>
 </tr>
 <tr>
 <td>
-<code>extraLabels</code></br>
+<code>extraLabels</code><br>
 <em>
 map[string]string
 </em>
@@ -3594,7 +3594,7 @@ Pods that the vtgate Deployment creates.</p>
 </tr>
 <tr>
 <td>
-<code>service</code></br>
+<code>service</code><br>
 <em>
 <a href="#planetscale.com/v2.ServiceOverrides">
 ServiceOverrides
@@ -3607,7 +3607,7 @@ ServiceOverrides
 </tr>
 <tr>
 <td>
-<code>tolerations</code></br>
+<code>tolerations</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#toleration-v1-core">
 []Kubernetes core/v1.Toleration
@@ -3620,7 +3620,7 @@ ServiceOverrides
 </tr>
 <tr>
 <td>
-<code>topologySpreadConstraints</code></br>
+<code>topologySpreadConstraints</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#topologyspreadconstraint-v1-core">
 []Kubernetes core/v1.TopologySpreadConstraint
@@ -3634,7 +3634,7 @@ specify how to spread vtgate pods among the given topology</p>
 </tr>
 <tr>
 <td>
-<code>lifecycle</code></br>
+<code>lifecycle</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#lifecycle-v1-core">
 Kubernetes core/v1.Lifecycle
@@ -3648,7 +3648,7 @@ to the vtgate container.</p>
 </tr>
 <tr>
 <td>
-<code>terminationGracePeriodSeconds</code></br>
+<code>terminationGracePeriodSeconds</code><br>
 <em>
 int64
 </em>
@@ -3679,7 +3679,7 @@ terminationGracePeriodSeconds of the vtgate pod.</p>
 <tbody>
 <tr>
 <td>
-<code>available</code></br>
+<code>available</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#conditionstatus-v1-core">
 Kubernetes core/v1.ConditionStatus
@@ -3692,7 +3692,7 @@ Kubernetes core/v1.ConditionStatus
 </tr>
 <tr>
 <td>
-<code>serviceName</code></br>
+<code>serviceName</code><br>
 <em>
 string
 </em>
@@ -3703,7 +3703,7 @@ string
 </tr>
 <tr>
 <td>
-<code>labelSelector</code></br>
+<code>labelSelector</code><br>
 <em>
 string
 </em>
@@ -3715,7 +3715,7 @@ HorizontalPodAutoscaler when reading pod metrics.</p>
 </tr>
 <tr>
 <td>
-<code>replicas</code></br>
+<code>replicas</code><br>
 <em>
 int32
 </em>
@@ -3746,7 +3746,7 @@ HorizontalPodAutoscaler to determine the current number of replicas.</p>
 <tbody>
 <tr>
 <td>
-<code>vtgate</code></br>
+<code>vtgate</code><br>
 <em>
 string
 </em>
@@ -3785,7 +3785,7 @@ string
 <tbody>
 <tr>
 <td>
-<code>VitessCellTemplate</code></br>
+<code>VitessCellTemplate</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessCellTemplate">
 VitessCellTemplate
@@ -3803,7 +3803,7 @@ The rest of the fields below are filled in by the parent controller.</p>
 </tr>
 <tr>
 <td>
-<code>globalLockserver</code></br>
+<code>globalLockserver</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessLockserverParams">
 VitessLockserverParams
@@ -3816,7 +3816,7 @@ VitessLockserverParams
 </tr>
 <tr>
 <td>
-<code>allCells</code></br>
+<code>allCells</code><br>
 <em>
 []string
 </em>
@@ -3827,7 +3827,7 @@ VitessLockserverParams
 </tr>
 <tr>
 <td>
-<code>images</code></br>
+<code>images</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessCellImages">
 VitessCellImages
@@ -3843,7 +3843,7 @@ controller that owns this VitessCell.</p>
 </tr>
 <tr>
 <td>
-<code>imagePullPolicies</code></br>
+<code>imagePullPolicies</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessImagePullPolicies">
 VitessImagePullPolicies
@@ -3856,7 +3856,7 @@ VitessImagePullPolicies
 </tr>
 <tr>
 <td>
-<code>imagePullSecrets</code></br>
+<code>imagePullSecrets</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#localobjectreference-v1-core">
 []Kubernetes core/v1.LocalObjectReference
@@ -3869,7 +3869,7 @@ VitessImagePullPolicies
 </tr>
 <tr>
 <td>
-<code>extraVitessFlags</code></br>
+<code>extraVitessFlags</code><br>
 <em>
 map[string]string
 </em>
@@ -3880,7 +3880,7 @@ map[string]string
 </tr>
 <tr>
 <td>
-<code>topologyReconciliation</code></br>
+<code>topologyReconciliation</code><br>
 <em>
 <a href="#planetscale.com/v2.TopoReconcileConfig">
 TopoReconcileConfig
@@ -3912,7 +3912,7 @@ TopoReconcileConfig
 <tbody>
 <tr>
 <td>
-<code>observedGeneration</code></br>
+<code>observedGeneration</code><br>
 <em>
 int64
 </em>
@@ -3923,7 +3923,7 @@ int64
 </tr>
 <tr>
 <td>
-<code>lockserver</code></br>
+<code>lockserver</code><br>
 <em>
 <a href="#planetscale.com/v2.LockserverStatus">
 LockserverStatus
@@ -3936,7 +3936,7 @@ LockserverStatus
 </tr>
 <tr>
 <td>
-<code>gateway</code></br>
+<code>gateway</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessCellGatewayStatus">
 VitessCellGatewayStatus
@@ -3949,7 +3949,7 @@ VitessCellGatewayStatus
 </tr>
 <tr>
 <td>
-<code>keyspaces</code></br>
+<code>keyspaces</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessCellKeyspaceStatus">
 map[string]planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessCellKeyspaceStatus
@@ -3966,7 +3966,7 @@ when the difference matters.</p>
 </tr>
 <tr>
 <td>
-<code>idle</code></br>
+<code>idle</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#conditionstatus-v1-core">
 Kubernetes core/v1.ConditionStatus
@@ -4001,7 +4001,7 @@ should be safe to turn down the cell.</p>
 <tbody>
 <tr>
 <td>
-<code>name</code></br>
+<code>name</code><br>
 <em>
 string
 </em>
@@ -4014,7 +4014,7 @@ metadata.name, which is generated by the operator.</p>
 </tr>
 <tr>
 <td>
-<code>zone</code></br>
+<code>zone</code><br>
 <em>
 string
 </em>
@@ -4028,7 +4028,7 @@ If the Kubernetes Nodes don&rsquo;t have such a label, leave this empty.</p>
 </tr>
 <tr>
 <td>
-<code>lockserver</code></br>
+<code>lockserver</code><br>
 <em>
 <a href="#planetscale.com/v2.LockserverSpec">
 LockserverSpec
@@ -4043,7 +4043,7 @@ Default: Put this cell&rsquo;s topology data in the global lockserver instead of
 </tr>
 <tr>
 <td>
-<code>gateway</code></br>
+<code>gateway</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessCellGatewaySpec">
 VitessCellGatewaySpec
@@ -4075,7 +4075,7 @@ VitessCellGatewaySpec
 <tbody>
 <tr>
 <td>
-<code>pendingChanges</code></br>
+<code>pendingChanges</code><br>
 <em>
 string
 </em>
@@ -4087,7 +4087,7 @@ applied the next time a rolling update allows.</p>
 </tr>
 <tr>
 <td>
-<code>gatewayAvailable</code></br>
+<code>gatewayAvailable</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#conditionstatus-v1-core">
 Kubernetes core/v1.ConditionStatus
@@ -4119,7 +4119,7 @@ Kubernetes core/v1.ConditionStatus
 <tbody>
 <tr>
 <td>
-<code>pendingChanges</code></br>
+<code>pendingChanges</code><br>
 <em>
 string
 </em>
@@ -4131,7 +4131,7 @@ applied the next time a rolling update allows.</p>
 </tr>
 <tr>
 <td>
-<code>desiredShards</code></br>
+<code>desiredShards</code><br>
 <em>
 int32
 </em>
@@ -4145,7 +4145,7 @@ own.</p>
 </tr>
 <tr>
 <td>
-<code>shards</code></br>
+<code>shards</code><br>
 <em>
 int32
 </em>
@@ -4157,7 +4157,7 @@ than desiredShards if the state has not yet converged.</p>
 </tr>
 <tr>
 <td>
-<code>readyShards</code></br>
+<code>readyShards</code><br>
 <em>
 int32
 </em>
@@ -4168,7 +4168,7 @@ int32
 </tr>
 <tr>
 <td>
-<code>updatedShards</code></br>
+<code>updatedShards</code><br>
 <em>
 int32
 </em>
@@ -4180,7 +4180,7 @@ int32
 </tr>
 <tr>
 <td>
-<code>desiredTablets</code></br>
+<code>desiredTablets</code><br>
 <em>
 int32
 </em>
@@ -4194,7 +4194,7 @@ partitionings on their own.</p>
 </tr>
 <tr>
 <td>
-<code>tablets</code></br>
+<code>tablets</code><br>
 <em>
 int32
 </em>
@@ -4207,7 +4207,7 @@ yet converged.</p>
 </tr>
 <tr>
 <td>
-<code>readyTablets</code></br>
+<code>readyTablets</code><br>
 <em>
 int32
 </em>
@@ -4218,7 +4218,7 @@ int32
 </tr>
 <tr>
 <td>
-<code>updatedTablets</code></br>
+<code>updatedTablets</code><br>
 <em>
 int32
 </em>
@@ -4230,7 +4230,7 @@ int32
 </tr>
 <tr>
 <td>
-<code>cells</code></br>
+<code>cells</code><br>
 <em>
 []string
 </em>
@@ -4261,7 +4261,7 @@ are deployed.</p>
 <tbody>
 <tr>
 <td>
-<code>images</code></br>
+<code>images</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessImages">
 VitessImages
@@ -4276,7 +4276,7 @@ Default: Let the operator choose.</p>
 </tr>
 <tr>
 <td>
-<code>imagePullPolicies</code></br>
+<code>imagePullPolicies</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessImagePullPolicies">
 VitessImagePullPolicies
@@ -4290,7 +4290,7 @@ images defined in the &lsquo;images&rsquo; field.</p>
 </tr>
 <tr>
 <td>
-<code>imagePullSecrets</code></br>
+<code>imagePullSecrets</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#localobjectreference-v1-core">
 []Kubernetes core/v1.LocalObjectReference
@@ -4304,7 +4304,7 @@ use the images defined in the &lsquo;images&rsquo; field.</p>
 </tr>
 <tr>
 <td>
-<code>backup</code></br>
+<code>backup</code><br>
 <em>
 <a href="#planetscale.com/v2.ClusterBackupSpec">
 ClusterBackupSpec
@@ -4320,7 +4320,7 @@ of a new tablet in a shard with existing data, as an implementation detail.</p>
 </tr>
 <tr>
 <td>
-<code>globalLockserver</code></br>
+<code>globalLockserver</code><br>
 <em>
 <a href="#planetscale.com/v2.LockserverSpec">
 LockserverSpec
@@ -4335,7 +4335,7 @@ Default: Deploy an etcd cluster as the global lockserver.</p>
 </tr>
 <tr>
 <td>
-<code>vitessDashboard</code></br>
+<code>vitessDashboard</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessDashboardSpec">
 VitessDashboardSpec
@@ -4348,7 +4348,7 @@ VitessDashboardSpec
 </tr>
 <tr>
 <td>
-<code>vtadmin</code></br>
+<code>vtadmin</code><br>
 <em>
 <a href="#planetscale.com/v2.VtAdminSpec">
 VtAdminSpec
@@ -4361,7 +4361,7 @@ VtAdminSpec
 </tr>
 <tr>
 <td>
-<code>cells</code></br>
+<code>cells</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessCellTemplate">
 []VitessCellTemplate
@@ -4380,7 +4380,7 @@ that no keyspaces are set to deploy to this cell.</p>
 </tr>
 <tr>
 <td>
-<code>keyspaces</code></br>
+<code>keyspaces</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessKeyspaceTemplate">
 []VitessKeyspaceTemplate
@@ -4398,7 +4398,7 @@ of target cells.</p>
 </tr>
 <tr>
 <td>
-<code>extraVitessFlags</code></br>
+<code>extraVitessFlags</code><br>
 <em>
 map[string]string
 </em>
@@ -4414,7 +4414,7 @@ set the string value to either &ldquo;true&rdquo; or &ldquo;false&rdquo;.</p>
 </tr>
 <tr>
 <td>
-<code>topologyReconciliation</code></br>
+<code>topologyReconciliation</code><br>
 <em>
 <a href="#planetscale.com/v2.TopoReconcileConfig">
 TopoReconcileConfig
@@ -4427,7 +4427,7 @@ TopoReconcileConfig
 </tr>
 <tr>
 <td>
-<code>updateStrategy</code></br>
+<code>updateStrategy</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessClusterUpdateStrategy">
 VitessClusterUpdateStrategy
@@ -4441,7 +4441,7 @@ when a revision is made to the VitessCluster spec.</p>
 </tr>
 <tr>
 <td>
-<code>gatewayService</code></br>
+<code>gatewayService</code><br>
 <em>
 <a href="#planetscale.com/v2.ServiceOverrides">
 ServiceOverrides
@@ -4456,7 +4456,7 @@ definition.</p>
 </tr>
 <tr>
 <td>
-<code>tabletService</code></br>
+<code>tabletService</code><br>
 <em>
 <a href="#planetscale.com/v2.ServiceOverrides">
 ServiceOverrides
@@ -4488,7 +4488,7 @@ ServiceOverrides
 <tbody>
 <tr>
 <td>
-<code>observedGeneration</code></br>
+<code>observedGeneration</code><br>
 <em>
 int64
 </em>
@@ -4499,7 +4499,7 @@ int64
 </tr>
 <tr>
 <td>
-<code>globalLockserver</code></br>
+<code>globalLockserver</code><br>
 <em>
 <a href="#planetscale.com/v2.LockserverStatus">
 LockserverStatus
@@ -4512,7 +4512,7 @@ LockserverStatus
 </tr>
 <tr>
 <td>
-<code>gatewayServiceName</code></br>
+<code>gatewayServiceName</code><br>
 <em>
 string
 </em>
@@ -4523,7 +4523,7 @@ string
 </tr>
 <tr>
 <td>
-<code>vitessDashboard</code></br>
+<code>vitessDashboard</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessDashboardStatus">
 VitessDashboardStatus
@@ -4536,7 +4536,7 @@ VitessDashboardStatus
 </tr>
 <tr>
 <td>
-<code>vtadmin</code></br>
+<code>vtadmin</code><br>
 <em>
 <a href="#planetscale.com/v2.VtadminStatus">
 VtadminStatus
@@ -4549,7 +4549,7 @@ VtadminStatus
 </tr>
 <tr>
 <td>
-<code>cells</code></br>
+<code>cells</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessClusterCellStatus">
 map[string]planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessClusterCellStatus
@@ -4562,7 +4562,7 @@ map[string]planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessCluster
 </tr>
 <tr>
 <td>
-<code>keyspaces</code></br>
+<code>keyspaces</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessClusterKeyspaceStatus">
 map[string]planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessClusterKeyspaceStatus
@@ -4575,7 +4575,7 @@ map[string]planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessCluster
 </tr>
 <tr>
 <td>
-<code>orphanedCells</code></br>
+<code>orphanedCells</code><br>
 <em>
 <a href="#planetscale.com/v2.OrphanStatus">
 map[string]planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus
@@ -4588,7 +4588,7 @@ map[string]planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus
 </tr>
 <tr>
 <td>
-<code>orphanedKeyspaces</code></br>
+<code>orphanedKeyspaces</code><br>
 <em>
 <a href="#planetscale.com/v2.OrphanStatus">
 map[string]planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus
@@ -4624,7 +4624,7 @@ necessary to perform the update for the indicated strategy.</p>
 <tbody>
 <tr>
 <td>
-<code>type</code></br>
+<code>type</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessClusterUpdateStrategyType">
 VitessClusterUpdateStrategyType
@@ -4648,7 +4648,7 @@ planned reparents whenever possible to avoid master downtime.</li>
 </tr>
 <tr>
 <td>
-<code>external</code></br>
+<code>external</code><br>
 <em>
 <a href="#planetscale.com/v2.ExternalVitessClusterUpdateStrategyOptions">
 ExternalVitessClusterUpdateStrategyOptions
@@ -4691,7 +4691,7 @@ all possible update strategies for the VitessCluster.</p>
 <tbody>
 <tr>
 <td>
-<code>cells</code></br>
+<code>cells</code><br>
 <em>
 []string
 </em>
@@ -4704,7 +4704,7 @@ Default: Deploy to all defined cells.</p>
 </tr>
 <tr>
 <td>
-<code>replicas</code></br>
+<code>replicas</code><br>
 <em>
 int32
 </em>
@@ -4715,7 +4715,7 @@ int32
 </tr>
 <tr>
 <td>
-<code>resources</code></br>
+<code>resources</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#resourcerequirements-v1-core">
 Kubernetes core/v1.ResourceRequirements
@@ -4728,7 +4728,7 @@ Kubernetes core/v1.ResourceRequirements
 </tr>
 <tr>
 <td>
-<code>extraFlags</code></br>
+<code>extraFlags</code><br>
 <em>
 map[string]string
 </em>
@@ -4743,7 +4743,7 @@ set the string value to either &ldquo;true&rdquo; or &ldquo;false&rdquo;.</p>
 </tr>
 <tr>
 <td>
-<code>extraEnv</code></br>
+<code>extraEnv</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#envvar-v1-core">
 []Kubernetes core/v1.EnvVar
@@ -4757,7 +4757,7 @@ set by the operator, or pass additional environment variables.</p>
 </tr>
 <tr>
 <td>
-<code>extraVolumes</code></br>
+<code>extraVolumes</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volume-v1-core">
 []Kubernetes core/v1.Volume
@@ -4774,7 +4774,7 @@ should be mounted.</p>
 </tr>
 <tr>
 <td>
-<code>extraVolumeMounts</code></br>
+<code>extraVolumeMounts</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volumemount-v1-core">
 []Kubernetes core/v1.VolumeMount
@@ -4789,7 +4789,7 @@ Typically, these are used to mount volumes defined through extraVolumes.</p>
 </tr>
 <tr>
 <td>
-<code>initContainers</code></br>
+<code>initContainers</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core">
 []Kubernetes core/v1.Container
@@ -4803,7 +4803,7 @@ that will be run to completion one after another before any app containers are s
 </tr>
 <tr>
 <td>
-<code>sidecarContainers</code></br>
+<code>sidecarContainers</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core">
 []Kubernetes core/v1.Container
@@ -4817,7 +4817,7 @@ that run alongside the main containers.</p>
 </tr>
 <tr>
 <td>
-<code>affinity</code></br>
+<code>affinity</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#affinity-v1-core">
 Kubernetes core/v1.Affinity
@@ -4833,7 +4833,7 @@ choose to set this field.</p>
 </tr>
 <tr>
 <td>
-<code>annotations</code></br>
+<code>annotations</code><br>
 <em>
 map[string]string
 </em>
@@ -4846,7 +4846,7 @@ Pods that the vtctld Deployment creates.</p>
 </tr>
 <tr>
 <td>
-<code>extraLabels</code></br>
+<code>extraLabels</code><br>
 <em>
 map[string]string
 </em>
@@ -4859,7 +4859,7 @@ Pods that the vtctld Deployment creates.</p>
 </tr>
 <tr>
 <td>
-<code>service</code></br>
+<code>service</code><br>
 <em>
 <a href="#planetscale.com/v2.ServiceOverrides">
 ServiceOverrides
@@ -4872,7 +4872,7 @@ ServiceOverrides
 </tr>
 <tr>
 <td>
-<code>tolerations</code></br>
+<code>tolerations</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#toleration-v1-core">
 []Kubernetes core/v1.Toleration
@@ -4904,7 +4904,7 @@ ServiceOverrides
 <tbody>
 <tr>
 <td>
-<code>available</code></br>
+<code>available</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#conditionstatus-v1-core">
 Kubernetes core/v1.ConditionStatus
@@ -4917,7 +4917,7 @@ Kubernetes core/v1.ConditionStatus
 </tr>
 <tr>
 <td>
-<code>serviceName</code></br>
+<code>serviceName</code><br>
 <em>
 string
 </em>
@@ -4947,7 +4947,7 @@ string
 <tbody>
 <tr>
 <td>
-<code>static</code></br>
+<code>static</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessGatewayStaticAuthentication">
 VitessGatewayStaticAuthentication
@@ -4979,7 +4979,7 @@ VitessGatewayStaticAuthentication
 <tbody>
 <tr>
 <td>
-<code>required</code></br>
+<code>required</code><br>
 <em>
 bool
 </em>
@@ -4992,7 +4992,7 @@ All GRPC transport is required to be encrypted when certs are set.</p>
 </tr>
 <tr>
 <td>
-<code>tls</code></br>
+<code>tls</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessGatewayTLSSecureTransport">
 VitessGatewayTLSSecureTransport
@@ -5024,7 +5024,7 @@ VitessGatewayTLSSecureTransport
 <tbody>
 <tr>
 <td>
-<code>secret</code></br>
+<code>secret</code><br>
 <em>
 <a href="#planetscale.com/v2.SecretSource">
 SecretSource
@@ -5056,7 +5056,7 @@ SecretSource
 <tbody>
 <tr>
 <td>
-<code>clientCACertSecret</code></br>
+<code>clientCACertSecret</code><br>
 <em>
 <a href="#planetscale.com/v2.SecretSource">
 SecretSource
@@ -5071,7 +5071,7 @@ Optional.</p>
 </tr>
 <tr>
 <td>
-<code>certSecret</code></br>
+<code>certSecret</code><br>
 <em>
 <a href="#planetscale.com/v2.SecretSource">
 SecretSource
@@ -5084,7 +5084,7 @@ SecretSource
 </tr>
 <tr>
 <td>
-<code>keySecret</code></br>
+<code>keySecret</code><br>
 <em>
 <a href="#planetscale.com/v2.SecretSource">
 SecretSource
@@ -5119,7 +5119,7 @@ SecretSource
 <tbody>
 <tr>
 <td>
-<code>vtctld</code></br>
+<code>vtctld</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#pullpolicy-v1-core">
 Kubernetes core/v1.PullPolicy
@@ -5132,7 +5132,7 @@ Kubernetes core/v1.PullPolicy
 </tr>
 <tr>
 <td>
-<code>vtadmin</code></br>
+<code>vtadmin</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#pullpolicy-v1-core">
 Kubernetes core/v1.PullPolicy
@@ -5145,7 +5145,7 @@ Kubernetes core/v1.PullPolicy
 </tr>
 <tr>
 <td>
-<code>vtorc</code></br>
+<code>vtorc</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#pullpolicy-v1-core">
 Kubernetes core/v1.PullPolicy
@@ -5158,7 +5158,7 @@ Kubernetes core/v1.PullPolicy
 </tr>
 <tr>
 <td>
-<code>vtgate</code></br>
+<code>vtgate</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#pullpolicy-v1-core">
 Kubernetes core/v1.PullPolicy
@@ -5171,7 +5171,7 @@ Kubernetes core/v1.PullPolicy
 </tr>
 <tr>
 <td>
-<code>vttablet</code></br>
+<code>vttablet</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#pullpolicy-v1-core">
 Kubernetes core/v1.PullPolicy
@@ -5184,7 +5184,7 @@ Kubernetes core/v1.PullPolicy
 </tr>
 <tr>
 <td>
-<code>vtbackup</code></br>
+<code>vtbackup</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#pullpolicy-v1-core">
 Kubernetes core/v1.PullPolicy
@@ -5197,7 +5197,7 @@ Kubernetes core/v1.PullPolicy
 </tr>
 <tr>
 <td>
-<code>mysqld</code></br>
+<code>mysqld</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#pullpolicy-v1-core">
 Kubernetes core/v1.PullPolicy
@@ -5210,7 +5210,7 @@ Kubernetes core/v1.PullPolicy
 </tr>
 <tr>
 <td>
-<code>mysqldExporter</code></br>
+<code>mysqldExporter</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#pullpolicy-v1-core">
 Kubernetes core/v1.PullPolicy
@@ -5242,7 +5242,7 @@ Kubernetes core/v1.PullPolicy
 <tbody>
 <tr>
 <td>
-<code>vtctld</code></br>
+<code>vtctld</code><br>
 <em>
 string
 </em>
@@ -5253,7 +5253,7 @@ string
 </tr>
 <tr>
 <td>
-<code>vtadmin</code></br>
+<code>vtadmin</code><br>
 <em>
 string
 </em>
@@ -5264,7 +5264,7 @@ string
 </tr>
 <tr>
 <td>
-<code>vtorc</code></br>
+<code>vtorc</code><br>
 <em>
 string
 </em>
@@ -5275,7 +5275,7 @@ string
 </tr>
 <tr>
 <td>
-<code>vtgate</code></br>
+<code>vtgate</code><br>
 <em>
 string
 </em>
@@ -5286,7 +5286,7 @@ string
 </tr>
 <tr>
 <td>
-<code>vttablet</code></br>
+<code>vttablet</code><br>
 <em>
 string
 </em>
@@ -5297,7 +5297,7 @@ string
 </tr>
 <tr>
 <td>
-<code>vtbackup</code></br>
+<code>vtbackup</code><br>
 <em>
 string
 </em>
@@ -5308,7 +5308,7 @@ string
 </tr>
 <tr>
 <td>
-<code>mysqld</code></br>
+<code>mysqld</code><br>
 <em>
 <a href="#planetscale.com/v2.MysqldImage">
 MysqldImage
@@ -5324,7 +5324,7 @@ mysqld running alongside each tablet.</p>
 </tr>
 <tr>
 <td>
-<code>mysqldExporter</code></br>
+<code>mysqldExporter</code><br>
 <em>
 string
 </em>
@@ -5355,7 +5355,7 @@ string
 <tbody>
 <tr>
 <td>
-<code>start</code></br>
+<code>start</code><br>
 <em>
 string
 </em>
@@ -5369,7 +5369,7 @@ than or equal to Start in lexicographical order to be in the range.</p>
 </tr>
 <tr>
 <td>
-<code>end</code></br>
+<code>end</code><br>
 <em>
 string
 </em>
@@ -5401,7 +5401,7 @@ various VitessCells.</p>
 <tbody>
 <tr>
 <td>
-<code>metadata</code></br>
+<code>metadata</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#objectmeta-v1-meta">
 Kubernetes meta/v1.ObjectMeta
@@ -5415,7 +5415,7 @@ Refer to the Kubernetes API documentation for the fields of the
 </tr>
 <tr>
 <td>
-<code>spec</code></br>
+<code>spec</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessKeyspaceSpec">
 VitessKeyspaceSpec
@@ -5428,7 +5428,7 @@ VitessKeyspaceSpec
 <table>
 <tr>
 <td>
-<code>VitessKeyspaceTemplate</code></br>
+<code>VitessKeyspaceTemplate</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessKeyspaceTemplate">
 VitessKeyspaceTemplate
@@ -5446,7 +5446,7 @@ The rest of the fields below are filled in by the parent controller.</p>
 </tr>
 <tr>
 <td>
-<code>globalLockserver</code></br>
+<code>globalLockserver</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessLockserverParams">
 VitessLockserverParams
@@ -5459,7 +5459,7 @@ VitessLockserverParams
 </tr>
 <tr>
 <td>
-<code>images</code></br>
+<code>images</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessKeyspaceImages">
 VitessKeyspaceImages
@@ -5477,7 +5477,7 @@ images on VitessKeyspaceTemplate.</p>
 </tr>
 <tr>
 <td>
-<code>imagePullPolicies</code></br>
+<code>imagePullPolicies</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessImagePullPolicies">
 VitessImagePullPolicies
@@ -5490,7 +5490,7 @@ VitessImagePullPolicies
 </tr>
 <tr>
 <td>
-<code>imagePullSecrets</code></br>
+<code>imagePullSecrets</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#localobjectreference-v1-core">
 []Kubernetes core/v1.LocalObjectReference
@@ -5503,7 +5503,7 @@ VitessImagePullPolicies
 </tr>
 <tr>
 <td>
-<code>zoneMap</code></br>
+<code>zoneMap</code><br>
 <em>
 map[string]string
 </em>
@@ -5515,7 +5515,7 @@ for all cells defined in the VitessCluster.</p>
 </tr>
 <tr>
 <td>
-<code>backupLocations</code></br>
+<code>backupLocations</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessBackupLocation">
 []VitessBackupLocation
@@ -5528,7 +5528,7 @@ for all cells defined in the VitessCluster.</p>
 </tr>
 <tr>
 <td>
-<code>backupEngine</code></br>
+<code>backupEngine</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessBackupEngine">
 VitessBackupEngine
@@ -5541,7 +5541,7 @@ VitessBackupEngine
 </tr>
 <tr>
 <td>
-<code>extraVitessFlags</code></br>
+<code>extraVitessFlags</code><br>
 <em>
 map[string]string
 </em>
@@ -5552,7 +5552,7 @@ map[string]string
 </tr>
 <tr>
 <td>
-<code>topologyReconciliation</code></br>
+<code>topologyReconciliation</code><br>
 <em>
 <a href="#planetscale.com/v2.TopoReconcileConfig">
 TopoReconcileConfig
@@ -5565,7 +5565,7 @@ TopoReconcileConfig
 </tr>
 <tr>
 <td>
-<code>updateStrategy</code></br>
+<code>updateStrategy</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessClusterUpdateStrategy">
 VitessClusterUpdateStrategy
@@ -5581,7 +5581,7 @@ VitessClusterUpdateStrategy
 </tr>
 <tr>
 <td>
-<code>status</code></br>
+<code>status</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessKeyspaceStatus">
 VitessKeyspaceStatus
@@ -5612,7 +5612,7 @@ VitessKeyspaceStatus
 <tbody>
 <tr>
 <td>
-<code>type</code></br>
+<code>type</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessKeyspaceConditionType">
 VitessKeyspaceConditionType
@@ -5625,7 +5625,7 @@ VitessKeyspaceConditionType
 </tr>
 <tr>
 <td>
-<code>status</code></br>
+<code>status</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#conditionstatus-v1-core">
 Kubernetes core/v1.ConditionStatus
@@ -5639,7 +5639,7 @@ Can be True, False, Unknown.</p>
 </tr>
 <tr>
 <td>
-<code>lastTransitionTime</code></br>
+<code>lastTransitionTime</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#time-v1-meta">
 Kubernetes meta/v1.Time
@@ -5653,7 +5653,7 @@ Optional.</p>
 </tr>
 <tr>
 <td>
-<code>reason</code></br>
+<code>reason</code><br>
 <em>
 string
 </em>
@@ -5665,7 +5665,7 @@ Optional.</p>
 </tr>
 <tr>
 <td>
-<code>message</code></br>
+<code>message</code><br>
 <em>
 string
 </em>
@@ -5706,7 +5706,7 @@ VitessKeyspaceConditionType and the value is a VitessKeyspaceCondition.</p>
 <tbody>
 <tr>
 <td>
-<code>shards</code></br>
+<code>shards</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessKeyspaceKeyRangeShard">
 []VitessKeyspaceKeyRangeShard
@@ -5738,7 +5738,7 @@ VitessKeyspaceConditionType and the value is a VitessKeyspaceCondition.</p>
 <tbody>
 <tr>
 <td>
-<code>parts</code></br>
+<code>parts</code><br>
 <em>
 int32
 </em>
@@ -5757,7 +5757,7 @@ migration, and then remove the old partitioning.</p>
 </tr>
 <tr>
 <td>
-<code>shardTemplate</code></br>
+<code>shardTemplate</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessShardTemplate">
 VitessShardTemplate
@@ -5792,7 +5792,7 @@ use custom partitioning instead.</p>
 <tbody>
 <tr>
 <td>
-<code>vttablet</code></br>
+<code>vttablet</code><br>
 <em>
 string
 </em>
@@ -5803,7 +5803,7 @@ string
 </tr>
 <tr>
 <td>
-<code>vtorc</code></br>
+<code>vtorc</code><br>
 <em>
 string
 </em>
@@ -5814,7 +5814,7 @@ string
 </tr>
 <tr>
 <td>
-<code>vtbackup</code></br>
+<code>vtbackup</code><br>
 <em>
 string
 </em>
@@ -5825,7 +5825,7 @@ string
 </tr>
 <tr>
 <td>
-<code>mysqld</code></br>
+<code>mysqld</code><br>
 <em>
 <a href="#planetscale.com/v2.MysqldImage">
 MysqldImage
@@ -5841,7 +5841,7 @@ mysqld running alongside each tablet.</p>
 </tr>
 <tr>
 <td>
-<code>mysqldExporter</code></br>
+<code>mysqldExporter</code><br>
 <em>
 string
 </em>
@@ -5871,7 +5871,7 @@ string
 <tbody>
 <tr>
 <td>
-<code>keyRange</code></br>
+<code>keyRange</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessKeyRange">
 VitessKeyRange
@@ -5889,7 +5889,7 @@ migration, and then remove the old partitioning.</p>
 </tr>
 <tr>
 <td>
-<code>VitessShardTemplate</code></br>
+<code>VitessShardTemplate</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessShardTemplate">
 VitessShardTemplate
@@ -5926,7 +5926,7 @@ a given partitioning.</p>
 <tbody>
 <tr>
 <td>
-<code>equal</code></br>
+<code>equal</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessKeyspaceEqualPartitioning">
 VitessKeyspaceEqualPartitioning
@@ -5941,7 +5941,7 @@ because they&rsquo;re generated by a hash vindex.</p>
 </tr>
 <tr>
 <td>
-<code>custom</code></br>
+<code>custom</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessKeyspaceCustomPartitioning">
 VitessKeyspaceCustomPartitioning
@@ -5974,7 +5974,7 @@ in case you don&rsquo;t want them to be divided equally.</p>
 <tbody>
 <tr>
 <td>
-<code>shardNames</code></br>
+<code>shardNames</code><br>
 <em>
 []string
 </em>
@@ -5986,7 +5986,7 @@ in the format Vitess uses for shard names.</p>
 </tr>
 <tr>
 <td>
-<code>servingWrites</code></br>
+<code>servingWrites</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#conditionstatus-v1-core">
 Kubernetes core/v1.ConditionStatus
@@ -6003,7 +6003,7 @@ Check the per-shard status for full details.</p>
 </tr>
 <tr>
 <td>
-<code>desiredTablets</code></br>
+<code>desiredTablets</code><br>
 <em>
 int32
 </em>
@@ -6017,7 +6017,7 @@ own.</p>
 </tr>
 <tr>
 <td>
-<code>tablets</code></br>
+<code>tablets</code><br>
 <em>
 int32
 </em>
@@ -6029,7 +6029,7 @@ lower than desiredTablets if the state has not yet converged.</p>
 </tr>
 <tr>
 <td>
-<code>readyTablets</code></br>
+<code>readyTablets</code><br>
 <em>
 int32
 </em>
@@ -6040,7 +6040,7 @@ int32
 </tr>
 <tr>
 <td>
-<code>updatedTablets</code></br>
+<code>updatedTablets</code><br>
 <em>
 int32
 </em>
@@ -6052,7 +6052,7 @@ int32
 </tr>
 <tr>
 <td>
-<code>desiredShards</code></br>
+<code>desiredShards</code><br>
 <em>
 int32
 </em>
@@ -6066,7 +6066,7 @@ own.</p>
 </tr>
 <tr>
 <td>
-<code>readyShards</code></br>
+<code>readyShards</code><br>
 <em>
 int32
 </em>
@@ -6096,7 +6096,7 @@ int32
 <tbody>
 <tr>
 <td>
-<code>hasMaster</code></br>
+<code>hasMaster</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#conditionstatus-v1-core">
 Kubernetes core/v1.ConditionStatus
@@ -6110,7 +6110,7 @@ reflects a master for this shard.</p>
 </tr>
 <tr>
 <td>
-<code>servingWrites</code></br>
+<code>servingWrites</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#conditionstatus-v1-core">
 Kubernetes core/v1.ConditionStatus
@@ -6126,7 +6126,7 @@ the target of a resharding operation that is still in progress.</p>
 </tr>
 <tr>
 <td>
-<code>desiredTablets</code></br>
+<code>desiredTablets</code><br>
 <em>
 int32
 </em>
@@ -6140,7 +6140,7 @@ own.</p>
 </tr>
 <tr>
 <td>
-<code>tablets</code></br>
+<code>tablets</code><br>
 <em>
 int32
 </em>
@@ -6152,7 +6152,7 @@ lower than desiredTablets if the state has not yet converged.</p>
 </tr>
 <tr>
 <td>
-<code>readyTablets</code></br>
+<code>readyTablets</code><br>
 <em>
 int32
 </em>
@@ -6163,7 +6163,7 @@ int32
 </tr>
 <tr>
 <td>
-<code>updatedTablets</code></br>
+<code>updatedTablets</code><br>
 <em>
 int32
 </em>
@@ -6175,7 +6175,7 @@ int32
 </tr>
 <tr>
 <td>
-<code>pendingChanges</code></br>
+<code>pendingChanges</code><br>
 <em>
 string
 </em>
@@ -6187,7 +6187,7 @@ the next time a rolling update allows.</p>
 </tr>
 <tr>
 <td>
-<code>cells</code></br>
+<code>cells</code><br>
 <em>
 []string
 </em>
@@ -6217,7 +6217,7 @@ the next time a rolling update allows.</p>
 <tbody>
 <tr>
 <td>
-<code>VitessKeyspaceTemplate</code></br>
+<code>VitessKeyspaceTemplate</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessKeyspaceTemplate">
 VitessKeyspaceTemplate
@@ -6235,7 +6235,7 @@ The rest of the fields below are filled in by the parent controller.</p>
 </tr>
 <tr>
 <td>
-<code>globalLockserver</code></br>
+<code>globalLockserver</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessLockserverParams">
 VitessLockserverParams
@@ -6248,7 +6248,7 @@ VitessLockserverParams
 </tr>
 <tr>
 <td>
-<code>images</code></br>
+<code>images</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessKeyspaceImages">
 VitessKeyspaceImages
@@ -6266,7 +6266,7 @@ images on VitessKeyspaceTemplate.</p>
 </tr>
 <tr>
 <td>
-<code>imagePullPolicies</code></br>
+<code>imagePullPolicies</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessImagePullPolicies">
 VitessImagePullPolicies
@@ -6279,7 +6279,7 @@ VitessImagePullPolicies
 </tr>
 <tr>
 <td>
-<code>imagePullSecrets</code></br>
+<code>imagePullSecrets</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#localobjectreference-v1-core">
 []Kubernetes core/v1.LocalObjectReference
@@ -6292,7 +6292,7 @@ VitessImagePullPolicies
 </tr>
 <tr>
 <td>
-<code>zoneMap</code></br>
+<code>zoneMap</code><br>
 <em>
 map[string]string
 </em>
@@ -6304,7 +6304,7 @@ for all cells defined in the VitessCluster.</p>
 </tr>
 <tr>
 <td>
-<code>backupLocations</code></br>
+<code>backupLocations</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessBackupLocation">
 []VitessBackupLocation
@@ -6317,7 +6317,7 @@ for all cells defined in the VitessCluster.</p>
 </tr>
 <tr>
 <td>
-<code>backupEngine</code></br>
+<code>backupEngine</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessBackupEngine">
 VitessBackupEngine
@@ -6330,7 +6330,7 @@ VitessBackupEngine
 </tr>
 <tr>
 <td>
-<code>extraVitessFlags</code></br>
+<code>extraVitessFlags</code><br>
 <em>
 map[string]string
 </em>
@@ -6341,7 +6341,7 @@ map[string]string
 </tr>
 <tr>
 <td>
-<code>topologyReconciliation</code></br>
+<code>topologyReconciliation</code><br>
 <em>
 <a href="#planetscale.com/v2.TopoReconcileConfig">
 TopoReconcileConfig
@@ -6354,7 +6354,7 @@ TopoReconcileConfig
 </tr>
 <tr>
 <td>
-<code>updateStrategy</code></br>
+<code>updateStrategy</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessClusterUpdateStrategy">
 VitessClusterUpdateStrategy
@@ -6386,7 +6386,7 @@ VitessClusterUpdateStrategy
 <tbody>
 <tr>
 <td>
-<code>observedGeneration</code></br>
+<code>observedGeneration</code><br>
 <em>
 int64
 </em>
@@ -6397,7 +6397,7 @@ int64
 </tr>
 <tr>
 <td>
-<code>shards</code></br>
+<code>shards</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessKeyspaceShardStatus">
 map[string]planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspaceShardStatus
@@ -6410,7 +6410,7 @@ map[string]planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspac
 </tr>
 <tr>
 <td>
-<code>partitionings</code></br>
+<code>partitionings</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessKeyspacePartitioningStatus">
 []VitessKeyspacePartitioningStatus
@@ -6423,7 +6423,7 @@ map[string]planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessKeyspac
 </tr>
 <tr>
 <td>
-<code>orphanedShards</code></br>
+<code>orphanedShards</code><br>
 <em>
 <a href="#planetscale.com/v2.OrphanStatus">
 map[string]planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus
@@ -6436,7 +6436,7 @@ map[string]planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus
 </tr>
 <tr>
 <td>
-<code>idle</code></br>
+<code>idle</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#conditionstatus-v1-core">
 Kubernetes core/v1.ConditionStatus
@@ -6451,7 +6451,7 @@ be safe to turn down the keyspace.</p>
 </tr>
 <tr>
 <td>
-<code>resharding</code></br>
+<code>resharding</code><br>
 <em>
 <a href="#planetscale.com/v2.ReshardingStatus">
 ReshardingStatus
@@ -6466,7 +6466,7 @@ it means the operator was unable to query resharding status from Vitess.</p>
 </tr>
 <tr>
 <td>
-<code>conditions</code></br>
+<code>conditions</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessKeyspaceCondition">
 []VitessKeyspaceCondition
@@ -6500,7 +6500,7 @@ It&rsquo;s ok for multiple controllers to add conditions here, and those conditi
 <tbody>
 <tr>
 <td>
-<code>name</code></br>
+<code>name</code><br>
 <em>
 string
 </em>
@@ -6516,7 +6516,7 @@ instruction to delete the old keyspace and create a new one.</p>
 </tr>
 <tr>
 <td>
-<code>databaseName</code></br>
+<code>databaseName</code><br>
 <em>
 string
 </em>
@@ -6537,7 +6537,7 @@ this to be the same as the keyspace name to reduce confusion.</p>
 </tr>
 <tr>
 <td>
-<code>durabilityPolicy</code></br>
+<code>durabilityPolicy</code><br>
 <em>
 string
 </em>
@@ -6549,7 +6549,7 @@ If unspecified, vtop will not set the durability policy.</p>
 </tr>
 <tr>
 <td>
-<code>vitessOrchestrator</code></br>
+<code>vitessOrchestrator</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessOrchestratorSpec">
 VitessOrchestratorSpec
@@ -6564,7 +6564,7 @@ for the vttablets if enabling vtorc.</p>
 </tr>
 <tr>
 <td>
-<code>partitionings</code></br>
+<code>partitionings</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessKeyspacePartitioning">
 []VitessKeyspacePartitioning
@@ -6600,7 +6600,7 @@ partitioning into 1 part.</p>
 </tr>
 <tr>
 <td>
-<code>turndownPolicy</code></br>
+<code>turndownPolicy</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessKeyspaceTurndownPolicy">
 VitessKeyspaceTurndownPolicy
@@ -6628,7 +6628,7 @@ you can set the policy to Immediate to skip these checks.</p>
 </tr>
 <tr>
 <td>
-<code>annotations</code></br>
+<code>annotations</code><br>
 <em>
 map[string]string
 </em>
@@ -6639,7 +6639,7 @@ map[string]string
 </tr>
 <tr>
 <td>
-<code>images</code></br>
+<code>images</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessKeyspaceTemplateImages">
 VitessKeyspaceTemplateImages
@@ -6685,7 +6685,7 @@ VitessKeyspaceImages instead as it contains exactly the same fields.</p>
 <tbody>
 <tr>
 <td>
-<code>vttablet</code></br>
+<code>vttablet</code><br>
 <em>
 string
 </em>
@@ -6696,7 +6696,7 @@ string
 </tr>
 <tr>
 <td>
-<code>vtorc</code></br>
+<code>vtorc</code><br>
 <em>
 string
 </em>
@@ -6707,7 +6707,7 @@ string
 </tr>
 <tr>
 <td>
-<code>vtbackup</code></br>
+<code>vtbackup</code><br>
 <em>
 string
 </em>
@@ -6718,7 +6718,7 @@ string
 </tr>
 <tr>
 <td>
-<code>mysqld</code></br>
+<code>mysqld</code><br>
 <em>
 <a href="#planetscale.com/v2.MysqldImageNew">
 MysqldImageNew
@@ -6734,7 +6734,7 @@ mysqld running alongside each tablet.</p>
 </tr>
 <tr>
 <td>
-<code>mysqldExporter</code></br>
+<code>mysqldExporter</code><br>
 <em>
 string
 </em>
@@ -6777,7 +6777,7 @@ to connect to a given lockserver.</p>
 <tbody>
 <tr>
 <td>
-<code>implementation</code></br>
+<code>implementation</code><br>
 <em>
 string
 </em>
@@ -6788,7 +6788,7 @@ string
 </tr>
 <tr>
 <td>
-<code>address</code></br>
+<code>address</code><br>
 <em>
 string
 </em>
@@ -6799,7 +6799,7 @@ string
 </tr>
 <tr>
 <td>
-<code>rootPath</code></br>
+<code>rootPath</code><br>
 <em>
 string
 </em>
@@ -6831,7 +6831,7 @@ Multiple Vitess clusters can share a lockserver as long as they have unique root
 <tbody>
 <tr>
 <td>
-<code>resources</code></br>
+<code>resources</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#resourcerequirements-v1-core">
 Kubernetes core/v1.ResourceRequirements
@@ -6844,7 +6844,7 @@ Kubernetes core/v1.ResourceRequirements
 </tr>
 <tr>
 <td>
-<code>extraFlags</code></br>
+<code>extraFlags</code><br>
 <em>
 map[string]string
 </em>
@@ -6859,7 +6859,7 @@ set the string value to either &ldquo;true&rdquo; or &ldquo;false&rdquo;.</p>
 </tr>
 <tr>
 <td>
-<code>extraEnv</code></br>
+<code>extraEnv</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#envvar-v1-core">
 []Kubernetes core/v1.EnvVar
@@ -6873,7 +6873,7 @@ set by the operator, or pass additional environment variables.</p>
 </tr>
 <tr>
 <td>
-<code>extraVolumes</code></br>
+<code>extraVolumes</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volume-v1-core">
 []Kubernetes core/v1.Volume
@@ -6890,7 +6890,7 @@ should be mounted.</p>
 </tr>
 <tr>
 <td>
-<code>extraVolumeMounts</code></br>
+<code>extraVolumeMounts</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volumemount-v1-core">
 []Kubernetes core/v1.VolumeMount
@@ -6905,7 +6905,7 @@ Typically, these are used to mount volumes defined through extraVolumes.</p>
 </tr>
 <tr>
 <td>
-<code>initContainers</code></br>
+<code>initContainers</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core">
 []Kubernetes core/v1.Container
@@ -6919,7 +6919,7 @@ that will be run to completion one after another before any app containers are s
 </tr>
 <tr>
 <td>
-<code>sidecarContainers</code></br>
+<code>sidecarContainers</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core">
 []Kubernetes core/v1.Container
@@ -6933,7 +6933,7 @@ that run alongside the main containers.</p>
 </tr>
 <tr>
 <td>
-<code>affinity</code></br>
+<code>affinity</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#affinity-v1-core">
 Kubernetes core/v1.Affinity
@@ -6949,7 +6949,7 @@ choose to set this field.</p>
 </tr>
 <tr>
 <td>
-<code>annotations</code></br>
+<code>annotations</code><br>
 <em>
 map[string]string
 </em>
@@ -6962,7 +6962,7 @@ Pods that the vtorc Deployment creates.</p>
 </tr>
 <tr>
 <td>
-<code>extraLabels</code></br>
+<code>extraLabels</code><br>
 <em>
 map[string]string
 </em>
@@ -6975,7 +6975,7 @@ Pods that the vtorc Deployment creates.</p>
 </tr>
 <tr>
 <td>
-<code>service</code></br>
+<code>service</code><br>
 <em>
 <a href="#planetscale.com/v2.ServiceOverrides">
 ServiceOverrides
@@ -6988,7 +6988,7 @@ ServiceOverrides
 </tr>
 <tr>
 <td>
-<code>tolerations</code></br>
+<code>tolerations</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#toleration-v1-core">
 []Kubernetes core/v1.Toleration
@@ -7020,7 +7020,7 @@ ServiceOverrides
 <tbody>
 <tr>
 <td>
-<code>available</code></br>
+<code>available</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#conditionstatus-v1-core">
 Kubernetes core/v1.ConditionStatus
@@ -7033,7 +7033,7 @@ Kubernetes core/v1.ConditionStatus
 </tr>
 <tr>
 <td>
-<code>serviceName</code></br>
+<code>serviceName</code><br>
 <em>
 string
 </em>
@@ -7063,7 +7063,7 @@ string
 <tbody>
 <tr>
 <td>
-<code>initializeMaster</code></br>
+<code>initializeMaster</code><br>
 <em>
 bool
 </em>
@@ -7076,7 +7076,7 @@ new or restored shard that has no master yet.</p>
 </tr>
 <tr>
 <td>
-<code>initializeBackup</code></br>
+<code>initializeBackup</code><br>
 <em>
 bool
 </em>
@@ -7090,7 +7090,7 @@ if a backup location is defined in the VitessCluster.</p>
 </tr>
 <tr>
 <td>
-<code>recoverRestartedMaster</code></br>
+<code>recoverRestartedMaster</code><br>
 <em>
 bool
 </em>
@@ -7124,7 +7124,7 @@ for that shard.</p>
 <tbody>
 <tr>
 <td>
-<code>metadata</code></br>
+<code>metadata</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#objectmeta-v1-meta">
 Kubernetes meta/v1.ObjectMeta
@@ -7138,7 +7138,7 @@ Refer to the Kubernetes API documentation for the fields of the
 </tr>
 <tr>
 <td>
-<code>spec</code></br>
+<code>spec</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessShardSpec">
 VitessShardSpec
@@ -7151,7 +7151,7 @@ VitessShardSpec
 <table>
 <tr>
 <td>
-<code>VitessShardTemplate</code></br>
+<code>VitessShardTemplate</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessShardTemplate">
 VitessShardTemplate
@@ -7169,7 +7169,7 @@ The rest of the fields below are filled in by the parent controller.</p>
 </tr>
 <tr>
 <td>
-<code>name</code></br>
+<code>name</code><br>
 <em>
 string
 </em>
@@ -7180,7 +7180,7 @@ string
 </tr>
 <tr>
 <td>
-<code>databaseName</code></br>
+<code>databaseName</code><br>
 <em>
 string
 </em>
@@ -7193,7 +7193,7 @@ the keyspace level.</p>
 </tr>
 <tr>
 <td>
-<code>zoneMap</code></br>
+<code>zoneMap</code><br>
 <em>
 map[string]string
 </em>
@@ -7205,7 +7205,7 @@ for all cells defined in the VitessCluster.</p>
 </tr>
 <tr>
 <td>
-<code>images</code></br>
+<code>images</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessKeyspaceImages">
 VitessKeyspaceImages
@@ -7221,7 +7221,7 @@ controller that owns this VitessShard.</p>
 </tr>
 <tr>
 <td>
-<code>imagePullPolicies</code></br>
+<code>imagePullPolicies</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessImagePullPolicies">
 VitessImagePullPolicies
@@ -7234,7 +7234,7 @@ VitessImagePullPolicies
 </tr>
 <tr>
 <td>
-<code>imagePullSecrets</code></br>
+<code>imagePullSecrets</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#localobjectreference-v1-core">
 []Kubernetes core/v1.LocalObjectReference
@@ -7247,7 +7247,7 @@ VitessImagePullPolicies
 </tr>
 <tr>
 <td>
-<code>keyRange</code></br>
+<code>keyRange</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessKeyRange">
 VitessKeyRange
@@ -7260,7 +7260,7 @@ VitessKeyRange
 </tr>
 <tr>
 <td>
-<code>globalLockserver</code></br>
+<code>globalLockserver</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessLockserverParams">
 VitessLockserverParams
@@ -7273,7 +7273,7 @@ VitessLockserverParams
 </tr>
 <tr>
 <td>
-<code>vitessOrchestrator</code></br>
+<code>vitessOrchestrator</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessOrchestratorSpec">
 VitessOrchestratorSpec
@@ -7286,7 +7286,7 @@ VitessOrchestratorSpec
 </tr>
 <tr>
 <td>
-<code>backupLocations</code></br>
+<code>backupLocations</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessBackupLocation">
 []VitessBackupLocation
@@ -7299,7 +7299,7 @@ VitessOrchestratorSpec
 </tr>
 <tr>
 <td>
-<code>backupEngine</code></br>
+<code>backupEngine</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessBackupEngine">
 VitessBackupEngine
@@ -7312,7 +7312,7 @@ VitessBackupEngine
 </tr>
 <tr>
 <td>
-<code>extraVitessFlags</code></br>
+<code>extraVitessFlags</code><br>
 <em>
 map[string]string
 </em>
@@ -7323,7 +7323,7 @@ map[string]string
 </tr>
 <tr>
 <td>
-<code>topologyReconciliation</code></br>
+<code>topologyReconciliation</code><br>
 <em>
 <a href="#planetscale.com/v2.TopoReconcileConfig">
 TopoReconcileConfig
@@ -7336,7 +7336,7 @@ TopoReconcileConfig
 </tr>
 <tr>
 <td>
-<code>updateStrategy</code></br>
+<code>updateStrategy</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessClusterUpdateStrategy">
 VitessClusterUpdateStrategy
@@ -7352,7 +7352,7 @@ VitessClusterUpdateStrategy
 </tr>
 <tr>
 <td>
-<code>status</code></br>
+<code>status</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessShardStatus">
 VitessShardStatus
@@ -7383,7 +7383,7 @@ VitessShardStatus
 <tbody>
 <tr>
 <td>
-<code>status</code></br>
+<code>status</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#conditionstatus-v1-core">
 Kubernetes core/v1.ConditionStatus
@@ -7397,7 +7397,7 @@ Can be True, False, Unknown.</p>
 </tr>
 <tr>
 <td>
-<code>lastTransitionTime</code></br>
+<code>lastTransitionTime</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#time-v1-meta">
 Kubernetes meta/v1.Time
@@ -7411,7 +7411,7 @@ Optional.</p>
 </tr>
 <tr>
 <td>
-<code>reason</code></br>
+<code>reason</code><br>
 <em>
 string
 </em>
@@ -7423,7 +7423,7 @@ Optional.</p>
 </tr>
 <tr>
 <td>
-<code>message</code></br>
+<code>message</code><br>
 <em>
 string
 </em>
@@ -7460,7 +7460,7 @@ VitessShardConditionType and the value is a VitessShardCondition.</p>
 <tbody>
 <tr>
 <td>
-<code>VitessShardTemplate</code></br>
+<code>VitessShardTemplate</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessShardTemplate">
 VitessShardTemplate
@@ -7478,7 +7478,7 @@ The rest of the fields below are filled in by the parent controller.</p>
 </tr>
 <tr>
 <td>
-<code>name</code></br>
+<code>name</code><br>
 <em>
 string
 </em>
@@ -7489,7 +7489,7 @@ string
 </tr>
 <tr>
 <td>
-<code>databaseName</code></br>
+<code>databaseName</code><br>
 <em>
 string
 </em>
@@ -7502,7 +7502,7 @@ the keyspace level.</p>
 </tr>
 <tr>
 <td>
-<code>zoneMap</code></br>
+<code>zoneMap</code><br>
 <em>
 map[string]string
 </em>
@@ -7514,7 +7514,7 @@ for all cells defined in the VitessCluster.</p>
 </tr>
 <tr>
 <td>
-<code>images</code></br>
+<code>images</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessKeyspaceImages">
 VitessKeyspaceImages
@@ -7530,7 +7530,7 @@ controller that owns this VitessShard.</p>
 </tr>
 <tr>
 <td>
-<code>imagePullPolicies</code></br>
+<code>imagePullPolicies</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessImagePullPolicies">
 VitessImagePullPolicies
@@ -7543,7 +7543,7 @@ VitessImagePullPolicies
 </tr>
 <tr>
 <td>
-<code>imagePullSecrets</code></br>
+<code>imagePullSecrets</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#localobjectreference-v1-core">
 []Kubernetes core/v1.LocalObjectReference
@@ -7556,7 +7556,7 @@ VitessImagePullPolicies
 </tr>
 <tr>
 <td>
-<code>keyRange</code></br>
+<code>keyRange</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessKeyRange">
 VitessKeyRange
@@ -7569,7 +7569,7 @@ VitessKeyRange
 </tr>
 <tr>
 <td>
-<code>globalLockserver</code></br>
+<code>globalLockserver</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessLockserverParams">
 VitessLockserverParams
@@ -7582,7 +7582,7 @@ VitessLockserverParams
 </tr>
 <tr>
 <td>
-<code>vitessOrchestrator</code></br>
+<code>vitessOrchestrator</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessOrchestratorSpec">
 VitessOrchestratorSpec
@@ -7595,7 +7595,7 @@ VitessOrchestratorSpec
 </tr>
 <tr>
 <td>
-<code>backupLocations</code></br>
+<code>backupLocations</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessBackupLocation">
 []VitessBackupLocation
@@ -7608,7 +7608,7 @@ VitessOrchestratorSpec
 </tr>
 <tr>
 <td>
-<code>backupEngine</code></br>
+<code>backupEngine</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessBackupEngine">
 VitessBackupEngine
@@ -7621,7 +7621,7 @@ VitessBackupEngine
 </tr>
 <tr>
 <td>
-<code>extraVitessFlags</code></br>
+<code>extraVitessFlags</code><br>
 <em>
 map[string]string
 </em>
@@ -7632,7 +7632,7 @@ map[string]string
 </tr>
 <tr>
 <td>
-<code>topologyReconciliation</code></br>
+<code>topologyReconciliation</code><br>
 <em>
 <a href="#planetscale.com/v2.TopoReconcileConfig">
 TopoReconcileConfig
@@ -7645,7 +7645,7 @@ TopoReconcileConfig
 </tr>
 <tr>
 <td>
-<code>updateStrategy</code></br>
+<code>updateStrategy</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessClusterUpdateStrategy">
 VitessClusterUpdateStrategy
@@ -7677,7 +7677,7 @@ VitessClusterUpdateStrategy
 <tbody>
 <tr>
 <td>
-<code>observedGeneration</code></br>
+<code>observedGeneration</code><br>
 <em>
 int64
 </em>
@@ -7688,7 +7688,7 @@ int64
 </tr>
 <tr>
 <td>
-<code>tablets</code></br>
+<code>tablets</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessTabletStatus">
 map[string]planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessTabletStatus
@@ -7701,7 +7701,7 @@ map[string]planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessTabletS
 </tr>
 <tr>
 <td>
-<code>orphanedTablets</code></br>
+<code>orphanedTablets</code><br>
 <em>
 <a href="#planetscale.com/v2.OrphanStatus">
 map[string]planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus
@@ -7714,7 +7714,7 @@ map[string]planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus
 </tr>
 <tr>
 <td>
-<code>cells</code></br>
+<code>cells</code><br>
 <em>
 []string
 </em>
@@ -7725,7 +7725,7 @@ map[string]planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus
 </tr>
 <tr>
 <td>
-<code>vitessOrchestrator</code></br>
+<code>vitessOrchestrator</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessOrchestratorStatus">
 VitessOrchestratorStatus
@@ -7738,7 +7738,7 @@ VitessOrchestratorStatus
 </tr>
 <tr>
 <td>
-<code>hasMaster</code></br>
+<code>hasMaster</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#conditionstatus-v1-core">
 Kubernetes core/v1.ConditionStatus
@@ -7752,7 +7752,7 @@ reflects a master for this shard.</p>
 </tr>
 <tr>
 <td>
-<code>hasInitialBackup</code></br>
+<code>hasInitialBackup</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#conditionstatus-v1-core">
 Kubernetes core/v1.ConditionStatus
@@ -7766,7 +7766,7 @@ has been seeded for the shard.</p>
 </tr>
 <tr>
 <td>
-<code>servingWrites</code></br>
+<code>servingWrites</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#conditionstatus-v1-core">
 Kubernetes core/v1.ConditionStatus
@@ -7782,7 +7782,7 @@ the target of a resharding operation that is still in progress.</p>
 </tr>
 <tr>
 <td>
-<code>idle</code></br>
+<code>idle</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#conditionstatus-v1-core">
 Kubernetes core/v1.ConditionStatus
@@ -7798,7 +7798,7 @@ to turn down the shard.</p>
 </tr>
 <tr>
 <td>
-<code>conditions</code></br>
+<code>conditions</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessShardCondition">
 map[planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessShardConditionType]planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.VitessShardCondition
@@ -7812,7 +7812,7 @@ It&rsquo;s ok for multiple controllers to add conditions here, and those conditi
 </tr>
 <tr>
 <td>
-<code>masterAlias</code></br>
+<code>masterAlias</code><br>
 <em>
 string
 </em>
@@ -7826,7 +7826,7 @@ condition whenever the distinction is important.</p>
 </tr>
 <tr>
 <td>
-<code>backupLocations</code></br>
+<code>backupLocations</code><br>
 <em>
 <a href="#planetscale.com/v2.*planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.ShardBackupLocationStatus">
 []ShardBackupLocationStatus
@@ -7840,7 +7840,7 @@ each backup location.</p>
 </tr>
 <tr>
 <td>
-<code>lowestPodGeneration</code></br>
+<code>lowestPodGeneration</code><br>
 <em>
 int64
 </em>
@@ -7873,7 +7873,7 @@ subsequent generations that affect tablets may not be reflected in status yet.</
 <tbody>
 <tr>
 <td>
-<code>cell</code></br>
+<code>cell</code><br>
 <em>
 string
 </em>
@@ -7884,7 +7884,7 @@ string
 </tr>
 <tr>
 <td>
-<code>type</code></br>
+<code>type</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessTabletPoolType">
 VitessTabletPoolType
@@ -7905,7 +7905,7 @@ VitessTabletPoolType
 </tr>
 <tr>
 <td>
-<code>name</code></br>
+<code>name</code><br>
 <em>
 string
 </em>
@@ -7920,7 +7920,7 @@ Hence, you must specify ExternalDatastore when assigning a name to this field.</
 </tr>
 <tr>
 <td>
-<code>replicas</code></br>
+<code>replicas</code><br>
 <em>
 int32
 </em>
@@ -7933,7 +7933,7 @@ which will scale the pool down to 0 tablets.</p>
 </tr>
 <tr>
 <td>
-<code>dataVolumeClaimTemplate</code></br>
+<code>dataVolumeClaimTemplate</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#persistentvolumeclaimspec-v1-core">
 Kubernetes core/v1.PersistentVolumeClaimSpec
@@ -7952,7 +7952,7 @@ is set on the StorageClass specified in the storageClassName field here.</p>
 </tr>
 <tr>
 <td>
-<code>backupLocationName</code></br>
+<code>backupLocationName</code><br>
 <em>
 string
 </em>
@@ -7966,7 +7966,7 @@ Default: Use the backup location whose name is empty.</p>
 </tr>
 <tr>
 <td>
-<code>vttablet</code></br>
+<code>vttablet</code><br>
 <em>
 <a href="#planetscale.com/v2.VttabletSpec">
 VttabletSpec
@@ -7979,7 +7979,7 @@ VttabletSpec
 </tr>
 <tr>
 <td>
-<code>mysqld</code></br>
+<code>mysqld</code><br>
 <em>
 <a href="#planetscale.com/v2.MysqldSpec">
 MysqldSpec
@@ -7993,7 +7993,7 @@ You must specify either Mysqld or ExternalDatastore, but not both.</p>
 </tr>
 <tr>
 <td>
-<code>mysqldExporter</code></br>
+<code>mysqldExporter</code><br>
 <em>
 <a href="#planetscale.com/v2.MysqldExporterSpec">
 MysqldExporterSpec
@@ -8006,7 +8006,7 @@ MysqldExporterSpec
 </tr>
 <tr>
 <td>
-<code>externalDatastore</code></br>
+<code>externalDatastore</code><br>
 <em>
 <a href="#planetscale.com/v2.ExternalDatastore">
 ExternalDatastore
@@ -8020,7 +8020,7 @@ You must specify either Mysqld or ExternalDatastore, but not both.</p>
 </tr>
 <tr>
 <td>
-<code>affinity</code></br>
+<code>affinity</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#affinity-v1-core">
 Kubernetes core/v1.Affinity
@@ -8037,7 +8037,7 @@ optimal scheduling of your pods if you choose to set this field.</p>
 </tr>
 <tr>
 <td>
-<code>annotations</code></br>
+<code>annotations</code><br>
 <em>
 map[string]string
 </em>
@@ -8049,7 +8049,7 @@ created for this component.</p>
 </tr>
 <tr>
 <td>
-<code>extraLabels</code></br>
+<code>extraLabels</code><br>
 <em>
 map[string]string
 </em>
@@ -8061,7 +8061,7 @@ created for this component.</p>
 </tr>
 <tr>
 <td>
-<code>extraEnv</code></br>
+<code>extraEnv</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#envvar-v1-core">
 []Kubernetes core/v1.EnvVar
@@ -8076,7 +8076,7 @@ These values are applied to both the vttablet and mysqld containers.</p>
 </tr>
 <tr>
 <td>
-<code>extraVolumes</code></br>
+<code>extraVolumes</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volume-v1-core">
 []Kubernetes core/v1.Volume
@@ -8094,7 +8094,7 @@ These volumes are available to be mounted by both vttablet and mysqld.</p>
 </tr>
 <tr>
 <td>
-<code>extraVolumeMounts</code></br>
+<code>extraVolumeMounts</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volumemount-v1-core">
 []Kubernetes core/v1.VolumeMount
@@ -8110,7 +8110,7 @@ These values are applied to both the vttablet and mysqld containers.</p>
 </tr>
 <tr>
 <td>
-<code>initContainers</code></br>
+<code>initContainers</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core">
 []Kubernetes core/v1.Container
@@ -8124,7 +8124,7 @@ that will be run to completion one after another before any app containers are s
 </tr>
 <tr>
 <td>
-<code>sidecarContainers</code></br>
+<code>sidecarContainers</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core">
 []Kubernetes core/v1.Container
@@ -8138,7 +8138,7 @@ that run alongside the main containers.</p>
 </tr>
 <tr>
 <td>
-<code>tolerations</code></br>
+<code>tolerations</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#toleration-v1-core">
 []Kubernetes core/v1.Toleration
@@ -8151,7 +8151,7 @@ that run alongside the main containers.</p>
 </tr>
 <tr>
 <td>
-<code>topologySpreadConstraints</code></br>
+<code>topologySpreadConstraints</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#topologyspreadconstraint-v1-core">
 []Kubernetes core/v1.TopologySpreadConstraint
@@ -8186,7 +8186,7 @@ specify how to spread vttablet pods among the given topology</p>
 <tbody>
 <tr>
 <td>
-<code>tabletPools</code></br>
+<code>tabletPools</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessShardTabletPool">
 []VitessShardTabletPool
@@ -8203,7 +8203,7 @@ in order to be able to serve.</p>
 </tr>
 <tr>
 <td>
-<code>databaseInitScriptSecret</code></br>
+<code>databaseInitScriptSecret</code><br>
 <em>
 <a href="#planetscale.com/v2.SecretSource">
 SecretSource
@@ -8218,7 +8218,7 @@ to set up initial tables and other MySQL-level entities needed by Vitess.</p>
 </tr>
 <tr>
 <td>
-<code>replication</code></br>
+<code>replication</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessReplicationSpec">
 VitessReplicationSpec
@@ -8231,7 +8231,7 @@ VitessReplicationSpec
 </tr>
 <tr>
 <td>
-<code>annotations</code></br>
+<code>annotations</code><br>
 <em>
 map[string]string
 </em>
@@ -8272,7 +8272,7 @@ transient states are not valid pool types.</p>
 <tbody>
 <tr>
 <td>
-<code>poolType</code></br>
+<code>poolType</code><br>
 <em>
 string
 </em>
@@ -8283,7 +8283,7 @@ string
 </tr>
 <tr>
 <td>
-<code>index</code></br>
+<code>index</code><br>
 <em>
 int32
 </em>
@@ -8294,7 +8294,7 @@ int32
 </tr>
 <tr>
 <td>
-<code>running</code></br>
+<code>running</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#conditionstatus-v1-core">
 Kubernetes core/v1.ConditionStatus
@@ -8307,7 +8307,7 @@ Kubernetes core/v1.ConditionStatus
 </tr>
 <tr>
 <td>
-<code>ready</code></br>
+<code>ready</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#conditionstatus-v1-core">
 Kubernetes core/v1.ConditionStatus
@@ -8321,7 +8321,7 @@ meaning it&rsquo;s ready to serve queries.</p>
 </tr>
 <tr>
 <td>
-<code>available</code></br>
+<code>available</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#conditionstatus-v1-core">
 Kubernetes core/v1.ConditionStatus
@@ -8335,7 +8335,7 @@ for long enough to be considered stable.</p>
 </tr>
 <tr>
 <td>
-<code>dataVolumeBound</code></br>
+<code>dataVolumeBound</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#conditionstatus-v1-core">
 Kubernetes core/v1.ConditionStatus
@@ -8349,7 +8349,7 @@ matched up with a PersistentVolume and bound to it.</p>
 </tr>
 <tr>
 <td>
-<code>type</code></br>
+<code>type</code><br>
 <em>
 string
 </em>
@@ -8360,7 +8360,7 @@ string
 </tr>
 <tr>
 <td>
-<code>pendingChanges</code></br>
+<code>pendingChanges</code><br>
 <em>
 string
 </em>
@@ -8391,7 +8391,7 @@ the next time a rolling update allows.</p>
 <tbody>
 <tr>
 <td>
-<code>rbac</code></br>
+<code>rbac</code><br>
 <em>
 <a href="#planetscale.com/v2.SecretSource">
 SecretSource
@@ -8405,7 +8405,7 @@ If it is omitted, then it is considered to disable rbac.</p>
 </tr>
 <tr>
 <td>
-<code>cells</code></br>
+<code>cells</code><br>
 <em>
 []string
 </em>
@@ -8418,7 +8418,7 @@ Default: Deploy to all defined cells.</p>
 </tr>
 <tr>
 <td>
-<code>apiAddresses</code></br>
+<code>apiAddresses</code><br>
 <em>
 []string
 </em>
@@ -8433,7 +8433,7 @@ or it should match the length of the Cells list</p>
 </tr>
 <tr>
 <td>
-<code>replicas</code></br>
+<code>replicas</code><br>
 <em>
 int32
 </em>
@@ -8444,7 +8444,7 @@ int32
 </tr>
 <tr>
 <td>
-<code>webResources</code></br>
+<code>webResources</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#resourcerequirements-v1-core">
 Kubernetes core/v1.ResourceRequirements
@@ -8457,7 +8457,7 @@ Kubernetes core/v1.ResourceRequirements
 </tr>
 <tr>
 <td>
-<code>apiResources</code></br>
+<code>apiResources</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#resourcerequirements-v1-core">
 Kubernetes core/v1.ResourceRequirements
@@ -8470,7 +8470,7 @@ Kubernetes core/v1.ResourceRequirements
 </tr>
 <tr>
 <td>
-<code>readOnly</code></br>
+<code>readOnly</code><br>
 <em>
 bool
 </em>
@@ -8483,7 +8483,7 @@ or should it allow users to take actions</p>
 </tr>
 <tr>
 <td>
-<code>extraFlags</code></br>
+<code>extraFlags</code><br>
 <em>
 map[string]string
 </em>
@@ -8498,7 +8498,7 @@ set the string value to either &ldquo;true&rdquo; or &ldquo;false&rdquo;.</p>
 </tr>
 <tr>
 <td>
-<code>extraEnv</code></br>
+<code>extraEnv</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#envvar-v1-core">
 []Kubernetes core/v1.EnvVar
@@ -8512,7 +8512,7 @@ set by the operator, or pass additional environment variables.</p>
 </tr>
 <tr>
 <td>
-<code>extraVolumes</code></br>
+<code>extraVolumes</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volume-v1-core">
 []Kubernetes core/v1.Volume
@@ -8529,7 +8529,7 @@ should be mounted.</p>
 </tr>
 <tr>
 <td>
-<code>extraVolumeMounts</code></br>
+<code>extraVolumeMounts</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volumemount-v1-core">
 []Kubernetes core/v1.VolumeMount
@@ -8544,7 +8544,7 @@ Typically, these are used to mount volumes defined through extraVolumes.</p>
 </tr>
 <tr>
 <td>
-<code>initContainers</code></br>
+<code>initContainers</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core">
 []Kubernetes core/v1.Container
@@ -8558,7 +8558,7 @@ that will be run to completion one after another before any app containers are s
 </tr>
 <tr>
 <td>
-<code>sidecarContainers</code></br>
+<code>sidecarContainers</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core">
 []Kubernetes core/v1.Container
@@ -8572,7 +8572,7 @@ that run alongside the main containers.</p>
 </tr>
 <tr>
 <td>
-<code>affinity</code></br>
+<code>affinity</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#affinity-v1-core">
 Kubernetes core/v1.Affinity
@@ -8588,7 +8588,7 @@ choose to set this field.</p>
 </tr>
 <tr>
 <td>
-<code>annotations</code></br>
+<code>annotations</code><br>
 <em>
 map[string]string
 </em>
@@ -8601,7 +8601,7 @@ Pods that the vtadmin Deployment creates.</p>
 </tr>
 <tr>
 <td>
-<code>extraLabels</code></br>
+<code>extraLabels</code><br>
 <em>
 map[string]string
 </em>
@@ -8614,7 +8614,7 @@ Pods that the vtadmin Deployment creates.</p>
 </tr>
 <tr>
 <td>
-<code>service</code></br>
+<code>service</code><br>
 <em>
 <a href="#planetscale.com/v2.ServiceOverrides">
 ServiceOverrides
@@ -8627,7 +8627,7 @@ ServiceOverrides
 </tr>
 <tr>
 <td>
-<code>tolerations</code></br>
+<code>tolerations</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#toleration-v1-core">
 []Kubernetes core/v1.Toleration
@@ -8659,7 +8659,7 @@ ServiceOverrides
 <tbody>
 <tr>
 <td>
-<code>available</code></br>
+<code>available</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#conditionstatus-v1-core">
 Kubernetes core/v1.ConditionStatus
@@ -8672,7 +8672,7 @@ Kubernetes core/v1.ConditionStatus
 </tr>
 <tr>
 <td>
-<code>serviceName</code></br>
+<code>serviceName</code><br>
 <em>
 string
 </em>
@@ -8702,7 +8702,7 @@ string
 <tbody>
 <tr>
 <td>
-<code>resources</code></br>
+<code>resources</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#resourcerequirements-v1-core">
 Kubernetes core/v1.ResourceRequirements
@@ -8717,7 +8717,7 @@ This field is required.</p>
 </tr>
 <tr>
 <td>
-<code>extraFlags</code></br>
+<code>extraFlags</code><br>
 <em>
 map[string]string
 </em>
@@ -8732,7 +8732,7 @@ set the string value to either &ldquo;true&rdquo; or &ldquo;false&rdquo;.</p>
 </tr>
 <tr>
 <td>
-<code>lifecycle</code></br>
+<code>lifecycle</code><br>
 <em>
 <a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#lifecycle-v1-core">
 Kubernetes core/v1.Lifecycle
@@ -8746,7 +8746,7 @@ to vttablet container</p>
 </tr>
 <tr>
 <td>
-<code>terminationGracePeriodSeconds</code></br>
+<code>terminationGracePeriodSeconds</code><br>
 <em>
 int64
 </em>
