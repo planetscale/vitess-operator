@@ -1,5 +1,25 @@
+#!/usr/bin/env bash
+
 # Remove the docker container on which kind is running
 # Also removes the volume used by it
 docker container rm -v -f kind-${BUILDKITE_BUILD_ID}-control-plane
 # Remove the docker image created for the local PR code
 docker image rm -f vitess-operator-pr:latest
+
+# This hack exists because vitess-operator modifies the permissions on the git
+# checkout during CI from inside docker. This causes future jobs run on the same
+# node to fail the git checkout step due to permission errors
+#
+# Our fix is to reset the perms after each job step. We can't run arbitrary
+# sudo commands as the buildkite-agent user but we _can_ run the /usr/bin/fix-buildkite-agent-builds-permissions
+# tool via sudo
+#
+# these cmds stolen from: https://github.com/buildkite/elastic-ci-stack-for-aws/blob/da3aef5d96cecb796636a7ac25d7b205a6a0cc90/packer/linux/conf/buildkite-agent/hooks/environment#L117-L141
+
+set -euo pipefail
+
+AGENT_ORG_PIPELINE_DIR="${BUILDKITE_BUILD_CHECKOUT_PATH#"${BUILDKITE_BUILD_PATH}/"}"
+AGENT_DIR="${AGENT_ORG_PIPELINE_DIR%%/*}"
+
+set -x
+sudo /usr/bin/fix-buildkite-agent-builds-permissions "$AGENT_DIR" planetscale vitess-operator
