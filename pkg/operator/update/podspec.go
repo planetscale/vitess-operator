@@ -305,7 +305,6 @@ srcLoop:
 		for dstIndex := range *dst {
 			dstObj := &(*dst)[dstIndex]
 			if reflect.DeepEqual(srcObj, dstObj) {
-				*dstObj = *srcObj
 				continue srcLoop
 			}
 		}
