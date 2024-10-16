@@ -1227,6 +1227,20 @@ ServiceOverrides
 <p>Tolerations allow you to schedule pods onto nodes with matching taints.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>topologySpreadConstraints</code></br>
+<em>
+<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#topologyspreadconstraint-v1-core">
+[]Kubernetes core/v1.TopologySpreadConstraint
+</a>
+</em>
+</td>
+<td>
+<p>TopologySpreadConstraint can optionally be used to
+specify how to spread etcd pods among the given topology</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="planetscale.com/v2.ExternalDatastore">ExternalDatastore
@@ -4883,6 +4897,20 @@ ServiceOverrides
 <p>Tolerations allow you to schedule pods onto nodes with matching taints.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>topologySpreadConstraints</code></br>
+<em>
+<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#topologyspreadconstraint-v1-core">
+[]Kubernetes core/v1.TopologySpreadConstraint
+</a>
+</em>
+</td>
+<td>
+<p>TopologySpreadConstraint can optionally be used to
+specify how to spread vtctld pods among the given topology</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="planetscale.com/v2.VitessDashboardStatus">VitessDashboardStatus
@@ -6999,6 +7027,20 @@ ServiceOverrides
 <p>Tolerations allow you to schedule pods onto nodes with matching taints.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>topologySpreadConstraints</code></br>
+<em>
+<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#topologyspreadconstraint-v1-core">
+[]Kubernetes core/v1.TopologySpreadConstraint
+</a>
+</em>
+</td>
+<td>
+<p>TopologySpreadConstraint can optionally be used to
+specify how to spread vtorc pods among the given topology</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="planetscale.com/v2.VitessOrchestratorStatus">VitessOrchestratorStatus
@@ -8636,6 +8678,20 @@ ServiceOverrides
 </td>
 <td>
 <p>Tolerations allow you to schedule pods onto nodes with matching taints.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>topologySpreadConstraints</code></br>
+<em>
+<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#topologyspreadconstraint-v1-core">
+[]Kubernetes core/v1.TopologySpreadConstraint
+</a>
+</em>
+</td>
+<td>
+<p>TopologySpreadConstraint can optionally be used to
+specify how to spread vtadmin pods among the given topology</p>
 </td>
 </tr>
 </tbody>

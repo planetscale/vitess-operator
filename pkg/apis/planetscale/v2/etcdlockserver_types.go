@@ -197,6 +197,12 @@ type EtcdLockserverTemplate struct {
 	// +kubebuilder:validation:Schemaless
 	// +kubebuilder:pruning:PreserveUnknownFields
 	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
+
+	// TopologySpreadConstraint can optionally be used to
+	// specify how to spread etcd pods among the given topology
+	// +kubebuilder:validation:Schemaless
+	// +kubebuilder:pruning:PreserveUnknownFields
+	TopologySpreadConstraints []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty"`
 }
 
 // EtcdLockserverStatus defines the observed state of an EtcdLockserver.

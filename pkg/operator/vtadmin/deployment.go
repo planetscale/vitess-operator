@@ -87,26 +87,27 @@ type Spec struct {
 	ClusterConfig *planetscalev2.SecretSource
 	// Discovery holds the secret information for the vtctld and vtgate
 	// endpoints to use by vtadmin
-	Discovery         *planetscalev2.SecretSource
-	Rbac              *planetscalev2.SecretSource
-	WebConfig         *planetscalev2.SecretSource
-	Image             string
-	ImagePullPolicy   corev1.PullPolicy
-	ImagePullSecrets  []corev1.LocalObjectReference
-	Labels            map[string]string
-	Replicas          int32
-	APIResources      corev1.ResourceRequirements
-	WebResources      corev1.ResourceRequirements
-	Affinity          *corev1.Affinity
-	ExtraFlags        map[string]string
-	ExtraEnv          []corev1.EnvVar
-	ExtraVolumes      []corev1.Volume
-	ExtraVolumeMounts []corev1.VolumeMount
-	InitContainers    []corev1.Container
-	SidecarContainers []corev1.Container
-	Annotations       map[string]string
-	ExtraLabels       map[string]string
-	Tolerations       []corev1.Toleration
+	Discovery                 *planetscalev2.SecretSource
+	Rbac                      *planetscalev2.SecretSource
+	WebConfig                 *planetscalev2.SecretSource
+	Image                     string
+	ImagePullPolicy           corev1.PullPolicy
+	ImagePullSecrets          []corev1.LocalObjectReference
+	Labels                    map[string]string
+	Replicas                  int32
+	APIResources              corev1.ResourceRequirements
+	WebResources              corev1.ResourceRequirements
+	Affinity                  *corev1.Affinity
+	ExtraFlags                map[string]string
+	ExtraEnv                  []corev1.EnvVar
+	ExtraVolumes              []corev1.Volume
+	ExtraVolumeMounts         []corev1.VolumeMount
+	InitContainers            []corev1.Container
+	SidecarContainers         []corev1.Container
+	Annotations               map[string]string
+	ExtraLabels               map[string]string
+	Tolerations               []corev1.Toleration
+	TopologySpreadConstraints []corev1.TopologySpreadConstraint
 }
 
 // NewDeployment creates a new Deployment object for vtadmin.
@@ -175,6 +176,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 	obj.Spec.Template.Spec.PriorityClassName = planetscalev2.DefaultVitessPriorityClass
 	obj.Spec.Template.Spec.ServiceAccountName = planetscalev2.DefaultVitessServiceAccount
 	obj.Spec.Template.Spec.Tolerations = spec.Tolerations
+	obj.Spec.Template.Spec.TopologySpreadConstraints = spec.TopologySpreadConstraints
 	update.Volumes(&obj.Spec.Template.Spec.Volumes, spec.ExtraVolumes)
 
 	securityContext := &corev1.SecurityContext{}
