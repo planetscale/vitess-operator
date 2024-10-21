@@ -51,26 +51,27 @@ func DeploymentName(clusterName, keyspace string, shardKeyRange planetscalev2.Vi
 // Spec specifies all the internal parameters needed to deploy VTOrc,
 // as opposed to the API type planetscalev2.VitessDashboardSpec, which is the public API.
 type Spec struct {
-	GlobalLockserver  planetscalev2.VitessLockserverParams
-	Keyspace          string
-	Shard             string
-	Cell              string
-	Zone              string
-	Image             string
-	ImagePullPolicy   corev1.PullPolicy
-	ImagePullSecrets  []corev1.LocalObjectReference
-	Labels            map[string]string
-	Resources         corev1.ResourceRequirements
-	Affinity          *corev1.Affinity
-	ExtraFlags        map[string]string
-	ExtraEnv          []corev1.EnvVar
-	ExtraVolumes      []corev1.Volume
-	ExtraVolumeMounts []corev1.VolumeMount
-	InitContainers    []corev1.Container
-	SidecarContainers []corev1.Container
-	Annotations       map[string]string
-	ExtraLabels       map[string]string
-	Tolerations       []corev1.Toleration
+	GlobalLockserver          planetscalev2.VitessLockserverParams
+	Keyspace                  string
+	Shard                     string
+	Cell                      string
+	Zone                      string
+	Image                     string
+	ImagePullPolicy           corev1.PullPolicy
+	ImagePullSecrets          []corev1.LocalObjectReference
+	Labels                    map[string]string
+	Resources                 corev1.ResourceRequirements
+	Affinity                  *corev1.Affinity
+	ExtraFlags                map[string]string
+	ExtraEnv                  []corev1.EnvVar
+	ExtraVolumes              []corev1.Volume
+	ExtraVolumeMounts         []corev1.VolumeMount
+	InitContainers            []corev1.Container
+	SidecarContainers         []corev1.Container
+	Annotations               map[string]string
+	ExtraLabels               map[string]string
+	Tolerations               []corev1.Toleration
+	TopologySpreadConstraints []corev1.TopologySpreadConstraint
 }
 
 // NewDeployment creates a new Deployment object for vtorc.
@@ -136,6 +137,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 	obj.Spec.Template.Spec.PriorityClassName = planetscalev2.DefaultVitessPriorityClass
 	obj.Spec.Template.Spec.ServiceAccountName = planetscalev2.DefaultVitessServiceAccount
 	obj.Spec.Template.Spec.Tolerations = spec.Tolerations
+	obj.Spec.Template.Spec.TopologySpreadConstraints = spec.TopologySpreadConstraints
 	update.Volumes(&obj.Spec.Template.Spec.Volumes, spec.ExtraVolumes)
 
 	securityContext := &corev1.SecurityContext{}

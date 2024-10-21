@@ -143,12 +143,13 @@ func NewBackupPod(key client.ObjectKey, backupSpec *BackupSpec, mysqldImage stri
 			Annotations: tabletAnnotations.Get(tabletSpec),
 		},
 		Spec: corev1.PodSpec{
-			ImagePullSecrets: tabletSpec.ImagePullSecrets,
-			RestartPolicy:    corev1.RestartPolicyOnFailure,
-			Volumes:          tabletVolumes.Get(tabletSpec),
-			SecurityContext:  podSecurityContext,
-			Affinity:         tabletSpec.Affinity,
-			Tolerations:      tabletSpec.Tolerations,
+			ImagePullSecrets:          tabletSpec.ImagePullSecrets,
+			RestartPolicy:             corev1.RestartPolicyOnFailure,
+			Volumes:                   tabletVolumes.Get(tabletSpec),
+			SecurityContext:           podSecurityContext,
+			Affinity:                  tabletSpec.Affinity,
+			Tolerations:               tabletSpec.Tolerations,
+			TopologySpreadConstraints: tabletSpec.TopologySpreadConstraints,
 			InitContainers: []corev1.Container{
 				{
 					Name:            "init-vt-root",
