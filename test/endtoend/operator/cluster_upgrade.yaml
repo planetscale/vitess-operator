@@ -99,6 +99,12 @@ spec:
                   cpu: 100m
                   memory: 512Mi
               configOverrides: "innodb_fast_shutdown=0"
+            # Configure extra flags for mysqld_exporter and check them in the upgrade test
+            mysqldExporter:
+              extraFlags:
+                collect.info_schema.tables.databases: "*" # Override the default
+                collect.info_schema.innodb_cmpmem: "false"
+                collect.info_schema.tables: "true"
             dataVolumeClaimTemplate:
               accessModes: ["ReadWriteOnce"]
               resources:
