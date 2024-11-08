@@ -248,6 +248,13 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 					corev1.ResourceMemory: *resource.NewQuantity(mysqldExporterMemoryLimitBytes, resource.BinarySI),
 				},
 			}
+			// TODO(enisoc): Add readiness and liveness probes that make sense for mysqld-exporter.
+			//   This depends on the exact semantics of each of mysqld-exporter's HTTP handlers,
+			//   so we need to do more investigation. For now it's better to leave them empty.
+		}
+
+		if spec.MysqldExporter != nil && (len(spec.MysqldExporter.Resources.Limits) > 0 || len(spec.MysqldExporter.Resources.Requests) > 0) {
+			update.ResourceRequirements(&mysqldExporterContainer.Resources, &spec.MysqldExporter.Resources)
 		}
 	}
 

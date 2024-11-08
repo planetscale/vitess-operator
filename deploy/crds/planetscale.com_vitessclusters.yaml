@@ -2049,8 +2049,6 @@ spec:
                                                       x-kubernetes-int-or-string: true
                                                     type: object
                                                 type: object
-                                            required:
-                                            - resources
                                             type: object
                                           name:
                                             default: ""
@@ -2494,8 +2492,6 @@ spec:
                                                     x-kubernetes-int-or-string: true
                                                   type: object
                                               type: object
-                                          required:
-                                          - resources
                                           type: object
                                         name:
                                           default: ""
