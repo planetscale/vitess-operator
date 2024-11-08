@@ -245,7 +245,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 			//   so we need to do more investigation. For now it's better to leave them empty.
 		}
 
-		if spec.MysqldExporter != nil {
+		if spec.MysqldExporter != nil && (len(spec.MysqldExporter.Resources.Limits) > 0 || len(spec.MysqldExporter.Resources.Requests) > 0) {
 			update.ResourceRequirements(&mysqldExporterContainer.Resources, &spec.MysqldExporter.Resources)
 		}
 	}

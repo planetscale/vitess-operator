@@ -326,7 +326,7 @@ type MysqldExporterSpec struct {
 	ExtraFlags map[string]string `json:"extraFlags,omitempty"`
 
 	// Resources specify the compute resources to allocate for just the MySQL Exporter.
-	Resources corev1.ResourceRequirements `json:"resources"`
+	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
 }
 
 // VitessTabletPoolType represents the tablet types for which it makes sense
