@@ -223,7 +223,15 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 			},
 			SecurityContext: securityContext,
 			VolumeMounts:    mysqldMounts,
-			Resources: corev1.ResourceRequirements{
+			// TODO(enisoc): Add readiness and liveness probes that make sense for mysqld-exporter.
+			//   This depends on the exact semantics of each of mysqld-exporter's HTTP handlers,
+			//   so we need to do more investigation. For now it's better to leave them empty.
+		}
+
+		if spec.MysqldExporter != nil && (len(spec.MysqldExporter.Resources.Limits) > 0 || len(spec.MysqldExporter.Resources.Requests) > 0) {
+			update.ResourceRequirements(&mysqldExporterContainer.Resources, &spec.MysqldExporter.Resources)
+		} else {
+			mysqldExporterContainer.Resources = corev1.ResourceRequirements{
 				Requests: corev1.ResourceList{
 					corev1.ResourceCPU:    *resource.NewMilliQuantity(mysqldExporterCPURequestMillis, resource.DecimalSI),
 					corev1.ResourceMemory: *resource.NewQuantity(mysqldExporterMemoryRequestBytes, resource.BinarySI),
@@ -234,14 +242,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 					corev1.ResourceCPU:    *resource.NewMilliQuantity(mysqldExporterCPULimitMillis, resource.DecimalSI),
 					corev1.ResourceMemory: *resource.NewQuantity(mysqldExporterMemoryLimitBytes, resource.BinarySI),
 				},
-			},
-			// TODO(enisoc): Add readiness and liveness probes that make sense for mysqld-exporter.
-			//   This depends on the exact semantics of each of mysqld-exporter's HTTP handlers,
-			//   so we need to do more investigation. For now it's better to leave them empty.
-		}
-
-		if spec.MysqldExporter != nil {
-			update.ResourceRequirements(&mysqldExporterContainer.Resources, &spec.MysqldExporter.Resources)
+			}
 		}
 	}
 
