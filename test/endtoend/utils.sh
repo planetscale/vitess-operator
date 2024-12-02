@@ -126,6 +126,32 @@ function dockerContainersInspect() {
   done
 }
 
+function checkPodSpecBySelectorWithTimeout() {
+  local pod_selector="$1"
+  local pods_expected="$2"
+  local spec_matcher="$3"
+
+  local out pods_matched
+
+  for i in {1..1200}; do
+    # YAML output is convenient to grep
+    out="$(kubectl get pods --selector="${pod_selector}" --output=yaml)"
+    pods_matched="$(echo "${out}" | grep -cE -- "${spec_matcher}")"
+
+    if [[ "${pods_matched}" -eq "${pods_expected}" ]]; then
+      echo "${spec_matcher} found"
+      return
+    fi
+    sleep 1
+  done
+
+  echo "ERROR: checkPodSpecBySelectorWithTimeout timeout, didn't get ${pods_expected} matches for: ${spec_matcher}"
+  if echo "${pod_selector}" | grep -q "vttablet"; then
+    printMysqlErrorFiles
+  fi
+  exit 1
+}
+
 # checkPodStatusWithTimeout:
 # $1: regex used to match pod names
 # $2: number of pods to match (default: 1)
@@ -191,13 +217,18 @@ function insertWithRetry() {
 
 function verifyVtGateVersion() {
   version=$1
-  podName=$(kubectl get pods --no-headers -o custom-columns=":metadata.name" | grep "vtgate")
-  data=$(kubectl logs "$podName" | head)
-  echo "$data" | grep "$version" > /dev/null 2>&1
-  if [[ $? -ne 0 ]]; then
-    echo -e "The vtgate version is incorrect, expected: $version, got:\n$data"
-    exit 1
-  fi
+  data=""
+  for i in {1..600} ; do
+    podName=$(kubectl get pods --no-headers -o custom-columns=":metadata.name" | grep "vtgate")
+    data=$(kubectl logs "$podName" | head)
+    echo "$data" | grep "$version" > /dev/null 2>&1
+    if [[ $? -eq 0 ]]; then
+      return
+    fi
+    sleep 1
+  done
+  echo -e "The vtgate version is incorrect, expected: $version, got:\n$data"
+  exit 1
 }
 
 

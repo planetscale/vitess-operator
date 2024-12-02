@@ -317,8 +317,16 @@ type MysqldSpec struct {
 
 // MysqldExporterSpec configures the local MySQL exporter within a tablet.
 type MysqldExporterSpec struct {
+	// ExtraFlags can optionally be used to override default flags set by the
+	// operator, or pass additional flags to mysqld_exporter. All entries must be
+	// key-value string pairs of the form "flag": "value". The flag name should
+	// not have any prefix (just "flag", not "-flag"). To set a boolean flag,
+	// set the string value to either "true" or "false"; the flag will be
+	// automatically converted to the format expected by mysqld_exporter.
+	ExtraFlags map[string]string `json:"extraFlags,omitempty"`
+
 	// Resources specify the compute resources to allocate for just the MySQL Exporter.
-	Resources corev1.ResourceRequirements `json:"resources"`
+	Resources corev1.ResourceRequirements `json:"resources,omitempty"`
 }
 
 // VitessTabletPoolType represents the tablet types for which it makes sense
