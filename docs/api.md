@@ -1926,6 +1926,20 @@ If set, this must point to a file in the format expected for the
 Default: Use the default credentials of the Node.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>minPartSize</code><br>
+<em>
+int64
+</em>
+</td>
+<td>
+<p>MinPartSize is optional and is only needed if we want to set a minimum part size
+to be used by the S3 uploader, mainly used to avoid too many small requests to S3
+when there are too many small shards.
+Default: 5242880 (5MiB)</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="planetscale.com/v2.SecretSource">SecretSource

@@ -143,6 +143,11 @@ type S3BackupLocation struct {
 	// `~/.aws/credentials` file.
 	// Default: Use the default credentials of the Node.
 	AuthSecret *SecretSource `json:"authSecret,omitempty"`
+	// MinPartSize is optional and is only needed if we want to set a minimum part size
+	// to be used by the S3 uploader, mainly used to avoid too many small requests to S3
+	// when there are too many small shards.
+	// Default: 5242880 (5MiB)
+	MinPartSize int64 `json:"minPartSize,omitempty"`
 }
 
 // AzblobBackupLocation specifies a backup location in Azure Blob Storage.
