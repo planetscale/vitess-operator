@@ -20,6 +20,7 @@ package contenthash
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"strings"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -42,7 +43,16 @@ func TopologySpreadConstraints(in []corev1.TopologySpreadConstraint) string {
 			labelSelectors = map[string]string{}
 		}
 		writeStringHash(h, StringMap(labelSelectors))
-
+		writeStringHash(h, strings.Join(tsc.MatchLabelKeys, ""))
+		if tsc.MinDomains != nil {
+			writeStringHash(h, string(*tsc.MinDomains))
+		}
+		if tsc.NodeAffinityPolicy != nil {
+			writeStringHash(h, string(*tsc.NodeAffinityPolicy))
+		}
+		if tsc.NodeTaintsPolicy != nil {
+			writeStringHash(h, string(*tsc.NodeTaintsPolicy))
+		}
 	}
 
 	sum := h.Sum(nil)

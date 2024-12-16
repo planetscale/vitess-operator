@@ -21,6 +21,7 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/equality"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func TestTolerations(t *testing.T) {
@@ -35,6 +36,101 @@ func TestTolerations(t *testing.T) {
 
 	Tolerations(&val, []corev1.Toleration{
 		{Key: "newKey"},
+	})
+
+	if !equality.Semantic.DeepEqual(val, want) {
+		t.Errorf("val = %#v; want %#v", val, want)
+	}
+}
+
+func TestTopologySpreadConstraints(t *testing.T) {
+	// Make sure we don't touch topology spread constraints that were already there.
+	val := []corev1.TopologySpreadConstraint{
+		{
+			MaxSkew:           1,
+			TopologyKey:       "existing-retain",
+			WhenUnsatisfiable: corev1.DoNotSchedule,
+			LabelSelector: &metav1.LabelSelector{
+				MatchLabels: map[string]string{
+					"example-existing": "test",
+				},
+			},
+		},
+		{
+			MaxSkew:           1,
+			TopologyKey:       "existing-do-not-override",
+			WhenUnsatisfiable: corev1.DoNotSchedule,
+			LabelSelector: &metav1.LabelSelector{
+				MatchLabels: map[string]string{
+					"example-override": "test",
+				},
+			},
+		},
+	}
+	want := []corev1.TopologySpreadConstraint{
+		{
+			MaxSkew:           1,
+			TopologyKey:       "existing-retain",
+			WhenUnsatisfiable: corev1.DoNotSchedule,
+			LabelSelector: &metav1.LabelSelector{
+				MatchLabels: map[string]string{
+					"example-existing": "test",
+				},
+			},
+		},
+		{
+			MaxSkew:           1,
+			TopologyKey:       "existing-do-not-override",
+			WhenUnsatisfiable: corev1.DoNotSchedule,
+			LabelSelector: &metav1.LabelSelector{
+				MatchLabels: map[string]string{
+					"example-override": "test",
+				},
+			},
+		},
+		{
+			MaxSkew:           2,
+			TopologyKey:       "new-1",
+			WhenUnsatisfiable: corev1.ScheduleAnyway,
+			LabelSelector: &metav1.LabelSelector{
+				MatchLabels: map[string]string{
+					"example-new": "new-1",
+				},
+			},
+		},
+		{
+			MaxSkew:           2,
+			TopologyKey:       "new-2",
+			WhenUnsatisfiable: corev1.DoNotSchedule,
+			LabelSelector: &metav1.LabelSelector{
+				MatchLabels: map[string]string{
+					"example-override": "test",
+				},
+			},
+		},
+	}
+
+	TopologySpreadConstraints(&val, []corev1.TopologySpreadConstraint{
+		{
+			MaxSkew:           2,
+			TopologyKey:       "new-1",
+			WhenUnsatisfiable: corev1.ScheduleAnyway,
+			LabelSelector: &metav1.LabelSelector{
+				MatchLabels: map[string]string{
+					"example-new": "new-1",
+				},
+			},
+		},
+		{
+			MaxSkew:           2,
+			TopologyKey:       "new-2",
+			WhenUnsatisfiable: corev1.DoNotSchedule,
+			LabelSelector: &metav1.LabelSelector{
+				MatchLabels: map[string]string{
+					"example-override": "test",
+				},
+			},
+		},
 	})
 
 	if !equality.Semantic.DeepEqual(val, want) {
