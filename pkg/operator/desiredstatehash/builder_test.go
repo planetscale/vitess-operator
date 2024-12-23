@@ -46,6 +46,8 @@ func TestEmptyValues(t *testing.T) {
 	b.AddContainersUpdates("empty ContainersUpdates", []corev1.Container{})
 	b.AddTolerations("nil Tolerations", nil)
 	b.AddTolerations("empty Tolerations", []corev1.Toleration{})
+	b.AddTopologySpreadConstraints("nil TopologySpreadConstraints", nil)
+	b.AddTopologySpreadConstraints("empty TopologySpreadConstraints", []corev1.TopologySpreadConstraint{})
 	b.AddVolumeNames("nil VolumeNames", nil)
 	b.AddVolumeNames("empty VolumeNames", []corev1.Volume{})
 

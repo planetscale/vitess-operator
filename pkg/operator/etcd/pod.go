@@ -66,27 +66,28 @@ func PodName(lockserverName string, index int) string {
 
 // Spec specifies all the internal parameters needed to deploy an etcd instance.
 type Spec struct {
-	LockserverName    string
-	Image             string
-	ImagePullPolicy   corev1.PullPolicy
-	ImagePullSecrets  []corev1.LocalObjectReference
-	Resources         corev1.ResourceRequirements
-	Labels            map[string]string
-	Zone              string
-	Index             int
-	DataVolumePVCName string
-	DataVolumePVCSpec *corev1.PersistentVolumeClaimSpec
-	ExtraFlags        map[string]string
-	ExtraEnv          []corev1.EnvVar
-	ExtraVolumes      []corev1.Volume
-	ExtraVolumeMounts []corev1.VolumeMount
-	InitContainers    []corev1.Container
-	SidecarContainers []corev1.Container
-	Affinity          *corev1.Affinity
-	Annotations       map[string]string
-	ExtraLabels       map[string]string
-	AdvertisePeerURLs []string
-	Tolerations       []corev1.Toleration
+	LockserverName            string
+	Image                     string
+	ImagePullPolicy           corev1.PullPolicy
+	ImagePullSecrets          []corev1.LocalObjectReference
+	Resources                 corev1.ResourceRequirements
+	Labels                    map[string]string
+	Zone                      string
+	Index                     int
+	DataVolumePVCName         string
+	DataVolumePVCSpec         *corev1.PersistentVolumeClaimSpec
+	ExtraFlags                map[string]string
+	ExtraEnv                  []corev1.EnvVar
+	ExtraVolumes              []corev1.Volume
+	ExtraVolumeMounts         []corev1.VolumeMount
+	InitContainers            []corev1.Container
+	SidecarContainers         []corev1.Container
+	Affinity                  *corev1.Affinity
+	Annotations               map[string]string
+	ExtraLabels               map[string]string
+	AdvertisePeerURLs         []string
+	Tolerations               []corev1.Toleration
+	TopologySpreadConstraints []corev1.TopologySpreadConstraint
 }
 
 // NewPod creates a new etcd Pod.
@@ -300,6 +301,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	}
 
 	update.Tolerations(&obj.Spec.Tolerations, spec.Tolerations)
+	update.TopologySpreadConstraints(&obj.Spec.TopologySpreadConstraints, spec.TopologySpreadConstraints)
 
 	// Use the PriorityClass we defined for etcd in deploy/priority.yaml,
 	// or a custom value if overridden in the operator command line.
@@ -328,6 +330,10 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	// Record a hash of desired tolerations to force the Pod to be recreated if
 	// one disappears from the desired list.
 	desiredStateHash.AddTolerations("tolerations", spec.Tolerations)
+
+	// Record a hash of desired topologySpreadConstraints to force the Pod to be
+	// recreated if one disappears from the desired list.
+	desiredStateHash.AddTopologySpreadConstraints("topologySpreadConstraints", spec.TopologySpreadConstraints)
 
 	// Add the final desired state hash annotation.
 	update.Annotations(&obj.Annotations, map[string]string{
