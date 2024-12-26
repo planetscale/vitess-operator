@@ -129,6 +129,9 @@ spec:
                         maxLength: 256
                         pattern: ^[^\r\n]*$
                         type: string
+                      minPartSize:
+                        format: int64
+                        type: integer
                       region:
                         minLength: 1
                         type: string
