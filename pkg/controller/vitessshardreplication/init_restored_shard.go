@@ -25,13 +25,13 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"vitess.io/vitess/go/vt/vtctl/reparentutil/policy"
 
 	"vitess.io/vitess/go/mysql"
 	"vitess.io/vitess/go/mysql/replication"
 	topodatapb "vitess.io/vitess/go/vt/proto/topodata"
 	"vitess.io/vitess/go/vt/topo"
 	"vitess.io/vitess/go/vt/topo/topoproto"
-	"vitess.io/vitess/go/vt/vtctl/reparentutil"
 	"vitess.io/vitess/go/vt/wrangler"
 
 	// register grpc tabletmanager client
@@ -156,7 +156,7 @@ func electInitialShardPrimary(ctx context.Context, keyspaceName, shardName strin
 	if err != nil {
 		return nil, err
 	}
-	durability, err := reparentutil.GetDurabilityPolicy(keyspaceDurability)
+	durability, err := policy.GetDurabilityPolicy(keyspaceDurability)
 	if err != nil {
 		return nil, err
 	}
@@ -243,7 +243,7 @@ func electInitialShardPrimary(ctx context.Context, keyspaceName, shardName strin
 		return nil, fmt.Errorf("lost topology lock; aborting: %v", err)
 	}
 	// Promote the candidate to primary.
-	_, err = wr.TabletManagerClient().PromoteReplica(ctx, candidatePrimary.tablet.Tablet, reparentutil.SemiSyncAckers(durability, candidatePrimary.tablet.Tablet) > 0)
+	_, err = wr.TabletManagerClient().PromoteReplica(ctx, candidatePrimary.tablet.Tablet, policy.SemiSyncAckers(durability, candidatePrimary.tablet.Tablet) > 0)
 	if err != nil {
 		return nil, fmt.Errorf("failed to promote tablet %v to primary: %v", candidatePrimary.tablet.AliasString(), err)
 	}
@@ -269,7 +269,7 @@ func electInitialShardPrimary(ctx context.Context, keyspaceName, shardName strin
 		wg.Add(1)
 		go func(tablet *topo.TabletInfo) {
 			defer wg.Done()
-			err := wr.TabletManagerClient().SetReplicationSource(ctx, tablet.Tablet, candidatePrimary.tablet.Alias, 0 /* don't try to wait for a reparent journal entry */, "" /* don't wait for any position */, true /* forceStartReplication */, reparentutil.IsReplicaSemiSync(durability, candidatePrimary.tablet.Tablet, tablet.Tablet), 0)
+			err := wr.TabletManagerClient().SetReplicationSource(ctx, tablet.Tablet, candidatePrimary.tablet.Alias, 0 /* don't try to wait for a reparent journal entry */, "" /* don't wait for any position */, true /* forceStartReplication */, policy.IsReplicaSemiSync(durability, candidatePrimary.tablet.Tablet, tablet.Tablet), 0)
 			if err != nil {
 				log.Warningf("best-effort configuration of replication for tablet %v failed: %v", tablet.AliasString(), err)
 			}
