@@ -182,5 +182,5 @@ var (
 	// DefaultEtcdImage is the image to use for etcd when the CRD doesn't specify.
 	// This value can be configured at operator startup time with the
 	// --default_etcd_image flag.
-	DefaultEtcdImage = "quay.io/coreos/etcd:v3.5.9"
+	DefaultEtcdImage = "quay.io/coreos/etcd:v3.5.17"
 )
