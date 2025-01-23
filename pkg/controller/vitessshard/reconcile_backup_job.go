@@ -22,7 +22,6 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	apilabels "k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -56,27 +55,15 @@ func (r *ReconcileVitessShard) reconcileBackupJob(ctx context.Context, vts *plan
 		vitessbackup.TypeLabel:       vitessbackup.TypeInit,
 	}
 
-	// List all backups for this shard, across all storage locations.
-	// We'll use the latest observed state of backups to decide whether to take
-	// a new one. This list could be out of date because it's populated by
-	// polling the Vitess API (see the VitessBackupStorage controller), but as
-	// long as it's eventually consistent, we'll converge to the right behavior.
-	allBackups := &planetscalev2.VitessBackupList{}
-	listOpts := &client.ListOptions{
-		Namespace: vts.Namespace,
-		LabelSelector: apilabels.SelectorFromSet(apilabels.Set{
-			planetscalev2.ClusterLabel:  clusterName,
-			planetscalev2.KeyspaceLabel: keyspaceName,
-			planetscalev2.ShardLabel:    shardSafeName,
-		}),
-	}
-	if err := r.client.List(ctx, allBackups, listOpts); err != nil {
+	allBackups, completeBackups, err := vitessbackup.GetBackups(ctx, vts.Namespace, clusterName, keyspaceName, shardSafeName,
+		func(ctx context.Context, allBackupsList *planetscalev2.VitessBackupList, listOpts *client.ListOptions) error {
+			return r.client.List(ctx, allBackupsList, listOpts)
+		},
+	)
+	if err != nil {
 		return resultBuilder.Error(err)
 	}
-	updateBackupStatus(vts, allBackups.Items)
-
-	// Here we only care about complete backups.
-	completeBackups := vitessbackup.CompleteBackups(allBackups.Items)
+	updateBackupStatus(vts, allBackups)
 
 	// Generate keys (object names) for all desired backup Pods and PVCs.
 	// Keep a map back from generated names to the backup specs.
@@ -112,7 +99,7 @@ func (r *ReconcileVitessShard) reconcileBackupJob(ctx context.Context, vts *plan
 
 	// Reconcile vtbackup PVCs. Use the same key as the corresponding Pod,
 	// but only if the Pod expects a PVC.
-	err := r.reconciler.ReconcileObjectSet(ctx, vts, pvcKeys, labels, reconciler.Strategy{
+	err = r.reconciler.ReconcileObjectSet(ctx, vts, pvcKeys, labels, reconciler.Strategy{
 		Kind: &corev1.PersistentVolumeClaim{},
 
 		New: func(key client.ObjectKey) runtime.Object {
