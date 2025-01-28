@@ -136,11 +136,12 @@ type VitessBackupScheduleTemplate struct {
 
 	// ConcurrencyPolicy specifies ho to treat concurrent executions of a Job.
 	// Valid values are:
-	// - "Allow" (default): allows CronJobs to run concurrently;
-	// - "Forbid": forbids concurrent runs, skipping next run if previous run hasn't finished yet;
+	// - "Allow": allows CronJobs to run concurrently;
+	// - "Forbid" (default): forbids concurrent runs, skipping next run if previous run hasn't finished yet;
 	// - "Replace": cancels currently running job and replaces it with a new one.
 	// +optional
 	// +kubebuilder:example="Forbid"
+	// +kubebuilder:default="Forbid"
 	ConcurrencyPolicy ConcurrencyPolicy `json:"concurrencyPolicy,omitempty"`
 
 	// AllowedMissedRuns defines how many missed run of the schedule will be allowed before giving up on finding the last job.
