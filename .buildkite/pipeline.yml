@@ -2,7 +2,7 @@ agents:
   queue: "public"
 
 env:
-  GO_VERSION_FILE: "go1.23.4.linux-amd64.tar.gz"
+  GO_VERSION_FILE: "go1.23.5.linux-amd64.tar.gz"
 
 # Mount the docker.sock as to the docker container, so that we are able to
 # run docker build command and kind is spawned as a sibling container.
@@ -12,7 +12,7 @@ steps:
     - apk add g++ make bash gcompat curl mysql mysql-client libc6-compat
     - wget https://golang.org/dl/$GO_VERSION_FILE
     - tar -C /usr/local -xzf $GO_VERSION_FILE
-    - export PATH=$PATH:/usr/local/go/bin
+    - export PATH=$PATH:/usr/local/go/bin:/bin
     - rm $GO_VERSION_FILE
     - ln -s /lib/libc.so.6 /usr/lib/libresolv.so.2
     - make upgrade-test
@@ -31,7 +31,7 @@ steps:
     - apk add g++ make bash gcompat curl mysql mysql-client libc6-compat
     - wget https://golang.org/dl/$GO_VERSION_FILE
     - tar -C /usr/local -xzf $GO_VERSION_FILE
-    - export PATH=$PATH:/usr/local/go/bin
+    - export PATH=$PATH:/usr/local/go/bin:/bin
     - rm $GO_VERSION_FILE
     - ln -s /lib/libc.so.6 /usr/lib/libresolv.so.2
     - make backup-restore-test
@@ -50,7 +50,7 @@ steps:
       - apk add g++ make bash gcompat curl mysql mysql-client libc6-compat
       - wget https://golang.org/dl/$GO_VERSION_FILE
       - tar -C /usr/local -xzf $GO_VERSION_FILE
-      - export PATH=$PATH:/usr/local/go/bin
+      - export PATH=$PATH:/usr/local/go/bin:/bin
       - rm $GO_VERSION_FILE
       - ln -s /lib/libc.so.6 /usr/lib/libresolv.so.2
       - make backup-schedule-test
@@ -69,7 +69,7 @@ steps:
     - apk add g++ make bash gcompat curl mysql mysql-client libc6-compat chromium
     - wget https://golang.org/dl/$GO_VERSION_FILE
     - tar -C /usr/local -xzf $GO_VERSION_FILE
-    - export PATH=$PATH:/usr/local/go/bin
+    - export PATH=$PATH:/usr/local/go/bin:/bin
     - rm $GO_VERSION_FILE
     - ln -s /lib/libc.so.6 /usr/lib/libresolv.so.2
     - make vtorc-vtadmin-test
@@ -85,10 +85,10 @@ steps:
 
   - name: "Unmanaged Tablet Test"
     command:
-    - apk add g++ make bash gcompat curl mysql mysql-client libc6-compat chromium
+    - apk add g++ make bash gcompat curl mysql mysql-client libc6-compat chromium coreutils
     - wget https://golang.org/dl/$GO_VERSION_FILE
     - tar -C /usr/local -xzf $GO_VERSION_FILE
-    - export PATH=$PATH:/usr/local/go/bin
+    - export PATH=$PATH:/usr/local/go/bin:/bin
     - rm $GO_VERSION_FILE
     - ln -s /lib/libc.so.6 /usr/lib/libresolv.so.2
     - make unmanaged-tablet-test
@@ -107,7 +107,7 @@ steps:
     - apk add g++ make bash gcompat curl mysql mysql-client libc6-compat
     - wget https://golang.org/dl/$GO_VERSION_FILE
     - tar -C /usr/local -xzf $GO_VERSION_FILE
-    - export PATH=$PATH:/usr/local/go/bin
+    - export PATH=$PATH:/usr/local/go/bin:/bin
     - rm $GO_VERSION_FILE
     - ln -s /lib/libc.so.6 /usr/lib/libresolv.so.2
     - make hpa-test
