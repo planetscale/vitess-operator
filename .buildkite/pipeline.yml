@@ -9,10 +9,10 @@ env:
 steps:
   - name: "Upgrade Test"
     command:
-    - apk add g++ make bash gcompat curl mysql mysql-client libc6-compat coreutils
+    - apk add g++ make bash gcompat curl mysql mysql-client libc6-compat
     - wget https://golang.org/dl/$GO_VERSION_FILE
     - tar -C /usr/local -xzf $GO_VERSION_FILE
-    - export PATH=$PATH:/usr/local/go/bin
+    - export PATH=$PATH:/usr/local/go/bin:/bin
     - rm $GO_VERSION_FILE
     - ln -s /lib/libc.so.6 /usr/lib/libresolv.so.2
     - make upgrade-test
@@ -28,10 +28,10 @@ steps:
 
   - name: "Backup Restore Test"
     command:
-    - apk add g++ make bash gcompat curl mysql mysql-client libc6-compat coreutils
+    - apk add g++ make bash gcompat curl mysql mysql-client libc6-compat
     - wget https://golang.org/dl/$GO_VERSION_FILE
     - tar -C /usr/local -xzf $GO_VERSION_FILE
-    - export PATH=$PATH:/usr/local/go/bin
+    - export PATH=$PATH:/usr/local/go/bin:/bin
     - rm $GO_VERSION_FILE
     - ln -s /lib/libc.so.6 /usr/lib/libresolv.so.2
     - make backup-restore-test
@@ -47,10 +47,10 @@ steps:
 
   - name: "Backup Schedule Test"
     command:
-      - apk add g++ make bash gcompat curl mysql mysql-client libc6-compat coreutils
+      - apk add g++ make bash gcompat curl mysql mysql-client libc6-compat
       - wget https://golang.org/dl/$GO_VERSION_FILE
       - tar -C /usr/local -xzf $GO_VERSION_FILE
-      - export PATH=$PATH:/usr/local/go/bin
+      - export PATH=$PATH:/usr/local/go/bin:/bin
       - rm $GO_VERSION_FILE
       - ln -s /lib/libc.so.6 /usr/lib/libresolv.so.2
       - make backup-schedule-test
@@ -66,10 +66,10 @@ steps:
 
   - name: "VTOrc and VTAdmin Test"
     command:
-    - apk add g++ make bash gcompat curl mysql mysql-client libc6-compat chromium coreutils
+    - apk add g++ make bash gcompat curl mysql mysql-client libc6-compat chromium
     - wget https://golang.org/dl/$GO_VERSION_FILE
     - tar -C /usr/local -xzf $GO_VERSION_FILE
-    - export PATH=$PATH:/usr/local/go/bin
+    - export PATH=$PATH:/usr/local/go/bin:/bin
     - rm $GO_VERSION_FILE
     - ln -s /lib/libc.so.6 /usr/lib/libresolv.so.2
     - make vtorc-vtadmin-test
@@ -88,7 +88,7 @@ steps:
     - apk add g++ make bash gcompat curl mysql mysql-client libc6-compat chromium coreutils
     - wget https://golang.org/dl/$GO_VERSION_FILE
     - tar -C /usr/local -xzf $GO_VERSION_FILE
-    - export PATH=$PATH:/usr/local/go/bin
+    - export PATH=$PATH:/usr/local/go/bin:/bin
     - rm $GO_VERSION_FILE
     - ln -s /lib/libc.so.6 /usr/lib/libresolv.so.2
     - make unmanaged-tablet-test
@@ -104,10 +104,10 @@ steps:
 
   - name: "HPA Test"
     command:
-    - apk add g++ make bash gcompat curl mysql mysql-client libc6-compat coreutils
+    - apk add g++ make bash gcompat curl mysql mysql-client libc6-compat
     - wget https://golang.org/dl/$GO_VERSION_FILE
     - tar -C /usr/local -xzf $GO_VERSION_FILE
-    - export PATH=$PATH:/usr/local/go/bin
+    - export PATH=$PATH:/usr/local/go/bin:/bin
     - rm $GO_VERSION_FILE
     - ln -s /lib/libc.so.6 /usr/lib/libresolv.so.2
     - make hpa-test
