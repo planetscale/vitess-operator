@@ -84,7 +84,7 @@ func (r *ReconcileVitessShard) reconcileBackupJob(ctx context.Context, vts *plan
 		// scratch (not from any tablet). If we're wrong and a backup exists
 		// already, the idempotent vtbackup "initial backup" mode will just do
 		// nothing and return success.
-		initSpec := vtbackupInitSpec(initPodKey, vts, labels)
+		initSpec := MakeVtbackupSpec(initPodKey, vts, labels, vitessbackup.TypeInit)
 		if initSpec != nil {
 			podKeys = append(podKeys, initPodKey)
 			if initSpec.TabletSpec.DataVolumePVCSpec != nil {
@@ -168,7 +168,7 @@ func (r *ReconcileVitessShard) reconcileBackupJob(ctx context.Context, vts *plan
 	return resultBuilder.Result()
 }
 
-func vtbackupInitSpec(key client.ObjectKey, vts *planetscalev2.VitessShard, parentLabels map[string]string) *vttablet.BackupSpec {
+func MakeVtbackupSpec(key client.ObjectKey, vts *planetscalev2.VitessShard, parentLabels map[string]string, typ string) *vttablet.BackupSpec {
 	// If we specifically set our cluster to avoid initial backups, bail early.
 	if !*vts.Spec.Replication.InitializeBackup {
 		return nil
@@ -183,7 +183,7 @@ func vtbackupInitSpec(key client.ObjectKey, vts *planetscalev2.VitessShard, pare
 	// Make a vtbackup spec that's a similar shape to the first tablet pool.
 	// This should give it enough resources to run mysqld and restore a backup,
 	// since all tablets need to be able to do that, regardless of type.
-	return vtbackupSpec(key, vts, parentLabels, &vts.Spec.TabletPools[0], vitessbackup.TypeInit)
+	return vtbackupSpec(key, vts, parentLabels, &vts.Spec.TabletPools[0], typ)
 }
 
 func vtbackupSpec(key client.ObjectKey, vts *planetscalev2.VitessShard, parentLabels map[string]string, pool *planetscalev2.VitessShardTabletPool, backupType string) *vttablet.BackupSpec {
@@ -240,7 +240,7 @@ func vtbackupSpec(key client.ObjectKey, vts *planetscalev2.VitessShard, parentLa
 	}
 
 	return &vttablet.BackupSpec{
-		InitialBackup:     backupType == vitessbackup.TypeInit,
+		AllowFirstBackup:  backupType == vitessbackup.TypeInit,
 		MinBackupInterval: minBackupInterval,
 		MinRetentionTime:  minRetentionTime,
 		MinRetentionCount: minRetentionCount,
