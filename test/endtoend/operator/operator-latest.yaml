@@ -416,6 +416,7 @@ spec:
                 cluster:
                   type: string
                 concurrencyPolicy:
+                  default: Forbid
                   enum:
                     - Allow
                     - Forbid
@@ -2028,6 +2029,7 @@ spec:
                               type: string
                             type: object
                           concurrencyPolicy:
+                            default: Forbid
                             enum:
                               - Allow
                               - Forbid
