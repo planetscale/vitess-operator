@@ -18,7 +18,7 @@ Meaning that the `vitess/lite:v15.0.2` and `vitess/lite:v16.0.0` are running dif
 If you want to remain on MySQL 5.7, we invite you to use `vitess/lite:v16.0.0-mysql57`.
 
 Otherwise, if you were already running MySQL 8.0, with for instance `vitess/lite:v15.0.2-mysql80`, note that here the patch version of MySQL will also change between `v15` and `v16`.
-In `v16.0.0` we are bumping the patch version of MySQL 80 from `8.0.23` to `8.0.30`.
+In `v16.0.0` we are bumping the patch version of MySQL 8.0 from `8.0.23` to `8.0.30`.
 In order for you to correctly upgrade, there is a certain path to follow:
 
 1. Add `innodb_fast_shutdown=0` to your extra cnf in your YAML file.
