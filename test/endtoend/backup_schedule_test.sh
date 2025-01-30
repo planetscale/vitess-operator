@@ -31,14 +31,14 @@ function verifyListBackupsOutputWithSchedule() {
   checkVitessBackupScheduleStatusWithTimeout "example-vbsc-every-five-minute(.*)"
 
   echo -e "Check for number of backups in the cluster"
-  # Sleep for 6 minutes, during this time we should have at the very minimum 7 backups.
-  # At least: 6 backups from the every-minute schedule, and 1 backup from the every-five-minute schedule.
+  # Sleep for 6 minutes, after 6 minutes we should at least have 3 backups: 1 from the initial vtbackup pod
+  # 1 minimum from the every minute schedule, and 1 from the every-five minute schedule
   sleep 360
 
   backupCount=$(kubectl get vtb --no-headers | wc -l)
-  if [[ "${backupCount}" -lt 7 ]]; then
-    echo "Did not find at least 7 backups"
-    return 0
+  if [[ "${backupCount}" -lt 3 ]]; then
+    echo "Did not find at least 3 backups"
+    exit 1
   fi
 
   echo -e "Check for Jobs' pods"

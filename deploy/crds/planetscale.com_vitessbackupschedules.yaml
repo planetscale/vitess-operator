@@ -38,6 +38,7 @@ spec:
               cluster:
                 type: string
               concurrencyPolicy:
+                default: Forbid
                 enum:
                 - Allow
                 - Forbid

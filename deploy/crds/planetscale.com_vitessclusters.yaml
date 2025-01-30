@@ -168,6 +168,7 @@ spec:
                             type: string
                           type: object
                         concurrencyPolicy:
+                          default: Forbid
                           enum:
                           - Allow
                           - Forbid
