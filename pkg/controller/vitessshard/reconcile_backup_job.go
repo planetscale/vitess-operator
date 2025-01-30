@@ -84,7 +84,11 @@ func (r *ReconcileVitessShard) reconcileBackupJob(ctx context.Context, vts *plan
 		// scratch (not from any tablet). If we're wrong and a backup exists
 		// already, the idempotent vtbackup "initial backup" mode will just do
 		// nothing and return success.
-		initSpec := MakeVtbackupSpec(initPodKey, vts, labels, vitessbackup.TypeInit)
+		backupType := vitessbackup.TypeUpdate
+		if vts.Status.HasMaster != corev1.ConditionTrue {
+			backupType = vitessbackup.TypeInit
+		}
+		initSpec := MakeVtbackupSpec(initPodKey, vts, labels, backupType)
 		if initSpec != nil {
 			podKeys = append(podKeys, initPodKey)
 			if initSpec.TabletSpec.DataVolumePVCSpec != nil {
@@ -240,7 +244,8 @@ func vtbackupSpec(key client.ObjectKey, vts *planetscalev2.VitessShard, parentLa
 	}
 
 	return &vttablet.BackupSpec{
-		AllowFirstBackup:  backupType == vitessbackup.TypeInit,
+		InitialBackup:     backupType == vitessbackup.TypeInit,
+		AllowFirstBackup:  backupType == vitessbackup.TypeFirstBackup,
 		MinBackupInterval: minBackupInterval,
 		MinRetentionTime:  minRetentionTime,
 		MinRetentionCount: minRetentionCount,
