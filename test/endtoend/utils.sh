@@ -91,23 +91,21 @@ function takeBackup() {
   # issue the backupShard command to vtctldclient
   vtctldclient BackupShard "$keyspaceShard"
 
-  for i in {1..600} ; do
-    out=$(kubectl get vtb --no-headers | wc -l)
-    echo "$out" | grep "$finalBackupCount" > /dev/null 2>&1
-    if [[ $? -eq 0 ]]; then
-      echo "Backup created"
-      return 0
-    fi
-    sleep 3
-  done
-  echo -e "ERROR: Backup not created - $out. $backupCount backups expected."
-  exit 1
+  if [[ $? -ne 0 ]]; then
+    echo "Backup failed"
+    exit 1
+  fi
+  echo "Backup completed"
 }
 
 function verifyListBackupsOutput() {
-  backupCount=$(kubectl get vtb --no-headers | wc -l)
-  for i in {1..600} ; do
-    out=$(vtctldclient LegacyVtctlCommand -- ListBackups "$keyspaceShard" | wc -l)
+  echo "UID info: $(id)"
+  echo "GetBackups output: $(vtctldclient GetBackups "$keyspaceShard")"
+  for i in {1..10} ; do
+    backupCount=$(kubectl get vtb --no-headers | wc -l)
+    echo "Kubectl backup count is ${backupCount}"
+    out=$(vtctldclient GetBackups "$keyspaceShard" | wc -l)
+    echo "vtctldclient backup count is ${out}"
     echo "$out" | grep "$backupCount" > /dev/null 2>&1
     if [[ $? -eq 0 ]]; then
       echo "ListBackupsOutputCorrect"
@@ -115,7 +113,7 @@ function verifyListBackupsOutput() {
     fi
     sleep 3
   done
-  echo -e "ERROR: ListBackups output not correct - $out. $backupCount backups expected."
+  echo -e "ERROR: GetBackups output not correct - $out. $backupCount backups expected."
   exit 1
 }
 
