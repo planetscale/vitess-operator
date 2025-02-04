@@ -95,12 +95,24 @@ function takeBackup() {
     echo "Backup failed"
     exit 1
   fi
+  #echo "Mounts: $(mount)"
+  #echo "File tree: $(ls -lR /)"
+  docker exec -it $(docker container ls --format '{{.Names}}' | grep kind) chmod o+rwx -R /backup
   echo "Backup completed"
 }
 
 function verifyListBackupsOutput() {
-  echo "UID info: $(id)"
-  echo "GetBackups output: $(vtctldclient GetBackups "$keyspaceShard")"
+  echo "UID info: $(id)" || true
+  echo "Processes: $(ps aux)" || true
+  echo "Docker processes: $(docker ps -a)" || true
+  echo "Kind processes: $(docker exec -it kind -- ps aux)" || true
+  echo "Backup dir (/workdir/vtdataroot/backup/example) contents: $(ls -l /workdir/vtdataroot/backup/example)" || true
+  echo "Backup dir (./vtdataroot/backup/example) contents: $(ls -l ./vtdataroot/backup/example)" || true
+  echo "Backup dir (/backup) contents: $(ls -l /backup)" || true
+  echo "Backup dir (${BACKUP_DIR}) contents: $(ls -l ${BACKUP_DIR})" || true
+  echo "Backup dir (/vt/backups) contents: $(ls -l /vt/backups)" || true
+  echo "Backup dir (${VTDATAROOT}/backups) contents: $(ls -l ${VTDATAROOT}/backups)" || true
+  echo "GetBackups output: $(vtctldclient GetBackups "$keyspaceShard")" || true
   for i in {1..10} ; do
     backupCount=$(kubectl get vtb --no-headers | wc -l)
     echo "Kubectl backup count is ${backupCount}"
