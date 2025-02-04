@@ -88,39 +88,25 @@ function takeBackup() {
   initialBackupCount=$(kubectl get vtb --no-headers | wc -l)
   finalBackupCount=$((initialBackupCount+1))
 
-  # issue the backupShard command to vtctldclient
+  # Issue the BackupShard command to vtctldclient.
   vtctldclient BackupShard "$keyspaceShard"
 
   if [[ $? -ne 0 ]]; then
     echo "Backup failed"
     exit 1
   fi
-  #echo "Mounts: $(mount)"
-  #echo "File tree: $(ls -lR /)"
-  docker exec -it $(docker container ls --format '{{.Names}}' | grep kind) chmod o+rwx -R /backup
+  # Ensure that we can view the backup files from the host.
+  docker exec -it $(docker container ls --format '{{.Names}}' | grep kind) chmod o+rwx -R /backup > /dev/null
   echo "Backup completed"
 }
 
 function verifyListBackupsOutput() {
-  echo "UID info: $(id)" || true
-  echo "Processes: $(ps aux)" || true
-  echo "Docker processes: $(docker ps -a)" || true
-  echo "Kind processes: $(docker exec -it kind -- ps aux)" || true
-  echo "Backup dir (/workdir/vtdataroot/backup/example) contents: $(ls -l /workdir/vtdataroot/backup/example)" || true
-  echo "Backup dir (./vtdataroot/backup/example) contents: $(ls -l ./vtdataroot/backup/example)" || true
-  echo "Backup dir (/backup) contents: $(ls -l /backup)" || true
-  echo "Backup dir (${BACKUP_DIR}) contents: $(ls -l ${BACKUP_DIR})" || true
-  echo "Backup dir (/vt/backups) contents: $(ls -l /vt/backups)" || true
-  echo "Backup dir (${VTDATAROOT}/backups) contents: $(ls -l ${VTDATAROOT}/backups)" || true
-  echo "GetBackups output: $(vtctldclient GetBackups "$keyspaceShard")" || true
-  for i in {1..10} ; do
+  for i in {1..30} ; do
     backupCount=$(kubectl get vtb --no-headers | wc -l)
-    echo "Kubectl backup count is ${backupCount}"
     out=$(vtctldclient GetBackups "$keyspaceShard" | wc -l)
-    echo "vtctldclient backup count is ${out}"
     echo "$out" | grep "$backupCount" > /dev/null 2>&1
     if [[ $? -eq 0 ]]; then
-      echo "ListBackupsOutputCorrect"
+      echo "GetBackups output is correct"
       return 0
     fi
     sleep 3
@@ -282,6 +268,28 @@ function setupKubectlAccessForCI() {
     docker network connect kind $dockerContainerName
     kind get kubeconfig --internal --name kind-${BUILDKITE_BUILD_ID} > $HOME/.kube/config
   fi
+}
+
+function setupKindConfig() {
+  if [[ "$BUILDKITE_BUILD_ID" != "0" ]]; then
+    # The script is being run from buildkite, so we can't mount the current
+    # working directory to kind. The current directory in the docker is workdir
+    # So if we try and mount that, we get an error. Instead we need to mount the
+    # path where the code was checked out be buildkite
+    dockerContainerName=$(docker container ls --filter "ancestor=docker" --format '{{.Names}}')
+    CHECKOUT_PATH=$(docker container inspect -f '{{range .Mounts}}{{ if eq .Destination "/workdir" }}{{println .Source }}{{ end }}{{end}}' "$dockerContainerName")
+    BACKUP_DIR="$CHECKOUT_PATH/vtdataroot/backup"
+  else
+    BACKUP_DIR="$PWD/vtdataroot/backup"
+  fi
+  cat ./test/endtoend/kindBackupConfig.yaml | sed "s,PATH,$BACKUP_DIR,1" > ./vtdataroot/config.yaml
+}
+
+function createKindCluster() {
+  echo "Creating Kind cluster"
+  kind create cluster --wait 30s --name kind-${BUILDKITE_BUILD_ID} --config ./vtdataroot/config.yaml --image ${KIND_VERSION}
+  echo "Loading docker image into Kind cluster"
+  kind load docker-image vitess-operator-pr:latest --name kind-${BUILDKITE_BUILD_ID}
 }
 
 # get_started:

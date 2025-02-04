@@ -31,34 +31,28 @@ function verifyListBackupsOutputWithSchedule() {
   checkVitessBackupScheduleStatusWithTimeout "example-vbsc-every-five-minute(.*)"
 
   echo -e "Check for number of backups in the cluster"
-  # Sleep for 6 minutes, during this time we should have at the very minimum 7 backups.
-  # At least: 6 backups from the every-minute schedule, and 1 backup from the every-five-minute schedule.
-  sleep 360
+  # Sleep for over 6 minutes, during this time we should have at the very minimum
+  # 7 backups. At least: 6 backups from the every-minute schedule, and 1 backup
+  # from the every-five-minute schedule.
+  for i in {1..6} ; do
+    # Ensure that we can view the backup files from the host.
+    docker exec -it $(docker container ls --format '{{.Names}}' | grep kind) chmod o+rwx -R /backup > /dev/null
 
-  backupCount=$(kubectl get vtb --no-headers | wc -l)
+    backupCount=$(kubectl get vtb --no-headers | wc -l)
+    echo "Found ${backupCount} backups"
+    if [[ "${backupCount}" -ge 7 ]]; then 
+      break
+    fi
+    sleep 100
+  done
   if [[ "${backupCount}" -lt 7 ]]; then
     echo "Did not find at least 7 backups"
-    return 0
+    exit 1
   fi
 
   echo -e "Check for Jobs' pods"
   checkPodStatusWithTimeout "example-vbsc-every-minute-(.*)0/1(.*)Completed(.*)" 3
   checkPodStatusWithTimeout "example-vbsc-every-five-minute-(.*)0/1(.*)Completed(.*)" 2
-}
-
-function setupKindConfig() {
-  if [[ "$BUILDKITE_BUILD_ID" != "0" ]]; then
-    # The script is being run from buildkite, so we can't mount the current
-    # working directory to kind. The current directory in the docker is workdir
-    # So if we try and mount that, we get an error. Instead we need to mount the
-    # path where the code was checked out be buildkite
-    dockerContainerName=$(docker container ls --filter "ancestor=docker" --format '{{.Names}}')
-    CHECKOUT_PATH=$(docker container inspect -f '{{range .Mounts}}{{ if eq .Destination "/workdir" }}{{println .Source }}{{ end }}{{end}}' "$dockerContainerName")
-    BACKUP_DIR="$CHECKOUT_PATH/vtdataroot/backup"
-  else
-    BACKUP_DIR="$PWD/vtdataroot/backup"
-  fi
-  cat ./test/endtoend/kindBackupConfig.yaml | sed "s,PATH,$BACKUP_DIR,1" > ./vtdataroot/config.yaml
 }
 
 # Test setup
@@ -69,10 +63,7 @@ echo "Building the docker image"
 docker build -f build/Dockerfile.release -t vitess-operator-pr:latest .
 echo "Setting up the kind config"
 setupKindConfig
-echo "Creating Kind cluster"
-kind create cluster --wait 30s --name kind-${BUILDKITE_BUILD_ID} --config ./vtdataroot/config.yaml --image ${KIND_VERSION}
-echo "Loading docker image into Kind cluster"
-kind load docker-image vitess-operator-pr:latest --name kind-${BUILDKITE_BUILD_ID}
+createKindCluster
 
 cd "$PWD/test/endtoend/operator"
 killall kubectl
