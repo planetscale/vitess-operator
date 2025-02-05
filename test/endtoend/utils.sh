@@ -102,6 +102,8 @@ function takeBackup() {
 
 function verifyListBackupsOutput() {
   for i in {1..30} ; do
+    # Ensure that we can view the backup files from the host.
+    docker exec -it $(docker container ls --format '{{.Names}}' | grep kind) chmod o+rwx -R /backup > /dev/null
     backupCount=$(kubectl get vtb --no-headers | wc -l)
     out=$(vtctldclient GetBackups "$keyspaceShard" | wc -l)
     echo "$out" | grep "$backupCount" > /dev/null 2>&1
