@@ -88,34 +88,32 @@ function takeBackup() {
   initialBackupCount=$(kubectl get vtb --no-headers | wc -l)
   finalBackupCount=$((initialBackupCount+1))
 
-  # issue the backupShard command to vtctldclient
+  # Issue the BackupShard command to vtctldclient.
   vtctldclient BackupShard "$keyspaceShard"
 
-  for i in {1..600} ; do
-    out=$(kubectl get vtb --no-headers | wc -l)
-    echo "$out" | grep "$finalBackupCount" > /dev/null 2>&1
-    if [[ $? -eq 0 ]]; then
-      echo "Backup created"
-      return 0
-    fi
-    sleep 3
-  done
-  echo -e "ERROR: Backup not created - $out. $backupCount backups expected."
-  exit 1
+  if [[ $? -ne 0 ]]; then
+    echo "Backup failed"
+    exit 1
+  fi
+  # Ensure that we can view the backup files from the host.
+  docker exec -it $(docker container ls --format '{{.Names}}' | grep kind) chmod o+rwx -R /backup > /dev/null
+  echo "Backup completed"
 }
 
 function verifyListBackupsOutput() {
-  backupCount=$(kubectl get vtb --no-headers | wc -l)
-  for i in {1..600} ; do
-    out=$(vtctldclient LegacyVtctlCommand -- ListBackups "$keyspaceShard" | wc -l)
+  for i in {1..30} ; do
+    # Ensure that we can view the backup files from the host.
+    docker exec -it $(docker container ls --format '{{.Names}}' | grep kind) chmod o+rwx -R /backup > /dev/null
+    backupCount=$(kubectl get vtb --no-headers | wc -l)
+    out=$(vtctldclient GetBackups "$keyspaceShard" | wc -l)
     echo "$out" | grep "$backupCount" > /dev/null 2>&1
     if [[ $? -eq 0 ]]; then
-      echo "ListBackupsOutputCorrect"
+      echo "GetBackups output is correct"
       return 0
     fi
     sleep 3
   done
-  echo -e "ERROR: ListBackups output not correct - $out. $backupCount backups expected."
+  echo -e "ERROR: GetBackups output not correct - $out. $backupCount backups expected."
   exit 1
 }
 
@@ -272,6 +270,28 @@ function setupKubectlAccessForCI() {
     docker network connect kind $dockerContainerName
     kind get kubeconfig --internal --name kind-${BUILDKITE_BUILD_ID} > $HOME/.kube/config
   fi
+}
+
+function setupKindConfig() {
+  if [[ "$BUILDKITE_BUILD_ID" != "0" ]]; then
+    # The script is being run from buildkite, so we can't mount the current
+    # working directory to kind. The current directory in the docker is workdir
+    # So if we try and mount that, we get an error. Instead we need to mount the
+    # path where the code was checked out be buildkite
+    dockerContainerName=$(docker container ls --filter "ancestor=docker" --format '{{.Names}}')
+    CHECKOUT_PATH=$(docker container inspect -f '{{range .Mounts}}{{ if eq .Destination "/workdir" }}{{println .Source }}{{ end }}{{end}}' "$dockerContainerName")
+    BACKUP_DIR="$CHECKOUT_PATH/vtdataroot/backup"
+  else
+    BACKUP_DIR="$PWD/vtdataroot/backup"
+  fi
+  cat ./test/endtoend/kindBackupConfig.yaml | sed "s,PATH,$BACKUP_DIR,1" > ./vtdataroot/config.yaml
+}
+
+function createKindCluster() {
+  echo "Creating Kind cluster"
+  kind create cluster --wait 30s --name kind-${BUILDKITE_BUILD_ID} --config ./vtdataroot/config.yaml --image ${KIND_VERSION}
+  echo "Loading docker image into Kind cluster"
+  kind load docker-image vitess-operator-pr:latest --name kind-${BUILDKITE_BUILD_ID}
 }
 
 # get_started:
