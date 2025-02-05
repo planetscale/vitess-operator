@@ -75,21 +75,6 @@ COrder
 EOF
 }
 
-function setupKindConfig() {
-  if [[ "$BUILDKITE_BUILD_ID" != "0" ]]; then
-    # The script is being run from buildkite, so we can't mount the current
-    # working directory to kind. The current directory in the docker is workdir
-    # So if we try and mount that, we get an error. Instead we need to mount the
-    # path where the code was checked out be buildkite
-    dockerContainerName=$(docker container ls --filter "ancestor=docker" --format '{{.Names}}')
-    CHECKOUT_PATH=$(docker container inspect -f '{{range .Mounts}}{{ if eq .Destination "/workdir" }}{{println .Source }}{{ end }}{{end}}' "$dockerContainerName")
-    BACKUP_DIR="$CHECKOUT_PATH/vtdataroot/backup"
-  else
-    BACKUP_DIR="$PWD/vtdataroot/backup"
-  fi
-  cat ./test/endtoend/kindBackupConfig.yaml | sed "s,PATH,$BACKUP_DIR,1" > ./vtdataroot/config.yaml
-}
-
 # Test setup
 STARTING_DIR="$PWD"
 echo "Make temporary directory for the test"
