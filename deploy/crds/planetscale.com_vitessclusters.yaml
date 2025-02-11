@@ -2562,6 +2562,8 @@ spec:
                       maxItems: 2
                       minItems: 1
                       type: array
+                    sidecarDbName:
+                      type: string
                     turndownPolicy:
                       enum:
                       - RequireIdle
