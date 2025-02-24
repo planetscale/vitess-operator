@@ -233,10 +233,23 @@ EOF
 }
 
 # Test setup
+mkdir -p -m 777 ./vtdataroot/backup
 echo "Building the docker image"
 docker build -f build/Dockerfile.release -t vitess-operator-pr:latest .
 echo "Creating Kind cluster"
-kind create cluster --wait 30s --name kind-${BUILDKITE_BUILD_ID} --image ${KIND_VERSION}
+if [[ "$BUILDKITE_BUILD_ID" != "0" ]]; then
+  # The script is being run from buildkite, so we can't mount the current
+  # working directory to kind. The current directory in the docker is workdir
+  # So if we try and mount that, we get an error. Instead we need to mount the
+  # path where the code was checked out be buildkite
+  dockerContainerName=$(docker container ls --filter "ancestor=docker" --format '{{.Names}}')
+  CHECKOUT_PATH=$(docker container inspect -f '{{range .Mounts}}{{ if eq .Destination "/workdir" }}{{println .Source }}{{ end }}{{end}}' "$dockerContainerName")
+  BACKUP_DIR="$CHECKOUT_PATH/vtdataroot/backup"
+else
+  BACKUP_DIR="$PWD/vtdataroot/backup"
+fi
+cat ./test/endtoend/kindBackupConfig.yaml | sed "s,PATH,$BACKUP_DIR,1" > ./vtdataroot/config.yaml
+kind create cluster --wait 30s --name kind-${BUILDKITE_BUILD_ID} --image ${KIND_VERSION} --config ./vtdataroot/config.yaml
 echo "Loading docker image into Kind cluster"
 kind load docker-image vitess-operator-pr:latest --name kind-${BUILDKITE_BUILD_ID}
 
@@ -244,7 +257,7 @@ cd "$PWD/test/endtoend/operator"
 killall kubectl
 setupKubectlAccessForCI
 
-get_started "operator.yaml" "101_initial_cluster.yaml"
+get_started "operator-latest.yaml" "101_initial_cluster.yaml"
 verifyVtGateVersion "21.0.0"
 checkSemiSyncSetup
 # Initially too durability policy should be specified
@@ -258,5 +271,5 @@ move_tables
 resharding
 
 # Teardown
-echo "Deleting Kind cluster. This also deletes the volume associated with it"
-kind delete cluster --name kind-${BUILDKITE_BUILD_ID}
+#echo "Deleting Kind cluster. This also deletes the volume associated with it"
+#kind delete cluster --name kind-${BUILDKITE_BUILD_ID}

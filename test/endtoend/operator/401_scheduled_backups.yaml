@@ -10,6 +10,41 @@ spec:
           hostPath:
             path: /backup
             type: Directory
+    schedules:
+      - name: "customer"
+        schedule: "* * * * *"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 1024Mi
+          limits:
+            memory: 1024Mi
+        successfulJobsHistoryLimit: 2
+        failedJobsHistoryLimit: 3
+        jobTimeoutMinute: 5
+        suspend: true
+        strategies:
+          - name: BackupShard
+            keyspace: "customer"
+            shard: "80-"
+          - name: BackupShard
+            keyspace: "customer"
+            shard: "-80"
+      - name: "commerce"
+        schedule: "* * * * *"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 1024Mi
+          limits:
+            memory: 1024Mi
+        successfulJobsHistoryLimit: 2
+        failedJobsHistoryLimit: 3
+        jobTimeoutMinute: 5
+        strategies:
+          - name: BackupShard
+            keyspace: "commerce"
+            shard: "-"
   images:
     vtctld: vitess/lite:latest
     vtgate: vitess/lite:latest
@@ -50,7 +85,6 @@ spec:
   keyspaces:
   - name: commerce
     durabilityPolicy: semi_sync
-    turndownPolicy: Immediate
     vitessOrchestrator:
       resources:
         limits:
@@ -60,6 +94,7 @@ spec:
           memory: 128Mi
       extraFlags:
         instance-poll-time: 3s
+    turndownPolicy: Immediate
     partitionings:
     - equal:
         parts: 1
@@ -75,15 +110,11 @@ spec:
               extraFlags:
                 db_charset: utf8mb4
               resources:
-                limits:
-                  memory: 256Mi
                 requests:
                   cpu: 100m
                   memory: 256Mi
             mysqld:
               resources:
-                limits:
-                  memory: 1024Mi
                 requests:
                   cpu: 100m
                   memory: 512Mi
@@ -94,7 +125,6 @@ spec:
                   storage: 10Gi
   - name: customer
     durabilityPolicy: semi_sync
-    turndownPolicy: Immediate
     vitessOrchestrator:
       resources:
         limits:
@@ -104,38 +134,8 @@ spec:
           memory: 128Mi
       extraFlags:
         instance-poll-time: 3s
+    turndownPolicy: Immediate
     partitionings:
-    - equal:
-        parts: 1
-        shardTemplate:
-          databaseInitScriptSecret:
-            name: example-cluster-config
-            key: init_db.sql
-          tabletPools:
-          - cell: zone1
-            type: replica
-            replicas: 3
-            vttablet:
-              extraFlags:
-                db_charset: utf8mb4
-              resources:
-                limits:
-                  memory: 256Mi
-                requests:
-                  cpu: 100m
-                  memory: 256Mi
-            mysqld:
-              resources:
-                limits:
-                  memory: 1024Mi
-                requests:
-                  cpu: 100m
-                  memory: 512Mi
-            dataVolumeClaimTemplate:
-              accessModes: ["ReadWriteOnce"]
-              resources:
-                requests:
-                  storage: 10Gi
     - equal:
         parts: 2
         shardTemplate:
@@ -150,15 +150,11 @@ spec:
               extraFlags:
                 db_charset: utf8mb4
               resources:
-                limits:
-                  memory: 256Mi
                 requests:
                   cpu: 100m
                   memory: 256Mi
             mysqld:
               resources:
-                limits:
-                  memory: 1024Mi
                 requests:
                   cpu: 100m
                   memory: 512Mi
