@@ -14,7 +14,7 @@ KUBERNETES_RELEASE_URL="${KUBERNETES_RELEASE_URL:-https://dl.k8s.io}"
 
 # This should be the etcd version downloaded by kubernetes/hack/lib/etcd.sh
 # as of the above Kubernetes version.
-ETCD_VERSION="${ETCD_VERSION:-v3.3.15}"
+ETCD_VERSION="${ETCD_VERSION:-v3.5.17}"
 ETCD_RELEASE_URL="${ETCD_RELEASE_URL:-https://github.com/coreos/etcd/releases/download}"
 
 DIR="${BASH_SOURCE%/*}"

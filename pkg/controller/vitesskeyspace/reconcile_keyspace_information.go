@@ -43,6 +43,8 @@ func (r *reconcileHandler) reconcileKeyspaceInformation(ctx context.Context) (re
 	topoServer := r.ts.Server
 	keyspaceName := r.vtk.Spec.Name
 	durabilityPolicy := r.vtk.Spec.DurabilityPolicy
+	sidecarDbName := r.vtk.Spec.SidecarDbName
+
 	keyspaceInfo, err := topoServer.GetKeyspace(ctx, keyspaceName)
 	if err != nil {
 		// The keyspace information record does not exist in the topo server.
@@ -53,6 +55,7 @@ func (r *reconcileHandler) reconcileKeyspaceInformation(ctx context.Context) (re
 				Name:             keyspaceName,
 				Type:             topodatapb.KeyspaceType_NORMAL,
 				DurabilityPolicy: durabilityPolicy,
+				SidecarDbName:    sidecarDbName,
 			})
 			if err != nil {
 				resultBuilder.Error(err)

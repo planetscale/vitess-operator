@@ -185,6 +185,9 @@ type VitessKeyspaceTemplate struct {
 	// example: migrating from MySQL 5.7 to MySQL 8.0 via a `MoveTables`
 	// operation, after which the source keyspace is destroyed.
 	Images VitessKeyspaceTemplateImages `json:"images,omitempty"`
+
+	// SidecarDbName can optionally be used when calling CreateKeyspace
+	SidecarDbName string `json:"sidecarDbName,omitempty"`
 }
 
 // VitessKeyspaceTemplateImages specifies user-definable container images to

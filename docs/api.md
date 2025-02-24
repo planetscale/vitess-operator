@@ -6666,6 +6666,17 @@ example: migrating from MySQL 5.7 to MySQL 8.0 via a <code>MoveTables</code>
 operation, after which the source keyspace is destroyed.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>sidecarDbName</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>SidecarDbName can optionally be used when calling CreateKeyspace</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="planetscale.com/v2.VitessKeyspaceTemplateImages">VitessKeyspaceTemplateImages
