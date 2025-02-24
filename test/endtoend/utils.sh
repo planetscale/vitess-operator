@@ -155,6 +155,28 @@ function checkPodStatusWithTimeout() {
   exit 1
 }
 
+function checkPodExistWithTimeout() {
+  regex=$1
+
+  # We use this for loop instead of `kubectl wait` because we don't have access to the full pod name
+  # and `kubectl wait` does not support regex to match resource name.
+  for i in {1..1200} ; do
+    out=$(kubectl get pods)
+    echo "$out" | grep -E "$regex" > /dev/null 2>&1
+    if [[ $? -eq 0 ]]; then
+      echo "$regex found"
+      return
+    fi
+    sleep 1
+  done
+  echo -e "ERROR: checkPodStatusWithTimeout timeout to find pod matching:\ngot:\n$out\nfor regex: $regex"
+  echo "$regex" | grep "vttablet" > /dev/null 2>&1
+  if [[ $? -eq 0 ]]; then
+    printMysqlErrorFiles
+  fi
+  exit 1
+}
+
 # ensurePodResourcesSet:
 # $1: regex used to match pod names
 function ensurePodResourcesSet() {

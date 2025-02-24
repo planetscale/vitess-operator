@@ -240,8 +240,6 @@ spec:
                                 example: commerce
                                 type: string
                               name:
-                                enum:
-                                - BackupShard
                                 type: string
                               shard:
                                 example: '-'

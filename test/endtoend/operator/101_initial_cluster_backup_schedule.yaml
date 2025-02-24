@@ -27,7 +27,7 @@ spec:
         failedJobsHistoryLimit: 3
         jobTimeoutMinute: 5
         strategies:
-          - name: BackupShard
+          - name: commerce-x
             keyspace: "commerce"
             shard: "-"
       - name: "every-five-minute"
@@ -42,7 +42,7 @@ spec:
         failedJobsHistoryLimit: 3
         jobTimeoutMinute: 5
         strategies:
-          - name: BackupShard
+          - name: commerce-x
             keyspace: "commerce"
             shard: "-"
   images:
