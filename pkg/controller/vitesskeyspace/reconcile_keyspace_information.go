@@ -18,6 +18,7 @@ package vitesskeyspace
 
 import (
 	"context"
+
 	corev1 "k8s.io/api/core/v1"
 
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -49,7 +50,7 @@ func (r *reconcileHandler) reconcileKeyspaceInformation(ctx context.Context) (re
 	if err != nil {
 		// The keyspace information record does not exist in the topo server.
 		// We should create the record
-		if !topo.IsErrType(err, topo.NoNode) {
+		if topo.IsErrType(err, topo.NoNode) {
 			// Create a normal keyspace with the requested durability policy
 			_, err := r.wr.VtctldServer().CreateKeyspace(ctx, &vtctldatapb.CreateKeyspaceRequest{
 				Name:             keyspaceName,

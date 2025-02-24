@@ -212,6 +212,53 @@ function verifyDurabilityPolicy() {
   fi
 }
 
+# verifyCustomSidecarDBName verifies that the custom sidecar DB name
+# is set in the keyspace's topo record and that it is being used on
+# all tablets/mysqld instances in the keyspace.
+# The first parameter must be the keyspace and the second the expected
+# sidecar DB name. The third parameter is optional and if passed (any
+# value) then it is assumed that there is no mysqld container in the
+# vttablet pods (external database) and there are instead separate
+# mysql pods.
+function verifyCustomSidecarDBName() {
+  local keyspace=$1
+  local db_name=$2
+  local external=$3
+  if [[ -z "${keyspace}" || -z "${db_name}" ]]; then
+    echo "The keyspace or sidecar DB name are empty; usage: verifyCustomSidecarDBName <keyspace> <db_name>"
+    exit 1
+  fi
+
+  # First confirm that the keyspace record has the value.
+  local kscfg=$(vtctldclient GetKeyspace "${keyspace}")
+  if [[ ! "${kscfg}" =~ [\"]?sidecar_db_name[\"]?[[:space:]]*:[[:space:]]*[\"]?${db_name}[\"]? ]]; then
+    echo -e "Keyspace configuration for ${keyspace} does not have the expected sidecar DB name of ${db_name}; output:\n${kscfg}"
+    exit 1
+  fi
+  echo "Keyspace configuration for ${keyspace} has the expected sidecar DB name of ${db_name}"
+
+  # Then confirm that each tablet/mysqld instance in the keyspace used that value.
+  local container="-c mysqld"
+  local mysqlCMD="mysql -S /vt/socket/mysql.sock -N -u root -e \"show databases like '${db_name}'\""
+  local selector="planetscale.com/cluster=example,planetscale.com/keyspace=${keyspace},planetscale.com/component=vttablet"
+  if [[ -n "${external}" ]]; then
+    # There is no mysqld container in the vttablet pod.
+    # See setup and connection details in 101_initial_cluster_unmanaged_tablet.yaml.
+    container=""
+    mysqlCMD="mysql --protocol=tcp -P3306 -NB -u root -ppassword -e \"show databases like '${db_name}'\" 2>/dev/null"
+    selector="app=mysql"
+  fi 
+  local pods=$(kubectl get pods --no-headers --selector="${selector}" -o custom-columns=":metadata.name")
+  for pod in $(echo "${pods}"); do
+    local tdb=$(eval "kubectl exec ${pod} ${container} -- ${mysqlCMD}")
+    if [[ "${tdb}" != "${db_name}" ]]; then
+      echo "Custom sidecar DB name ${db_name} not being used in ${pod} pod"
+      exit 1
+    fi
+    echo "Found custom sidecar DB name ${db_name} being used in ${pod} pod"
+  done
+}
+
 function waitForKeyspaceToBeServing() {
   ks=$1
   shard=$2
