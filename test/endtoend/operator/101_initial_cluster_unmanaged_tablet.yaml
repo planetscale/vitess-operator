@@ -48,6 +48,7 @@ spec:
   keyspaces:
   - name: commerce
     durabilityPolicy: none
+    sidecarDbName: _vt_ext
     turndownPolicy: Immediate
     vitessOrchestrator:
       resources:
