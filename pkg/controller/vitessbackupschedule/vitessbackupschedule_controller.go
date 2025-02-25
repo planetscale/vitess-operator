@@ -59,8 +59,7 @@ import (
 )
 
 const (
-	controllerName   = "vitessbackupschedule-controller"
-	vtctldclientPath = "/vt/bin/vtctldclient"
+	controllerName = "vitessbackupschedule-controller"
 )
 
 var (
@@ -627,18 +626,6 @@ func (r *ReconcileVitessBackupsSchedule) createJobPod(
 
 	p.Spec.Affinity = vbsc.Spec.Affinity
 	return p, vtbackupSpec, nil
-}
-
-func createVtctldClientCommand(cmd *strings.Builder, serverAddr string, extraFlags map[string]string, keyspace, shard string) {
-	cmd.WriteString(fmt.Sprintf("%s %s BackupShard", vtctldclientPath, serverAddr))
-
-	// Add any flags
-	for key, value := range extraFlags {
-		cmd.WriteString(fmt.Sprintf(" --%s=%s", key, value))
-	}
-
-	// Add keyspace/shard
-	cmd.WriteString(fmt.Sprintf(" %s/%s", keyspace, shard))
 }
 
 func (r *ReconcileVitessBackupsSchedule) getVtctldServiceName(ctx context.Context, vbsc *planetscalev2.VitessBackupSchedule, cluster string) (svcName string, svcPort int32, err error) {
