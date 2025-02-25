@@ -84,7 +84,7 @@ func (r *ReconcileVitessShard) reconcileBackupJob(ctx context.Context, vts *plan
 		// scratch (not from any tablet). If we're wrong and a backup exists
 		// already, the idempotent vtbackup "initial backup" mode will just do
 		// nothing and return success.
-		backupType := vitessbackup.TypeUpdate
+		backupType := vitessbackup.TypeFirstBackup
 		if vts.Status.HasMaster != corev1.ConditionTrue {
 			backupType = vitessbackup.TypeInit
 		}

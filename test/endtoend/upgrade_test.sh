@@ -194,7 +194,7 @@ function scheduledBackups() {
   initialCustomerFirstShardBackups=$(kubectl get vtb --no-headers | grep "customer-x-80" | wc -l)
   initialCustomerSecondShardBackups=$(kubectl get vtb --no-headers | grep "customer-80-x" | wc -l)
 
-  for i in {1..300} ; do
+  for i in {1..60} ; do
     commerceBackups=$(kubectl get vtb --no-headers | grep "commerce-x-x" | wc -l)
     customerFirstShardBackups=$(kubectl get vtb --no-headers | grep "customer-x-80" | wc -l)
     customerSecondShardBackups=$(kubectl get vtb --no-headers | grep "customer-80-x" | wc -l)
@@ -281,7 +281,7 @@ cd "$PWD/test/endtoend/operator"
 killall kubectl
 setupKubectlAccessForCI
 
-get_started "operator-latest.yaml" "101_initial_cluster.yaml"
+get_started "operator.yaml" "101_initial_cluster.yaml"
 verifyVtGateVersion "21.0.0"
 checkSemiSyncSetup
 # Initially too durability policy should be specified
