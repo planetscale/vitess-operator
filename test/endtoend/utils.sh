@@ -221,16 +221,15 @@ function verifyDurabilityPolicy() {
 # vttablet pods (external database) and there are instead separate
 # mysql pods.
 function verifyCustomSidecarDBName() {
-  local keyspace=$1
-  local db_name=$2
-  local external=$3
+  local keyspace=$1 db_name=$2 external=$3
   if [[ -z "${keyspace}" || -z "${db_name}" ]]; then
     echo "The keyspace or sidecar DB name are empty; usage: verifyCustomSidecarDBName <keyspace> <db_name> [external]"
     exit 1
   fi
 
   # First confirm that the keyspace record has the value.
-  local kscfg=$(vtctldclient GetKeyspace "${keyspace}")
+  local kscfg
+  kscfg=$(vtctldclient GetKeyspace "${keyspace}")
   if [[ ! "${kscfg}" =~ [\"]?sidecar_db_name[\"]?[[:space:]]*:[[:space:]]*[\"]?${db_name}[\"]? ]]; then
     echo -e "Keyspace configuration for ${keyspace} does not have the expected sidecar DB name of ${db_name}; output:\n${kscfg}"
     exit 1
@@ -248,9 +247,11 @@ function verifyCustomSidecarDBName() {
     mysqlCMD="mysql --protocol=tcp -P3306 -NB -u root -ppassword -e \"show databases like '${db_name}'\" 2>/dev/null"
     selector="app=mysql"
   fi 
-  local pods=$(kubectl get pods --no-headers --selector="${selector}" -o custom-columns=":metadata.name")
+  local pods pod
+  pods=$(kubectl get pods --no-headers --selector="${selector}" -o custom-columns=":metadata.name")
   for pod in $(echo "${pods}"); do
-    local sdb=$(eval "kubectl exec ${pod} ${container} -- ${mysqlCMD}")
+    local sdb
+    sdb=$(eval "kubectl exec ${pod} ${container} -- ${mysqlCMD}")
     if [[ "${sdb}" != "${db_name}" ]]; then
       echo "Custom sidecar DB name ${db_name} not being used in ${pod} pod"
       exit 1
