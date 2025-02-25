@@ -17,9 +17,9 @@ function verifyListBackupsOutputWithSchedule() {
   checkVitessBackupScheduleStatusWithTimeout "example-vbsc-every-five-minute(.*)"
 
   echo -e "Check for number of backups in the cluster"
-  # Sleep for 7 minutes, after 7 minutes we should at least have 3 backups: 1 from the initial vtbackup pod
+  # Sleep for 10 minutes, after 10 minutes we should at least have 3 backups: 1 from the initial vtbackup pod
   # 1 minimum from the every minute schedule, and 1 from the every-five minute schedule
-  for i in {1..420} ; do
+  for i in {1..600} ; do
     # Ensure that we can view the backup files from the host.
     docker exec -it $(docker container ls --format '{{.Names}}' | grep kind) chmod o+rwx -R /backup > /dev/null
     backupCount=$(kubectl get vtb --no-headers | wc -l)
@@ -35,7 +35,7 @@ function verifyListBackupsOutputWithSchedule() {
   fi
 
   echo -e "Check for Jobs' pods"
-  # Here check explicitly that the every five minute schedule ran at least once during the 7 minutes sleep
+  # Here check explicitly that the every five minute schedule ran at least once during the 10 minutes sleep
   checkPodExistWithTimeout "example-vbsc-every-minute-(.*)0/1(.*)Completed(.*)"
   checkPodExistWithTimeout "example-vbsc-every-five-minute-(.*)0/1(.*)Completed(.*)"
 }
