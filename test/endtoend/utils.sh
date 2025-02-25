@@ -250,8 +250,8 @@ function verifyCustomSidecarDBName() {
   fi 
   local pods=$(kubectl get pods --no-headers --selector="${selector}" -o custom-columns=":metadata.name")
   for pod in $(echo "${pods}"); do
-    local tdb=$(eval "kubectl exec ${pod} ${container} -- ${mysqlCMD}")
-    if [[ "${tdb}" != "${db_name}" ]]; then
+    local sdb=$(eval "kubectl exec ${pod} ${container} -- ${mysqlCMD}")
+    if [[ "${sdb}" != "${db_name}" ]]; then
       echo "Custom sidecar DB name ${db_name} not being used in ${pod} pod"
       exit 1
     fi
