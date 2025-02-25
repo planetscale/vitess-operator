@@ -214,7 +214,7 @@ function verifyDurabilityPolicy() {
 
 # verifyCustomSidecarDBName verifies that the custom sidecar DB name
 # is set in the keyspace's topo record and that it is being used on
-# all tablets/mysqld instances in the keyspace.
+# all tablet/mysqld instances in the keyspace.
 # The first parameter must be the keyspace and the second the expected
 # sidecar DB name. The third parameter is optional and if passed (any
 # value) then it is assumed that there is no mysqld container in the
@@ -225,7 +225,7 @@ function verifyCustomSidecarDBName() {
   local db_name=$2
   local external=$3
   if [[ -z "${keyspace}" || -z "${db_name}" ]]; then
-    echo "The keyspace or sidecar DB name are empty; usage: verifyCustomSidecarDBName <keyspace> <db_name>"
+    echo "The keyspace or sidecar DB name are empty; usage: verifyCustomSidecarDBName <keyspace> <db_name> [external]"
     exit 1
   fi
 

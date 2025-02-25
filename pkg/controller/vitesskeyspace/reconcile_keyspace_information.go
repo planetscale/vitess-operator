@@ -47,10 +47,9 @@ func (r *reconcileHandler) reconcileKeyspaceInformation(ctx context.Context) (re
 
 	keyspaceInfo, err := topoServer.GetKeyspace(ctx, keyspaceName)
 	if err != nil {
-		// The keyspace information record does not exist in the topo server.
-		// We should create the record
 		if topo.IsErrType(err, topo.NoNode) {
-			// Create a normal keyspace with the requested durability policy
+			// The keyspace record does not exist in the topo server. Let's
+			// create a normal keyspace with the requested durability policy
 			// and sidecar DB name (if any).
 			_, err := r.wr.VtctldServer().CreateKeyspace(ctx, &vtctldatapb.CreateKeyspaceRequest{
 				Name:             keyspaceName,
