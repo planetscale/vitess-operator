@@ -20,7 +20,6 @@ import (
 	"context"
 
 	corev1 "k8s.io/api/core/v1"
-
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	topodatapb "vitess.io/vitess/go/vt/proto/topodata"
@@ -52,6 +51,7 @@ func (r *reconcileHandler) reconcileKeyspaceInformation(ctx context.Context) (re
 		// We should create the record
 		if topo.IsErrType(err, topo.NoNode) {
 			// Create a normal keyspace with the requested durability policy
+			// and sidecar DB name (if any).
 			_, err := r.wr.VtctldServer().CreateKeyspace(ctx, &vtctldatapb.CreateKeyspaceRequest{
 				Name:             keyspaceName,
 				Type:             topodatapb.KeyspaceType_NORMAL,
