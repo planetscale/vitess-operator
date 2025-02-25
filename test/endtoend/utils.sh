@@ -247,7 +247,7 @@ function waitForKeyspaceToBeServing() {
     fi
     echo "Shard $ks/$shard is not fully serving. Output: $out"
     echo "Retrying (attempt #$i) ..."
-    sleep 10
+    sleep 1
   done
 }
 
@@ -396,4 +396,18 @@ COrder
 |        5 |           5 | SKU-1002 |    30 |
 +----------+-------------+----------+-------+
 EOF
+}
+
+function checkVitessBackupScheduleStatusWithTimeout() {
+  regex=$1
+
+  for i in {1..1200} ; do
+    if [[ $(kubectl get VitessBackupSchedule | grep -E "${regex}" | wc -l) -eq 1 ]]; then
+      echo "$regex found"
+      return
+    fi
+    sleep 1
+  done
+  echo -e "ERROR: checkPodStatusWithTimeout timeout to find pod matching:\ngot:\n$out\nfor regex: $regex"
+  exit 1
 }

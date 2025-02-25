@@ -11,27 +11,8 @@ spec:
             path: /backup
             type: Directory
     schedules:
-      - name: "customer"
-        schedule: "* * * * *"
-        resources:
-          requests:
-            cpu: 100m
-            memory: 1024Mi
-          limits:
-            memory: 1024Mi
-        successfulJobsHistoryLimit: 2
-        failedJobsHistoryLimit: 3
-        jobTimeoutMinute: 5
-        suspend: true
-        strategies:
-          - name: BackupShard
-            keyspace: "customer"
-            shard: "80-"
-          - name: BackupShard
-            keyspace: "customer"
-            shard: "-80"
       - name: "commerce"
-        schedule: "* * * * *"
+        schedule: "*/2 * * * *"
         resources:
           requests:
             cpu: 100m
@@ -42,9 +23,27 @@ spec:
         failedJobsHistoryLimit: 3
         jobTimeoutMinute: 5
         strategies:
-          - name: BackupShard
+          - name: commerce_x
             keyspace: "commerce"
             shard: "-"
+      - name: "customer"
+        schedule: "*/2 * * * *"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 1024Mi
+          limits:
+            memory: 1024Mi
+        successfulJobsHistoryLimit: 2
+        failedJobsHistoryLimit: 3
+        jobTimeoutMinute: 5
+        strategies:
+          - name: customer_80-x
+            keyspace: "customer"
+            shard: "80-"
+          - name: customer_x-80
+            keyspace: "customer"
+            shard: "-80"
   images:
     vtctld: vitess/lite:latest
     vtgate: vitess/lite:latest
