@@ -25,6 +25,10 @@ function get_started_unmanaged() {
     waitForKeyspaceToBeServing commerce - 0
     sleep 5
 
+    # Confirm that the custom sidecar DB name is in place for our
+    # external/unmanaged keyspace.
+    verifyCustomSidecarDBName "commerce" "_vt_ext" "external"
+
     applySchemaWithRetry create_commerce_schema.sql commerce drop_all_commerce_tables.sql
     vtctldclient ApplyVSchema --vschema-file="vschema_commerce_initial.json" commerce
     if [[ $? -ne 0 ]]; then
