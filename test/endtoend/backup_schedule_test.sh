@@ -25,19 +25,16 @@ function verifyListBackupsOutputWithSchedule() {
     backupCount=$(kubectl get vtb --no-headers | wc -l)
     echo "Found ${backupCount} backups"
     if [[ "${backupCount}" -ge 3 ]]; then
-      break
+      echo -e "Check for Jobs' pods"
+      # Here check explicitly that the every five minute schedule ran at least once during the 10 minutes sleep
+      checkPodExistWithTimeout "example-vbsc-every-minute-(.*)0/1(.*)Completed(.*)"
+      checkPodExistWithTimeout "example-vbsc-every-five-minute-(.*)0/1(.*)Completed(.*)"
+      return
     fi
     sleep 1
   done
-  if [[ "${backupCount}" -ge 3 ]]; then
-    echo "Did not find at least 3 backups"
-    exit 1
-  fi
-
-  echo -e "Check for Jobs' pods"
-  # Here check explicitly that the every five minute schedule ran at least once during the 10 minutes sleep
-  checkPodExistWithTimeout "example-vbsc-every-minute-(.*)0/1(.*)Completed(.*)"
-  checkPodExistWithTimeout "example-vbsc-every-five-minute-(.*)0/1(.*)Completed(.*)"
+  echo "Did not find at least 3 backups"
+  exit 1
 }
 
 # Test setup
