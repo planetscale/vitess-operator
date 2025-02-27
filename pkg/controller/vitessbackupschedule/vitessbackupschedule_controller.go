@@ -577,8 +577,9 @@ func (r *ReconcileVitessBackupsSchedule) createJob(
 		if err != nil {
 			return nil, err
 		}
+	} else {
+		return nil, fmt.Errorf("PVC already exists for job %s", job.Name)
 	}
-
 	return job, nil
 }
 
@@ -595,7 +596,7 @@ func (r *ReconcileVitessBackupsSchedule) createJobPod(
 		return nil, nil, err
 	}
 
-	_, completeBackups, err := vitessbackup.GetBackups(ctx, vbsc.Namespace, vbsc.Spec.Cluster, strategy.Keyspace, vkr.SafeName(),
+	_, completedBackups, err := vitessbackup.GetBackups(ctx, vbsc.Namespace, vbsc.Spec.Cluster, strategy.Keyspace, vkr.SafeName(),
 		func(ctx context.Context, allBackupsList *planetscalev2.VitessBackupList, listOpts *client.ListOptions) error {
 			return r.client.List(ctx, allBackupsList, listOpts)
 		},
@@ -605,7 +606,7 @@ func (r *ReconcileVitessBackupsSchedule) createJobPod(
 	}
 
 	backupType := vitessbackup.TypeUpdate
-	if len(completeBackups) == 0 {
+	if len(completedBackups) == 0 {
 		if vts.Status.HasMaster == corev1.ConditionTrue {
 			backupType = vitessbackup.TypeFirstBackup
 		} else {
