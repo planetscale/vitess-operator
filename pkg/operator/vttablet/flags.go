@@ -104,6 +104,7 @@ func init() {
 			// vtbackup-specific flags.
 			"concurrency":         vtbackupConcurrency,
 			"initial_backup":      backupSpec.InitialBackup,
+			"allow_first_backup":  backupSpec.AllowFirstBackup,
 			"min_backup_interval": backupSpec.MinBackupInterval,
 			"min_retention_time":  backupSpec.MinRetentionTime,
 			"min_retention_count": backupSpec.MinRetentionCount,

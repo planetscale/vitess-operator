@@ -168,6 +168,7 @@ spec:
                             type: string
                           type: object
                         concurrencyPolicy:
+                          default: Forbid
                           enum:
                           - Allow
                           - Forbid
@@ -239,8 +240,6 @@ spec:
                                 example: commerce
                                 type: string
                               name:
-                                enum:
-                                - BackupShard
                                 type: string
                               shard:
                                 example: '-'
