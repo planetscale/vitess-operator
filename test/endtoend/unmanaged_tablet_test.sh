@@ -89,8 +89,10 @@ EOF
 # Test setup
 echo "Building the docker image"
 docker build -f build/Dockerfile.release -t vitess-operator-pr:latest .
-setupKindConfig
-createKindCluster
+echo "Creating Kind cluster"
+kind create cluster --wait 30s --name kind-${BUILDKITE_BUILD_ID} --image ${KIND_VERSION}
+echo "Loading docker image into Kind cluster"
+kind load docker-image vitess-operator-pr:latest --name kind-${BUILDKITE_BUILD_ID}
 
 cd "$PWD/test/endtoend/operator"
 killall kubectl
