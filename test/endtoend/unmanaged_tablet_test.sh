@@ -96,6 +96,8 @@ cd "$PWD/test/endtoend/operator"
 killall kubectl
 setupKubectlAccessForCI
 
+createExampleNamespace
+
 # Check Unmanaged tablet is running properly
 get_started_unmanaged
 

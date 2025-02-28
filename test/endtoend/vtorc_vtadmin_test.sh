@@ -239,6 +239,7 @@ cd "$PWD/test/endtoend/operator"
 killall kubectl
 setupKubectlAccessForCI
 
+createExampleNamespace
 get_started_vtorc_vtadmin
 verifyVtGateVersion "22.0.0"
 checkSemiSyncSetup

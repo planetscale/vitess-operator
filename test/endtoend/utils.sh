@@ -341,6 +341,9 @@ function createKindCluster() {
   kind create cluster --wait 30s --name kind-${BUILDKITE_BUILD_ID} --config ./vtdataroot/config.yaml --image ${KIND_VERSION}
   echo "Loading docker image into Kind cluster"
   kind load docker-image vitess-operator-pr:latest --name kind-${BUILDKITE_BUILD_ID}
+}
+
+function createExampleNamespace() {
   echo "Creating the example namespace"
   kubectl create namespace example
 }

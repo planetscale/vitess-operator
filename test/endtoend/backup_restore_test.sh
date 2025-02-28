@@ -88,6 +88,7 @@ cd "$PWD/test/endtoend/operator"
 killall kubectl
 setupKubectlAccessForCI
 
+createExampleNamespace
 get_started "operator-latest.yaml" "101_initial_cluster_backup.yaml"
 verifyVtGateVersion "22.0.0"
 checkSemiSyncSetup
