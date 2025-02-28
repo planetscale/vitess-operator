@@ -15,7 +15,7 @@ function checkVitessBackupScheduleStatusWithTimeout() {
   regex=$1
 
   for i in {1..1200} ; do
-    if [[ $(kubectl get VitessBackupSchedule | grep -E "${regex}" | wc -l) -eq 1 ]]; then
+    if [[ $(kubectl get VitessBackupSchedule -n example | grep -E "${regex}" | wc -l) -eq 1 ]]; then
       echo "$regex found"
       return
     fi
@@ -37,7 +37,7 @@ function verifyListBackupsOutputWithSchedule() {
   for i in {1..6} ; do
     # Ensure that we can view the backup files from the host.
     docker exec -it $(docker container ls --format '{{.Names}}' | grep kind) chmod o+rwx -R /backup > /dev/null
-    backupCount=$(kubectl get vtb --no-headers | wc -l)
+    backupCount=$(kubectl get vtb -n example --no-headers | wc -l)
     echo "Found ${backupCount} backups"
     if [[ "${backupCount}" -ge 7 ]]; then 
       break

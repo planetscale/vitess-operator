@@ -5,7 +5,7 @@ source ./test/endtoend/utils.sh
 
 function verifyHpaCount() {
   expectedCount=$1
-  count=$(kubectl get hpa --no-headers | wc -l)
+  count=$(kubectl get hpa -n example --no-headers | wc -l)
   if [[ "$count" -eq "$expectedCount" ]]; then
     echo "HorizontalPodAutoscaler count is $count"
     return 0
@@ -17,7 +17,7 @@ function verifyHpaCount() {
 function verifyHpaWithTimeout() {
   regex=$1
   for i in {1..600} ; do
-    out=$(kubectl get hpa --no-headers)
+    out=$(kubectl get hpa -n example --no-headers)
     echo "$out" | grep -E "$regex" > /dev/null 2>&1
     if [[ $? -eq 0 ]]; then
       echo "HorizontalPodAutoscaler $regex found"
@@ -32,10 +32,8 @@ function verifyHpaWithTimeout() {
 # Test setup
 echo "Building the docker image"
 docker build -f build/Dockerfile.release -t vitess-operator-pr:latest .
-echo "Creating Kind cluster"
-kind create cluster --wait 30s --name kind-${BUILDKITE_BUILD_ID} --image ${KIND_VERSION}
-echo "Loading docker image into Kind cluster"
-kind load docker-image vitess-operator-pr:latest --name kind-${BUILDKITE_BUILD_ID}
+setupKindConfig
+createKindCluster
 
 cd "$PWD/test/endtoend/operator"
 killall kubectl

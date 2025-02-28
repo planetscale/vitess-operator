@@ -10,7 +10,7 @@ alias mysql="mysql -h 127.0.0.1 -P 15306 -u user"
 BUILDKITE_BUILD_ID=${BUILDKITE_BUILD_ID:-"0"}
 
 function checkSemiSyncSetup() {
-  for vttablet in $(kubectl get pods --no-headers -o custom-columns=":metadata.name" | grep "vttablet") ; do
+  for vttablet in $(kubectl get pods -n example --no-headers -o custom-columns=":metadata.name" | grep "vttablet") ; do
     echo "Checking semi-sync in $vttablet"
     checkSemiSyncWithRetry "$vttablet"
   done
@@ -19,7 +19,7 @@ function checkSemiSyncSetup() {
 function checkSemiSyncWithRetry() {
   vttablet=$1
   for i in {1..600} ; do
-    kubectl exec "$vttablet" -c mysqld -- mysql -S "/vt/socket/mysql.sock" -u root -e "show variables like 'rpl_semi_sync_%_enabled'" | grep "ON"
+    kubectl exec -n example "$vttablet" -c mysqld -- mysql -S "/vt/socket/mysql.sock" -u root -e "show variables like 'rpl_semi_sync_%_enabled'" | grep "ON"
     if [[ $? -eq 0 ]]; then
       return
     fi
@@ -55,28 +55,28 @@ function runSQLWithRetry() {
 }
 
 function printMysqlErrorFiles() {
-  for vttablet in $(kubectl get pods --no-headers -o custom-columns=":metadata.name" | grep "vttablet") ; do
+  for vttablet in $(kubectl get pods -n example --no-headers -o custom-columns=":metadata.name" | grep "vttablet") ; do
     echo "Finding error.log file in $vttablet"
-    kubectl logs "$vttablet" -c mysqld
-    kubectl logs "$vttablet" -c vttablet
+    kubectl logs -n example "$vttablet" -c mysqld
+    kubectl logs -n example "$vttablet" -c vttablet
   done
 }
 
 function printBackupLogFiles() {
-  for vtbackup in $(kubectl get pods --no-headers -o custom-columns=":metadata.name" | grep "vtbackup") ; do
+  for vtbackup in $(kubectl get pods -n example --no-headers -o custom-columns=":metadata.name" | grep "vtbackup") ; do
     echo "Printing logs of $vtbackup"
-    kubectl logs "$vtbackup"
+    kubectl logs -n example "$vtbackup"
     echo "Description of $vtbackup"
-    kubectl describe pod "$vtbackup"
+    kubectl describe pod -n example "$vtbackup"
     echo "User in $vtbackup"
-    kubectl exec "$vtbackup" -- whoami
+    kubectl exec -n example "$vtbackup" -- whoami
   done
 }
 
 function removeBackupFiles() {
-  for vttablet in $(kubectl get pods --no-headers -o custom-columns=":metadata.name" | grep "vttablet") ; do
+  for vttablet in $(kubectl get pods -n example --no-headers -o custom-columns=":metadata.name" | grep "vttablet") ; do
     echo "Removing backup files using $vttablet"
-    kubectl exec "$vttablet" -c vttablet -- rm -rf /vt/backups/example
+    kubectl exec -n example "$vttablet" -c vttablet -- rm -rf /vt/backups/example
     return 0
   done
 }
@@ -85,7 +85,7 @@ function removeBackupFiles() {
 # $1: keyspace-shard for which the backup needs to be taken
 function takeBackup() {
   keyspaceShard=$1
-  initialBackupCount=$(kubectl get vtb --no-headers | wc -l)
+  initialBackupCount=$(kubectl get vtb -n example --no-headers | wc -l)
   finalBackupCount=$((initialBackupCount+1))
 
   # Issue the BackupShard command to vtctldclient.
@@ -104,7 +104,7 @@ function verifyListBackupsOutput() {
   for i in {1..30} ; do
     # Ensure that we can view the backup files from the host.
     docker exec -it $(docker container ls --format '{{.Names}}' | grep kind) chmod o+rwx -R /backup > /dev/null
-    backupCount=$(kubectl get vtb --no-headers | wc -l)
+    backupCount=$(kubectl get vtb -n example --no-headers | wc -l)
     out=$(vtctldclient GetBackups "$keyspaceShard" | wc -l)
     echo "$out" | grep "$backupCount" > /dev/null 2>&1
     if [[ $? -eq 0 ]]; then
@@ -139,7 +139,7 @@ function checkPodStatusWithTimeout() {
   # We use this for loop instead of `kubectl wait` because we don't have access to the full pod name
   # and `kubectl wait` does not support regex to match resource name.
   for i in {1..1200} ; do
-    out=$(kubectl get pods)
+    out=$(kubectl get pods -A)
     echo "$out" | grep -E "$regex" | wc -l | grep "$nb" > /dev/null 2>&1
     if [[ $? -eq 0 ]]; then
       echo "$regex found"
@@ -160,7 +160,7 @@ function checkPodStatusWithTimeout() {
 function ensurePodResourcesSet() {
   regex=$1
 
-  baseCmd='kubectl get pods -o custom-columns="NAME:metadata.name,CONTAINERS:spec.containers[*].name,RESOURCE:spec.containers[*].resources'
+  baseCmd='kubectl get pods -A -o custom-columns="NAME:metadata.name,CONTAINERS:spec.containers[*].name,RESOURCE:spec.containers[*].resources'
 
   # We don't check for .limits.cpu because it is usually unset
   for resource in '.limits.memory"' '.requests.cpu"' '.requests.memory"' ; do
@@ -189,8 +189,8 @@ function insertWithRetry() {
 
 function verifyVtGateVersion() {
   version=$1
-  podName=$(kubectl get pods --no-headers -o custom-columns=":metadata.name" | grep "vtgate")
-  data=$(kubectl logs "$podName" | head)
+  podName=$(kubectl get pods -n example --no-headers -o custom-columns=":metadata.name" | grep "vtgate")
+  data=$(kubectl logs -n example "$podName" | head)
   echo "$data" | grep "$version" > /dev/null 2>&1
   if [[ $? -ne 0 ]]; then
     echo -e "The vtgate version is incorrect, expected: $version, got:\n$data"
@@ -248,10 +248,10 @@ function verifyCustomSidecarDBName() {
     selector="app=mysql"
   fi 
   local pods pod
-  pods=$(kubectl get pods --no-headers --selector="${selector}" -o custom-columns=":metadata.name")
+  pods=$(kubectl get pods -n example --no-headers --selector="${selector}" -o custom-columns=":metadata.name")
   for pod in $(echo "${pods}"); do
     local sdb
-    sdb=$(eval "kubectl exec ${pod} ${container} -- ${mysqlCMD}")
+    sdb=$(eval "kubectl exec -n example ${pod} ${container} -- ${mysqlCMD}")
     if [[ "${sdb}" != "${db_name}" ]]; then
       echo "Custom sidecar DB name ${db_name} not being used in ${pod} pod"
       exit 1
@@ -321,6 +321,7 @@ function setupKubectlAccessForCI() {
 }
 
 function setupKindConfig() {
+  echo "Setting up the kind config"
   if [[ "$BUILDKITE_BUILD_ID" != "0" ]]; then
     # The script is being run from buildkite, so we can't mount the current
     # working directory to kind. The current directory in the docker is workdir
@@ -340,6 +341,8 @@ function createKindCluster() {
   kind create cluster --wait 30s --name kind-${BUILDKITE_BUILD_ID} --config ./vtdataroot/config.yaml --image ${KIND_VERSION}
   echo "Loading docker image into Kind cluster"
   kind load docker-image vitess-operator-pr:latest --name kind-${BUILDKITE_BUILD_ID}
+  echo "Creating the example namespace"
+  kubectl create namespace example
 }
 
 # get_started:
