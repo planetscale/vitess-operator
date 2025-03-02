@@ -1,27 +1,33 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: vitess-operator
+  name: {{ template "vitess-operator.name" . }}
+  namespace: {{ .Release.Namespace }}
 spec:
-  replicas: 1
+  replicas: {{ .Values.replicas }}
   selector:
     matchLabels:
       app: vitess-operator
+      {{- include "vitess-operator.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
         app: vitess-operator
+        {{- include "vitess-operator.labels" . | nindent 8 }}
     spec:
-      priorityClassName: vitess-operator-control-plane
-      serviceAccountName: vitess-operator
+      priorityClassName: {{ .Values.priorityClassName }}
+      serviceAccountName: {{ include "vitess-operator.serviceAccountName" . }}
       containers:
       - name: vitess-operator
-        image: planetscale/vitess-operator:latest
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}" 
+        {{- with .Values.command }}
         command:
-        - vitess-operator
-        args:
-        - --logtostderr
-        - -v=4
+          {{- toYaml . | nindent 12 }}
+        {{- end }}
+        {{- with .Values.args }}
+        args: 
+          {{- toYaml . | nindent 12 }}
+        {{- end }}
         env:
         - name: WATCH_NAMESPACE
           valueFrom:
@@ -42,8 +48,4 @@ spec:
         - name: OPERATOR_NAME
           value: "vitess-operator"
         resources:
-          requests:
-            cpu: 100m
-            memory: 128Mi
-          limits:
-            memory: 128Mi
+          {{- toYaml .Values.resources | nindent 12 }}

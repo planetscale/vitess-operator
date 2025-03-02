@@ -4,7 +4,7 @@ metadata:
   name: vitess-operator
 subjects:
 - kind: ServiceAccount
-  name: vitess-operator
+  name: {{ include "vitess-operator.serviceAccountName" . }}
 roleRef:
   kind: Role
   name: vitess-operator
