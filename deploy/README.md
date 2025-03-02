@@ -2,7 +2,7 @@
 
 ![Version: 2.14.0](https://img.shields.io/badge/Version-2.14.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2.14.0](https://img.shields.io/badge/AppVersion-2.14.0-informational?style=flat-square)
 
-Fast distributed SQL query engine for big data analytics that helps you explore your data universe
+Fast distributed SQL query engine for big data analytics that helps you explore your data universss
 
 **Homepage:** <https://github.com/planetscale>
 
