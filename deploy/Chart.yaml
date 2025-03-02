@@ -1,6 +1,6 @@
 apiVersion: v2
 name: vitess-operator
-description: Fast distributed SQL query engine for big data analytics that helps you explore your data universe
+description: Scalable. Reliable. MySQL-compatible. Cloud-native. Database.
 
 # A chart can be either an 'application' or a 'library' chart.
 #
