@@ -1,0 +1,214 @@
+apiVersion: planetscale.com/v2
+kind: VitessCluster
+metadata:
+  name: example
+spec:
+  backup:
+    locations:
+    # If you are not enisoc, you'll need to customize this section.
+    - gcs:
+        bucket: planetscale-enisoc-dev
+        authSecret:
+          name: enisoc-dev-vitess
+          key: key.json
+  cells:
+  - name: gcpuswest1b
+    gateway:
+      authentication:
+        static:
+          secret:
+            name: example-cluster-config
+            key: users.json
+      secureTransport:
+        tls:
+          certSecret:
+            name: example-cluster-config
+            key: cert.pem
+          keySecret:
+            name: example-cluster-config
+            key: key.pem
+  keyspaces:
+  - name: main
+    partitionings:
+    - equal:
+        parts: 2
+        shardTemplate:
+          databaseInitScriptSecret:
+            name: example-cluster-config
+            key: init_db.sql
+          tabletPools:
+          - cell: gcpuswest1b
+            type: replica
+            replicas: 3
+            vttablet:
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+            mysqld:
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+            dataVolumeClaimTemplate:
+              accessModes: ["ReadWriteOnce"]
+              resources:
+                requests:
+                  storage: 10Gi
+  updateStrategy:
+    type: Immediate
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: example-cluster-config
+type: Opaque
+stringData:
+  cert.pem: |
+    -----BEGIN CERTIFICATE-----
+    MIICoDCCAYgCCQCUpGDPpNQHsTANBgkqhkiG9w0BAQsFADASMRAwDgYDVQQDDAdh
+    YmMuZGVmMB4XDTE5MDgyOTEyNDQxM1oXDTIwMDgyODEyNDQxM1owEjEQMA4GA1UE
+    AwwHYWJjLmRlZjCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALE++vy3
+    Q9OBry8P/9NqGqFdmDP6I8CJzcgRfcRieZv4Akt9sjAtq2CawXitwzX8q+CHeNfw
+    mSQqKHbL0D2IwfAI8GkQkGhmvJP9v7AGAA3LMnR+nj7a8ntlYibiza+/WNUKhfjD
+    Yxt8YKC4UzT5jfThjHKMv+aD7zcI/QCnR2f6f5YEL8ZAF+rjNuPOKEwVKLjKm7Rr
+    hErd1wO63VoWeVwp6ZrbyfhInsiJ5msVMKCL4oKMgn4q47iqYid7hAcClAx2HEjS
+    e/6gVial7AliqlucrL4JblS4szl/BI68fVU+c1yi/z+tcSNnJ5XXTB7DMu3FBMFF
+    hBmvIPWEa13e1LsCAwEAATANBgkqhkiG9w0BAQsFAAOCAQEAqxWW2JeH+6DVBTLr
+    h9i77pdPnoAyjntgses5Yd43wjvo53Vx0BN0b4QqmgtBpM6vMD2zRk18VzFaxYzJ
+    Ln2MYuYecmAty7t5wuNrIPn9riAr1MNsaUYIwcRIoT8Uy4sI5CYRM/50XYUD7NdY
+    a5SH8wUBs54mDIx+0J9Jex9m6wrjc3gXVIbMuVok2z53snHn5RQLrNJlUMkX/mCs
+    RvE70bLEbsheO/u4GuSLSGlpJE0breUlCGa5RqsNxxQBs2PRmvF6OucjjZmRDf8N
+    LVHrj2bLSCi/csHGGnpKZ05Ls3jBdalzvsvKQH+op7By9Rh/k5frUMk7KXvfzzOB
+    eWEAfg==
+    -----END CERTIFICATE-----
+  key.pem: |
+    -----BEGIN PRIVATE KEY-----
+    MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCxPvr8t0PTga8v
+    D//TahqhXZgz+iPAic3IEX3EYnmb+AJLfbIwLatgmsF4rcM1/Kvgh3jX8JkkKih2
+    y9A9iMHwCPBpEJBoZryT/b+wBgANyzJ0fp4+2vJ7ZWIm4s2vv1jVCoX4w2MbfGCg
+    uFM0+Y304YxyjL/mg+83CP0Ap0dn+n+WBC/GQBfq4zbjzihMFSi4ypu0a4RK3dcD
+    ut1aFnlcKema28n4SJ7IieZrFTCgi+KCjIJ+KuO4qmIne4QHApQMdhxI0nv+oFYm
+    pewJYqpbnKy+CW5UuLM5fwSOvH1VPnNcov8/rXEjZyeV10wewzLtxQTBRYQZryD1
+    hGtd3tS7AgMBAAECggEAf3NPHOtW3T6yToANr+Lq9T+M00s57BfrHcLeEZnR4kIq
+    vEfNGnGsetGs7u7boPVoThJ75aK/K88Yu5uAyM6OzeBPpuzfOgMt9KiQ7qzR2xlS
+    1Yu6lG3x0KMtOdL6njZUVRS1ExTELh54iPkh88TCu+R3jmMBFmumVoejDZY7dVrr
+    bDnksJJrZfeESU283OY4HP7LIVguluRzp3vp63IU/fVuJoV7/S3LjfqViyboAUP5
+    epCuFz0+boEJ7l+REe/jS2drxTn3TBl8kYI6nFBubqZwCmWHVwbDN911OcEvACCi
+    Pa1ZxGboJVP8oMS4hBJUp56otdI9vHeoteVkdWQreQKBgQDbSW2WNsOceVmhPgvY
+    k03+Kx+eiZBPhNFsf9HGmEJG0GIpMViY4ff8P9ZtDCAmKwnGzRcRkTnTcEVupVTt
+    70KbFCWn04dJeRbB1zssQ/rB5oMlshuV9T0UCMN36+GSVU5oISay0i2Z5PkrYkE9
+    x8DpUK0j0BcuEMs087W+0sTgzwKBgQDO67HqCdPuuLZy9Rk5DJD3rZxXtTNUjA7N
+    p/05dmlTARAKGNJ5alrScBHrFSED1KJpEtWxjKKLyfQeY6PPiCVKTTwHPhNB6qVM
+    CyZM+32Ax8aImeUyxRbW38PZecoqeELR99l0p9xqhlZKGPMLrdzDJY1u5Hxf1LMR
+    VdF23KjQVQKBgQDLmPFWdqJHtaOyQZleC+ZuBjvlRnPmYLrQshxi9xsSBIgfFuHb
+    kHJekibUOF3hEjSRj/nLJbs6xRKyGG8yOuLseVg86fjCDttCPkOCZdt8DDnX1fYm
+    1PtQjpJt1WQqKWoS5DS58srECAQQc7l/UueZuH4IsjvTWWRSVbR459hDoQKBgFdz
+    gaP6N1njMyjusZRM3U/wTe07pdALyY3de8Y3Z1gvUMoTp5CtBGl/9/K04VkvGtzx
+    muMJHwGZftUBI5BoZ+o5Li+ZaqYnN2kmJS/P8kDlLeE5uYZ1iauSssFNGcZNQWBg
+    McV91EgpMnrqhH3hIzZOvrGpW29dA7lF3dswcyBpAoGACUDduTnkyQSUtTdDQFhs
+    SDQHNAOi/FDkBJgjguMXsPzjoBVdWo2PUv0QLaNyBCF8HPAfVjC9Nj74ycnPzWmo
+    V2E25q7kMIYn734xX0Qj9NzPyLupCTvz9td09HEkgymfAcBXIytEiyKRTMbiXVEa
+    1pFi7vn7v35FtHDxlh9kWiY=
+    -----END PRIVATE KEY-----
+  users.json: |
+    {
+      "mysql username CHANGE ME": [{
+        "UserData": "vitess username CHANGE ME",
+        "Password": "mysql password CHANGE ME"
+      }]
+    }
+  init_db.sql: |
+    # This file is executed immediately after mysql_install_db,
+    # to initialize a fresh data directory.
+
+    ###############################################################################
+    # Equivalent of mysql_secure_installation
+    ###############################################################################
+
+    # We need to ensure that super_read_only is disabled so that we can execute
+    # these commands. Note that disabling it does NOT disable read_only.
+    # We save the current value so that we only re-enable it at the end if it was
+    # enabled before.
+    SET @original_super_read_only=IF(@@global.super_read_only=1, 'ON', 'OFF');
+    SET GLOBAL super_read_only='OFF';
+
+    # Changes during the init db should not make it to the binlog.
+    # They could potentially create errant transactions on replicas.
+    SET sql_log_bin = 0;
+    # Remove anonymous users.
+    DELETE FROM mysql.user WHERE User = '';
+
+    # Disable remote root access (only allow UNIX socket).
+    DELETE FROM mysql.user WHERE User = 'root' AND Host != 'localhost';
+
+    # Remove test database.
+    DROP DATABASE IF EXISTS test;
+
+    ###############################################################################
+    # Vitess defaults
+    ###############################################################################
+
+    # Vitess-internal database.
+    CREATE DATABASE IF NOT EXISTS _vt;
+    # Note that definitions of local_metadata and shard_metadata should be the same
+    # as in production which is defined in go/vt/mysqlctl/metadata_tables.go.
+    CREATE TABLE IF NOT EXISTS _vt.local_metadata (
+      name VARCHAR(255) NOT NULL,
+      value VARCHAR(255) NOT NULL,
+      db_name VARBINARY(255) NOT NULL,
+      PRIMARY KEY (db_name, name)
+      ) ENGINE=InnoDB;
+    CREATE TABLE IF NOT EXISTS _vt.shard_metadata (
+      name VARCHAR(255) NOT NULL,
+      value MEDIUMBLOB NOT NULL,
+      db_name VARBINARY(255) NOT NULL,
+      PRIMARY KEY (db_name, name)
+      ) ENGINE=InnoDB;
+
+    # Admin user with all privileges.
+    CREATE USER 'vt_dba'@'localhost';
+    GRANT ALL ON *.* TO 'vt_dba'@'localhost';
+    GRANT GRANT OPTION ON *.* TO 'vt_dba'@'localhost';
+
+    # User for app traffic, with global read-write access.
+    CREATE USER 'vt_app'@'localhost';
+    GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, RELOAD, PROCESS, FILE,
+      REFERENCES, INDEX, ALTER, SHOW DATABASES, CREATE TEMPORARY TABLES,
+      LOCK TABLES, EXECUTE, REPLICATION CLIENT, CREATE VIEW,
+      SHOW VIEW, CREATE ROUTINE, ALTER ROUTINE, CREATE USER, EVENT, TRIGGER
+      ON *.* TO 'vt_app'@'localhost';
+
+    # User for app debug traffic, with global read access.
+    CREATE USER 'vt_appdebug'@'localhost';
+    GRANT SELECT, SHOW DATABASES, PROCESS ON *.* TO 'vt_appdebug'@'localhost';
+
+    # User for administrative operations that need to be executed as non-SUPER.
+    # Same permissions as vt_app here.
+    CREATE USER 'vt_allprivs'@'localhost';
+    GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, RELOAD, PROCESS, FILE,
+      REFERENCES, INDEX, ALTER, SHOW DATABASES, CREATE TEMPORARY TABLES,
+      LOCK TABLES, EXECUTE, REPLICATION SLAVE, REPLICATION CLIENT, CREATE VIEW,
+      SHOW VIEW, CREATE ROUTINE, ALTER ROUTINE, CREATE USER, EVENT, TRIGGER
+      ON *.* TO 'vt_allprivs'@'localhost';
+
+    # User for slave replication connections.
+    # TODO: Generate a password for this since it allows remote connections.
+    CREATE USER 'vt_repl'@'%';
+    GRANT REPLICATION SLAVE ON *.* TO 'vt_repl'@'%';
+
+    # User for Vitess filtered replication (binlog player).
+    CREATE USER 'vt_filtered'@'localhost';
+    GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, RELOAD, PROCESS, FILE,
+      REFERENCES, INDEX, ALTER, SHOW DATABASES, CREATE TEMPORARY TABLES,
+      LOCK TABLES, EXECUTE, REPLICATION SLAVE, REPLICATION CLIENT, CREATE VIEW,
+      SHOW VIEW, CREATE ROUTINE, ALTER ROUTINE, CREATE USER, EVENT, TRIGGER
+      ON *.* TO 'vt_filtered'@'localhost';
+
+    FLUSH PRIVILEGES;
+
+    RESET SLAVE ALL;
+    RESET MASTER;
+
+    # We need to set super_read_only back to what it was before
+    SET GLOBAL super_read_only=IFNULL(@original_super_read_only, 'ON');
