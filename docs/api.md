@@ -66,7 +66,7 @@ string
 <td>
 <code>metadata</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#objectmeta-v1-meta">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#objectmeta-v1-meta">
 Kubernetes meta/v1.ObjectMeta
 </a>
 </em>
@@ -175,7 +175,7 @@ string
 <td>
 <code>metadata</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#objectmeta-v1-meta">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#objectmeta-v1-meta">
 Kubernetes meta/v1.ObjectMeta
 </a>
 </em>
@@ -256,7 +256,7 @@ string
 <td>
 <code>metadata</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#objectmeta-v1-meta">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#objectmeta-v1-meta">
 Kubernetes meta/v1.ObjectMeta
 </a>
 </em>
@@ -312,7 +312,7 @@ images defined in the &lsquo;images&rsquo; field.</p>
 <td>
 <code>imagePullSecrets</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#localobjectreference-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#localobjectreference-v1-core">
 []Kubernetes core/v1.LocalObjectReference
 </a>
 </em>
@@ -550,7 +550,7 @@ this cell when autoscaling is enabled.</p>
 <td>
 <code>metrics</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#metricspec-v2-autoscaling">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#metricspec-v2-autoscaling">
 []Kubernetes autoscaling/v2.MetricSpec
 </a>
 </em>
@@ -566,7 +566,7 @@ Use TargetCPUUtilization or TargetMemoryUtilization instead if scaling on these 
 <td>
 <code>behavior</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#horizontalpodautoscalerbehavior-v2-autoscaling">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#horizontalpodautoscalerbehavior-v2-autoscaling">
 Kubernetes autoscaling/v2.HorizontalPodAutoscalerBehavior
 </a>
 </em>
@@ -872,7 +872,7 @@ int64
 <td>
 <code>available</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#conditionstatus-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#conditionstatus-v1-core">
 Kubernetes core/v1.ConditionStatus
 </a>
 </em>
@@ -930,7 +930,7 @@ Default: Let the operator choose.</p>
 <td>
 <code>imagePullPolicy</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#pullpolicy-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#pullpolicy-v1-core">
 Kubernetes core/v1.PullPolicy
 </a>
 </em>
@@ -943,7 +943,7 @@ Kubernetes core/v1.PullPolicy
 <td>
 <code>imagePullSecrets</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#localobjectreference-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#localobjectreference-v1-core">
 []Kubernetes core/v1.LocalObjectReference
 </a>
 </em>
@@ -957,7 +957,7 @@ etcd Pods.</p>
 <td>
 <code>resources</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#resourcerequirements-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#resourcerequirements-v1-core">
 Kubernetes core/v1.ResourceRequirements
 </a>
 </em>
@@ -971,7 +971,7 @@ Default: Let the operator choose.</p>
 <td>
 <code>dataVolumeClaimTemplate</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#persistentvolumeclaimspec-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#persistentvolumeclaimspec-v1-core">
 Kubernetes core/v1.PersistentVolumeClaimSpec
 </a>
 </em>
@@ -1005,7 +1005,7 @@ set the string value to either &ldquo;true&rdquo; or &ldquo;false&rdquo;.</p>
 <td>
 <code>extraEnv</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#envvar-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#envvar-v1-core">
 []Kubernetes core/v1.EnvVar
 </a>
 </em>
@@ -1019,7 +1019,7 @@ set by the operator, or pass additional environment variables.</p>
 <td>
 <code>extraVolumes</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volume-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#volume-v1-core">
 []Kubernetes core/v1.Volume
 </a>
 </em>
@@ -1036,7 +1036,7 @@ should be mounted.</p>
 <td>
 <code>extraVolumeMounts</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volumemount-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#volumemount-v1-core">
 []Kubernetes core/v1.VolumeMount
 </a>
 </em>
@@ -1051,7 +1051,7 @@ Typically, these are used to mount volumes defined through extraVolumes.</p>
 <td>
 <code>initContainers</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#container-v1-core">
 []Kubernetes core/v1.Container
 </a>
 </em>
@@ -1065,7 +1065,7 @@ that will be run to completion one after another before any app containers are s
 <td>
 <code>sidecarContainers</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#container-v1-core">
 []Kubernetes core/v1.Container
 </a>
 </em>
@@ -1079,7 +1079,7 @@ that run alongside the main containers.</p>
 <td>
 <code>affinity</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#affinity-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#affinity-v1-core">
 Kubernetes core/v1.Affinity
 </a>
 </em>
@@ -1218,7 +1218,7 @@ ServiceOverrides
 <td>
 <code>tolerations</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#toleration-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#toleration-v1-core">
 []Kubernetes core/v1.Toleration
 </a>
 </em>
@@ -1347,7 +1347,7 @@ SecretSource
 <td>
 <code>allowResourceChanges</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#resourcename-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#resourcename-v1-core">
 []Kubernetes core/v1.ResourceName
 </a>
 </em>
@@ -1538,7 +1538,7 @@ EtcdLockserverStatus
 <td>
 <code>resources</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#resourcerequirements-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#resourcerequirements-v1-core">
 Kubernetes core/v1.ResourceRequirements
 </a>
 </em>
@@ -1684,7 +1684,7 @@ that&rsquo;s compatible with the Vitess &ldquo;MySQL80&rdquo; flavor setting.</p
 <td>
 <code>resources</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#resourcerequirements-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#resourcerequirements-v1-core">
 Kubernetes core/v1.ResourceRequirements
 </a>
 </em>
@@ -2117,7 +2117,7 @@ int32
 <td>
 <code>latestCompleteBackupTime</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#time-v1-meta">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#time-v1-meta">
 Kubernetes meta/v1.Time
 </a>
 </em>
@@ -2351,7 +2351,7 @@ CephBackupLocation
 <td>
 <code>volume</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volumesource-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#volumesource-v1-core">
 Kubernetes core/v1.VolumeSource
 </a>
 </em>
@@ -2405,7 +2405,7 @@ that need access to this backup storage location.</p>
 <td>
 <code>metadata</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#objectmeta-v1-meta">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#objectmeta-v1-meta">
 Kubernetes meta/v1.ObjectMeta
 </a>
 </em>
@@ -2472,7 +2472,7 @@ The controller will re-use the vtctld image by default.</p>
 <td>
 <code>imagePullPolicy</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#pullpolicy-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#pullpolicy-v1-core">
 Kubernetes core/v1.PullPolicy
 </a>
 </em>
@@ -2560,7 +2560,7 @@ The controller will re-use the vtctld image by default.</p>
 <td>
 <code>imagePullPolicy</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#pullpolicy-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#pullpolicy-v1-core">
 Kubernetes core/v1.PullPolicy
 </a>
 </em>
@@ -2593,7 +2593,7 @@ The PullPolicy used will be the same as the one used to pull the vtctld image.</
 <td>
 <code>active</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#objectreference-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#objectreference-v1-core">
 []Kubernetes core/v1.ObjectReference
 </a>
 </em>
@@ -2607,7 +2607,7 @@ The PullPolicy used will be the same as the one used to pull the vtctld image.</
 <td>
 <code>lastScheduledTime</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#time-v1-meta">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#time-v1-meta">
 Kubernetes meta/v1.Time
 </a>
 </em>
@@ -2752,7 +2752,7 @@ is executed when the Job&rsquo;s container starts.</p>
 <td>
 <code>resources</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#resourcerequirements-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#resourcerequirements-v1-core">
 Kubernetes core/v1.ResourceRequirements
 </a>
 </em>
@@ -2881,7 +2881,7 @@ map[string]string
 <td>
 <code>affinity</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#affinity-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#affinity-v1-core">
 Kubernetes core/v1.Affinity
 </a>
 </em>
@@ -2925,7 +2925,7 @@ guarantee optimal scheduling of your pods if you choose to set this field.</p>
 <td>
 <code>startTime</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#time-v1-meta">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#time-v1-meta">
 Kubernetes meta/v1.Time
 </a>
 </em>
@@ -2938,7 +2938,7 @@ Kubernetes meta/v1.Time
 <td>
 <code>finishedTime</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#time-v1-meta">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#time-v1-meta">
 Kubernetes meta/v1.Time
 </a>
 </em>
@@ -3033,7 +3033,7 @@ cluster.</p>
 <td>
 <code>metadata</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#objectmeta-v1-meta">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#objectmeta-v1-meta">
 Kubernetes meta/v1.ObjectMeta
 </a>
 </em>
@@ -3245,7 +3245,7 @@ just like a Deployment can manage Pods that run on multiple Nodes.</p>
 <td>
 <code>metadata</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#objectmeta-v1-meta">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#objectmeta-v1-meta">
 Kubernetes meta/v1.ObjectMeta
 </a>
 </em>
@@ -3343,7 +3343,7 @@ VitessImagePullPolicies
 <td>
 <code>imagePullSecrets</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#localobjectreference-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#localobjectreference-v1-core">
 []Kubernetes core/v1.LocalObjectReference
 </a>
 </em>
@@ -3440,7 +3440,7 @@ for the vtgate workload.</p>
 <td>
 <code>resources</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#resourcerequirements-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#resourcerequirements-v1-core">
 Kubernetes core/v1.ResourceRequirements
 </a>
 </em>
@@ -3494,7 +3494,7 @@ set the string value to either &ldquo;true&rdquo; or &ldquo;false&rdquo;.</p>
 <td>
 <code>extraEnv</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#envvar-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#envvar-v1-core">
 []Kubernetes core/v1.EnvVar
 </a>
 </em>
@@ -3508,7 +3508,7 @@ set by the operator, or pass additional environment variables.</p>
 <td>
 <code>extraVolumes</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volume-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#volume-v1-core">
 []Kubernetes core/v1.Volume
 </a>
 </em>
@@ -3525,7 +3525,7 @@ should be mounted.</p>
 <td>
 <code>extraVolumeMounts</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volumemount-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#volumemount-v1-core">
 []Kubernetes core/v1.VolumeMount
 </a>
 </em>
@@ -3540,7 +3540,7 @@ Typically, these are used to mount volumes defined through extraVolumes.</p>
 <td>
 <code>initContainers</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#container-v1-core">
 []Kubernetes core/v1.Container
 </a>
 </em>
@@ -3554,7 +3554,7 @@ that will be run to completion one after another before any app containers are s
 <td>
 <code>sidecarContainers</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#container-v1-core">
 []Kubernetes core/v1.Container
 </a>
 </em>
@@ -3568,7 +3568,7 @@ that run alongside the main containers.</p>
 <td>
 <code>affinity</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#affinity-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#affinity-v1-core">
 Kubernetes core/v1.Affinity
 </a>
 </em>
@@ -3623,7 +3623,7 @@ ServiceOverrides
 <td>
 <code>tolerations</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#toleration-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#toleration-v1-core">
 []Kubernetes core/v1.Toleration
 </a>
 </em>
@@ -3636,7 +3636,7 @@ ServiceOverrides
 <td>
 <code>topologySpreadConstraints</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#topologyspreadconstraint-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#topologyspreadconstraint-v1-core">
 []Kubernetes core/v1.TopologySpreadConstraint
 </a>
 </em>
@@ -3650,7 +3650,7 @@ specify how to spread vtgate pods among the given topology</p>
 <td>
 <code>lifecycle</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#lifecycle-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#lifecycle-v1-core">
 Kubernetes core/v1.Lifecycle
 </a>
 </em>
@@ -3695,7 +3695,7 @@ terminationGracePeriodSeconds of the vtgate pod.</p>
 <td>
 <code>available</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#conditionstatus-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#conditionstatus-v1-core">
 Kubernetes core/v1.ConditionStatus
 </a>
 </em>
@@ -3872,7 +3872,7 @@ VitessImagePullPolicies
 <td>
 <code>imagePullSecrets</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#localobjectreference-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#localobjectreference-v1-core">
 []Kubernetes core/v1.LocalObjectReference
 </a>
 </em>
@@ -3982,7 +3982,7 @@ when the difference matters.</p>
 <td>
 <code>idle</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#conditionstatus-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#conditionstatus-v1-core">
 Kubernetes core/v1.ConditionStatus
 </a>
 </em>
@@ -4103,7 +4103,7 @@ applied the next time a rolling update allows.</p>
 <td>
 <code>gatewayAvailable</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#conditionstatus-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#conditionstatus-v1-core">
 Kubernetes core/v1.ConditionStatus
 </a>
 </em>
@@ -4306,7 +4306,7 @@ images defined in the &lsquo;images&rsquo; field.</p>
 <td>
 <code>imagePullSecrets</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#localobjectreference-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#localobjectreference-v1-core">
 []Kubernetes core/v1.LocalObjectReference
 </a>
 </em>
@@ -4731,7 +4731,7 @@ int32
 <td>
 <code>resources</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#resourcerequirements-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#resourcerequirements-v1-core">
 Kubernetes core/v1.ResourceRequirements
 </a>
 </em>
@@ -4759,7 +4759,7 @@ set the string value to either &ldquo;true&rdquo; or &ldquo;false&rdquo;.</p>
 <td>
 <code>extraEnv</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#envvar-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#envvar-v1-core">
 []Kubernetes core/v1.EnvVar
 </a>
 </em>
@@ -4773,7 +4773,7 @@ set by the operator, or pass additional environment variables.</p>
 <td>
 <code>extraVolumes</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volume-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#volume-v1-core">
 []Kubernetes core/v1.Volume
 </a>
 </em>
@@ -4790,7 +4790,7 @@ should be mounted.</p>
 <td>
 <code>extraVolumeMounts</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volumemount-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#volumemount-v1-core">
 []Kubernetes core/v1.VolumeMount
 </a>
 </em>
@@ -4805,7 +4805,7 @@ Typically, these are used to mount volumes defined through extraVolumes.</p>
 <td>
 <code>initContainers</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#container-v1-core">
 []Kubernetes core/v1.Container
 </a>
 </em>
@@ -4819,7 +4819,7 @@ that will be run to completion one after another before any app containers are s
 <td>
 <code>sidecarContainers</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#container-v1-core">
 []Kubernetes core/v1.Container
 </a>
 </em>
@@ -4833,7 +4833,7 @@ that run alongside the main containers.</p>
 <td>
 <code>affinity</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#affinity-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#affinity-v1-core">
 Kubernetes core/v1.Affinity
 </a>
 </em>
@@ -4888,7 +4888,7 @@ ServiceOverrides
 <td>
 <code>tolerations</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#toleration-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#toleration-v1-core">
 []Kubernetes core/v1.Toleration
 </a>
 </em>
@@ -4920,7 +4920,7 @@ ServiceOverrides
 <td>
 <code>available</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#conditionstatus-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#conditionstatus-v1-core">
 Kubernetes core/v1.ConditionStatus
 </a>
 </em>
@@ -5135,7 +5135,7 @@ SecretSource
 <td>
 <code>vtctld</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#pullpolicy-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#pullpolicy-v1-core">
 Kubernetes core/v1.PullPolicy
 </a>
 </em>
@@ -5148,7 +5148,7 @@ Kubernetes core/v1.PullPolicy
 <td>
 <code>vtadmin</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#pullpolicy-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#pullpolicy-v1-core">
 Kubernetes core/v1.PullPolicy
 </a>
 </em>
@@ -5161,7 +5161,7 @@ Kubernetes core/v1.PullPolicy
 <td>
 <code>vtorc</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#pullpolicy-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#pullpolicy-v1-core">
 Kubernetes core/v1.PullPolicy
 </a>
 </em>
@@ -5174,7 +5174,7 @@ Kubernetes core/v1.PullPolicy
 <td>
 <code>vtgate</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#pullpolicy-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#pullpolicy-v1-core">
 Kubernetes core/v1.PullPolicy
 </a>
 </em>
@@ -5187,7 +5187,7 @@ Kubernetes core/v1.PullPolicy
 <td>
 <code>vttablet</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#pullpolicy-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#pullpolicy-v1-core">
 Kubernetes core/v1.PullPolicy
 </a>
 </em>
@@ -5200,7 +5200,7 @@ Kubernetes core/v1.PullPolicy
 <td>
 <code>vtbackup</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#pullpolicy-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#pullpolicy-v1-core">
 Kubernetes core/v1.PullPolicy
 </a>
 </em>
@@ -5213,7 +5213,7 @@ Kubernetes core/v1.PullPolicy
 <td>
 <code>mysqld</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#pullpolicy-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#pullpolicy-v1-core">
 Kubernetes core/v1.PullPolicy
 </a>
 </em>
@@ -5226,7 +5226,7 @@ Kubernetes core/v1.PullPolicy
 <td>
 <code>mysqldExporter</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#pullpolicy-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#pullpolicy-v1-core">
 Kubernetes core/v1.PullPolicy
 </a>
 </em>
@@ -5417,7 +5417,7 @@ various VitessCells.</p>
 <td>
 <code>metadata</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#objectmeta-v1-meta">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#objectmeta-v1-meta">
 Kubernetes meta/v1.ObjectMeta
 </a>
 </em>
@@ -5506,7 +5506,7 @@ VitessImagePullPolicies
 <td>
 <code>imagePullSecrets</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#localobjectreference-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#localobjectreference-v1-core">
 []Kubernetes core/v1.LocalObjectReference
 </a>
 </em>
@@ -5641,7 +5641,7 @@ VitessKeyspaceConditionType
 <td>
 <code>status</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#conditionstatus-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#conditionstatus-v1-core">
 Kubernetes core/v1.ConditionStatus
 </a>
 </em>
@@ -5655,7 +5655,7 @@ Can be True, False, Unknown.</p>
 <td>
 <code>lastTransitionTime</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#time-v1-meta">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#time-v1-meta">
 Kubernetes meta/v1.Time
 </a>
 </em>
@@ -6002,7 +6002,7 @@ in the format Vitess uses for shard names.</p>
 <td>
 <code>servingWrites</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#conditionstatus-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#conditionstatus-v1-core">
 Kubernetes core/v1.ConditionStatus
 </a>
 </em>
@@ -6112,7 +6112,7 @@ int32
 <td>
 <code>hasMaster</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#conditionstatus-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#conditionstatus-v1-core">
 Kubernetes core/v1.ConditionStatus
 </a>
 </em>
@@ -6126,7 +6126,7 @@ reflects a master for this shard.</p>
 <td>
 <code>servingWrites</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#conditionstatus-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#conditionstatus-v1-core">
 Kubernetes core/v1.ConditionStatus
 </a>
 </em>
@@ -6295,7 +6295,7 @@ VitessImagePullPolicies
 <td>
 <code>imagePullSecrets</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#localobjectreference-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#localobjectreference-v1-core">
 []Kubernetes core/v1.LocalObjectReference
 </a>
 </em>
@@ -6452,7 +6452,7 @@ map[string]planetscale.dev/vitess-operator/pkg/apis/planetscale/v2.OrphanStatus
 <td>
 <code>idle</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#conditionstatus-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#conditionstatus-v1-core">
 Kubernetes core/v1.ConditionStatus
 </a>
 </em>
@@ -6858,7 +6858,7 @@ Multiple Vitess clusters can share a lockserver as long as they have unique root
 <td>
 <code>resources</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#resourcerequirements-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#resourcerequirements-v1-core">
 Kubernetes core/v1.ResourceRequirements
 </a>
 </em>
@@ -6886,7 +6886,7 @@ set the string value to either &ldquo;true&rdquo; or &ldquo;false&rdquo;.</p>
 <td>
 <code>extraEnv</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#envvar-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#envvar-v1-core">
 []Kubernetes core/v1.EnvVar
 </a>
 </em>
@@ -6900,7 +6900,7 @@ set by the operator, or pass additional environment variables.</p>
 <td>
 <code>extraVolumes</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volume-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#volume-v1-core">
 []Kubernetes core/v1.Volume
 </a>
 </em>
@@ -6917,7 +6917,7 @@ should be mounted.</p>
 <td>
 <code>extraVolumeMounts</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volumemount-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#volumemount-v1-core">
 []Kubernetes core/v1.VolumeMount
 </a>
 </em>
@@ -6932,7 +6932,7 @@ Typically, these are used to mount volumes defined through extraVolumes.</p>
 <td>
 <code>initContainers</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#container-v1-core">
 []Kubernetes core/v1.Container
 </a>
 </em>
@@ -6946,7 +6946,7 @@ that will be run to completion one after another before any app containers are s
 <td>
 <code>sidecarContainers</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#container-v1-core">
 []Kubernetes core/v1.Container
 </a>
 </em>
@@ -6960,7 +6960,7 @@ that run alongside the main containers.</p>
 <td>
 <code>affinity</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#affinity-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#affinity-v1-core">
 Kubernetes core/v1.Affinity
 </a>
 </em>
@@ -7015,7 +7015,7 @@ ServiceOverrides
 <td>
 <code>tolerations</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#toleration-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#toleration-v1-core">
 []Kubernetes core/v1.Toleration
 </a>
 </em>
@@ -7047,7 +7047,7 @@ ServiceOverrides
 <td>
 <code>available</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#conditionstatus-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#conditionstatus-v1-core">
 Kubernetes core/v1.ConditionStatus
 </a>
 </em>
@@ -7151,7 +7151,7 @@ for that shard.</p>
 <td>
 <code>metadata</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#objectmeta-v1-meta">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#objectmeta-v1-meta">
 Kubernetes meta/v1.ObjectMeta
 </a>
 </em>
@@ -7261,7 +7261,7 @@ VitessImagePullPolicies
 <td>
 <code>imagePullSecrets</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#localobjectreference-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#localobjectreference-v1-core">
 []Kubernetes core/v1.LocalObjectReference
 </a>
 </em>
@@ -7410,7 +7410,7 @@ VitessShardStatus
 <td>
 <code>status</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#conditionstatus-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#conditionstatus-v1-core">
 Kubernetes core/v1.ConditionStatus
 </a>
 </em>
@@ -7424,7 +7424,7 @@ Can be True, False, Unknown.</p>
 <td>
 <code>lastTransitionTime</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#time-v1-meta">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#time-v1-meta">
 Kubernetes meta/v1.Time
 </a>
 </em>
@@ -7570,7 +7570,7 @@ VitessImagePullPolicies
 <td>
 <code>imagePullSecrets</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#localobjectreference-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#localobjectreference-v1-core">
 []Kubernetes core/v1.LocalObjectReference
 </a>
 </em>
@@ -7765,7 +7765,7 @@ VitessOrchestratorStatus
 <td>
 <code>hasMaster</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#conditionstatus-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#conditionstatus-v1-core">
 Kubernetes core/v1.ConditionStatus
 </a>
 </em>
@@ -7779,7 +7779,7 @@ reflects a master for this shard.</p>
 <td>
 <code>hasInitialBackup</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#conditionstatus-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#conditionstatus-v1-core">
 Kubernetes core/v1.ConditionStatus
 </a>
 </em>
@@ -7793,7 +7793,7 @@ has been seeded for the shard.</p>
 <td>
 <code>servingWrites</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#conditionstatus-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#conditionstatus-v1-core">
 Kubernetes core/v1.ConditionStatus
 </a>
 </em>
@@ -7809,7 +7809,7 @@ the target of a resharding operation that is still in progress.</p>
 <td>
 <code>idle</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#conditionstatus-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#conditionstatus-v1-core">
 Kubernetes core/v1.ConditionStatus
 </a>
 </em>
@@ -7960,7 +7960,7 @@ which will scale the pool down to 0 tablets.</p>
 <td>
 <code>dataVolumeClaimTemplate</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#persistentvolumeclaimspec-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#persistentvolumeclaimspec-v1-core">
 Kubernetes core/v1.PersistentVolumeClaimSpec
 </a>
 </em>
@@ -8047,7 +8047,7 @@ You must specify either Mysqld or ExternalDatastore, but not both.</p>
 <td>
 <code>affinity</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#affinity-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#affinity-v1-core">
 Kubernetes core/v1.Affinity
 </a>
 </em>
@@ -8088,7 +8088,7 @@ created for this component.</p>
 <td>
 <code>extraEnv</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#envvar-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#envvar-v1-core">
 []Kubernetes core/v1.EnvVar
 </a>
 </em>
@@ -8103,7 +8103,7 @@ These values are applied to both the vttablet and mysqld containers.</p>
 <td>
 <code>extraVolumes</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volume-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#volume-v1-core">
 []Kubernetes core/v1.Volume
 </a>
 </em>
@@ -8121,7 +8121,7 @@ These volumes are available to be mounted by both vttablet and mysqld.</p>
 <td>
 <code>extraVolumeMounts</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volumemount-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#volumemount-v1-core">
 []Kubernetes core/v1.VolumeMount
 </a>
 </em>
@@ -8137,7 +8137,7 @@ These values are applied to both the vttablet and mysqld containers.</p>
 <td>
 <code>initContainers</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#container-v1-core">
 []Kubernetes core/v1.Container
 </a>
 </em>
@@ -8151,7 +8151,7 @@ that will be run to completion one after another before any app containers are s
 <td>
 <code>sidecarContainers</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#container-v1-core">
 []Kubernetes core/v1.Container
 </a>
 </em>
@@ -8165,7 +8165,7 @@ that run alongside the main containers.</p>
 <td>
 <code>tolerations</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#toleration-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#toleration-v1-core">
 []Kubernetes core/v1.Toleration
 </a>
 </em>
@@ -8178,7 +8178,7 @@ that run alongside the main containers.</p>
 <td>
 <code>topologySpreadConstraints</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#topologyspreadconstraint-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#topologyspreadconstraint-v1-core">
 []Kubernetes core/v1.TopologySpreadConstraint
 </a>
 </em>
@@ -8321,7 +8321,7 @@ int32
 <td>
 <code>running</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#conditionstatus-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#conditionstatus-v1-core">
 Kubernetes core/v1.ConditionStatus
 </a>
 </em>
@@ -8334,7 +8334,7 @@ Kubernetes core/v1.ConditionStatus
 <td>
 <code>ready</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#conditionstatus-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#conditionstatus-v1-core">
 Kubernetes core/v1.ConditionStatus
 </a>
 </em>
@@ -8348,7 +8348,7 @@ meaning it&rsquo;s ready to serve queries.</p>
 <td>
 <code>available</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#conditionstatus-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#conditionstatus-v1-core">
 Kubernetes core/v1.ConditionStatus
 </a>
 </em>
@@ -8362,7 +8362,7 @@ for long enough to be considered stable.</p>
 <td>
 <code>dataVolumeBound</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#conditionstatus-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#conditionstatus-v1-core">
 Kubernetes core/v1.ConditionStatus
 </a>
 </em>
@@ -8471,7 +8471,7 @@ int32
 <td>
 <code>webResources</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#resourcerequirements-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#resourcerequirements-v1-core">
 Kubernetes core/v1.ResourceRequirements
 </a>
 </em>
@@ -8484,7 +8484,7 @@ Kubernetes core/v1.ResourceRequirements
 <td>
 <code>apiResources</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#resourcerequirements-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#resourcerequirements-v1-core">
 Kubernetes core/v1.ResourceRequirements
 </a>
 </em>
@@ -8525,7 +8525,7 @@ set the string value to either &ldquo;true&rdquo; or &ldquo;false&rdquo;.</p>
 <td>
 <code>extraEnv</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#envvar-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#envvar-v1-core">
 []Kubernetes core/v1.EnvVar
 </a>
 </em>
@@ -8539,7 +8539,7 @@ set by the operator, or pass additional environment variables.</p>
 <td>
 <code>extraVolumes</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volume-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#volume-v1-core">
 []Kubernetes core/v1.Volume
 </a>
 </em>
@@ -8556,7 +8556,7 @@ should be mounted.</p>
 <td>
 <code>extraVolumeMounts</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#volumemount-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#volumemount-v1-core">
 []Kubernetes core/v1.VolumeMount
 </a>
 </em>
@@ -8571,7 +8571,7 @@ Typically, these are used to mount volumes defined through extraVolumes.</p>
 <td>
 <code>initContainers</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#container-v1-core">
 []Kubernetes core/v1.Container
 </a>
 </em>
@@ -8585,7 +8585,7 @@ that will be run to completion one after another before any app containers are s
 <td>
 <code>sidecarContainers</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#container-v1-core">
 []Kubernetes core/v1.Container
 </a>
 </em>
@@ -8599,7 +8599,7 @@ that run alongside the main containers.</p>
 <td>
 <code>affinity</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#affinity-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#affinity-v1-core">
 Kubernetes core/v1.Affinity
 </a>
 </em>
@@ -8654,7 +8654,7 @@ ServiceOverrides
 <td>
 <code>tolerations</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#toleration-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#toleration-v1-core">
 []Kubernetes core/v1.Toleration
 </a>
 </em>
@@ -8686,7 +8686,7 @@ ServiceOverrides
 <td>
 <code>available</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#conditionstatus-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#conditionstatus-v1-core">
 Kubernetes core/v1.ConditionStatus
 </a>
 </em>
@@ -8729,7 +8729,7 @@ string
 <td>
 <code>resources</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#resourcerequirements-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#resourcerequirements-v1-core">
 Kubernetes core/v1.ResourceRequirements
 </a>
 </em>
@@ -8759,7 +8759,7 @@ set the string value to either &ldquo;true&rdquo; or &ldquo;false&rdquo;.</p>
 <td>
 <code>lifecycle</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#lifecycle-v1-core">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#lifecycle-v1-core">
 Kubernetes core/v1.Lifecycle
 </a>
 </em>
