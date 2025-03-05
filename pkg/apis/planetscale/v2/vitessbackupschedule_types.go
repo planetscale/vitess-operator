@@ -89,7 +89,7 @@ type VitessBackupScheduleTemplate struct {
 	// Strategy defines how we are going to take a backup.
 	// If you want to take several backups within the same schedule you can add more items
 	// to the Strategy list. Each VitessBackupScheduleStrategy will be executed within different
-	// K8S Jobs. This is useful if you want to have a single schedule backing up multiple shards
+	// kubernetes jobs. This is useful if you want to have a single schedule backing up multiple shards
 	// at the same time.
 	// +kubebuilder:validation:MinItems=1
 	// +patchMergeKey=name
@@ -189,19 +189,19 @@ type VitessBackupScheduleStrategy struct {
 // VitessBackupScheduleStatus defines the observed state of VitessBackupSchedule
 type VitessBackupScheduleStatus struct {
 	// A list of pointers to currently running jobs.
-	// This field is deprecated and no longer used in >= v2.15. It will be removed in a future release.
+	// This field is deprecated and no longer used in versions >= v2.15. It will be removed in a future release.
 	// +optional
 	Active []corev1.ObjectReference `json:"active,omitempty"`
 
 	// Information when was the last time the job was successfully scheduled.
-	// This field is deprecated and no longer used in >= v2.15. It will be removed in a future release.
+	// This field is deprecated and no longer used in versions >= v2.15. It will be removed in a future release.
 	// Please use lastScheduledTimes instead which maps the last schedule time to each VitessBackupScheduleStrategy
 	// in the VitessBackupSchedule.
 	// +optional
 	LastScheduledTime *metav1.Time `json:"lastScheduledTime,omitempty"`
 
-	// LastScheduledTimes lists for every VitessBackupScheduleStrategy what is the last schedule we executed.
-	// It does not list when the last execution started, but to which scheduled time it corresponds.
+	// A list of the last schedule we executed for each VitessBackupScheduleStrategy.
+	// Note that these are not the times when the last execution started, only the scheduled times.
 	// +optional
 	LastScheduledTimes map[string]*metav1.Time `json:"lastScheduledTimes,omitempty"`
 }

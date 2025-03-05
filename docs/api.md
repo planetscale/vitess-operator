@@ -2591,7 +2591,7 @@ The PullPolicy used will be the same as the one used to pull the vtctld image.</
 <td>
 <em>(Optional)</em>
 <p>A list of pointers to currently running jobs.
-This field is deprecated and no longer used in &gt;= v2.15. It will be removed in a future release.</p>
+This field is deprecated and no longer used in versions &gt;= v2.15. It will be removed in a future release.</p>
 </td>
 </tr>
 <tr>
@@ -2606,7 +2606,7 @@ Kubernetes meta/v1.Time
 <td>
 <em>(Optional)</em>
 <p>Information when was the last time the job was successfully scheduled.
-This field is deprecated and no longer used in &gt;= v2.15. It will be removed in a future release.
+This field is deprecated and no longer used in versions &gt;= v2.15. It will be removed in a future release.
 Please use lastScheduledTimes instead which maps the last schedule time to each VitessBackupScheduleStrategy
 in the VitessBackupSchedule.</p>
 </td>
@@ -2622,8 +2622,8 @@ map[string]*k8s.io/apimachinery/pkg/apis/meta/v1.Time
 </td>
 <td>
 <em>(Optional)</em>
-<p>LastScheduledTimes lists for every VitessBackupScheduleStrategy what is the last schedule we executed.
-It does not list when the last execution started, but to which scheduled time it corresponds.</p>
+<p>A list of the last schedule we executed for each VitessBackupScheduleStrategy.
+Note that these are not the times when the last execution started, only the scheduled times.</p>
 </td>
 </tr>
 </tbody>
@@ -2749,7 +2749,7 @@ string
 <p>Strategy defines how we are going to take a backup.
 If you want to take several backups within the same schedule you can add more items
 to the Strategy list. Each VitessBackupScheduleStrategy will be executed within different
-K8S Jobs. This is useful if you want to have a single schedule backing up multiple shards
+kubernetes jobs. This is useful if you want to have a single schedule backing up multiple shards
 at the same time.</p>
 </td>
 </tr>
