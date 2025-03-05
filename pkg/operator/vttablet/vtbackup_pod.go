@@ -61,8 +61,6 @@ type BackupSpec struct {
 	// aren't any. Instead, bootstrap the shard with a backup of an empty
 	// database.
 	InitialBackup bool
-	// AllowFirstBackup enables vtbackup to take a backup even if none exist.
-	AllowFirstBackup bool
 	// MinBackupInterval is the minimum spacing between backups.
 	// A new backup will only be taken if it's been at least this long since the
 	// most recent backup.

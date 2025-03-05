@@ -24,8 +24,6 @@ const (
 
 	// TypeInit is a backup taken to initialize an empty shard.
 	TypeInit = "init"
-	// TypeFirstBackup is a backup taken when no other backup exist in an existing shard.
-	TypeFirstBackup = "empty"
 	// TypeUpdate is a backup taken to update the latest backup for a shard.
 	TypeUpdate = "update"
 )

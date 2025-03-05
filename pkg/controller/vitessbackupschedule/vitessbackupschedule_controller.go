@@ -608,7 +608,7 @@ func (r *ReconcileVitessBackupsSchedule) createJobPod(
 	backupType := vitessbackup.TypeUpdate
 	if len(completedBackups) == 0 {
 		if vts.Status.HasMaster == corev1.ConditionTrue {
-			backupType = vitessbackup.TypeFirstBackup
+			return nil, nil, fmt.Errorf("this shard has 0 backup and a running primary, the schedule cannot create an empty backup, please create a backup manually first")
 		} else {
 			backupType = vitessbackup.TypeInit
 		}
