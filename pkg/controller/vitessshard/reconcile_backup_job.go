@@ -22,7 +22,6 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	apilabels "k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -56,27 +55,15 @@ func (r *ReconcileVitessShard) reconcileBackupJob(ctx context.Context, vts *plan
 		vitessbackup.TypeLabel:       vitessbackup.TypeInit,
 	}
 
-	// List all backups for this shard, across all storage locations.
-	// We'll use the latest observed state of backups to decide whether to take
-	// a new one. This list could be out of date because it's populated by
-	// polling the Vitess API (see the VitessBackupStorage controller), but as
-	// long as it's eventually consistent, we'll converge to the right behavior.
-	allBackups := &planetscalev2.VitessBackupList{}
-	listOpts := &client.ListOptions{
-		Namespace: vts.Namespace,
-		LabelSelector: apilabels.SelectorFromSet(apilabels.Set{
-			planetscalev2.ClusterLabel:  clusterName,
-			planetscalev2.KeyspaceLabel: keyspaceName,
-			planetscalev2.ShardLabel:    shardSafeName,
-		}),
-	}
-	if err := r.client.List(ctx, allBackups, listOpts); err != nil {
+	allBackups, completeBackups, err := vitessbackup.GetBackups(ctx, vts.Namespace, clusterName, keyspaceName, shardSafeName,
+		func(ctx context.Context, allBackupsList *planetscalev2.VitessBackupList, listOpts *client.ListOptions) error {
+			return r.client.List(ctx, allBackupsList, listOpts)
+		},
+	)
+	if err != nil {
 		return resultBuilder.Error(err)
 	}
-	updateBackupStatus(vts, allBackups.Items)
-
-	// Here we only care about complete backups.
-	completeBackups := vitessbackup.CompleteBackups(allBackups.Items)
+	updateBackupStatus(vts, allBackups)
 
 	// Generate keys (object names) for all desired backup Pods and PVCs.
 	// Keep a map back from generated names to the backup specs.
@@ -91,13 +78,13 @@ func (r *ReconcileVitessShard) reconcileBackupJob(ctx context.Context, vts *plan
 		Name:      initPodName,
 	}
 
-	if len(completeBackups) == 0 {
+	if len(completeBackups) == 0 && vts.Status.HasMaster != corev1.ConditionTrue {
 		// Until we see at least one complete backup, we attempt to create an
 		// "initial backup", which is a special imaginary backup created from
 		// scratch (not from any tablet). If we're wrong and a backup exists
 		// already, the idempotent vtbackup "initial backup" mode will just do
 		// nothing and return success.
-		initSpec := vtbackupInitSpec(initPodKey, vts, labels)
+		initSpec := MakeVtbackupSpec(initPodKey, vts, labels, vitessbackup.TypeInit)
 		if initSpec != nil {
 			podKeys = append(podKeys, initPodKey)
 			if initSpec.TabletSpec.DataVolumePVCSpec != nil {
@@ -112,7 +99,7 @@ func (r *ReconcileVitessShard) reconcileBackupJob(ctx context.Context, vts *plan
 
 	// Reconcile vtbackup PVCs. Use the same key as the corresponding Pod,
 	// but only if the Pod expects a PVC.
-	err := r.reconciler.ReconcileObjectSet(ctx, vts, pvcKeys, labels, reconciler.Strategy{
+	err = r.reconciler.ReconcileObjectSet(ctx, vts, pvcKeys, labels, reconciler.Strategy{
 		Kind: &corev1.PersistentVolumeClaim{},
 
 		New: func(key client.ObjectKey) runtime.Object {
@@ -181,7 +168,7 @@ func (r *ReconcileVitessShard) reconcileBackupJob(ctx context.Context, vts *plan
 	return resultBuilder.Result()
 }
 
-func vtbackupInitSpec(key client.ObjectKey, vts *planetscalev2.VitessShard, parentLabels map[string]string) *vttablet.BackupSpec {
+func MakeVtbackupSpec(key client.ObjectKey, vts *planetscalev2.VitessShard, parentLabels map[string]string, typ string) *vttablet.BackupSpec {
 	// If we specifically set our cluster to avoid initial backups, bail early.
 	if !*vts.Spec.Replication.InitializeBackup {
 		return nil
@@ -196,7 +183,7 @@ func vtbackupInitSpec(key client.ObjectKey, vts *planetscalev2.VitessShard, pare
 	// Make a vtbackup spec that's a similar shape to the first tablet pool.
 	// This should give it enough resources to run mysqld and restore a backup,
 	// since all tablets need to be able to do that, regardless of type.
-	return vtbackupSpec(key, vts, parentLabels, &vts.Spec.TabletPools[0], vitessbackup.TypeInit)
+	return vtbackupSpec(key, vts, parentLabels, &vts.Spec.TabletPools[0], typ)
 }
 
 func vtbackupSpec(key client.ObjectKey, vts *planetscalev2.VitessShard, parentLabels map[string]string, pool *planetscalev2.VitessShardTabletPool, backupType string) *vttablet.BackupSpec {

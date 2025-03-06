@@ -3,6 +3,13 @@ kind: VitessCluster
 metadata:
   name: example
 spec:
+  backup:
+    engine: xtrabackup
+    locations:
+      - volume:
+          hostPath:
+            path: /backup
+            type: Directory
   images:
     vtctld: vitess/lite:latest
     vtgate: vitess/lite:latest
@@ -10,7 +17,7 @@ spec:
     vtorc: vitess/lite:latest
     vtbackup: vitess/lite:latest
     mysqld:
-      mysql80Compatible: mysql:8.0.40
+      mysql80Compatible: vitess/lite:latest
     mysqldExporter: prom/mysqld-exporter:v0.14.0
   cells:
   - name: zone1

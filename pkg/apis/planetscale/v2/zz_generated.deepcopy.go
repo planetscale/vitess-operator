@@ -7,6 +7,7 @@ package v2
 import (
 	autoscalingv2 "k8s.io/api/autoscaling/v2"
 	"k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -854,6 +855,13 @@ func (in *VitessBackupScheduleStatus) DeepCopyInto(out *VitessBackupScheduleStat
 	if in.LastScheduledTime != nil {
 		in, out := &in.LastScheduledTime, &out.LastScheduledTime
 		*out = (*in).DeepCopy()
+	}
+	if in.LastScheduledTimes != nil {
+		in, out := &in.LastScheduledTimes, &out.LastScheduledTimes
+		*out = make(map[string]*metav1.Time, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val.DeepCopy()
+		}
 	}
 }
 
