@@ -647,16 +647,6 @@ SecretSource
 </tr>
 </tbody>
 </table>
-<h3 id="planetscale.com/v2.BackupStrategyName">BackupStrategyName
-(<code>string</code> alias)</p></h3>
-<p>
-(<em>Appears on:</em>
-<a href="#planetscale.com/v2.VitessBackupScheduleStrategy">VitessBackupScheduleStrategy</a>)
-</p>
-<p>
-<p>BackupStrategyName describes the vtctldclient command that will be used to take a backup.
-When scheduling a backup, you must specify at least one strategy.</p>
-</p>
 <h3 id="planetscale.com/v2.CephBackupLocation">CephBackupLocation
 </h3>
 <p>
@@ -2600,7 +2590,8 @@ The PullPolicy used will be the same as the one used to pull the vtctld image.</
 </td>
 <td>
 <em>(Optional)</em>
-<p>A list of pointers to currently running jobs.</p>
+<p>A list of pointers to currently running jobs.
+This field is deprecated and no longer used in versions &gt;= v2.15. It will be removed in a future release.</p>
 </td>
 </tr>
 <tr>
@@ -2614,7 +2605,25 @@ Kubernetes meta/v1.Time
 </td>
 <td>
 <em>(Optional)</em>
-<p>Information when was the last time the job was successfully scheduled.</p>
+<p>Information when was the last time the job was successfully scheduled.
+This field is deprecated and no longer used in versions &gt;= v2.15. It will be removed in a future release.
+Please use lastScheduledTimes instead which maps the last schedule time to each VitessBackupScheduleStrategy
+in the VitessBackupSchedule.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>lastScheduledTimes</code><br>
+<em>
+<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#*k8s.io/apimachinery/pkg/apis/meta/v1.time--">
+map[string]*k8s.io/apimachinery/pkg/apis/meta/v1.Time
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>A list of the last schedule we executed for each VitessBackupScheduleStrategy.
+Note that these are not the times when the last execution started, only the scheduled times.</p>
 </td>
 </tr>
 </tbody>
@@ -2642,9 +2651,7 @@ command line that will be executed in the Job&rsquo;s pod.</p>
 <td>
 <code>name</code><br>
 <em>
-<a href="#planetscale.com/v2.BackupStrategyName">
-BackupStrategyName
-</a>
+string
 </em>
 </td>
 <td>
@@ -2741,11 +2748,9 @@ string
 <td>
 <p>Strategy defines how we are going to take a backup.
 If you want to take several backups within the same schedule you can add more items
-to the Strategy list. Each VitessBackupScheduleStrategy will be executed by the same
-kubernetes job. This is useful if for instance you have one schedule, and you want to
-take a backup of all shards in a keyspace and don&rsquo;t want to re-create a second schedule.
-All the VitessBackupScheduleStrategy are concatenated into a single shell command that
-is executed when the Job&rsquo;s container starts.</p>
+to the Strategy list. Each VitessBackupScheduleStrategy will be executed within different
+kubernetes jobs. This is useful if you want to have a single schedule backing up multiple shards
+at the same time.</p>
 </td>
 </tr>
 <tr>
@@ -2828,8 +2833,8 @@ ConcurrencyPolicy
 <em>(Optional)</em>
 <p>ConcurrencyPolicy specifies ho to treat concurrent executions of a Job.
 Valid values are:
-- &ldquo;Allow&rdquo; (default): allows CronJobs to run concurrently;
-- &ldquo;Forbid&rdquo;: forbids concurrent runs, skipping next run if previous run hasn&rsquo;t finished yet;
+- &ldquo;Allow&rdquo;: allows CronJobs to run concurrently;
+- &ldquo;Forbid&rdquo; (default): forbids concurrent runs, skipping next run if previous run hasn&rsquo;t finished yet;
 - &ldquo;Replace&rdquo;: cancels currently running job and replaces it with a new one.</p>
 </td>
 </tr>

@@ -17,6 +17,7 @@ function move_tables() {
 
   sleep 10
 
+  echo "Execute MoveTables"
   vtctldclient LegacyVtctlCommand -- MoveTables --source commerce --tables 'customer,corder' Create customer.commerce2customer
   if [ $? -ne 0 ]; then
     echo "MoveTables failed"
@@ -26,6 +27,7 @@ function move_tables() {
 
   sleep 10
 
+  echo "Execute VDiff"
   vdiff_out=$(vtctldclient LegacyVtctlCommand -- VDiff customer.commerce2customer)
   echo "$vdiff_out" | grep "ProcessedRows: 5" | wc -l | grep "2" > /dev/null
   if [ $? -ne 0 ]; then
@@ -33,6 +35,7 @@ function move_tables() {
     # Allow failure
   fi
 
+  echo "SwitchTraffic for rdonly"
   vtctldclient LegacyVtctlCommand -- MoveTables --tablet_types='rdonly,replica' SwitchTraffic customer.commerce2customer
   if [ $? -ne 0 ]; then
     echo "SwitchTraffic for rdonly and replica failed"
@@ -40,6 +43,7 @@ function move_tables() {
     exit 1
   fi
 
+  echo "SwitchTraffic for primary"
   vtctldclient LegacyVtctlCommand -- MoveTables --tablet_types='primary' SwitchTraffic customer.commerce2customer
   if [ $? -ne 0 ]; then
     echo "SwitchTraffic for primary failed"
@@ -47,6 +51,7 @@ function move_tables() {
     exit 1
   fi
 
+  echo "Complete MoveTables"
   vtctldclient LegacyVtctlCommand -- MoveTables Complete customer.commerce2customer
   if [ $? -ne 0 ]; then
     echo "MoveTables Complete failed"
@@ -177,6 +182,39 @@ EOF
   waitForKeyspaceToBeServing customer 80- 2
 }
 
+function scheduledBackups() {
+  echo "Apply 401_scheduled_backups.yaml"
+  kubectl apply -f 401_scheduled_backups.yaml > /dev/null
+
+  checkVitessBackupScheduleStatusWithTimeout "example-vbsc-commerce(.*)"
+  checkVitessBackupScheduleStatusWithTimeout "example-vbsc-customer(.*)"
+
+  docker exec -it $(docker container ls --format '{{.Names}}' | grep kind) chmod o+rwx -R /backup > /dev/null
+  initialCommerceBackups=$(kubectl get vtb --no-headers | grep "commerce-x-x" | wc -l)
+  initialCustomerFirstShardBackups=$(kubectl get vtb --no-headers | grep "customer-x-80" | wc -l)
+  initialCustomerSecondShardBackups=$(kubectl get vtb --no-headers | grep "customer-80-x" | wc -l)
+
+  for i in {1..60} ; do
+    commerceBackups=$(kubectl get vtb --no-headers | grep "commerce-x-x" | wc -l)
+    customerFirstShardBackups=$(kubectl get vtb --no-headers | grep "customer-x-80" | wc -l)
+    customerSecondShardBackups=$(kubectl get vtb --no-headers | grep "customer-80-x" | wc -l)
+
+    if [[ "${customerFirstShardBackups}" -ge $(( initialCustomerFirstShardBackups + 2 )) && "${customerSecondShardBackups}" -ge $(( initialCustomerSecondShardBackups + 2 )) && "${commerceBackups}" -ge $(( initialCommerceBackups + 2 )) ]]; then
+      echo "Found all backups"
+      return
+    else
+      echo "Got: ${customerFirstShardBackups} customer-x-80 backups but want: $(( initialCustomerFirstShardBackups + 2 ))"
+      echo "Got: ${customerSecondShardBackups} customer-80-x backups but want: $(( initialCustomerSecondShardBackups + 2 ))"
+      echo "Got: ${commerceBackups} commerce-x-x backups but want: $(( initialCommerceBackups + 2 ))"
+      echo ""
+    fi
+    sleep 10
+  done
+
+  echo "Did not find the backups on time"
+  exit 1
+}
+
 function waitAndVerifySetup() {
   sleep 10
   checkPodStatusWithTimeout "example-zone1-vtctld(.*)1/1(.*)Running(.*)"
@@ -233,12 +271,11 @@ EOF
 }
 
 # Test setup
+mkdir -p -m 777 ./vtdataroot/backup
 echo "Building the docker image"
 docker build -f build/Dockerfile.release -t vitess-operator-pr:latest .
-echo "Creating Kind cluster"
-kind create cluster --wait 30s --name kind-${BUILDKITE_BUILD_ID} --image ${KIND_VERSION}
-echo "Loading docker image into Kind cluster"
-kind load docker-image vitess-operator-pr:latest --name kind-${BUILDKITE_BUILD_ID}
+setupKindConfig
+createKindCluster
 
 cd "$PWD/test/endtoend/operator"
 killall kubectl
@@ -258,6 +295,11 @@ verifyDurabilityPolicy "commerce" "semi_sync"
 move_tables
 resharding
 
+scheduledBackups
+
 # Teardown
+echo "Removing the temporary directory"
+removeBackupFiles
+rm -rf "$STARTING_DIR/vtdataroot"
 echo "Deleting Kind cluster. This also deletes the volume associated with it"
 kind delete cluster --name kind-${BUILDKITE_BUILD_ID}

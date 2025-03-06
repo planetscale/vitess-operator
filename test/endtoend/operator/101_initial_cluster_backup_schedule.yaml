@@ -28,7 +28,7 @@ spec:
         failedJobsHistoryLimit: 3
         jobTimeoutMinute: 5
         strategies:
-          - name: BackupShard
+          - name: commerce-x
             keyspace: "commerce"
             shard: "-"
       - name: "every-five-minute"
@@ -43,7 +43,7 @@ spec:
         failedJobsHistoryLimit: 3
         jobTimeoutMinute: 5
         strategies:
-          - name: BackupShard
+          - name: commerce-x
             keyspace: "commerce"
             shard: "-"
   images:
@@ -53,7 +53,7 @@ spec:
     vtorc: vitess/lite:latest
     vtbackup: vitess/lite:latest
     mysqld:
-      mysql80Compatible: mysql:8.0.40
+      mysql80Compatible: vitess/lite:latest
     mysqldExporter: prom/mysqld-exporter:v0.14.0
   cells:
   - name: zone1

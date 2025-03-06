@@ -8,6 +8,13 @@ metadata:
   name: example
   namespace: example
 spec:
+  backup:
+    engine: xtrabackup
+    locations:
+      - volume:
+          hostPath:
+            path: /backup
+            type: Directory
   images:
     vtctld: vitess/lite:v21.0.0
     vtgate: vitess/lite:v21.0.0
@@ -15,7 +22,7 @@ spec:
     vtorc: vitess/lite:v21.0.0
     vtbackup: vitess/lite:v21.0.0
     mysqld:
-      mysql80Compatible: mysql:8.0.40
+      mysql80Compatible: vitess/lite:v21.0.0
     mysqldExporter: prom/mysqld-exporter:v0.14.0
   cells:
   - name: zone1
