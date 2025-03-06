@@ -6,6 +6,7 @@ apiVersion: planetscale.com/v2
 kind: VitessCluster
 metadata:
   name: example
+  namespace: example
 spec:
   images:
     vtctld: vitess/lite:latest
@@ -111,6 +112,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: example-cluster-config
+  namespace: example
 type: Opaque
 stringData:
   users.json: |
