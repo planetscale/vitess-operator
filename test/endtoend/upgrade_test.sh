@@ -190,14 +190,14 @@ function scheduledBackups() {
   checkVitessBackupScheduleStatusWithTimeout "example-vbsc-customer(.*)"
 
   docker exec -it $(docker container ls --format '{{.Names}}' | grep kind) chmod o+rwx -R /backup > /dev/null
-  initialCommerceBackups=$(kubectl get vtb --no-headers | grep "commerce-x-x" | wc -l)
-  initialCustomerFirstShardBackups=$(kubectl get vtb --no-headers | grep "customer-x-80" | wc -l)
-  initialCustomerSecondShardBackups=$(kubectl get vtb --no-headers | grep "customer-80-x" | wc -l)
+  initialCommerceBackups=$(kubectl get vtb -n example --no-headers | grep "commerce-x-x" | wc -l)
+  initialCustomerFirstShardBackups=$(kubectl get vtb -n example --no-headers | grep "customer-x-80" | wc -l)
+  initialCustomerSecondShardBackups=$(kubectl get vtb -n example --no-headers | grep "customer-80-x" | wc -l)
 
   for i in {1..60} ; do
-    commerceBackups=$(kubectl get vtb --no-headers | grep "commerce-x-x" | wc -l)
-    customerFirstShardBackups=$(kubectl get vtb --no-headers | grep "customer-x-80" | wc -l)
-    customerSecondShardBackups=$(kubectl get vtb --no-headers | grep "customer-80-x" | wc -l)
+    commerceBackups=$(kubectl get vtb -n example --no-headers | grep "commerce-x-x" | wc -l)
+    customerFirstShardBackups=$(kubectl get vtb -n example --no-headers | grep "customer-x-80" | wc -l)
+    customerSecondShardBackups=$(kubectl get vtb -n example --no-headers | grep "customer-80-x" | wc -l)
 
     if [[ "${customerFirstShardBackups}" -ge $(( initialCustomerFirstShardBackups + 2 )) && "${customerSecondShardBackups}" -ge $(( initialCustomerSecondShardBackups + 2 )) && "${commerceBackups}" -ge $(( initialCommerceBackups + 2 )) ]]; then
       echo "Found all backups"

@@ -161,7 +161,7 @@ function checkPodExistWithTimeout() {
   # We use this for loop instead of `kubectl wait` because we don't have access to the full pod name
   # and `kubectl wait` does not support regex to match resource name.
   for i in {1..1200} ; do
-    out=$(kubectl get pods)
+    out=$(kubectl get pods -A)
     echo "$out" | grep -E "$regex" > /dev/null 2>&1
     if [[ $? -eq 0 ]]; then
       echo "$regex found"
@@ -456,7 +456,7 @@ function checkVitessBackupScheduleStatusWithTimeout() {
   regex=$1
 
   for i in {1..1200} ; do
-    if [[ $(kubectl get VitessBackupSchedule | grep -E "${regex}" | wc -l) -eq 1 ]]; then
+    if [[ $(kubectl get VitessBackupSchedule -n example | grep -E "${regex}" | wc -l) -eq 1 ]]; then
       echo "$regex found"
       return
     fi
