@@ -11,20 +11,6 @@ function takedownShard() {
   checkPodStatusWithTimeout "example-vttablet-zone1" 0
 }
 
-function checkVitessBackupScheduleStatusWithTimeout() {
-  regex=$1
-
-  for i in {1..1200} ; do
-    if [[ $(kubectl get VitessBackupSchedule -n example | grep -E "${regex}" | wc -l) -eq 1 ]]; then
-      echo "$regex found"
-      return
-    fi
-    sleep 1
-  done
-  echo -e "ERROR: checkPodStatusWithTimeout timeout to find pod matching:\ngot:\n$out\nfor regex: $regex"
-  exit 1
-}
-
 function verifyListBackupsOutputWithSchedule() {
   echo -e "Check for VitessBackupSchedule status"
   checkVitessBackupScheduleStatusWithTimeout "example-vbsc-every-minute(.*)"
