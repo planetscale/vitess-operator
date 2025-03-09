@@ -1,6 +1,6 @@
 module planetscale.dev/vitess-operator
 
-go 1.24.0
+go 1.24.1
 
 require (
 	github.com/ahmetb/gen-crd-api-reference-docs v0.3.0
@@ -22,7 +22,7 @@ require (
 	sigs.k8s.io/controller-runtime v0.20.2
 	sigs.k8s.io/controller-tools v0.17.2
 	sigs.k8s.io/kustomize v2.0.3+incompatible
-	vitess.io/vitess v0.10.3-0.20250228194258-79dc8e377590
+	vitess.io/vitess v0.10.3-0.20250307071827-99479bd791eb
 )
 
 require (
@@ -91,6 +91,7 @@ require (
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/fsnotify/fsnotify v1.8.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.7.0 // indirect
+	github.com/gammazero/deque v1.0.0 // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
@@ -226,7 +227,6 @@ require (
 	k8s.io/component-base v0.32.1 // indirect
 	k8s.io/component-helpers v0.32.0 // indirect
 	k8s.io/controller-manager v0.0.0 // indirect
-	k8s.io/externaljwt v0.32.2 // indirect
 	k8s.io/gengo v0.0.0-20250207200755-1244d31929d7 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20241212222426-2c72e554b1e7 // indirect
