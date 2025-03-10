@@ -33,6 +33,7 @@ function verifyListBackupsOutputWithSchedule() {
     fi
     sleep 1
   done
+  kubectl get pods -A
   echo "Did not find at least 3 backups"
   exit 1
 }
