@@ -79,7 +79,6 @@ spec:
             vttablet:
               extraFlags:
                 db_charset: utf8mb4
-                wait_for_backup_interval: "0"
               resources:
                 limits:
                   memory: 512Mi
