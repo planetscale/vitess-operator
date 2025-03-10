@@ -34,6 +34,15 @@ function verifyListBackupsOutputWithSchedule() {
     sleep 1
   done
   kubectl get pods -A
+  printBackupLogFiles
+  for vtop in $(kubectl get pods -n default --no-headers -o custom-columns=":metadata.name" | grep "vitess-operator") ; do
+      echo "Printing logs of $vtop with grep schedule"
+      kubectl logs -n default "$vtop" | grep "schedule
+      echo " "
+      echo " "
+      echo "Printing logs of $vtop with grep Schedule"
+      kubectl logs -n default "$vtop" | grep "Schedule
+    done
   echo "Did not find at least 3 backups"
   exit 1
 }
