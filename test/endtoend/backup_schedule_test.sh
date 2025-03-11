@@ -22,7 +22,7 @@ function verifyListBackupsOutputWithSchedule() {
   for i in {1..600} ; do
     # Ensure that we can view the backup files from the host.
     docker exec -it $(docker container ls --format '{{.Names}}' | grep kind) chmod o+rwx -R /backup > /dev/null
-    backupCount=$(kubectl get vtb --no-headers | wc -l)
+    backupCount=$(kubectl get vtb -n example --no-headers | wc -l)
     echo "Found ${backupCount} backups"
     if [[ "${backupCount}" -ge 3 ]]; then
       echo -e "Check for Jobs' pods"
@@ -51,6 +51,7 @@ cd "$PWD/test/endtoend/operator"
 killall kubectl
 setupKubectlAccessForCI
 
+createExampleNamespace
 get_started "operator-latest.yaml" "101_initial_cluster_backup_schedule.yaml"
 verifyVtGateVersion "22.0.0"
 checkSemiSyncSetup

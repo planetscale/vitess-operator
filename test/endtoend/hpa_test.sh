@@ -5,7 +5,7 @@ source ./test/endtoend/utils.sh
 
 function verifyHpaCount() {
   expectedCount=$1
-  count=$(kubectl get hpa --no-headers | wc -l)
+  count=$(kubectl get hpa -n example --no-headers | wc -l)
   if [[ "$count" -eq "$expectedCount" ]]; then
     echo "HorizontalPodAutoscaler count is $count"
     return 0
@@ -17,7 +17,7 @@ function verifyHpaCount() {
 function verifyHpaWithTimeout() {
   regex=$1
   for i in {1..600} ; do
-    out=$(kubectl get hpa --no-headers)
+    out=$(kubectl get hpa -n example --no-headers)
     echo "$out" | grep -E "$regex" > /dev/null 2>&1
     if [[ $? -eq 0 ]]; then
       echo "HorizontalPodAutoscaler $regex found"
@@ -41,6 +41,7 @@ cd "$PWD/test/endtoend/operator"
 killall kubectl
 setupKubectlAccessForCI
 
+createExampleNamespace
 get_started "operator-latest.yaml" "101_initial_cluster_autoscale.yaml"
 verifyVtGateVersion "22.0.0"
 checkSemiSyncSetup

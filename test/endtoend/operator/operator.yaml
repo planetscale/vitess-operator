@@ -6843,9 +6843,36 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: vitess-operator
+  namespace: example
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vitess-operator
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
+metadata:
+  name: vitess-operator-backup-storage
+  namespace: example
+rules:
+  - apiGroups:
+      - planetscale.com
+    resources:
+      - vitessshards
+      - vitessshards/status
+      - vitessshards/finalizers
+      - vitessbackups
+      - vitessbackups/status
+      - vitessbackups/finalizers
+      - vitessbackupstorages
+      - vitessbackupstorages/status
+      - vitessbackupstorages/finalizers
+    verbs:
+      - '*'
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
 metadata:
   name: vitess-operator
 rules:
@@ -6925,18 +6952,39 @@ rules:
       - jobs
     verbs:
       - '*'
+  - apiGroups:
+      - autoscaling
+    resources:
+      - horizontalpodautoscalers
+    verbs:
+      - '*'
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: vitess-operator
+  name: vitess-operator-backup-storage
+  namespace: example
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
+  name: vitess-operator-backup-storage
+subjects:
+  - kind: ServiceAccount
+    name: vitess-operator
+    namespace: example
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: vitess-operator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
   name: vitess-operator
 subjects:
   - kind: ServiceAccount
     name: vitess-operator
+    namespace: default
 ---
 apiVersion: scheduling.k8s.io/v1
 description: Vitess components (vttablet, vtgate, vtctld, etcd)
@@ -6976,9 +7024,7 @@ spec:
             - vitess-operator
           env:
             - name: WATCH_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
+              value: "default,example"
             - name: POD_NAME
               valueFrom:
                 fieldRef:

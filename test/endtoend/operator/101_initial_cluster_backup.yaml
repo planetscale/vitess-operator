@@ -6,6 +6,7 @@ apiVersion: planetscale.com/v2
 kind: VitessCluster
 metadata:
   name: example
+  namespace: example
 spec:
   backup:
     engine: xtrabackup
@@ -21,7 +22,7 @@ spec:
     vtorc: vitess/lite:latest
     vtbackup: vitess/lite:latest
     mysqld:
-      mysql80Compatible: mysql:8.0.40
+      mysql80Compatible: vitess/lite:latest
     mysqldExporter: prom/mysqld-exporter:v0.14.0
   cells:
   - name: zone1
@@ -78,7 +79,6 @@ spec:
             vttablet:
               extraFlags:
                 db_charset: utf8mb4
-                wait_for_backup_interval: "0"
               resources:
                 limits:
                   memory: 512Mi
@@ -104,6 +104,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: example-cluster-config
+  namespace: example
 type: Opaque
 stringData:
   users.json: |
