@@ -1,7 +1,3 @@
-# The following example is minimalist. The security policies
-# and resource specifications are not meant to be used in production.
-# Please refer to the operator documentation for recommendations on
-# production settings.
 apiVersion: planetscale.com/v2
 kind: VitessCluster
 metadata:
@@ -15,6 +11,40 @@ spec:
           hostPath:
             path: /backup
             type: Directory
+    schedules:
+      - name: "commerce"
+        schedule: "*/2 * * * *"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 1024Mi
+          limits:
+            memory: 1024Mi
+        successfulJobsHistoryLimit: 2
+        failedJobsHistoryLimit: 3
+        jobTimeoutMinute: 5
+        strategies:
+          - name: commerce_x
+            keyspace: "commerce"
+            shard: "-"
+      - name: "customer"
+        schedule: "*/2 * * * *"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 1024Mi
+          limits:
+            memory: 1024Mi
+        successfulJobsHistoryLimit: 2
+        failedJobsHistoryLimit: 3
+        jobTimeoutMinute: 5
+        strategies:
+          - name: customer_80-x
+            keyspace: "customer"
+            shard: "80-"
+          - name: customer_x-80
+            keyspace: "customer"
+            shard: "-80"
   images:
     vtctld: vitess/lite:latest
     vtgate: vitess/lite:latest
@@ -55,7 +85,6 @@ spec:
   keyspaces:
   - name: commerce
     durabilityPolicy: semi_sync
-    turndownPolicy: Immediate
     vitessOrchestrator:
       resources:
         limits:
@@ -65,6 +94,7 @@ spec:
           memory: 128Mi
       extraFlags:
         instance-poll-time: 3s
+    turndownPolicy: Immediate
     partitionings:
     - equal:
         parts: 1
@@ -80,19 +110,54 @@ spec:
               extraFlags:
                 db_charset: utf8mb4
               resources:
-                limits:
-                  memory: 256Mi
                 requests:
                   cpu: 100m
                   memory: 256Mi
             mysqld:
               resources:
-                limits:
-                  memory: 1024Mi
                 requests:
                   cpu: 100m
                   memory: 512Mi
-              configOverrides: "innodb_fast_shutdown=0"
+            dataVolumeClaimTemplate:
+              accessModes: ["ReadWriteOnce"]
+              resources:
+                requests:
+                  storage: 10Gi
+  - name: customer
+    durabilityPolicy: semi_sync
+    vitessOrchestrator:
+      resources:
+        limits:
+          memory: 128Mi
+        requests:
+          cpu: 100m
+          memory: 128Mi
+      extraFlags:
+        instance-poll-time: 3s
+    turndownPolicy: Immediate
+    partitionings:
+    - equal:
+        parts: 2
+        shardTemplate:
+          databaseInitScriptSecret:
+            name: example-cluster-config
+            key: init_db.sql
+          tabletPools:
+          - cell: zone1
+            type: replica
+            replicas: 3
+            vttablet:
+              extraFlags:
+                db_charset: utf8mb4
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+            mysqld:
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 512Mi
             dataVolumeClaimTemplate:
               accessModes: ["ReadWriteOnce"]
               resources:

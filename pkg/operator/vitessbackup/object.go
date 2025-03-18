@@ -17,11 +17,14 @@ limitations under the License.
 package vitessbackup
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
+	apilabels "k8s.io/apimachinery/pkg/labels"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	topodatapb "vitess.io/vitess/go/vt/proto/topodata"
 	"vitess.io/vitess/go/vt/topo/topoproto"
 
@@ -99,8 +102,42 @@ func LatestForLocation(locationName string, backups []*planetscalev2.VitessBacku
 	return latest
 }
 
-// CompleteBackups returns a list of only the complete backups from the input.
-func CompleteBackups(backups []planetscalev2.VitessBackup) []*planetscalev2.VitessBackup {
+// GetBackups returns a list of all backups, along with only completed backups, for the given
+// keyspace/shard in the given cluster.
+// A function to list the backup using the controller's client is necessary.
+func GetBackups(
+	ctx context.Context,
+	namespace, clusterName, keyspaceName, shardSafeName string,
+	listBackups func(context.Context, *planetscalev2.VitessBackupList, *client.ListOptions) error,
+) (allBackups []planetscalev2.VitessBackup, completeBackups []*planetscalev2.VitessBackup, err error) {
+	// List all backups for this shard, across all storage locations.
+	// We'll use the latest observed state of backups to decide whether to take
+	// a new one. This list could be out of date because it's populated by
+	// polling the Vitess API (see the VitessBackupStorage controller), but as
+	// long as it's eventually consistent, we'll converge to the right behavior.
+	allBackupsList := &planetscalev2.VitessBackupList{}
+	listOpts := &client.ListOptions{
+		Namespace: namespace,
+		LabelSelector: apilabels.SelectorFromSet(apilabels.Set{
+			planetscalev2.ClusterLabel:  clusterName,
+			planetscalev2.KeyspaceLabel: keyspaceName,
+			planetscalev2.ShardLabel:    shardSafeName,
+		}),
+	}
+	if err = listBackups(ctx, allBackupsList, listOpts); err != nil {
+		return nil, nil, err
+	}
+
+	allBackups = allBackupsList.Items
+
+	// Filter by complete backups.
+	completeBackups = getCompleteBackups(allBackups)
+
+	return allBackups, completeBackups, nil
+}
+
+// getCompleteBackups returns a list of only the complete backups from the input.
+func getCompleteBackups(backups []planetscalev2.VitessBackup) []*planetscalev2.VitessBackup {
 	completeBackups := []*planetscalev2.VitessBackup{}
 	for i := range backups {
 		if backups[i].Status.Complete {

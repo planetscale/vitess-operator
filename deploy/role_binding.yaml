@@ -1,11 +1,26 @@
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: vitess-operator
+  name: vitess-operator-subcontroller
+  namespace: example
 subjects:
-- kind: ServiceAccount
-  name: vitess-operator
+  - kind: ServiceAccount
+    name: vitess-operator
+    namespace: example
 roleRef:
   kind: Role
+  name: vitess-operator-subcontroller
+  apiGroup: rbac.authorization.k8s.io
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: vitess-operator
+subjects:
+  - kind: ServiceAccount
+    name: vitess-operator
+    namespace: default
+roleRef:
+  kind: ClusterRole
   name: vitess-operator
   apiGroup: rbac.authorization.k8s.io
