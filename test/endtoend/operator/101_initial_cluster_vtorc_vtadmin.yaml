@@ -85,7 +85,7 @@ spec:
             replicas: 3
             vttablet:
               extraFlags:
-                disable_active_reparents: "true"
+                unmanaged: "true"
                 db_charset: utf8mb4
               resources:
                 limits:
