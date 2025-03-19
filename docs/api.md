@@ -2615,7 +2615,7 @@ in the VitessBackupSchedule.</p>
 <td>
 <code>lastScheduledTimes</code><br>
 <em>
-<a href="https://v1-18.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#*k8s.io/apimachinery/pkg/apis/meta/v1.time--">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#*k8s.io/apimachinery/pkg/apis/meta/v1.time--">
 map[string]*k8s.io/apimachinery/pkg/apis/meta/v1.Time
 </a>
 </em>
