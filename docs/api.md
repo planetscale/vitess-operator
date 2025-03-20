@@ -6576,9 +6576,7 @@ VitessOrchestratorSpec
 </em>
 </td>
 <td>
-<p>VitessOrchestrator deploys a set of Vitess Orchestrator (vtorc) servers for the Keyspace.
-It is highly recommended that you set disable_active_reparents=true
-for the vttablets if enabling vtorc.</p>
+<p>VitessOrchestrator deploys a set of Vitess Orchestrator (vtorc) servers for the Keyspace.</p>
 </td>
 </tr>
 <tr>

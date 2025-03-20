@@ -110,18 +110,18 @@ func externalDatastoreFlags(spec *Spec) vitess.Flags {
 	credentialsFile := secrets.Mount(&spec.ExternalDatastore.CredentialsSecret, externalDatastoreCredentialsDirName)
 
 	flags := vitess.Flags{
-		"disable_active_reparents": true,
-		"restore_from_backup":      false,
-		"db_app_user":              spec.ExternalDatastore.User,
-		"db_appdebug_user":         spec.ExternalDatastore.User,
-		"db_allprivs_user":         spec.ExternalDatastore.User,
-		"db_dba_user":              spec.ExternalDatastore.User,
-		"db_filtered_user":         spec.ExternalDatastore.User,
-		"db_repl_user":             spec.ExternalDatastore.User,
-		"db-credentials-file":      credentialsFile.FilePath(),
-		"db_host":                  spec.ExternalDatastore.Host,
-		"db_port":                  spec.ExternalDatastore.Port,
-		"init_db_name_override":    spec.ExternalDatastore.Database,
+		"unmanaged":             true,
+		"restore_from_backup":   false,
+		"db_app_user":           spec.ExternalDatastore.User,
+		"db_appdebug_user":      spec.ExternalDatastore.User,
+		"db_allprivs_user":      spec.ExternalDatastore.User,
+		"db_dba_user":           spec.ExternalDatastore.User,
+		"db_filtered_user":      spec.ExternalDatastore.User,
+		"db_repl_user":          spec.ExternalDatastore.User,
+		"db-credentials-file":   credentialsFile.FilePath(),
+		"db_host":               spec.ExternalDatastore.Host,
+		"db_port":               spec.ExternalDatastore.Port,
+		"init_db_name_override": spec.ExternalDatastore.Database,
 
 		"enable_replication_reporter": false,
 
