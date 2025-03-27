@@ -239,8 +239,8 @@ function verifyVtgateDeploymentStrategy() {
   fi
 
   if [[ "${rollingUpdateStr}" != "RollingUpdateStrategy:  0 max unavailable, 1 max surge" ]]; then
-      echo "Could not find the correct rolling update strategy, got: ${rollingUpdateStr}"
-      exit 1
+    echo "Could not find the correct rolling update strategy, got: ${rollingUpdateStr}"
+    exit 1
   fi
   echo "Found the correct deployment strategy"
 }
