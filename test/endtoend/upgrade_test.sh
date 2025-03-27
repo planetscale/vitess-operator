@@ -224,6 +224,27 @@ function waitAndVerifySetup() {
   checkPodStatusWithTimeout "example-commerce-x-x-zone1-vtorc(.*)1/1(.*)Running(.*)"
 }
 
+function verifyVtgateDeploymentStrategy() {
+  echo "Verifying the deployment strategy of vtgate"
+  vtgate=$(kubectl get deployments  -n example --no-headers -o custom-columns=":metadata.name" | grep "vtgate")
+  if [[ $? -eq 1 ]]; then
+    echo "Could not find the vtgate deployment"
+    exit 1
+  fi
+
+  rollingUpdateStr=$(kubectl describe deployment -n example ${vtgate} | grep "RollingUpdateStrategy:")
+  if [[ $? -eq 1 ]]; then
+    echo "Could not find vtgate's rolling update strategy"
+    exit 1
+  fi
+
+  if [[ "${rollingUpdateStr}" != "RollingUpdateStrategy:  0 max unavailable, 1 max surge" ]]; then
+      echo "Could not find the correct rolling update strategy, got: ${rollingUpdateStr}"
+      exit 1
+  fi
+  echo "Found the correct deployment strategy"
+}
+
 function upgradeToLatest() {
   echo "Apply operator-latest.yaml "
   kubectl apply -f operator-latest.yaml
@@ -232,6 +253,7 @@ function upgradeToLatest() {
   echo "Upgrade all the other binaries"
   kubectl apply -f cluster_upgrade.yaml
   waitAndVerifySetup
+  verifyVtgateDeploymentStrategy
 
   killall kubectl
   ./pf.sh > /dev/null 2>&1 &

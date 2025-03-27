@@ -39,6 +39,11 @@ spec:
           memory: 256Mi
         limits:
           memory: 256Mi
+      strategy:
+        type: "RollingUpdate"
+        rollingUpdate:
+          maxUnavailable: 0
+          maxSurge: 1
   vitessDashboard:
     cells:
     - zone1

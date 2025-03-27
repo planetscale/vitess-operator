@@ -84,6 +84,7 @@ type Spec struct {
 	TopologySpreadConstraints     []corev1.TopologySpreadConstraint
 	Lifecycle                     corev1.Lifecycle
 	TerminationGracePeriodSeconds *int64
+	Strategy                      appsv1.DeploymentStrategy
 }
 
 // NewDeployment creates a new Deployment object for vtgate.
@@ -123,6 +124,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec, mysqldImage string) {
 	// Deployment options.
 	obj.Spec.Replicas = ptr.To(spec.Replicas)
 	obj.Spec.RevisionHistoryLimit = ptr.To(int32(0))
+	obj.Spec.Strategy = spec.Strategy
 
 	// Reset the list of volumes in the template so we remove old ones.
 	obj.Spec.Template.Spec.Volumes = nil
