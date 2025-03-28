@@ -39,6 +39,11 @@ The default `operator.yaml` provided as an example has been updated to contain a
 
 All end-to-end CI tests also run with two namespaces.
 
+### <a id="rolling-update-vtgate"/>Rolling Update Settings for VTGate</a>
+
+It is now possible to define the [rolling update settings](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#strategy) of the vtgate deployment.
+This enhancement was made via [#676](https://github.com/planetscale/vitess-operator/pull/676).
+
 ### <a id="upgrade-path"/>Upgrade Path</a>
 
 #### <a id="etcd-upgrade-path"/>etcd</a>

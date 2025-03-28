@@ -17,6 +17,7 @@ limitations under the License.
 package v2
 
 import (
+	appsv1 "k8s.io/api/apps/v1"
 	autoscalingv2 "k8s.io/api/autoscaling/v2"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -240,6 +241,10 @@ type VitessCellGatewaySpec struct {
 	// TerminationGracePeriodSeconds can optionally be used to customize
 	// terminationGracePeriodSeconds of the vtgate pod.
 	TerminationGracePeriodSeconds *int64 `json:"terminationGracePeriodSeconds,omitempty"`
+
+	// Strategy can optionally be used to define the deployment strategy
+	// of the vtgate deployment.
+	Strategy appsv1.DeploymentStrategy `json:"strategy,omitempty"`
 }
 
 // VitessGatewayAuthentication configures authentication for vtgate in this cell.

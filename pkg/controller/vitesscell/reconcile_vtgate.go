@@ -146,6 +146,7 @@ func (r *ReconcileVitessCell) reconcileVtgate(ctx context.Context, vtc *planetsc
 		TopologySpreadConstraints:     vtc.Spec.Gateway.TopologySpreadConstraints,
 		Lifecycle:                     vtc.Spec.Gateway.Lifecycle,
 		TerminationGracePeriodSeconds: vtc.Spec.Gateway.TerminationGracePeriodSeconds,
+		Strategy:                      vtc.Spec.Gateway.Strategy,
 	}
 	key = client.ObjectKey{Namespace: vtc.Namespace, Name: vtgate.DeploymentName(clusterName, vtc.Spec.Name)}
 
