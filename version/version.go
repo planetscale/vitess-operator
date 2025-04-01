@@ -1,5 +1,5 @@
 /*
-Copyright 2024 PlanetScale Inc.
+Copyright 2025 PlanetScale Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -20,5 +20,5 @@ package version
 // THIS FILE IS AUTO-GENERATED DURING NEW RELEASES BY THE VITESS-RELEASER
 
 var (
-	Version = "2.14.0"
+	Version = "2.15.0"
 )
