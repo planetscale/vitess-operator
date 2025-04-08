@@ -16,13 +16,13 @@ spec:
             path: /backup
             type: Directory
   images:
-    vtctld: vitess/lite:v21.0.0
-    vtgate: vitess/lite:v21.0.0
-    vttablet: vitess/lite:v21.0.0
-    vtorc: vitess/lite:v21.0.0
-    vtbackup: vitess/lite:v21.0.0
+    vtctld: vitess/lite:v21.0.3
+    vtgate: vitess/lite:v21.0.3
+    vttablet: vitess/lite:v21.0.3
+    vtorc: vitess/lite:v21.0.3
+    vtbackup: vitess/lite:v21.0.3
     mysqld:
-      mysql80Compatible: vitess/lite:v21.0.0
+      mysql80Compatible: vitess/lite:v21.0.3
     mysqldExporter: prom/mysqld-exporter:v0.14.0
   cells:
   - name: zone1
