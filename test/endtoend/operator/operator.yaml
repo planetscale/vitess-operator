@@ -2,7 +2,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.16.1
+    controller-gen.kubebuilder.io/version: v0.17.2
   name: etcdlockservers.planetscale.com
 spec:
   group: planetscale.com
@@ -329,7 +329,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.16.1
+    controller-gen.kubebuilder.io/version: v0.17.2
   name: vitessbackups.planetscale.com
 spec:
   group: planetscale.com
@@ -381,7 +381,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.16.1
+    controller-gen.kubebuilder.io/version: v0.17.2
   name: vitessbackupschedules.planetscale.com
 spec:
   group: planetscale.com
@@ -416,6 +416,7 @@ spec:
                 cluster:
                   type: string
                 concurrencyPolicy:
+                  default: Forbid
                   enum:
                     - Allow
                     - Forbid
@@ -491,8 +492,6 @@ spec:
                         example: commerce
                         type: string
                       name:
-                        enum:
-                          - BackupShard
                         type: string
                       shard:
                         example: '-'
@@ -542,6 +541,11 @@ spec:
                 lastScheduledTime:
                   format: date-time
                   type: string
+                lastScheduledTimes:
+                  additionalProperties:
+                    format: date-time
+                    type: string
+                  type: object
               type: object
           type: object
       served: true
@@ -553,7 +557,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.16.1
+    controller-gen.kubebuilder.io/version: v0.17.2
   name: vitessbackupstorages.planetscale.com
 spec:
   group: planetscale.com
@@ -679,6 +683,9 @@ spec:
                           maxLength: 256
                           pattern: ^[^\r\n]*$
                           type: string
+                        minPartSize:
+                          format: int64
+                          type: integer
                         region:
                           minLength: 1
                           type: string
@@ -718,7 +725,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.16.1
+    controller-gen.kubebuilder.io/version: v0.17.2
   name: vitesscells.planetscale.com
 spec:
   group: planetscale.com
@@ -775,6 +782,341 @@ spec:
                                 - key
                               type: object
                           type: object
+                      type: object
+                    autoscaler:
+                      properties:
+                        behavior:
+                          properties:
+                            scaleDown:
+                              properties:
+                                policies:
+                                  items:
+                                    properties:
+                                      periodSeconds:
+                                        format: int32
+                                        type: integer
+                                      type:
+                                        type: string
+                                      value:
+                                        format: int32
+                                        type: integer
+                                    required:
+                                      - periodSeconds
+                                      - type
+                                      - value
+                                    type: object
+                                  type: array
+                                  x-kubernetes-list-type: atomic
+                                selectPolicy:
+                                  type: string
+                                stabilizationWindowSeconds:
+                                  format: int32
+                                  type: integer
+                              type: object
+                            scaleUp:
+                              properties:
+                                policies:
+                                  items:
+                                    properties:
+                                      periodSeconds:
+                                        format: int32
+                                        type: integer
+                                      type:
+                                        type: string
+                                      value:
+                                        format: int32
+                                        type: integer
+                                    required:
+                                      - periodSeconds
+                                      - type
+                                      - value
+                                    type: object
+                                  type: array
+                                  x-kubernetes-list-type: atomic
+                                selectPolicy:
+                                  type: string
+                                stabilizationWindowSeconds:
+                                  format: int32
+                                  type: integer
+                              type: object
+                          type: object
+                        maxReplicas:
+                          format: int32
+                          minimum: 0
+                          type: integer
+                        metrics:
+                          items:
+                            properties:
+                              containerResource:
+                                properties:
+                                  container:
+                                    type: string
+                                  name:
+                                    type: string
+                                  target:
+                                    properties:
+                                      averageUtilization:
+                                        format: int32
+                                        type: integer
+                                      averageValue:
+                                        anyOf:
+                                          - type: integer
+                                          - type: string
+                                        pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                        x-kubernetes-int-or-string: true
+                                      type:
+                                        type: string
+                                      value:
+                                        anyOf:
+                                          - type: integer
+                                          - type: string
+                                        pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                        x-kubernetes-int-or-string: true
+                                    required:
+                                      - type
+                                    type: object
+                                required:
+                                  - container
+                                  - name
+                                  - target
+                                type: object
+                              external:
+                                properties:
+                                  metric:
+                                    properties:
+                                      name:
+                                        type: string
+                                      selector:
+                                        properties:
+                                          matchExpressions:
+                                            items:
+                                              properties:
+                                                key:
+                                                  type: string
+                                                operator:
+                                                  type: string
+                                                values:
+                                                  items:
+                                                    type: string
+                                                  type: array
+                                                  x-kubernetes-list-type: atomic
+                                              required:
+                                                - key
+                                                - operator
+                                              type: object
+                                            type: array
+                                            x-kubernetes-list-type: atomic
+                                          matchLabels:
+                                            additionalProperties:
+                                              type: string
+                                            type: object
+                                        type: object
+                                        x-kubernetes-map-type: atomic
+                                    required:
+                                      - name
+                                    type: object
+                                  target:
+                                    properties:
+                                      averageUtilization:
+                                        format: int32
+                                        type: integer
+                                      averageValue:
+                                        anyOf:
+                                          - type: integer
+                                          - type: string
+                                        pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                        x-kubernetes-int-or-string: true
+                                      type:
+                                        type: string
+                                      value:
+                                        anyOf:
+                                          - type: integer
+                                          - type: string
+                                        pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                        x-kubernetes-int-or-string: true
+                                    required:
+                                      - type
+                                    type: object
+                                required:
+                                  - metric
+                                  - target
+                                type: object
+                              object:
+                                properties:
+                                  describedObject:
+                                    properties:
+                                      apiVersion:
+                                        type: string
+                                      kind:
+                                        type: string
+                                      name:
+                                        type: string
+                                    required:
+                                      - kind
+                                      - name
+                                    type: object
+                                  metric:
+                                    properties:
+                                      name:
+                                        type: string
+                                      selector:
+                                        properties:
+                                          matchExpressions:
+                                            items:
+                                              properties:
+                                                key:
+                                                  type: string
+                                                operator:
+                                                  type: string
+                                                values:
+                                                  items:
+                                                    type: string
+                                                  type: array
+                                                  x-kubernetes-list-type: atomic
+                                              required:
+                                                - key
+                                                - operator
+                                              type: object
+                                            type: array
+                                            x-kubernetes-list-type: atomic
+                                          matchLabels:
+                                            additionalProperties:
+                                              type: string
+                                            type: object
+                                        type: object
+                                        x-kubernetes-map-type: atomic
+                                    required:
+                                      - name
+                                    type: object
+                                  target:
+                                    properties:
+                                      averageUtilization:
+                                        format: int32
+                                        type: integer
+                                      averageValue:
+                                        anyOf:
+                                          - type: integer
+                                          - type: string
+                                        pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                        x-kubernetes-int-or-string: true
+                                      type:
+                                        type: string
+                                      value:
+                                        anyOf:
+                                          - type: integer
+                                          - type: string
+                                        pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                        x-kubernetes-int-or-string: true
+                                    required:
+                                      - type
+                                    type: object
+                                required:
+                                  - describedObject
+                                  - metric
+                                  - target
+                                type: object
+                              pods:
+                                properties:
+                                  metric:
+                                    properties:
+                                      name:
+                                        type: string
+                                      selector:
+                                        properties:
+                                          matchExpressions:
+                                            items:
+                                              properties:
+                                                key:
+                                                  type: string
+                                                operator:
+                                                  type: string
+                                                values:
+                                                  items:
+                                                    type: string
+                                                  type: array
+                                                  x-kubernetes-list-type: atomic
+                                              required:
+                                                - key
+                                                - operator
+                                              type: object
+                                            type: array
+                                            x-kubernetes-list-type: atomic
+                                          matchLabels:
+                                            additionalProperties:
+                                              type: string
+                                            type: object
+                                        type: object
+                                        x-kubernetes-map-type: atomic
+                                    required:
+                                      - name
+                                    type: object
+                                  target:
+                                    properties:
+                                      averageUtilization:
+                                        format: int32
+                                        type: integer
+                                      averageValue:
+                                        anyOf:
+                                          - type: integer
+                                          - type: string
+                                        pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                        x-kubernetes-int-or-string: true
+                                      type:
+                                        type: string
+                                      value:
+                                        anyOf:
+                                          - type: integer
+                                          - type: string
+                                        pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                        x-kubernetes-int-or-string: true
+                                    required:
+                                      - type
+                                    type: object
+                                required:
+                                  - metric
+                                  - target
+                                type: object
+                              resource:
+                                properties:
+                                  name:
+                                    type: string
+                                  target:
+                                    properties:
+                                      averageUtilization:
+                                        format: int32
+                                        type: integer
+                                      averageValue:
+                                        anyOf:
+                                          - type: integer
+                                          - type: string
+                                        pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                        x-kubernetes-int-or-string: true
+                                      type:
+                                        type: string
+                                      value:
+                                        anyOf:
+                                          - type: integer
+                                          - type: string
+                                        pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                        x-kubernetes-int-or-string: true
+                                    required:
+                                      - type
+                                    type: object
+                                required:
+                                  - name
+                                  - target
+                                type: object
+                              type:
+                                type: string
+                            required:
+                              - type
+                            type: object
+                          type: array
+                          x-kubernetes-list-type: atomic
+                        minReplicas:
+                          format: int32
+                          minimum: 0
+                          type: integer
                       type: object
                     extraEnv:
                       items:
@@ -1088,6 +1430,24 @@ spec:
                       type: object
                     sidecarContainers:
                       x-kubernetes-preserve-unknown-fields: true
+                    strategy:
+                      properties:
+                        rollingUpdate:
+                          properties:
+                            maxSurge:
+                              anyOf:
+                                - type: integer
+                                - type: string
+                              x-kubernetes-int-or-string: true
+                            maxUnavailable:
+                              anyOf:
+                                - type: integer
+                                - type: string
+                              x-kubernetes-int-or-string: true
+                          type: object
+                        type:
+                          type: string
+                      type: object
                     terminationGracePeriodSeconds:
                       format: int64
                       type: integer
@@ -1479,6 +1839,12 @@ spec:
                   properties:
                     available:
                       type: string
+                    labelSelector:
+                      type: string
+                    replicas:
+                      format: int32
+                      minimum: 0
+                      type: integer
                     serviceName:
                       type: string
                   type: object
@@ -1509,13 +1875,17 @@ spec:
       served: true
       storage: true
       subresources:
+        scale:
+          labelSelectorPath: .status.gateway.labelSelector
+          specReplicasPath: .spec.gateway.replicas
+          statusReplicasPath: .status.gateway.replicas
         status: {}
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.16.1
+    controller-gen.kubebuilder.io/version: v0.17.2
   name: vitessclusters.planetscale.com
 spec:
   group: planetscale.com
@@ -1650,6 +2020,9 @@ spec:
                                 maxLength: 256
                                 pattern: ^[^\r\n]*$
                                 type: string
+                              minPartSize:
+                                format: int64
+                                type: integer
                               region:
                                 minLength: 1
                                 type: string
@@ -1677,6 +2050,7 @@ spec:
                               type: string
                             type: object
                           concurrencyPolicy:
+                            default: Forbid
                             enum:
                               - Allow
                               - Forbid
@@ -1748,8 +2122,6 @@ spec:
                                   example: commerce
                                   type: string
                                 name:
-                                  enum:
-                                    - BackupShard
                                   type: string
                                 shard:
                                   example: '-'
@@ -1809,6 +2181,341 @@ spec:
                                       - key
                                     type: object
                                 type: object
+                            type: object
+                          autoscaler:
+                            properties:
+                              behavior:
+                                properties:
+                                  scaleDown:
+                                    properties:
+                                      policies:
+                                        items:
+                                          properties:
+                                            periodSeconds:
+                                              format: int32
+                                              type: integer
+                                            type:
+                                              type: string
+                                            value:
+                                              format: int32
+                                              type: integer
+                                          required:
+                                            - periodSeconds
+                                            - type
+                                            - value
+                                          type: object
+                                        type: array
+                                        x-kubernetes-list-type: atomic
+                                      selectPolicy:
+                                        type: string
+                                      stabilizationWindowSeconds:
+                                        format: int32
+                                        type: integer
+                                    type: object
+                                  scaleUp:
+                                    properties:
+                                      policies:
+                                        items:
+                                          properties:
+                                            periodSeconds:
+                                              format: int32
+                                              type: integer
+                                            type:
+                                              type: string
+                                            value:
+                                              format: int32
+                                              type: integer
+                                          required:
+                                            - periodSeconds
+                                            - type
+                                            - value
+                                          type: object
+                                        type: array
+                                        x-kubernetes-list-type: atomic
+                                      selectPolicy:
+                                        type: string
+                                      stabilizationWindowSeconds:
+                                        format: int32
+                                        type: integer
+                                    type: object
+                                type: object
+                              maxReplicas:
+                                format: int32
+                                minimum: 0
+                                type: integer
+                              metrics:
+                                items:
+                                  properties:
+                                    containerResource:
+                                      properties:
+                                        container:
+                                          type: string
+                                        name:
+                                          type: string
+                                        target:
+                                          properties:
+                                            averageUtilization:
+                                              format: int32
+                                              type: integer
+                                            averageValue:
+                                              anyOf:
+                                                - type: integer
+                                                - type: string
+                                              pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                              x-kubernetes-int-or-string: true
+                                            type:
+                                              type: string
+                                            value:
+                                              anyOf:
+                                                - type: integer
+                                                - type: string
+                                              pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                              x-kubernetes-int-or-string: true
+                                          required:
+                                            - type
+                                          type: object
+                                      required:
+                                        - container
+                                        - name
+                                        - target
+                                      type: object
+                                    external:
+                                      properties:
+                                        metric:
+                                          properties:
+                                            name:
+                                              type: string
+                                            selector:
+                                              properties:
+                                                matchExpressions:
+                                                  items:
+                                                    properties:
+                                                      key:
+                                                        type: string
+                                                      operator:
+                                                        type: string
+                                                      values:
+                                                        items:
+                                                          type: string
+                                                        type: array
+                                                        x-kubernetes-list-type: atomic
+                                                    required:
+                                                      - key
+                                                      - operator
+                                                    type: object
+                                                  type: array
+                                                  x-kubernetes-list-type: atomic
+                                                matchLabels:
+                                                  additionalProperties:
+                                                    type: string
+                                                  type: object
+                                              type: object
+                                              x-kubernetes-map-type: atomic
+                                          required:
+                                            - name
+                                          type: object
+                                        target:
+                                          properties:
+                                            averageUtilization:
+                                              format: int32
+                                              type: integer
+                                            averageValue:
+                                              anyOf:
+                                                - type: integer
+                                                - type: string
+                                              pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                              x-kubernetes-int-or-string: true
+                                            type:
+                                              type: string
+                                            value:
+                                              anyOf:
+                                                - type: integer
+                                                - type: string
+                                              pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                              x-kubernetes-int-or-string: true
+                                          required:
+                                            - type
+                                          type: object
+                                      required:
+                                        - metric
+                                        - target
+                                      type: object
+                                    object:
+                                      properties:
+                                        describedObject:
+                                          properties:
+                                            apiVersion:
+                                              type: string
+                                            kind:
+                                              type: string
+                                            name:
+                                              type: string
+                                          required:
+                                            - kind
+                                            - name
+                                          type: object
+                                        metric:
+                                          properties:
+                                            name:
+                                              type: string
+                                            selector:
+                                              properties:
+                                                matchExpressions:
+                                                  items:
+                                                    properties:
+                                                      key:
+                                                        type: string
+                                                      operator:
+                                                        type: string
+                                                      values:
+                                                        items:
+                                                          type: string
+                                                        type: array
+                                                        x-kubernetes-list-type: atomic
+                                                    required:
+                                                      - key
+                                                      - operator
+                                                    type: object
+                                                  type: array
+                                                  x-kubernetes-list-type: atomic
+                                                matchLabels:
+                                                  additionalProperties:
+                                                    type: string
+                                                  type: object
+                                              type: object
+                                              x-kubernetes-map-type: atomic
+                                          required:
+                                            - name
+                                          type: object
+                                        target:
+                                          properties:
+                                            averageUtilization:
+                                              format: int32
+                                              type: integer
+                                            averageValue:
+                                              anyOf:
+                                                - type: integer
+                                                - type: string
+                                              pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                              x-kubernetes-int-or-string: true
+                                            type:
+                                              type: string
+                                            value:
+                                              anyOf:
+                                                - type: integer
+                                                - type: string
+                                              pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                              x-kubernetes-int-or-string: true
+                                          required:
+                                            - type
+                                          type: object
+                                      required:
+                                        - describedObject
+                                        - metric
+                                        - target
+                                      type: object
+                                    pods:
+                                      properties:
+                                        metric:
+                                          properties:
+                                            name:
+                                              type: string
+                                            selector:
+                                              properties:
+                                                matchExpressions:
+                                                  items:
+                                                    properties:
+                                                      key:
+                                                        type: string
+                                                      operator:
+                                                        type: string
+                                                      values:
+                                                        items:
+                                                          type: string
+                                                        type: array
+                                                        x-kubernetes-list-type: atomic
+                                                    required:
+                                                      - key
+                                                      - operator
+                                                    type: object
+                                                  type: array
+                                                  x-kubernetes-list-type: atomic
+                                                matchLabels:
+                                                  additionalProperties:
+                                                    type: string
+                                                  type: object
+                                              type: object
+                                              x-kubernetes-map-type: atomic
+                                          required:
+                                            - name
+                                          type: object
+                                        target:
+                                          properties:
+                                            averageUtilization:
+                                              format: int32
+                                              type: integer
+                                            averageValue:
+                                              anyOf:
+                                                - type: integer
+                                                - type: string
+                                              pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                              x-kubernetes-int-or-string: true
+                                            type:
+                                              type: string
+                                            value:
+                                              anyOf:
+                                                - type: integer
+                                                - type: string
+                                              pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                              x-kubernetes-int-or-string: true
+                                          required:
+                                            - type
+                                          type: object
+                                      required:
+                                        - metric
+                                        - target
+                                      type: object
+                                    resource:
+                                      properties:
+                                        name:
+                                          type: string
+                                        target:
+                                          properties:
+                                            averageUtilization:
+                                              format: int32
+                                              type: integer
+                                            averageValue:
+                                              anyOf:
+                                                - type: integer
+                                                - type: string
+                                              pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                              x-kubernetes-int-or-string: true
+                                            type:
+                                              type: string
+                                            value:
+                                              anyOf:
+                                                - type: integer
+                                                - type: string
+                                              pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                                              x-kubernetes-int-or-string: true
+                                          required:
+                                            - type
+                                          type: object
+                                      required:
+                                        - name
+                                        - target
+                                      type: object
+                                    type:
+                                      type: string
+                                  required:
+                                    - type
+                                  type: object
+                                type: array
+                                x-kubernetes-list-type: atomic
+                              minReplicas:
+                                format: int32
+                                minimum: 0
+                                type: integer
                             type: object
                           extraEnv:
                             items:
@@ -2122,6 +2829,24 @@ spec:
                             type: object
                           sidecarContainers:
                             x-kubernetes-preserve-unknown-fields: true
+                          strategy:
+                            properties:
+                              rollingUpdate:
+                                properties:
+                                  maxSurge:
+                                    anyOf:
+                                      - type: integer
+                                      - type: string
+                                    x-kubernetes-int-or-string: true
+                                  maxUnavailable:
+                                    anyOf:
+                                      - type: integer
+                                      - type: string
+                                    x-kubernetes-int-or-string: true
+                                type: object
+                              type:
+                                type: string
+                            type: object
                           terminationGracePeriodSeconds:
                             format: int64
                             type: integer
@@ -3736,6 +4461,8 @@ spec:
                         maxItems: 2
                         minItems: 1
                         type: array
+                      sidecarDbName:
+                        type: string
                       turndownPolicy:
                         enum:
                           - RequireIdle
@@ -4436,7 +5163,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.16.1
+    controller-gen.kubebuilder.io/version: v0.17.2
   name: vitesskeyspaces.planetscale.com
 spec:
   group: planetscale.com
@@ -4569,6 +5296,9 @@ spec:
                             maxLength: 256
                             pattern: ^[^\r\n]*$
                             type: string
+                          minPartSize:
+                            format: int64
+                            type: integer
                           region:
                             minLength: 1
                             type: string
@@ -5550,6 +6280,8 @@ spec:
                   maxItems: 2
                   minItems: 1
                   type: array
+                sidecarDbName:
+                  type: string
                 topologyReconciliation:
                   properties:
                     pruneCells:
@@ -5883,7 +6615,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.16.1
+    controller-gen.kubebuilder.io/version: v0.17.2
   name: vitessshards.planetscale.com
 spec:
   group: planetscale.com
@@ -6016,6 +6748,9 @@ spec:
                             maxLength: 256
                             pattern: ^[^\r\n]*$
                             type: string
+                          minPartSize:
+                            format: int64
+                            type: integer
                           region:
                             minLength: 1
                             type: string
@@ -7039,7 +7774,7 @@ spec:
                   fieldPath: metadata.name
             - name: OPERATOR_NAME
               value: vitess-operator
-          image: planetscale/vitess-operator:v2.14.0
+          image: planetscale/vitess-operator:v2.15.0-rc1
           name: vitess-operator
           resources:
             limits:
