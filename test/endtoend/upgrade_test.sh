@@ -305,7 +305,7 @@ setupKubectlAccessForCI
 
 createExampleNamespace
 get_started "operator.yaml" "101_initial_cluster.yaml"
-verifyVtGateVersion "21.0.3"
+verifyVtGateVersion "21.0.4"
 checkSemiSyncSetup
 # Initially too durability policy should be specified
 verifyDurabilityPolicy "commerce" "semi_sync"
