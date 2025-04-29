@@ -20,5 +20,5 @@ package version
 // THIS FILE IS AUTO-GENERATED DURING NEW RELEASES BY THE VITESS-RELEASER
 
 var (
-	Version = "2.15.0"
+	Version = "2.15.1"
 )
