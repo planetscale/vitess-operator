@@ -38,20 +38,9 @@ function verifyListBackupsOutputWithSchedule() {
 }
 
 # Test setup
-STARTING_DIR="$PWD"
-echo "Make temporary directory for the test"
-mkdir -p -m 777 ./vtdataroot/backup
-echo "Building the docker image"
-docker build -f build/Dockerfile.release -t vitess-operator-pr:latest .
-echo "Setting up the kind config"
-setupKindConfig
-createKindCluster
+setupKindCluster
+cd test/endtoend/operator || exit 1
 
-cd "$PWD/test/endtoend/operator"
-killall kubectl
-setupKubectlAccessForCI
-
-createExampleNamespace
 get_started "operator-latest.yaml" "101_initial_cluster_backup_schedule.yaml"
 verifyVtGateVersion "23.0.0"
 checkSemiSyncSetup

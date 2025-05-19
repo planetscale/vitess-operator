@@ -293,17 +293,9 @@ EOF
 }
 
 # Test setup
-mkdir -p -m 777 ./vtdataroot/backup
-echo "Building the docker image"
-docker build -f build/Dockerfile.release -t vitess-operator-pr:latest .
-setupKindConfig
-createKindCluster
+setupKindCluster
+cd test/endtoend/operator || exit 1
 
-cd "$PWD/test/endtoend/operator"
-killall kubectl
-setupKubectlAccessForCI
-
-createExampleNamespace
 get_started "operator.yaml" "101_initial_cluster.yaml"
 verifyVtGateVersion "22.0.0"
 checkSemiSyncSetup
