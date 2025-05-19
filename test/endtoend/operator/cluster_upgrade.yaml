@@ -32,6 +32,8 @@ spec:
           secret:
             name: example-cluster-config
             key: users.json
+      extraFlags:
+        tablet_refresh_interval: 10s
       replicas: 1
       resources:
         requests:
