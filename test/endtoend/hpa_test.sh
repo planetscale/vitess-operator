@@ -46,5 +46,4 @@ verifyHpaWithTimeout "example-zone1-(\w+)\s+VitessCell/example-zone1-(\w+)\s+cpu
 verifyHpaCount 1
 
 # Teardown
-echo "Deleting Kind cluster. This also deletes the volume associated with it"
-kind delete cluster --name kind-${BUILDKITE_BUILD_ID}
+teardownKindCluster

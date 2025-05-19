@@ -89,8 +89,4 @@ resurrectShard
 checkSemiSyncSetup
 
 # Teardown
-echo "Removing the temporary directory"
-removeBackupFiles
-rm -rf "$STARTING_DIR/vtdataroot"
-echo "Deleting Kind cluster. This also deletes the volume associated with it"
-kind delete cluster --name kind-${BUILDKITE_BUILD_ID}
+teardownKindCluster

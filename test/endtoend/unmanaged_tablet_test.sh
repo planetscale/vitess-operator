@@ -94,5 +94,4 @@ cd test/endtoend/operator || exit 1
 get_started_unmanaged
 
 # Teardown
-echo "Deleting Kind cluster. This also deletes the volume associated with it"
-kind delete cluster --name kind-${BUILDKITE_BUILD_ID}
+teardownKindCluster
