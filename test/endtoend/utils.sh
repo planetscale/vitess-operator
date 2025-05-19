@@ -333,6 +333,14 @@ function setupBuildContainerImage() {
   docker build --file build/Dockerfile.release --tag vitess-operator-pr:latest .
 }
 
+function setupKindCluster() {
+  setupBuildContainerImage
+  setupKindConfig
+  createKindCluster
+  setupKubectlAccessForCI
+  createExampleNamespace
+}
+
 function setupKubectlAccessForCI() {
   if [[ "$BUILDKITE_BUILD_ID" != "0" ]]; then
     # The script is being run from buildkite, so we need to do stuff
