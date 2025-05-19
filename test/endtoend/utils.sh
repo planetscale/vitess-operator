@@ -356,19 +356,23 @@ function setupKubectlAccessForCI() {
 }
 
 function setupKindConfig() {
-  echo "Setting up the kind config"
-  if [[ "$BUILDKITE_BUILD_ID" != "0" ]]; then
+  echo "Setting up the Kind config"
+  local checkout_path
+  if [[ "${BUILDKITE_BUILD_ID}" != "0" ]]; then
     # The script is being run from buildkite, so we can't mount the current
     # working directory to kind. The current directory in the docker is workdir
     # So if we try and mount that, we get an error. Instead we need to mount the
     # path where the code was checked out be buildkite
-    dockerContainerName=$(docker container ls --filter "ancestor=docker" --format '{{.Names}}')
-    CHECKOUT_PATH=$(docker container inspect -f '{{range .Mounts}}{{ if eq .Destination "/workdir" }}{{println .Source }}{{ end }}{{end}}' "$dockerContainerName")
-    BACKUP_DIR="$CHECKOUT_PATH/vtdataroot/backup"
+    local docker_container_name
+    docker_container_name="$(docker container ls --filter "ancestor=docker" --format '{{.Names}}')"
+    checkout_path="$(docker container inspect --format '{{range .Mounts}}{{ if eq .Destination "/workdir" }}{{println .Source }}{{ end }}{{end}}' "${docker_container_name}")"
   else
-    BACKUP_DIR="$PWD/vtdataroot/backup"
+    checkout_path="${PWD}"
   fi
-  cat ./test/endtoend/kindBackupConfig.yaml | sed "s,PATH,$BACKUP_DIR,1" > ./vtdataroot/config.yaml
+
+  local backup_dir="${checkout_path}/vtdataroot/backup"
+  mkdir -p "${backup_dir}"
+  sed "s,PATH,${backup_dir},1" test/endtoend/kindBackupConfig.yaml > vtdataroot/config.yaml
 }
 
 function createKindCluster() {
