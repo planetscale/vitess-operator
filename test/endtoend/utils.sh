@@ -355,6 +355,17 @@ function setupKubectlAccessForCI() {
   fi
 }
 
+function teardownKindCluster() {
+  local vtdataroot_dir="../../vtdataroot"
+
+  echo "Removing backup files and temporary directories"
+  removeBackupFiles
+  rm -rf "${vtdataroot_dir}"
+
+  echo "Deleting the Kind cluster. This also deletes the volume associated with it."
+  kind delete cluster --name "kind-${BUILDKITE_BUILD_ID}"
+}
+
 function setupKindConfig() {
   echo "Setting up the Kind config"
   local checkout_path
