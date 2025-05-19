@@ -431,10 +431,7 @@ function get_started() {
 
     sleep 10
     echo "Creating vschema and commerce SQL schema"
-
-    ./pf.sh > /dev/null 2>&1 &
-    sleep 5
-
+    setupPortForwarding
     waitForKeyspaceToBeServing commerce - 2
     sleep 5
 

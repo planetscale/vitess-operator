@@ -18,10 +18,7 @@ function get_started_unmanaged() {
 
     sleep 10
     echo "Creating vschema and commerce SQL schema"
-
-    ./pf.sh > /dev/null 2>&1 &
-    sleep 5
-
+    setupPortForwarding
     waitForKeyspaceToBeServing commerce - 0
     sleep 5
 

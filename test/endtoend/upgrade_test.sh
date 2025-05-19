@@ -10,9 +10,7 @@ function move_tables() {
   checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 6
   checkPodStatusWithTimeout "example-customer-x-x-zone1-vtorc(.*)1/1(.*)Running(.*)"
 
-  killall kubectl
-  ./pf.sh > /dev/null 2>&1 &
-
+  setupPortForwarding
   waitForKeyspaceToBeServing customer - 2
 
   sleep 10
@@ -89,10 +87,7 @@ function resharding() {
   checkPodStatusWithTimeout "example-customer-80-x-zone1-vtorc(.*)1/1(.*)Running(.*)"
   checkPodStatusWithTimeout "example-customer-x-80-zone1-vtorc(.*)1/1(.*)Running(.*)"
 
-  killall kubectl
-  ./pf.sh > /dev/null 2>&1 &
-  sleep 5
-
+  setupPortForwarding
   waitForKeyspaceToBeServing customer -80 2
   waitForKeyspaceToBeServing customer 80- 2
 
@@ -255,10 +250,8 @@ function upgradeToLatest() {
   waitAndVerifySetup
   verifyVtgateDeploymentStrategy
 
-  killall kubectl
-  ./pf.sh > /dev/null 2>&1 &
-
-  sleep 10
+  setupPortForwarding
+  waitForKeyspaceToBeServing commerce - 2
 
   assertSelect ../common/select_commerce_data.sql "commerce" << EOF
 Using commerce
