@@ -210,15 +210,6 @@ function scheduledBackups() {
   exit 1
 }
 
-function waitAndVerifySetup() {
-  sleep 10
-  checkPodStatusWithTimeout "example-zone1-vtctld(.*)1/1(.*)Running(.*)"
-  checkPodStatusWithTimeout "example-zone1-vtgate(.*)1/1(.*)Running(.*)"
-  checkPodStatusWithTimeout "example-etcd(.*)1/1(.*)Running(.*)" 3
-  checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 3
-  checkPodStatusWithTimeout "example-commerce-x-x-zone1-vtorc(.*)1/1(.*)Running(.*)"
-}
-
 function verifyVtgateDeploymentStrategy() {
   echo "Verifying the deployment strategy of vtgate"
   vtgate=$(kubectl get deployments  -n example --no-headers -o custom-columns=":metadata.name" | grep "vtgate")
@@ -241,13 +232,25 @@ function verifyVtgateDeploymentStrategy() {
 }
 
 function upgradeToLatest() {
-  echo "Apply operator-latest.yaml "
+  echo "Upgrade Vitess Operator"
   kubectl apply -f operator-latest.yaml
-  waitAndVerifySetup
+  checkPodSpecBySelectorWithTimeout "default" "app=vitess-operator" 1 "image: vitess-operator-pr:latest"
+  checkPodStatusWithTimeout "vitess-operator(.*)1/1(.*)Running(.*)"
 
-  echo "Upgrade all the other binaries"
+  echo "Upgrade Vitess binaries"
   kubectl apply -f cluster_upgrade.yaml
-  waitAndVerifySetup
+  checkPodStatusWithTimeout "example-etcd(.*)1/1(.*)Running(.*)" 3
+  checkPodStatusWithTimeout "example-zone1-vtctld(.*)1/1(.*)Running(.*)"
+  checkPodStatusWithTimeout "example-zone1-vtgate(.*)1/1(.*)Running(.*)"
+  checkPodStatusWithTimeout "example-commerce-x-x-zone1-vtorc(.*)1/1(.*)Running(.*)"
+  checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 3
+
+  # Wait for the cluster spec changes to take effect
+  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vtctld" 1 "image: vitess/lite:latest"
+  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vtgate" 1 "image: vitess/lite:latest"
+  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vtorc" 1 "image: vitess/lite:latest"
+  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vttablet" 12 "image: vitess/lite:latest"
+
   verifyVtgateDeploymentStrategy
 
   setupPortForwarding

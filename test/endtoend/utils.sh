@@ -124,6 +124,33 @@ function dockerContainersInspect() {
   done
 }
 
+function checkPodSpecBySelectorWithTimeout() {
+  local namespace="$1"
+  local pod_selector="$2"
+  local matches_expected="$3"
+  local spec_matcher="$4"
+
+  local out pods_matched
+
+  for i in {1..1200}; do
+    # YAML output is convenient to grep
+    out="$(kubectl get pods --namespace="${namespace}" --selector="${pod_selector}" --output=yaml)"
+    pods_matched="$(echo "${out}" | grep -cE -- "${spec_matcher}")"
+
+    if [[ "${pods_matched}" -eq "${matches_expected}" ]]; then
+      echo "${spec_matcher} found"
+      return
+    fi
+    sleep 1
+  done
+
+  echo "ERROR: checkPodSpecBySelectorWithTimeout timeout, didn't get ${matches_expected} matches for: ${spec_matcher}"
+  if echo "${pod_selector}" | grep -q "vttablet"; then
+    printMysqlErrorFiles
+  fi
+  exit 1
+}
+
 # checkPodStatusWithTimeout:
 # $1: regex used to match pod names
 # $2: number of pods to match (default: 1)
