@@ -237,16 +237,19 @@ function insertWithRetry() {
 }
 
 function verifyVtGateVersion() {
-  version=$1
-  podName=$(kubectl get pods -n example --no-headers -o custom-columns=":metadata.name" | grep "vtgate")
-  data=$(kubectl logs -n example "$podName" | head)
-  echo "$data" | grep "$version" > /dev/null 2>&1
-  if [[ $? -ne 0 ]]; then
-    echo -e "The vtgate version is incorrect, expected: $version, got:\n$data"
-    exit 1
-  fi
-}
+  local version="$1"
 
+  local data
+  for i in {1..600} ; do
+    data="$(kubectl logs --namespace=example --selector="planetscale.com/component=vtgate" --tail=-1)"
+    if echo "${data}" | grep -q "Version: ${version}"; then
+      return
+    fi
+    sleep 1
+  done
+  echo -e "The vtgate version is incorrect, expected: ${version}, got:\n${data}"
+  exit 1
+}
 
 # verifyDurabilityPolicy verifies the durability policy
 # in the given keyspace
