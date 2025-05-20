@@ -3,14 +3,6 @@
 source ./tools/test.env
 source ./test/endtoend/utils.sh
 
-function takedownShard() {
-  echo "Apply 102_keyspace_teardown.yaml"
-  kubectl apply -f 102_keyspace_teardown.yaml
-
-  # wait for all the vttablets to disappear
-  checkPodStatusWithTimeout "example-vttablet-zone1" 0
-}
-
 function verifyListBackupsOutputWithSchedule() {
   echo -e "Check for VitessBackupSchedule status"
   checkVitessBackupScheduleStatusWithTimeout "example-vbsc-every-minute(.*)"
