@@ -16,71 +16,14 @@ function get_started_unmanaged() {
     checkPodStatusWithTimeout "example-etcd(.*)1/1(.*)Running(.*)" 3
     checkPodStatusWithTimeout "example-vttablet-zone1(.*)1/1(.*)Running(.*)"
 
-    sleep 10
-    echo "Creating vschema and commerce SQL schema"
     setupPortForwarding
     waitForKeyspaceToBeServing commerce - 0
-    sleep 5
 
     # Confirm that the custom sidecar DB name is in place for our
     # external/unmanaged keyspace.
     verifyCustomSidecarDBName "commerce" "_vt_ext" "external"
 
-    applySchemaWithRetry create_commerce_schema.sql commerce drop_all_commerce_tables.sql
-    vtctldclient ApplyVSchema --vschema-file="vschema_commerce_initial.json" commerce
-    if [[ $? -ne 0 ]]; then
-      echo "ApplySchema failed for initial commerce"
-      printMysqlErrorFiles
-      exit 1
-    fi
-    sleep 5
-
-    echo "show databases;" | mysql | grep "commerce" > /dev/null 2>&1
-    if [[ $? -ne 0 ]]; then
-      echo "Could not find commerce database"
-      printMysqlErrorFiles
-      exit 1
-    fi
-
-    echo "show tables;" | mysql commerce | grep -E 'corder|customer|product' | wc -l | grep 3 > /dev/null 2>&1
-    if [[ $? -ne 0 ]]; then
-      echo "Could not find commerce's tables"
-      printMysqlErrorFiles
-      exit 1
-    fi
-
-    insertWithRetry
-
-    assertSelect ../common/select_commerce_data.sql "commerce" << EOF
-Using commerce
-Customer
-+-------------+--------------------+
-| customer_id | email              |
-+-------------+--------------------+
-|           1 | alice@domain.com   |
-|           2 | bob@domain.com     |
-|           3 | charlie@domain.com |
-|           4 | dan@domain.com     |
-|           5 | eve@domain.com     |
-+-------------+--------------------+
-Product
-+----------+-------------+-------+
-| sku      | description | price |
-+----------+-------------+-------+
-| SKU-1001 | Monitor     |   100 |
-| SKU-1002 | Keyboard    |    30 |
-+----------+-------------+-------+
-COrder
-+----------+-------------+----------+-------+
-| order_id | customer_id | sku      | price |
-+----------+-------------+----------+-------+
-|        1 |           1 | SKU-1001 |   100 |
-|        2 |           2 | SKU-1002 |    30 |
-|        3 |           3 | SKU-1002 |    30 |
-|        4 |           4 | SKU-1002 |    30 |
-|        5 |           5 | SKU-1002 |    30 |
-+----------+-------------+----------+-------+
-EOF
+    verifyDataCommerce create
 }
 
 # Test setup
