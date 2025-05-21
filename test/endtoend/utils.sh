@@ -298,7 +298,7 @@ function verifyCustomSidecarDBName() {
     container=""
     mysqlCMD="mysql --protocol=tcp -P3306 -NB -u root -ppassword -e \"show databases like '${db_name}'\" 2>/dev/null"
     selector="app=mysql"
-  fi 
+  fi
   local pods pod
   pods=$(kubectl get pods -n example --no-headers --selector="${selector}" -o custom-columns=":metadata.name")
   for pod in $(echo "${pods}"); do
@@ -312,8 +312,9 @@ function verifyCustomSidecarDBName() {
   done
 }
 
+# shellcheck disable=SC2120 # function has an optional argument
 function verifyDataCommerce() {
-  local create="${1:-}"
+  local create="${1:-}" # Pass `create` to create the schema and insert data
 
   if [[ "${create}" == "create" ]]; then
     echo "Creating VSchema and 'commerce' SQL schema"

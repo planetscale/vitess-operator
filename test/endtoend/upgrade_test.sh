@@ -229,7 +229,7 @@ function verifyVtgateDeploymentStrategy() {
 function upgradeToLatest() {
   echo "Upgrade Vitess Operator"
   kubectl apply -f operator-latest.yaml
-  checkPodSpecBySelectorWithTimeout "default" "app=vitess-operator" 1 "image: vitess-operator-pr:latest"
+  checkPodSpecBySelectorWithTimeout default "app=vitess-operator" 1 "image: vitess-operator-pr:latest"
   checkPodStatusWithTimeout "vitess-operator(.*)1/1(.*)Running(.*)"
 
   echo "Upgrade Vitess binaries"
