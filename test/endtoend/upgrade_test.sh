@@ -6,14 +6,11 @@ source ./test/endtoend/utils.sh
 function move_tables() {
   echo "Apply 201_customer_tablets.yaml"
   kubectl apply -f 201_customer_tablets.yaml > /dev/null
-  sleep 300
-  checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 6
   checkPodStatusWithTimeout "example-customer-x-x-zone1-vtorc(.*)1/1(.*)Running(.*)"
+  checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 6
 
   setupPortForwarding
   waitForKeyspaceToBeServing customer - 2
-
-  sleep 10
 
   echo "Execute MoveTables"
   vtctldclient LegacyVtctlCommand -- MoveTables --source commerce --tables 'customer,corder' Create customer.commerce2customer
@@ -92,8 +89,6 @@ function resharding() {
   waitForKeyspaceToBeServing customer 80- 2
 
   echo "Ready to reshard ..."
-  sleep 15
-
   vtctldclient LegacyVtctlCommand -- Reshard --source_shards '-' --target_shards '-80,80-' Create customer.cust2cust
   if [ $? -ne 0 ]; then
     echo "Reshard Create failed"
