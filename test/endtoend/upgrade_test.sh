@@ -80,9 +80,9 @@ function resharding() {
 
   echo "Apply 302_new_shards.yaml"
   kubectl apply -f 302_new_shards.yaml
-  checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 12
   checkPodStatusWithTimeout "example-customer-80-x-zone1-vtorc(.*)1/1(.*)Running(.*)"
   checkPodStatusWithTimeout "example-customer-x-80-zone1-vtorc(.*)1/1(.*)Running(.*)"
+  checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 12
 
   setupPortForwarding
   waitForKeyspaceToBeServing customer -80 2

@@ -14,9 +14,9 @@ function takedownShard() {
 function resurrectShard() {
   echo "Apply 101_initial_cluster_backup.yaml again"
   kubectl apply -f 101_initial_cluster_backup.yaml
+  checkPodStatusWithTimeout "example-etcd(.*)1/1(.*)Running(.*)" 3
   checkPodStatusWithTimeout "example-zone1-vtctld(.*)1/1(.*)Running(.*)"
   checkPodStatusWithTimeout "example-zone1-vtgate(.*)1/1(.*)Running(.*)"
-  checkPodStatusWithTimeout "example-etcd(.*)1/1(.*)Running(.*)" 3
   checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 3
 
   setupPortForwarding
