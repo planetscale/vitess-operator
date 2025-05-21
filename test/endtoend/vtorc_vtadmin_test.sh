@@ -20,12 +20,7 @@ function get_started_vtorc_vtadmin() {
 
     ensurePodResourcesSet "example-zone1-vtadmin"
 
-    sleep 10
-    echo "Creating vschema and commerce SQL schema"
-
-    ./pf_vtadmin.sh > /dev/null 2>&1 &
-    sleep 5
-
+    setupPortForwarding with_vtadmin
     waitForKeyspaceToBeServing commerce - 2
     verifyDataCommerce create
 }

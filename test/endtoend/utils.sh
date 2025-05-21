@@ -450,19 +450,35 @@ function setupKubectlAccessForCI() {
   fi
 }
 
+# shellcheck disable=SC2120 # function has an optional argument
 function setupPortForwarding() {
+  local with_vtadmin="${1:-}" # Pass `with_vtadmin` to also enable port forwarding to VTAdmin
+
   local port_mysql=15306
+  local port_vtadmin_api=14001
   local port_vtctld_grpc=15999
 
   killall kubectl > /dev/null 2>&1 || true
   sleep 2
-  ./pf.sh > /dev/null 2>&1 &
+
+  if [[ "${with_vtadmin}" == "with_vtadmin" ]]; then
+    ./pf_vtadmin.sh > /dev/null 2>&1 &
+  else
+    ./pf.sh > /dev/null 2>&1 &
+  fi
 
   # Wait for ports to be ready
   vtctldclient --server="localhost:${port_vtctld_grpc}" --action_timeout=10s GetTablets > /dev/null 2>&1
+
   until mysql --database=mysql --execute="select @@hostname" --host=127.0.0.1 --port="${port_mysql}" --user=user > /dev/null 2>&1; do
     sleep 1
   done
+
+  if [[ "${with_vtadmin}" == "with_vtadmin" ]]; then
+    until curl --connect-timeout 5 --fail --max-time 10 --output /dev/null --silent "http://localhost:${port_vtadmin_api}/api/keyspaces"; do
+      sleep 1
+    done
+  fi
 }
 
 function teardownKindCluster() {
