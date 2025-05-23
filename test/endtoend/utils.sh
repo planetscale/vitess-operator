@@ -508,7 +508,8 @@ function setupKindConfig() {
   fi
 
   local backup_dir="${checkout_path}/vtdataroot/backup"
-  mkdir -p "${backup_dir}"
+  # shellcheck disable=SC2174 # `-m` only applies to the deepest directory, but that's what we want
+  mkdir -p -m 0777 vtdataroot/backup
   sed "s,PATH,${backup_dir},1" test/endtoend/kindBackupConfig.yaml > vtdataroot/config.yaml
 }
 
