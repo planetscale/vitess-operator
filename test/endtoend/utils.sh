@@ -85,8 +85,6 @@ function removeBackupFiles() {
 # $1: keyspace-shard for which the backup needs to be taken
 function takeBackup() {
   keyspaceShard=$1
-  initialBackupCount=$(kubectl get vtb -n example --no-headers | wc -l)
-  finalBackupCount=$((initialBackupCount+1))
 
   # Issue the BackupShard command to vtctldclient.
   vtctldclient BackupShard "$keyspaceShard"
@@ -115,13 +113,6 @@ function verifyListBackupsOutput() {
   done
   echo -e "ERROR: GetBackups output not correct - $out. $backupCount backups expected."
   exit 1
-}
-
-function dockerContainersInspect() {
-  for container in $(docker container ls --format '{{.Names}}') ; do
-    echo "Container - $container"
-    docker container inspect "$container"
-  done
 }
 
 function checkPodSpecBySelectorWithTimeout() {
