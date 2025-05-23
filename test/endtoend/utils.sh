@@ -7,7 +7,7 @@
 shopt -s expand_aliases
 alias vtctldclient="vtctldclient --server=localhost:15999"
 alias mysql="mysql -h 127.0.0.1 -P 15306 -u user"
-BUILDKITE_BUILD_ID=${BUILDKITE_BUILD_ID:-"0"}
+buildkite_job_id="${BUILDKITE_JOB_ID:-0}"
 
 function checkSemiSyncSetup() {
   for vttablet in $(kubectl get pods -n example --no-headers -o custom-columns=":metadata.name" | grep "vttablet") ; do
@@ -85,8 +85,6 @@ function removeBackupFiles() {
 # $1: keyspace-shard for which the backup needs to be taken
 function takeBackup() {
   keyspaceShard=$1
-  initialBackupCount=$(kubectl get vtb -n example --no-headers | wc -l)
-  finalBackupCount=$((initialBackupCount+1))
 
   # Issue the BackupShard command to vtctldclient.
   vtctldclient BackupShard "$keyspaceShard"
@@ -96,14 +94,14 @@ function takeBackup() {
     exit 1
   fi
   # Ensure that we can view the backup files from the host.
-  docker exec -it $(docker container ls --format '{{.Names}}' | grep kind) chmod o+rwx -R /backup > /dev/null
+  docker exec -it $(docker container ls --format '{{.Names}}' | grep "kind-${buildkite_job_id}") chmod o+rwx -R /backup > /dev/null
   echo "Backup completed"
 }
 
 function verifyListBackupsOutput() {
   for i in {1..30} ; do
     # Ensure that we can view the backup files from the host.
-    docker exec -it $(docker container ls --format '{{.Names}}' | grep kind) chmod o+rwx -R /backup > /dev/null
+    docker exec -it $(docker container ls --format '{{.Names}}' | grep "kind-${buildkite_job_id}") chmod o+rwx -R /backup > /dev/null
     backupCount=$(kubectl get vtb -n example --no-headers | wc -l)
     out=$(vtctldclient GetBackups "$keyspaceShard" | wc -l)
     echo "$out" | grep "$backupCount" > /dev/null 2>&1
@@ -117,11 +115,31 @@ function verifyListBackupsOutput() {
   exit 1
 }
 
-function dockerContainersInspect() {
-  for container in $(docker container ls --format '{{.Names}}') ; do
-    echo "Container - $container"
-    docker container inspect "$container"
+function checkPodSpecBySelectorWithTimeout() {
+  local namespace="$1"
+  local pod_selector="$2"
+  local matches_expected="$3"
+  local spec_matcher="$4"
+
+  local out pods_matched
+
+  for i in {1..1200}; do
+    # YAML output is convenient to grep
+    out="$(kubectl get pods --namespace="${namespace}" --selector="${pod_selector}" --output=yaml)"
+    pods_matched="$(echo "${out}" | grep -cE -- "${spec_matcher}")"
+
+    if [[ "${pods_matched}" -eq "${matches_expected}" ]]; then
+      echo "${spec_matcher} found"
+      return
+    fi
+    sleep 1
   done
+
+  echo "ERROR: checkPodSpecBySelectorWithTimeout timeout, didn't get ${matches_expected} matches for: ${spec_matcher}"
+  if echo "${pod_selector}" | grep -q "vttablet"; then
+    printMysqlErrorFiles
+  fi
+  exit 1
 }
 
 # checkPodStatusWithTimeout:
@@ -210,16 +228,19 @@ function insertWithRetry() {
 }
 
 function verifyVtGateVersion() {
-  version=$1
-  podName=$(kubectl get pods -n example --no-headers -o custom-columns=":metadata.name" | grep "vtgate")
-  data=$(kubectl logs -n example "$podName" | head)
-  echo "$data" | grep "$version" > /dev/null 2>&1
-  if [[ $? -ne 0 ]]; then
-    echo -e "The vtgate version is incorrect, expected: $version, got:\n$data"
-    exit 1
-  fi
-}
+  local version="$1"
 
+  local data
+  for i in {1..600} ; do
+    data="$(kubectl logs --namespace=example --selector="planetscale.com/component=vtgate" --tail=-1)"
+    if echo "${data}" | grep -q "Version: ${version}"; then
+      return
+    fi
+    sleep 1
+  done
+  echo -e "The vtgate version is incorrect, expected: ${version}, got:\n${data}"
+  exit 1
+}
 
 # verifyDurabilityPolicy verifies the durability policy
 # in the given keyspace
@@ -268,7 +289,7 @@ function verifyCustomSidecarDBName() {
     container=""
     mysqlCMD="mysql --protocol=tcp -P3306 -NB -u root -ppassword -e \"show databases like '${db_name}'\" 2>/dev/null"
     selector="app=mysql"
-  fi 
+  fi
   local pods pod
   pods=$(kubectl get pods -n example --no-headers --selector="${selector}" -o custom-columns=":metadata.name")
   for pod in $(echo "${pods}"); do
@@ -280,6 +301,71 @@ function verifyCustomSidecarDBName() {
     fi
     echo "Found custom sidecar DB name ${db_name} being used in ${pod} pod"
   done
+}
+
+# shellcheck disable=SC2120 # function has an optional argument
+function verifyDataCommerce() {
+  local create="${1:-}" # Pass `create` to create the schema and insert data
+
+  if [[ "${create}" == "create" ]]; then
+    echo "Creating VSchema and 'commerce' SQL schema"
+    applySchemaWithRetry create_commerce_schema.sql commerce drop_all_commerce_tables.sql
+    if ! vtctldclient ApplyVSchema --vschema-file=vschema_commerce_initial.json commerce; then
+      echo "ApplyVSchema failed for initial 'commerce'"
+      printMysqlErrorFiles
+      exit 1
+    fi
+  fi
+
+  if ! mysql --database=commerce --execute="show tables" > /dev/null 2>&1; then
+    echo "Could not find 'commerce' database"
+    printMysqlErrorFiles
+    exit 1
+  fi
+
+  local tables matching_tables_num
+  tables="$(mysql --database=commerce --execute="show tables")"
+  matching_tables_num="$(echo "${tables}" | grep -cE "corder|customer|product")"
+  if [[ "${matching_tables_num}" -ne 3 ]]; then
+    echo "Could not find 'commerce' tables"
+    printMysqlErrorFiles
+    exit 1
+  fi
+
+  if [[ "${create}" == "create" ]]; then
+    insertWithRetry
+  fi
+
+  assertSelect ../common/select_commerce_data.sql commerce << EOF
+Using commerce
+Customer
++-------------+--------------------+
+| customer_id | email              |
++-------------+--------------------+
+|           1 | alice@domain.com   |
+|           2 | bob@domain.com     |
+|           3 | charlie@domain.com |
+|           4 | dan@domain.com     |
+|           5 | eve@domain.com     |
++-------------+--------------------+
+Product
++----------+-------------+-------+
+| sku      | description | price |
++----------+-------------+-------+
+| SKU-1001 | Monitor     |   100 |
+| SKU-1002 | Keyboard    |    30 |
++----------+-------------+-------+
+COrder
++----------+-------------+----------+-------+
+| order_id | customer_id | sku      | price |
++----------+-------------+----------+-------+
+|        1 |           1 | SKU-1001 |   100 |
+|        2 |           2 | SKU-1002 |    30 |
+|        3 |           3 | SKU-1002 |    30 |
+|        4 |           4 | SKU-1002 |    30 |
+|        5 |           5 | SKU-1002 |    30 |
++----------+-------------+----------+-------+
+EOF
 }
 
 function waitForKeyspaceToBeServing() {
@@ -328,41 +414,104 @@ function assertSelect() {
   fi
 }
 
+function setupBuildContainerImage() {
+  echo "Building the container image"
+  docker build --file build/Dockerfile.release --tag vitess-operator-pr:latest .
+}
+
+function setupKindCluster() {
+  setupBuildContainerImage
+  setupKindConfig
+  createKindCluster
+  setupKubectlAccessForCI
+  createExampleNamespace
+}
+
 function setupKubectlAccessForCI() {
-  if [[ "$BUILDKITE_BUILD_ID" != "0" ]]; then
+  if [[ "${buildkite_job_id}" != "0" ]]; then
     # The script is being run from buildkite, so we need to do stuff
     # https://github.com/kubernetes-sigs/kind/issues/1846#issuecomment-691565834
     # Since kind is running in a sibling container, communicating with it through kubectl is not trivial.
     # To accomplish we need to add the current docker container in the same network as the kind container
     # and change the kubectl configuration to use the port listed in the internal endpoint instead of the one
     # that is exported to the localhost by kind.
-    dockerContainerName=$(docker container ls --filter "ancestor=docker" --format '{{.Names}}')
-    docker network connect kind $dockerContainerName
-    kind get kubeconfig --internal --name kind-${BUILDKITE_BUILD_ID} > $HOME/.kube/config
+    local docker_container_name
+    docker_container_name="$(hostname -s)"
+    docker network connect kind "${docker_container_name}"
+    kind get kubeconfig --internal --name "kind-${buildkite_job_id}" > "${HOME}/.kube/config"
   fi
 }
 
-function setupKindConfig() {
-  echo "Setting up the kind config"
-  if [[ "$BUILDKITE_BUILD_ID" != "0" ]]; then
-    # The script is being run from buildkite, so we can't mount the current
-    # working directory to kind. The current directory in the docker is workdir
-    # So if we try and mount that, we get an error. Instead we need to mount the
-    # path where the code was checked out be buildkite
-    dockerContainerName=$(docker container ls --filter "ancestor=docker" --format '{{.Names}}')
-    CHECKOUT_PATH=$(docker container inspect -f '{{range .Mounts}}{{ if eq .Destination "/workdir" }}{{println .Source }}{{ end }}{{end}}' "$dockerContainerName")
-    BACKUP_DIR="$CHECKOUT_PATH/vtdataroot/backup"
+# shellcheck disable=SC2120 # function has an optional argument
+function setupPortForwarding() {
+  local with_vtadmin="${1:-}" # Pass `with_vtadmin` to also enable port forwarding to VTAdmin
+
+  local port_mysql=15306
+  local port_vtadmin_api=14001
+  local port_vtctld_grpc=15999
+
+  killall kubectl > /dev/null 2>&1 || true
+  sleep 2
+
+  if [[ "${with_vtadmin}" == "with_vtadmin" ]]; then
+    ./pf_vtadmin.sh > /dev/null 2>&1 &
   else
-    BACKUP_DIR="$PWD/vtdataroot/backup"
+    ./pf.sh > /dev/null 2>&1 &
   fi
-  cat ./test/endtoend/kindBackupConfig.yaml | sed "s,PATH,$BACKUP_DIR,1" > ./vtdataroot/config.yaml
+
+  # Wait for ports to be ready
+  vtctldclient --server="localhost:${port_vtctld_grpc}" --action_timeout=10s GetTablets > /dev/null 2>&1
+
+  until mysql --database=mysql --execute="select @@hostname" --host=127.0.0.1 --port="${port_mysql}" --user=user > /dev/null 2>&1; do
+    sleep 1
+  done
+
+  if [[ "${with_vtadmin}" == "with_vtadmin" ]]; then
+    until curl --connect-timeout 5 --fail --max-time 10 --output /dev/null --silent "http://localhost:${port_vtadmin_api}/api/keyspaces"; do
+      sleep 1
+    done
+  fi
+}
+
+function teardownKindCluster() {
+  local vtdataroot_dir="../../vtdataroot"
+
+  echo "Removing backup files and temporary directories"
+  removeBackupFiles
+  rm -rf "${vtdataroot_dir}"
+
+  echo "Deleting the Kind cluster. This also deletes the volume associated with it."
+  kind delete cluster --name "kind-${buildkite_job_id}"
+}
+
+function setupKindConfig() {
+  echo "Setting up Kind config"
+  local checkout_path
+  if [[ "${buildkite_job_id}" != "0" ]]; then
+    # The script runs inside a Docker container in Buildkite. The container's
+    # working directory (`/workdir`) is internal to this container. It can't
+    # be mounted by a Kind cluster as it doesn't exist in the Buildkite Agent
+    # filesystem.
+    # Instead, Kind needs to mount the Buildkite build directory where
+    # the operator code checkout is located.
+    local docker_container_name
+    docker_container_name="$(hostname -s)"
+    checkout_path="$(docker container inspect --format '{{ range .Mounts }}{{ if eq .Destination "/workdir" }}{{ println .Source }}{{ end }}{{ end }}' "${docker_container_name}")"
+  else
+    checkout_path="${PWD}"
+  fi
+
+  local backup_dir="${checkout_path}/vtdataroot/backup"
+  # shellcheck disable=SC2174 # `-m` only applies to the deepest directory, but that's what we want
+  mkdir -p -m 0777 vtdataroot/backup
+  sed "s,PATH,${backup_dir},1" test/endtoend/kindBackupConfig.yaml > vtdataroot/config.yaml
 }
 
 function createKindCluster() {
   echo "Creating Kind cluster"
-  kind create cluster --wait 30s --name kind-${BUILDKITE_BUILD_ID} --config ./vtdataroot/config.yaml --image ${KIND_VERSION}
+  kind create cluster --wait 30s --name "kind-${buildkite_job_id}" --config ./vtdataroot/config.yaml --image "${KIND_VERSION}"
   echo "Loading docker image into Kind cluster"
-  kind load docker-image vitess-operator-pr:latest --name kind-${BUILDKITE_BUILD_ID}
+  kind load docker-image vitess-operator-pr:latest --name "kind-${buildkite_job_id}"
 }
 
 function createExampleNamespace() {
@@ -380,76 +529,15 @@ function get_started() {
 
     echo "Apply $2"
     kubectl apply -f "$2"
+    checkPodStatusWithTimeout "example-etcd(.*)1/1(.*)Running(.*)" 3
     checkPodStatusWithTimeout "example-zone1-vtctld(.*)1/1(.*)Running(.*)"
     checkPodStatusWithTimeout "example-zone1-vtgate(.*)1/1(.*)Running(.*)"
-    checkPodStatusWithTimeout "example-etcd(.*)1/1(.*)Running(.*)" 3
-    checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 3
     checkPodStatusWithTimeout "example-commerce-x-x-zone1-vtorc(.*)1/1(.*)Running(.*)"
+    checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 3
 
-    sleep 10
-    echo "Creating vschema and commerce SQL schema"
-
-    ./pf.sh > /dev/null 2>&1 &
-    sleep 5
-
+    setupPortForwarding
     waitForKeyspaceToBeServing commerce - 2
-    sleep 5
-
-    applySchemaWithRetry create_commerce_schema.sql commerce drop_all_commerce_tables.sql
-    vtctldclient ApplyVSchema --vschema-file="vschema_commerce_initial.json" commerce
-    if [[ $? -ne 0 ]]; then
-      echo "ApplySchema failed for initial commerce"
-      printMysqlErrorFiles
-      exit 1
-    fi
-    sleep 5
-
-    echo "show databases;" | mysql | grep "commerce" > /dev/null 2>&1
-    if [[ $? -ne 0 ]]; then
-      echo "Could not find commerce database"
-      printMysqlErrorFiles
-      exit 1
-    fi
-
-    echo "show tables;" | mysql commerce | grep -E 'corder|customer|product' | wc -l | grep 3 > /dev/null 2>&1
-    if [[ $? -ne 0 ]]; then
-      echo "Could not find commerce's tables"
-      printMysqlErrorFiles
-      exit 1
-    fi
-
-    insertWithRetry
-
-    assertSelect ../common/select_commerce_data.sql "commerce" << EOF
-Using commerce
-Customer
-+-------------+--------------------+
-| customer_id | email              |
-+-------------+--------------------+
-|           1 | alice@domain.com   |
-|           2 | bob@domain.com     |
-|           3 | charlie@domain.com |
-|           4 | dan@domain.com     |
-|           5 | eve@domain.com     |
-+-------------+--------------------+
-Product
-+----------+-------------+-------+
-| sku      | description | price |
-+----------+-------------+-------+
-| SKU-1001 | Monitor     |   100 |
-| SKU-1002 | Keyboard    |    30 |
-+----------+-------------+-------+
-COrder
-+----------+-------------+----------+-------+
-| order_id | customer_id | sku      | price |
-+----------+-------------+----------+-------+
-|        1 |           1 | SKU-1001 |   100 |
-|        2 |           2 | SKU-1002 |    30 |
-|        3 |           3 | SKU-1002 |    30 |
-|        4 |           4 | SKU-1002 |    30 |
-|        5 |           5 | SKU-1002 |    30 |
-+----------+-------------+----------+-------+
-EOF
+    verifyDataCommerce create
 }
 
 function checkVitessBackupScheduleStatusWithTimeout() {

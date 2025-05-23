@@ -26,6 +26,8 @@ spec:
           secret:
             name: example-cluster-config
             key: users.json
+      extraFlags:
+        tablet_refresh_interval: 10s
       replicas: 1
       resources:
         requests:
@@ -221,7 +223,7 @@ stringData:
 
     RESET SLAVE ALL;
     RESET MASTER;
-    
+
     # We need to set super_read_only back to what it was before
     SET GLOBAL super_read_only=IFNULL(@original_super_read_only, 'ON');
   rbac.yaml: |
