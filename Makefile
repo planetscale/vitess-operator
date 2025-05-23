@@ -61,26 +61,26 @@ e2e-test-setup:
 	./tools/get-e2e-test-deps.sh
 
 # Upgrade test
-upgrade-test: build e2e-test-setup
+upgrade-test: e2e-test-setup
 	echo "Running Upgrade test"
 	test/endtoend/upgrade_test.sh
 
-backup-restore-test: build e2e-test-setup
+backup-restore-test: e2e-test-setup
 	echo "Running Backup-Restore test"
 	test/endtoend/backup_restore_test.sh
 
-backup-schedule-test: build e2e-test-setup
+backup-schedule-test: e2e-test-setup
 	echo "Running Backup-Schedule test"
 	test/endtoend/backup_schedule_test.sh
 
-vtorc-vtadmin-test: build e2e-test-setup
+vtorc-vtadmin-test: e2e-test-setup
 	echo "Running VTOrc and VtAdmin test"
 	test/endtoend/vtorc_vtadmin_test.sh
 
-unmanaged-tablet-test: build e2e-test-setup
+unmanaged-tablet-test: e2e-test-setup
 	echo "Running Unmanaged Tablet test"
 	test/endtoend/unmanaged_tablet_test.sh
 
-hpa-test: build e2e-test-setup
+hpa-test: e2e-test-setup
 	echo "Running HPA test"
 	test/endtoend/hpa_test.sh
