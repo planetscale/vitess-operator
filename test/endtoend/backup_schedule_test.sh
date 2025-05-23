@@ -13,7 +13,7 @@ function verifyListBackupsOutputWithSchedule() {
   # 1 minimum from the every minute schedule, and 1 from the every-five minute schedule
   for i in {1..600} ; do
     # Ensure that we can view the backup files from the host.
-    docker exec -it $(docker container ls --format '{{.Names}}' | grep kind) chmod o+rwx -R /backup > /dev/null
+    docker exec -it $(docker container ls --format '{{.Names}}' | grep "kind-${buildkite_job_id}") chmod o+rwx -R /backup > /dev/null
     backupCount=$(kubectl get vtb -n example --no-headers | wc -l)
     echo "Found ${backupCount} backups"
     if [[ "${backupCount}" -ge 3 ]]; then

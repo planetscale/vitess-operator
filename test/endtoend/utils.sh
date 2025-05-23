@@ -7,7 +7,7 @@
 shopt -s expand_aliases
 alias vtctldclient="vtctldclient --server=localhost:15999"
 alias mysql="mysql -h 127.0.0.1 -P 15306 -u user"
-BUILDKITE_BUILD_ID=${BUILDKITE_BUILD_ID:-"0"}
+buildkite_job_id="${BUILDKITE_JOB_ID:-0}"
 
 function checkSemiSyncSetup() {
   for vttablet in $(kubectl get pods -n example --no-headers -o custom-columns=":metadata.name" | grep "vttablet") ; do
@@ -94,14 +94,14 @@ function takeBackup() {
     exit 1
   fi
   # Ensure that we can view the backup files from the host.
-  docker exec -it $(docker container ls --format '{{.Names}}' | grep kind) chmod o+rwx -R /backup > /dev/null
+  docker exec -it $(docker container ls --format '{{.Names}}' | grep "kind-${buildkite_job_id}") chmod o+rwx -R /backup > /dev/null
   echo "Backup completed"
 }
 
 function verifyListBackupsOutput() {
   for i in {1..30} ; do
     # Ensure that we can view the backup files from the host.
-    docker exec -it $(docker container ls --format '{{.Names}}' | grep kind) chmod o+rwx -R /backup > /dev/null
+    docker exec -it $(docker container ls --format '{{.Names}}' | grep "kind-${buildkite_job_id}") chmod o+rwx -R /backup > /dev/null
     backupCount=$(kubectl get vtb -n example --no-headers | wc -l)
     out=$(vtctldclient GetBackups "$keyspaceShard" | wc -l)
     echo "$out" | grep "$backupCount" > /dev/null 2>&1
@@ -428,16 +428,17 @@ function setupKindCluster() {
 }
 
 function setupKubectlAccessForCI() {
-  if [[ "$BUILDKITE_BUILD_ID" != "0" ]]; then
+  if [[ "${buildkite_job_id}" != "0" ]]; then
     # The script is being run from buildkite, so we need to do stuff
     # https://github.com/kubernetes-sigs/kind/issues/1846#issuecomment-691565834
     # Since kind is running in a sibling container, communicating with it through kubectl is not trivial.
     # To accomplish we need to add the current docker container in the same network as the kind container
     # and change the kubectl configuration to use the port listed in the internal endpoint instead of the one
     # that is exported to the localhost by kind.
-    dockerContainerName=$(docker container ls --filter "ancestor=docker" --format '{{.Names}}')
-    docker network connect kind $dockerContainerName
-    kind get kubeconfig --internal --name kind-${BUILDKITE_BUILD_ID} > $HOME/.kube/config
+    local docker_container_name
+    docker_container_name="$(hostname -s)"
+    docker network connect kind "${docker_container_name}"
+    kind get kubeconfig --internal --name "kind-${buildkite_job_id}" > "${HOME}/.kube/config"
   fi
 }
 
@@ -480,20 +481,22 @@ function teardownKindCluster() {
   rm -rf "${vtdataroot_dir}"
 
   echo "Deleting the Kind cluster. This also deletes the volume associated with it."
-  kind delete cluster --name "kind-${BUILDKITE_BUILD_ID}"
+  kind delete cluster --name "kind-${buildkite_job_id}"
 }
 
 function setupKindConfig() {
-  echo "Setting up the Kind config"
+  echo "Setting up Kind config"
   local checkout_path
-  if [[ "${BUILDKITE_BUILD_ID}" != "0" ]]; then
-    # The script is being run from buildkite, so we can't mount the current
-    # working directory to kind. The current directory in the docker is workdir
-    # So if we try and mount that, we get an error. Instead we need to mount the
-    # path where the code was checked out be buildkite
+  if [[ "${buildkite_job_id}" != "0" ]]; then
+    # The script runs inside a Docker container in Buildkite. The container's
+    # working directory (`/workdir`) is internal to this container. It can't
+    # be mounted by a Kind cluster as it doesn't exist in the Buildkite Agent
+    # filesystem.
+    # Instead, Kind needs to mount the Buildkite build directory where
+    # the operator code checkout is located.
     local docker_container_name
-    docker_container_name="$(docker container ls --filter "ancestor=docker" --format '{{.Names}}')"
-    checkout_path="$(docker container inspect --format '{{range .Mounts}}{{ if eq .Destination "/workdir" }}{{println .Source }}{{ end }}{{end}}' "${docker_container_name}")"
+    docker_container_name="$(hostname -s)"
+    checkout_path="$(docker container inspect --format '{{ range .Mounts }}{{ if eq .Destination "/workdir" }}{{ println .Source }}{{ end }}{{ end }}' "${docker_container_name}")"
   else
     checkout_path="${PWD}"
   fi
@@ -506,9 +509,9 @@ function setupKindConfig() {
 
 function createKindCluster() {
   echo "Creating Kind cluster"
-  kind create cluster --wait 30s --name kind-${BUILDKITE_BUILD_ID} --config ./vtdataroot/config.yaml --image ${KIND_VERSION}
+  kind create cluster --wait 30s --name "kind-${buildkite_job_id}" --config ./vtdataroot/config.yaml --image "${KIND_VERSION}"
   echo "Loading docker image into Kind cluster"
-  kind load docker-image vitess-operator-pr:latest --name kind-${BUILDKITE_BUILD_ID}
+  kind load docker-image vitess-operator-pr:latest --name "kind-${buildkite_job_id}"
 }
 
 function createExampleNamespace() {
