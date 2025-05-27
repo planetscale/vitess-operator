@@ -7,7 +7,7 @@
 shopt -s expand_aliases
 alias vtctldclient="vtctldclient --server=localhost:15999"
 alias mysql="mysql -h 127.0.0.1 -P 15306 -u user"
-BUILDKITE_BUILD_ID=${BUILDKITE_BUILD_ID:-"0"}
+BUILDKITE_JOB_ID="${BUILDKITE_JOB_ID:-0}"
 
 function checkSemiSyncSetup() {
   for vttablet in $(kubectl get pods -n example --no-headers -o custom-columns=":metadata.name" | grep "vttablet") ; do
@@ -415,16 +415,17 @@ function setupKindCluster() {
 }
 
 function setupKubectlAccessForCI() {
-  if [[ "$BUILDKITE_BUILD_ID" != "0" ]]; then
+  if [[ "${BUILDKITE_JOB_ID}" != "0" ]]; then
     # The script is being run from buildkite, so we need to do stuff
     # https://github.com/kubernetes-sigs/kind/issues/1846#issuecomment-691565834
     # Since kind is running in a sibling container, communicating with it through kubectl is not trivial.
     # To accomplish we need to add the current docker container in the same network as the kind container
     # and change the kubectl configuration to use the port listed in the internal endpoint instead of the one
     # that is exported to the localhost by kind.
-    dockerContainerName=$(docker container ls --filter "ancestor=docker" --format '{{.Names}}')
-    docker network connect kind $dockerContainerName
-    kind get kubeconfig --internal --name kind-${BUILDKITE_BUILD_ID} > $HOME/.kube/config
+    local docker_container_name
+    docker_container_name="$(hostname -s)"
+    docker network connect kind "${docker_container_name}"
+    kind get kubeconfig --internal --name "kind-${BUILDKITE_JOB_ID}" > "${HOME}/.kube/config"
   fi
 }
 
@@ -461,14 +462,14 @@ function setupPortForwarding() {
 
 function teardownKindCluster() {
   echo "Deleting the Kind cluster. This also deletes the volume associated with it."
-  kind delete cluster --name "kind-${BUILDKITE_BUILD_ID}"
+  kind delete cluster --name "kind-${BUILDKITE_JOB_ID}"
 }
 
 function createKindCluster() {
   echo "Creating Kind cluster"
-  kind create cluster --wait 30s --name kind-${BUILDKITE_BUILD_ID} --image ${KIND_VERSION}
+  kind create cluster --wait 30s --name "kind-${BUILDKITE_JOB_ID}" --image "${KIND_VERSION}"
   echo "Loading docker image into Kind cluster"
-  kind load docker-image vitess-operator-pr:latest --name kind-${BUILDKITE_BUILD_ID}
+  kind load docker-image vitess-operator-pr:latest --name "kind-${BUILDKITE_JOB_ID}"
 }
 
 function createExampleNamespace() {
