@@ -179,7 +179,6 @@ function scheduledBackups() {
   checkVitessBackupScheduleStatusWithTimeout "example-vbsc-commerce(.*)"
   checkVitessBackupScheduleStatusWithTimeout "example-vbsc-customer(.*)"
 
-  docker exec -it $(docker container ls --format '{{.Names}}' | grep kind) chmod o+rwx -R /backup > /dev/null
   initialCommerceBackups=$(kubectl get vtb -n example --no-headers | grep "commerce-x-x" | wc -l)
   initialCustomerFirstShardBackups=$(kubectl get vtb -n example --no-headers | grep "customer-x-80" | wc -l)
   initialCustomerSecondShardBackups=$(kubectl get vtb -n example --no-headers | grep "customer-80-x" | wc -l)

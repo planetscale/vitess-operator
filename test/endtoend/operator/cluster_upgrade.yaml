@@ -12,9 +12,8 @@ spec:
     engine: xtrabackup
     locations:
       - volume:
-          hostPath:
-            path: /backup
-            type: Directory
+          persistentVolumeClaim:
+            claimName: vitess-backups
   images:
     vtctld: vitess/lite:latest
     vtgate: vitess/lite:latest

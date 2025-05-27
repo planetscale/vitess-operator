@@ -73,14 +73,6 @@ function printBackupLogFiles() {
   done
 }
 
-function removeBackupFiles() {
-  for vttablet in $(kubectl get pods -n example --no-headers -o custom-columns=":metadata.name" | grep "vttablet") ; do
-    echo "Removing backup files using $vttablet"
-    kubectl exec -n example "$vttablet" -c vttablet -- rm -rf /vt/backups/example
-    return 0
-  done
-}
-
 # takeBackup:
 # $1: keyspace-shard for which the backup needs to be taken
 function takeBackup() {
@@ -93,15 +85,11 @@ function takeBackup() {
     echo "Backup failed"
     exit 1
   fi
-  # Ensure that we can view the backup files from the host.
-  docker exec -it $(docker container ls --format '{{.Names}}' | grep kind) chmod o+rwx -R /backup > /dev/null
   echo "Backup completed"
 }
 
 function verifyListBackupsOutput() {
   for i in {1..30} ; do
-    # Ensure that we can view the backup files from the host.
-    docker exec -it $(docker container ls --format '{{.Names}}' | grep kind) chmod o+rwx -R /backup > /dev/null
     backupCount=$(kubectl get vtb -n example --no-headers | wc -l)
     out=$(vtctldclient GetBackups "$keyspaceShard" | wc -l)
     echo "$out" | grep "$backupCount" > /dev/null 2>&1
@@ -421,7 +409,6 @@ function setupBuildContainerImage() {
 
 function setupKindCluster() {
   setupBuildContainerImage
-  setupKindConfig
   createKindCluster
   setupKubectlAccessForCI
   createExampleNamespace
@@ -473,40 +460,13 @@ function setupPortForwarding() {
 }
 
 function teardownKindCluster() {
-  local vtdataroot_dir="../../vtdataroot"
-
-  echo "Removing backup files and temporary directories"
-  removeBackupFiles
-  rm -rf "${vtdataroot_dir}"
-
   echo "Deleting the Kind cluster. This also deletes the volume associated with it."
   kind delete cluster --name "kind-${BUILDKITE_BUILD_ID}"
 }
 
-function setupKindConfig() {
-  echo "Setting up the Kind config"
-  local checkout_path
-  if [[ "${BUILDKITE_BUILD_ID}" != "0" ]]; then
-    # The script is being run from buildkite, so we can't mount the current
-    # working directory to kind. The current directory in the docker is workdir
-    # So if we try and mount that, we get an error. Instead we need to mount the
-    # path where the code was checked out be buildkite
-    local docker_container_name
-    docker_container_name="$(docker container ls --filter "ancestor=docker" --format '{{.Names}}')"
-    checkout_path="$(docker container inspect --format '{{range .Mounts}}{{ if eq .Destination "/workdir" }}{{println .Source }}{{ end }}{{end}}' "${docker_container_name}")"
-  else
-    checkout_path="${PWD}"
-  fi
-
-  local backup_dir="${checkout_path}/vtdataroot/backup"
-  # shellcheck disable=SC2174 # `-m` only applies to the deepest directory, but that's what we want
-  mkdir -p -m 0777 vtdataroot/backup
-  sed "s,PATH,${backup_dir},1" test/endtoend/kindBackupConfig.yaml > vtdataroot/config.yaml
-}
-
 function createKindCluster() {
   echo "Creating Kind cluster"
-  kind create cluster --wait 30s --name kind-${BUILDKITE_BUILD_ID} --config ./vtdataroot/config.yaml --image ${KIND_VERSION}
+  kind create cluster --wait 30s --name kind-${BUILDKITE_BUILD_ID} --image ${KIND_VERSION}
   echo "Loading docker image into Kind cluster"
   kind load docker-image vitess-operator-pr:latest --name kind-${BUILDKITE_BUILD_ID}
 }

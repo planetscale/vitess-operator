@@ -12,9 +12,8 @@ spec:
     engine: xtrabackup
     locations:
     - volume:
-        hostPath:
-          path: /backup
-          type: Directory
+        persistentVolumeClaim:
+          claimName: vitess-backups
     schedules:
       - name: "every-minute"
         schedule: "* * * * *"
@@ -250,3 +249,15 @@ stringData:
 
     # We need to set super_read_only back to what it was before
     SET GLOBAL super_read_only=IFNULL(@original_super_read_only, 'ON');
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: vitess-backups
+  namespace: example
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
