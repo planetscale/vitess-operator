@@ -62,17 +62,6 @@ function printMysqlErrorFiles() {
   done
 }
 
-function printBackupLogFiles() {
-  for vtbackup in $(kubectl get pods -n example --no-headers -o custom-columns=":metadata.name" | grep "vtbackup") ; do
-    echo "Printing logs of $vtbackup"
-    kubectl logs -n example "$vtbackup"
-    echo "Description of $vtbackup"
-    kubectl describe pod -n example "$vtbackup"
-    echo "User in $vtbackup"
-    kubectl exec -n example "$vtbackup" -- whoami
-  done
-}
-
 # takeBackup:
 # $1: keyspace-shard for which the backup needs to be taken
 function takeBackup() {
