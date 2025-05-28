@@ -18,7 +18,7 @@ steps:
     - make upgrade-test
     concurrency: 1
     concurrency_group: 'vtop/upgrade-downgrade-test'
-    timeout_in_minutes: 60
+    timeout_in_minutes: 30
     plugins:
       - docker#v3.12.0:
           image: "docker:latest"
@@ -37,7 +37,7 @@ steps:
     - make backup-restore-test
     concurrency: 1
     concurrency_group: 'vtop/backup-restore-test'
-    timeout_in_minutes: 60
+    timeout_in_minutes: 20
     plugins:
       - docker#v3.12.0:
           image: "docker:latest"
@@ -56,7 +56,7 @@ steps:
       - make backup-schedule-test
     concurrency: 1
     concurrency_group: 'vtop/backup-schedule-test'
-    timeout_in_minutes: 60
+    timeout_in_minutes: 20
     plugins:
       - docker#v3.12.0:
           image: "docker:latest"
@@ -75,7 +75,7 @@ steps:
     - make vtorc-vtadmin-test
     concurrency: 1
     concurrency_group: 'vtop/vtorc-vtadmin-test'
-    timeout_in_minutes: 60
+    timeout_in_minutes: 20
     plugins:
       - docker#v3.12.0:
           image: "docker:latest"
@@ -94,7 +94,7 @@ steps:
     - make unmanaged-tablet-test
     concurrency: 1
     concurrency_group: 'vtop/unmanaged-tablet-test'
-    timeout_in_minutes: 60
+    timeout_in_minutes: 20
     plugins:
       - docker#v3.12.0:
           image: "docker:latest"
@@ -113,7 +113,7 @@ steps:
     - make hpa-test
     concurrency: 1
     concurrency_group: 'vtop/hpa-test'
-    timeout_in_minutes: 60
+    timeout_in_minutes: 20
     plugins:
       - docker#v3.12.0:
           image: "docker:latest"
