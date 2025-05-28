@@ -25,6 +25,15 @@ steps:
           propagate-environment: true
           volumes:
             - "/var/run/docker.sock:/var/run/docker.sock"
+    retry: &retry_policy_tests
+      # Automatically retry tests on unexpected Buildkite Agent exit codes
+      automatic:
+        - exit_status: -1 # Agent lost
+          limit: 2
+        - exit_status: 143 # Graceful agent termination
+          limit: 2
+        - exit_status: 255 # Forceful agent termination
+          limit: 2
 
   - name: "Backup Restore Test"
     command:
@@ -44,6 +53,8 @@ steps:
           propagate-environment: true
           volumes:
             - "/var/run/docker.sock:/var/run/docker.sock"
+    retry:
+      <<: *retry_policy_tests
 
   - name: "Backup Schedule Test"
     command:
@@ -63,6 +74,8 @@ steps:
           propagate-environment: true
           volumes:
             - "/var/run/docker.sock:/var/run/docker.sock"
+    retry:
+      <<: *retry_policy_tests
 
   - name: "VTOrc and VTAdmin Test"
     command:
@@ -82,6 +95,8 @@ steps:
           propagate-environment: true
           volumes:
             - "/var/run/docker.sock:/var/run/docker.sock"
+    retry:
+      <<: *retry_policy_tests
 
   - name: "Unmanaged Tablet Test"
     command:
@@ -101,6 +116,8 @@ steps:
           propagate-environment: true
           volumes:
             - "/var/run/docker.sock:/var/run/docker.sock"
+    retry:
+      <<: *retry_policy_tests
 
   - name: "HPA Test"
     command:
@@ -120,3 +137,5 @@ steps:
           propagate-environment: true
           volumes:
             - "/var/run/docker.sock:/var/run/docker.sock"
+    retry:
+      <<: *retry_policy_tests
