@@ -426,6 +426,7 @@ function setupPortForwarding() {
   local port_vtadmin_api=14001
   local port_vtctld_grpc=15999
 
+  echo "Setting up port forwarding"
   killall kubectl > /dev/null 2>&1 || true
   sleep 2
 
@@ -447,6 +448,8 @@ function setupPortForwarding() {
       sleep 1
     done
   fi
+
+  echo "Port forwarding is ready"
 }
 
 function teardownKindCluster() {
