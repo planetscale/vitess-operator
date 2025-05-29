@@ -9,8 +9,8 @@ env:
 steps:
   - name: "Upgrade Test"
     command:
-    - apk add g++ make bash gcompat curl mysql-client libc6-compat
-    - wget https://golang.org/dl/$GO_VERSION_FILE
+    - apk add --no-progress --quiet g++ make bash gcompat curl mysql-client libc6-compat
+    - wget -q https://golang.org/dl/$GO_VERSION_FILE
     - tar -C /usr/local -xzf $GO_VERSION_FILE
     - export PATH=$PATH:/usr/local/go/bin:/bin
     - rm $GO_VERSION_FILE
@@ -37,8 +37,8 @@ steps:
 
   - name: "Backup Restore Test"
     command:
-    - apk add g++ make bash gcompat curl mysql-client libc6-compat
-    - wget https://golang.org/dl/$GO_VERSION_FILE
+    - apk add --no-progress --quiet g++ make bash gcompat curl mysql-client libc6-compat
+    - wget -q https://golang.org/dl/$GO_VERSION_FILE
     - tar -C /usr/local -xzf $GO_VERSION_FILE
     - export PATH=$PATH:/usr/local/go/bin:/bin
     - rm $GO_VERSION_FILE
@@ -58,8 +58,8 @@ steps:
 
   - name: "Backup Schedule Test"
     command:
-      - apk add g++ make bash gcompat curl mysql-client libc6-compat
-      - wget https://golang.org/dl/$GO_VERSION_FILE
+      - apk add --no-progress --quiet g++ make bash gcompat curl mysql-client libc6-compat
+      - wget -q https://golang.org/dl/$GO_VERSION_FILE
       - tar -C /usr/local -xzf $GO_VERSION_FILE
       - export PATH=$PATH:/usr/local/go/bin:/bin
       - rm $GO_VERSION_FILE
@@ -79,8 +79,8 @@ steps:
 
   - name: "VTOrc and VTAdmin Test"
     command:
-    - apk add g++ make bash gcompat curl mysql-client libc6-compat chromium
-    - wget https://golang.org/dl/$GO_VERSION_FILE
+    - apk add --no-progress --quiet g++ make bash gcompat curl mysql-client libc6-compat chromium
+    - wget -q https://golang.org/dl/$GO_VERSION_FILE
     - tar -C /usr/local -xzf $GO_VERSION_FILE
     - export PATH=$PATH:/usr/local/go/bin:/bin
     - rm $GO_VERSION_FILE
@@ -100,8 +100,8 @@ steps:
 
   - name: "Unmanaged Tablet Test"
     command:
-    - apk add g++ make bash gcompat curl mysql-client libc6-compat coreutils
-    - wget https://golang.org/dl/$GO_VERSION_FILE
+    - apk add --no-progress --quiet g++ make bash gcompat curl mysql-client libc6-compat coreutils
+    - wget -q https://golang.org/dl/$GO_VERSION_FILE
     - tar -C /usr/local -xzf $GO_VERSION_FILE
     - export PATH=$PATH:/usr/local/go/bin:/bin
     - rm $GO_VERSION_FILE
@@ -121,8 +121,8 @@ steps:
 
   - name: "HPA Test"
     command:
-    - apk add g++ make bash gcompat curl mysql-client libc6-compat
-    - wget https://golang.org/dl/$GO_VERSION_FILE
+    - apk add --no-progress --quiet g++ make bash gcompat curl mysql-client libc6-compat
+    - wget -q https://golang.org/dl/$GO_VERSION_FILE
     - tar -C /usr/local -xzf $GO_VERSION_FILE
     - export PATH=$PATH:/usr/local/go/bin:/bin
     - rm $GO_VERSION_FILE
