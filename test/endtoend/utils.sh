@@ -393,7 +393,14 @@ function assertSelect() {
 
 function setupBuildContainerImage() {
   echo "Building the container image"
-  docker build --file build/Dockerfile.release --tag vitess-operator-pr:latest .
+
+  # Clean up build output in CI
+  local progress="auto"
+  if [[ "${BUILDKITE_JOB_ID}" != "0" ]]; then
+    progress="plain"
+  fi
+
+  docker build --progress "${progress}" --file build/Dockerfile.release --tag vitess-operator-pr:latest .
 }
 
 function setupKindCluster() {
