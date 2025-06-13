@@ -9,8 +9,8 @@ env:
 steps:
   - name: "Upgrade Test"
     command:
-    - apk add g++ make bash gcompat curl mysql mysql-client libc6-compat
-    - wget https://golang.org/dl/$GO_VERSION_FILE
+    - apk add --no-progress --quiet g++ make bash gcompat curl mysql-client libc6-compat
+    - wget -q https://golang.org/dl/$GO_VERSION_FILE
     - tar -C /usr/local -xzf $GO_VERSION_FILE
     - export PATH=$PATH:/usr/local/go/bin:/bin
     - rm $GO_VERSION_FILE
@@ -18,18 +18,27 @@ steps:
     - make upgrade-test
     concurrency: 1
     concurrency_group: 'vtop/upgrade-downgrade-test'
-    timeout_in_minutes: 60
+    timeout_in_minutes: 30
     plugins:
       - docker#v3.12.0:
           image: "docker:latest"
           propagate-environment: true
           volumes:
             - "/var/run/docker.sock:/var/run/docker.sock"
+    retry: &retry_policy_tests
+      # Automatically retry tests on unexpected Buildkite Agent exit codes
+      automatic:
+        - exit_status: -1 # Agent lost
+          limit: 2
+        - exit_status: 143 # Graceful agent termination
+          limit: 2
+        - exit_status: 255 # Forceful agent termination
+          limit: 2
 
   - name: "Backup Restore Test"
     command:
-    - apk add g++ make bash gcompat curl mysql mysql-client libc6-compat
-    - wget https://golang.org/dl/$GO_VERSION_FILE
+    - apk add --no-progress --quiet g++ make bash gcompat curl mysql-client libc6-compat
+    - wget -q https://golang.org/dl/$GO_VERSION_FILE
     - tar -C /usr/local -xzf $GO_VERSION_FILE
     - export PATH=$PATH:/usr/local/go/bin:/bin
     - rm $GO_VERSION_FILE
@@ -37,18 +46,20 @@ steps:
     - make backup-restore-test
     concurrency: 1
     concurrency_group: 'vtop/backup-restore-test'
-    timeout_in_minutes: 60
+    timeout_in_minutes: 20
     plugins:
       - docker#v3.12.0:
           image: "docker:latest"
           propagate-environment: true
           volumes:
             - "/var/run/docker.sock:/var/run/docker.sock"
+    retry:
+      <<: *retry_policy_tests
 
   - name: "Backup Schedule Test"
     command:
-      - apk add g++ make bash gcompat curl mysql mysql-client libc6-compat
-      - wget https://golang.org/dl/$GO_VERSION_FILE
+      - apk add --no-progress --quiet g++ make bash gcompat curl mysql-client libc6-compat
+      - wget -q https://golang.org/dl/$GO_VERSION_FILE
       - tar -C /usr/local -xzf $GO_VERSION_FILE
       - export PATH=$PATH:/usr/local/go/bin:/bin
       - rm $GO_VERSION_FILE
@@ -56,18 +67,20 @@ steps:
       - make backup-schedule-test
     concurrency: 1
     concurrency_group: 'vtop/backup-schedule-test'
-    timeout_in_minutes: 60
+    timeout_in_minutes: 20
     plugins:
       - docker#v3.12.0:
           image: "docker:latest"
           propagate-environment: true
           volumes:
             - "/var/run/docker.sock:/var/run/docker.sock"
+    retry:
+      <<: *retry_policy_tests
 
   - name: "VTOrc and VTAdmin Test"
     command:
-    - apk add g++ make bash gcompat curl mysql mysql-client libc6-compat chromium
-    - wget https://golang.org/dl/$GO_VERSION_FILE
+    - apk add --no-progress --quiet g++ make bash gcompat curl mysql-client libc6-compat chromium
+    - wget -q https://golang.org/dl/$GO_VERSION_FILE
     - tar -C /usr/local -xzf $GO_VERSION_FILE
     - export PATH=$PATH:/usr/local/go/bin:/bin
     - rm $GO_VERSION_FILE
@@ -75,18 +88,20 @@ steps:
     - make vtorc-vtadmin-test
     concurrency: 1
     concurrency_group: 'vtop/vtorc-vtadmin-test'
-    timeout_in_minutes: 60
+    timeout_in_minutes: 20
     plugins:
       - docker#v3.12.0:
           image: "docker:latest"
           propagate-environment: true
           volumes:
             - "/var/run/docker.sock:/var/run/docker.sock"
+    retry:
+      <<: *retry_policy_tests
 
   - name: "Unmanaged Tablet Test"
     command:
-    - apk add g++ make bash gcompat curl mysql mysql-client libc6-compat chromium coreutils
-    - wget https://golang.org/dl/$GO_VERSION_FILE
+    - apk add --no-progress --quiet g++ make bash gcompat curl mysql-client libc6-compat coreutils
+    - wget -q https://golang.org/dl/$GO_VERSION_FILE
     - tar -C /usr/local -xzf $GO_VERSION_FILE
     - export PATH=$PATH:/usr/local/go/bin:/bin
     - rm $GO_VERSION_FILE
@@ -94,18 +109,20 @@ steps:
     - make unmanaged-tablet-test
     concurrency: 1
     concurrency_group: 'vtop/unmanaged-tablet-test'
-    timeout_in_minutes: 60
+    timeout_in_minutes: 20
     plugins:
       - docker#v3.12.0:
           image: "docker:latest"
           propagate-environment: true
           volumes:
             - "/var/run/docker.sock:/var/run/docker.sock"
+    retry:
+      <<: *retry_policy_tests
 
   - name: "HPA Test"
     command:
-    - apk add g++ make bash gcompat curl mysql mysql-client libc6-compat
-    - wget https://golang.org/dl/$GO_VERSION_FILE
+    - apk add --no-progress --quiet g++ make bash gcompat curl mysql-client libc6-compat
+    - wget -q https://golang.org/dl/$GO_VERSION_FILE
     - tar -C /usr/local -xzf $GO_VERSION_FILE
     - export PATH=$PATH:/usr/local/go/bin:/bin
     - rm $GO_VERSION_FILE
@@ -113,10 +130,12 @@ steps:
     - make hpa-test
     concurrency: 1
     concurrency_group: 'vtop/hpa-test'
-    timeout_in_minutes: 60
+    timeout_in_minutes: 20
     plugins:
       - docker#v3.12.0:
           image: "docker:latest"
           propagate-environment: true
           volumes:
             - "/var/run/docker.sock:/var/run/docker.sock"
+    retry:
+      <<: *retry_policy_tests

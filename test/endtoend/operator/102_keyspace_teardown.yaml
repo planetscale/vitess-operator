@@ -12,9 +12,8 @@ spec:
     engine: xtrabackup
     locations:
     - volume:
-        hostPath:
-          path: /backup
-          type: Directory
+        persistentVolumeClaim:
+          claimName: vitess-backups
   images:
     vtctld: vitess/lite:latest
     vtgate: vitess/lite:latest
@@ -32,6 +31,8 @@ spec:
           secret:
             name: example-cluster-config
             key: users.json
+      extraFlags:
+        tablet_refresh_interval: 10s
       replicas: 1
       resources:
         requests:

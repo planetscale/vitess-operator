@@ -16,7 +16,7 @@ FROM golang:1.24.2 AS build
 ENV GO111MODULE=on
 WORKDIR /go/src/planetscale.dev/vitess-operator
 COPY . /go/src/planetscale.dev/vitess-operator
-RUN CGO_ENABLED=0 go install /go/src/planetscale.dev/vitess-operator/cmd/manager
+RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build CGO_ENABLED=0 go install /go/src/planetscale.dev/vitess-operator/cmd/manager
 
 # The rest is meant to mimic the output from operator-sdk's Dockerfile.
 # We just copy the binary we built inside Docker instead of from outside.

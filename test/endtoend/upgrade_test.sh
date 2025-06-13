@@ -6,16 +6,11 @@ source ./test/endtoend/utils.sh
 function move_tables() {
   echo "Apply 201_customer_tablets.yaml"
   kubectl apply -f 201_customer_tablets.yaml > /dev/null
-  sleep 300
-  checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 6
   checkPodStatusWithTimeout "example-customer-x-x-zone1-vtorc(.*)1/1(.*)Running(.*)"
+  checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 6
 
-  killall kubectl
-  ./pf.sh > /dev/null 2>&1 &
-
+  setupPortForwarding
   waitForKeyspaceToBeServing customer - 2
-
-  sleep 10
 
   echo "Execute MoveTables"
   vtctldclient LegacyVtctlCommand -- MoveTables --source commerce --tables 'customer,corder' Create customer.commerce2customer
@@ -85,20 +80,15 @@ function resharding() {
 
   echo "Apply 302_new_shards.yaml"
   kubectl apply -f 302_new_shards.yaml
-  checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 12
   checkPodStatusWithTimeout "example-customer-80-x-zone1-vtorc(.*)1/1(.*)Running(.*)"
   checkPodStatusWithTimeout "example-customer-x-80-zone1-vtorc(.*)1/1(.*)Running(.*)"
+  checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 12
 
-  killall kubectl
-  ./pf.sh > /dev/null 2>&1 &
-  sleep 5
-
+  setupPortForwarding
   waitForKeyspaceToBeServing customer -80 2
   waitForKeyspaceToBeServing customer 80- 2
 
   echo "Ready to reshard ..."
-  sleep 15
-
   vtctldclient LegacyVtctlCommand -- Reshard --source_shards '-' --target_shards '-80,80-' Create customer.cust2cust
   if [ $? -ne 0 ]; then
     echo "Reshard Create failed"
@@ -189,7 +179,6 @@ function scheduledBackups() {
   checkVitessBackupScheduleStatusWithTimeout "example-vbsc-commerce(.*)"
   checkVitessBackupScheduleStatusWithTimeout "example-vbsc-customer(.*)"
 
-  docker exec -it $(docker container ls --format '{{.Names}}' | grep kind) chmod o+rwx -R /backup > /dev/null
   initialCommerceBackups=$(kubectl get vtb -n example --no-headers | grep "commerce-x-x" | wc -l)
   initialCustomerFirstShardBackups=$(kubectl get vtb -n example --no-headers | grep "customer-x-80" | wc -l)
   initialCustomerSecondShardBackups=$(kubectl get vtb -n example --no-headers | grep "customer-80-x" | wc -l)
@@ -215,15 +204,6 @@ function scheduledBackups() {
   exit 1
 }
 
-function waitAndVerifySetup() {
-  sleep 10
-  checkPodStatusWithTimeout "example-zone1-vtctld(.*)1/1(.*)Running(.*)"
-  checkPodStatusWithTimeout "example-zone1-vtgate(.*)1/1(.*)Running(.*)"
-  checkPodStatusWithTimeout "example-etcd(.*)1/1(.*)Running(.*)" 3
-  checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 3
-  checkPodStatusWithTimeout "example-commerce-x-x-zone1-vtorc(.*)1/1(.*)Running(.*)"
-}
-
 function verifyVtgateDeploymentStrategy() {
   echo "Verifying the deployment strategy of vtgate"
   vtgate=$(kubectl get deployments  -n example --no-headers -o custom-columns=":metadata.name" | grep "vtgate")
@@ -246,64 +226,36 @@ function verifyVtgateDeploymentStrategy() {
 }
 
 function upgradeToLatest() {
-  echo "Apply operator-latest.yaml "
+  echo "Upgrade Vitess Operator"
   kubectl apply -f operator-latest.yaml
-  waitAndVerifySetup
+  checkPodSpecBySelectorWithTimeout default "app=vitess-operator" 1 "image: vitess-operator-pr:latest"
+  checkPodStatusWithTimeout "vitess-operator(.*)1/1(.*)Running(.*)"
 
-  echo "Upgrade all the other binaries"
+  echo "Upgrade Vitess binaries"
   kubectl apply -f cluster_upgrade.yaml
-  waitAndVerifySetup
+  checkPodStatusWithTimeout "example-etcd(.*)1/1(.*)Running(.*)" 3
+  checkPodStatusWithTimeout "example-zone1-vtctld(.*)1/1(.*)Running(.*)"
+  checkPodStatusWithTimeout "example-zone1-vtgate(.*)1/1(.*)Running(.*)"
+  checkPodStatusWithTimeout "example-commerce-x-x-zone1-vtorc(.*)1/1(.*)Running(.*)"
+  checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 3
+
+  # Wait for the cluster spec changes to take effect
+  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vtctld" 1 "image: vitess/lite:latest"
+  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vtgate" 1 "image: vitess/lite:latest"
+  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vtorc" 1 "image: vitess/lite:latest"
+  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vttablet" 12 "image: vitess/lite:latest"
+
   verifyVtgateDeploymentStrategy
 
-  killall kubectl
-  ./pf.sh > /dev/null 2>&1 &
-
-  sleep 10
-
-  assertSelect ../common/select_commerce_data.sql "commerce" << EOF
-Using commerce
-Customer
-+-------------+--------------------+
-| customer_id | email              |
-+-------------+--------------------+
-|           1 | alice@domain.com   |
-|           2 | bob@domain.com     |
-|           3 | charlie@domain.com |
-|           4 | dan@domain.com     |
-|           5 | eve@domain.com     |
-+-------------+--------------------+
-Product
-+----------+-------------+-------+
-| sku      | description | price |
-+----------+-------------+-------+
-| SKU-1001 | Monitor     |   100 |
-| SKU-1002 | Keyboard    |    30 |
-+----------+-------------+-------+
-COrder
-+----------+-------------+----------+-------+
-| order_id | customer_id | sku      | price |
-+----------+-------------+----------+-------+
-|        1 |           1 | SKU-1001 |   100 |
-|        2 |           2 | SKU-1002 |    30 |
-|        3 |           3 | SKU-1002 |    30 |
-|        4 |           4 | SKU-1002 |    30 |
-|        5 |           5 | SKU-1002 |    30 |
-+----------+-------------+----------+-------+
-EOF
+  setupPortForwarding
+  waitForKeyspaceToBeServing commerce - 2
+  verifyDataCommerce
 }
 
 # Test setup
-mkdir -p -m 777 ./vtdataroot/backup
-echo "Building the docker image"
-docker build -f build/Dockerfile.release -t vitess-operator-pr:latest .
-setupKindConfig
-createKindCluster
+setupKindCluster
+cd test/endtoend/operator || exit 1
 
-cd "$PWD/test/endtoend/operator"
-killall kubectl
-setupKubectlAccessForCI
-
-createExampleNamespace
 get_started "operator.yaml" "101_initial_cluster.yaml"
 verifyVtGateVersion "22.0.0"
 checkSemiSyncSetup
@@ -320,8 +272,4 @@ resharding
 scheduledBackups
 
 # Teardown
-echo "Removing the temporary directory"
-removeBackupFiles
-rm -rf "$STARTING_DIR/vtdataroot"
-echo "Deleting Kind cluster. This also deletes the volume associated with it"
-kind delete cluster --name kind-${BUILDKITE_BUILD_ID}
+teardownKindCluster

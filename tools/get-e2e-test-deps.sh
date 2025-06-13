@@ -19,7 +19,7 @@ KUBERNETES_RELEASE_URL="${KUBERNETES_RELEASE_URL:-https://dl.k8s.io}"
 # Download kubectl if needed.
 if [ ! -f "kubectl-${KUBE_VERSION}" ]; then
     echo "Downloading kubectl ${KUBE_VERSION}..."
-    curl -L "${KUBERNETES_RELEASE_URL}/${KUBE_VERSION}/bin/linux/amd64/kubectl" > "kubectl-${KUBE_VERSION}"
+    curl --silent -L "${KUBERNETES_RELEASE_URL}/${KUBE_VERSION}/bin/linux/amd64/kubectl" > "kubectl-${KUBE_VERSION}"
     chmod +x "kubectl-${KUBE_VERSION}"
 fi
 echo "Using kubectl ${KUBE_VERSION}."
@@ -29,7 +29,7 @@ ln -sf "kubectl-${KUBE_VERSION}" kubectl
 if ! command -v kind &> /dev/null
 then
     echo "Downloading kind..."
-    curl -L https://kind.sigs.k8s.io/dl/v0.27.0/kind-linux-amd64 > "kind"
+    curl --silent -L https://kind.sigs.k8s.io/dl/v0.27.0/kind-linux-amd64 > "kind"
     chmod +x "kind"
     echo "Installed kind"
 else
@@ -42,7 +42,7 @@ then
   echo "Downloading vtctldclient..."
   version=21.0.0-rc1
   file=vitess-${version}-7908b43.tar.gz
-  wget https://github.com/vitessio/vitess/releases/download/v${version}/${file}
+  wget -q https://github.com/vitessio/vitess/releases/download/v${version}/${file}
   tar -xzf ${file}
   cd ${file/.tar.gz/}
   cp -r ./bin/* ../
