@@ -12,9 +12,8 @@ spec:
     engine: xtrabackup
     locations:
       - volume:
-          hostPath:
-            path: /backup
-            type: Directory
+          persistentVolumeClaim:
+            claimName: vitess-backups
   images:
     vtctld: vitess/lite:v22.0.0-rc1
     vtgate: vitess/lite:v22.0.0-rc1
@@ -32,6 +31,8 @@ spec:
           secret:
             name: example-cluster-config
             key: users.json
+      extraFlags:
+        tablet_refresh_interval: 10s
       replicas: 1
       resources:
         requests:
@@ -128,7 +129,7 @@ stringData:
     # enabled before.
     SET @original_super_read_only=IF(@@global.super_read_only=1, 'ON', 'OFF');
     SET GLOBAL super_read_only='OFF';
-    
+
     # Changes during the init db should not make it to the binlog.
     # They could potentially create errant transactions on replicas.
     SET sql_log_bin = 0;
@@ -213,3 +214,15 @@ stringData:
 
     # We need to set super_read_only back to what it was before
     SET GLOBAL super_read_only=IFNULL(@original_super_read_only, 'ON');
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: vitess-backups
+  namespace: example
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi

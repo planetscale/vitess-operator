@@ -30,18 +30,9 @@ function verifyHpaWithTimeout() {
 }
 
 # Test setup
-echo "Building the docker image"
-docker build -f build/Dockerfile.release -t vitess-operator-pr:latest .
-echo "Creating Kind cluster"
-kind create cluster --wait 30s --name kind-${BUILDKITE_BUILD_ID} --image ${KIND_VERSION}
-echo "Loading docker image into Kind cluster"
-kind load docker-image vitess-operator-pr:latest --name kind-${BUILDKITE_BUILD_ID}
+setupKindCluster
+cd test/endtoend/operator || exit 1
 
-cd "$PWD/test/endtoend/operator"
-killall kubectl
-setupKubectlAccessForCI
-
-createExampleNamespace
 get_started "operator-latest.yaml" "101_initial_cluster_autoscale.yaml"
 verifyVtGateVersion "23.0.0"
 checkSemiSyncSetup
@@ -55,5 +46,4 @@ verifyHpaWithTimeout "example-zone1-(\w+)\s+VitessCell/example-zone1-(\w+)\s+cpu
 verifyHpaCount 1
 
 # Teardown
-echo "Deleting Kind cluster. This also deletes the volume associated with it"
-kind delete cluster --name kind-${BUILDKITE_BUILD_ID}
+teardownKindCluster
