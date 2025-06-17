@@ -6,8 +6,15 @@
 # set -x
 shopt -s expand_aliases
 alias vtctldclient="vtctldclient --server=localhost:15999"
-alias mysql="mysql --skip-ssl-verify-server-cert -h 127.0.0.1 -P 15306 -u user"
 BUILDKITE_JOB_ID="${BUILDKITE_JOB_ID:-0}"
+
+# Suppress warnings when using MariaDB Client
+mysql_version="$(mysql --version 2>/dev/null)"
+if [[ "${mysql_version}" =~ "MariaDB" ]]; then
+  alias mysql="mariadb --skip-ssl-verify-server-cert -h 127.0.0.1 -P 15306 -u user"
+else
+  alias mysql="mysql -h 127.0.0.1 -P 15306 -u user"
+fi
 
 function checkSemiSyncSetup() {
   for vttablet in $(kubectl get pods -n example --no-headers -o custom-columns=":metadata.name" | grep "vttablet") ; do
