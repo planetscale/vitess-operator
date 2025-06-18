@@ -243,7 +243,7 @@ setupKubectlAccessForCI
 
 createExampleNamespace
 get_started_vtorc_vtadmin
-verifyVtGateVersion "22.0.0"
+verifyVtGateVersion "22.0.1"
 checkSemiSyncSetup
 
 # Check Vtadmin is setup
