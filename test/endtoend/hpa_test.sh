@@ -43,7 +43,7 @@ setupKubectlAccessForCI
 
 createExampleNamespace
 get_started "operator-latest.yaml" "101_initial_cluster_autoscale.yaml"
-verifyVtGateVersion "22.0.0"
+verifyVtGateVersion "22.0.1"
 checkSemiSyncSetup
 
 verifyHpaCount 0
