@@ -252,6 +252,15 @@ function upgradeToLatest() {
   verifyDataCommerce
 }
 
+function verifyResourceSpec() {
+  echo "Verifying resource spec"
+
+  echo "mysqld_exporter flags:"
+  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vttablet" 3 "--no-collect.info_schema.innodb_cmpmem$"
+  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vttablet" 3 "--collect.info_schema.tables$"
+  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vttablet" 3 "--collect.info_schema.tables.databases=\*$"
+}
+
 # Test setup
 setupKindCluster
 cd test/endtoend/operator || exit 1
@@ -263,6 +272,7 @@ checkSemiSyncSetup
 verifyDurabilityPolicy "commerce" "semi_sync"
 upgradeToLatest
 verifyVtGateVersion "23.0.0"
+verifyResourceSpec
 checkSemiSyncSetup
 # After upgrading, we verify that the durability policy is still semi_sync
 verifyDurabilityPolicy "commerce" "semi_sync"
