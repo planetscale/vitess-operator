@@ -200,21 +200,26 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 
 		update.ResourceRequirements(&mysqldContainer.Resources, &spec.Mysqld.Resources)
 
+		// Compute all operator-generated mysqld_exporter flags first.
+		// Then apply user-provided overrides last so they take precedence.
+		mysqldExporterAllFlags := mysqldExporterFlags.Get(spec)
+		if spec.MysqldExporter != nil {
+			for key, value := range spec.MysqldExporter.ExtraFlags {
+				// We told users in the CRD API field doc not to put any leading '-',
+				// but people may not read that so we are liberal in what we accept.
+				key = strings.TrimLeft(key, "-")
+				mysqldExporterAllFlags[key] = value
+			}
+		}
+
 		// TODO: Can/should we still run mysqld_exporter pointing at external mysql?
 		mysqldExporterContainer = &corev1.Container{
 			Name:            mysqldExporterContainerName,
 			Image:           spec.Images.MysqldExporter,
 			ImagePullPolicy: spec.ImagePullPolicies.MysqldExporter,
 			Command:         []string{mysqldExporterCommand},
-			Args: []string{
-				"--config.my-cnf=" + spec.myCnfFilePath(),
-				// The default for `collect.info_schema.tables.databases` is
-				// `*`, which causes new time series to be created for each user
-				// table. This in turn causes scaling issues in Prometheus
-				// memory usage.
-				"--collect.info_schema.tables.databases=sys,_vt",
-			},
-			Env: mysqldExporterEnv,
+			Args:            mysqldExporterAllFlags.FormatArgsConvertBoolean(),
+			Env:             mysqldExporterEnv,
 			Ports: []corev1.ContainerPort{
 				{
 					Name:          mysqldExporterPortName,
@@ -243,6 +248,13 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 					corev1.ResourceMemory: *resource.NewQuantity(mysqldExporterMemoryLimitBytes, resource.BinarySI),
 				},
 			}
+			// TODO(enisoc): Add readiness and liveness probes that make sense for mysqld-exporter.
+			//   This depends on the exact semantics of each of mysqld-exporter's HTTP handlers,
+			//   so we need to do more investigation. For now it's better to leave them empty.
+		}
+
+		if spec.MysqldExporter != nil && (len(spec.MysqldExporter.Resources.Limits) > 0 || len(spec.MysqldExporter.Resources.Requests) > 0) {
+			update.ResourceRequirements(&mysqldExporterContainer.Resources, &spec.MysqldExporter.Resources)
 		}
 	}
 

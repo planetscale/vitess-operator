@@ -95,6 +95,18 @@ func init() {
 		}
 	})
 
+	// Base mysqld_exporter flags.
+	mysqldExporterFlags.Add(func(s lazy.Spec) vitess.Flags {
+		spec := s.(*Spec)
+		return vitess.Flags{
+			"config.my-cnf": spec.myCnfFilePath(),
+			// The default for `collect.info_schema.tables.databases` is `*`,
+			// which causes new time series to be created for each user table.
+			// This in turn causes scaling issues in Prometheus memory usage.
+			"collect.info_schema.tables.databases": "sys,_vt",
+		}
+	})
+
 	// Base vtbackup flags.
 	vtbackupFlags.Add(func(s lazy.Spec) vitess.Flags {
 		backupSpec := s.(*BackupSpec)

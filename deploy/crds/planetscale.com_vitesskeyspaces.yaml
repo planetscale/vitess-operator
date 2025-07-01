@@ -553,6 +553,10 @@ spec:
                                       type: object
                                     mysqldExporter:
                                       properties:
+                                        extraFlags:
+                                          additionalProperties:
+                                            type: string
+                                          type: object
                                         resources:
                                           properties:
                                             claims:
@@ -586,8 +590,6 @@ spec:
                                                 x-kubernetes-int-or-string: true
                                               type: object
                                           type: object
-                                      required:
-                                      - resources
                                       type: object
                                     name:
                                       default: ""
@@ -994,6 +996,10 @@ spec:
                                     type: object
                                   mysqldExporter:
                                     properties:
+                                      extraFlags:
+                                        additionalProperties:
+                                          type: string
+                                        type: object
                                       resources:
                                         properties:
                                           claims:
@@ -1027,8 +1033,6 @@ spec:
                                               x-kubernetes-int-or-string: true
                                             type: object
                                         type: object
-                                    required:
-                                    - resources
                                     type: object
                                   name:
                                     default: ""
