@@ -54,7 +54,7 @@ func DefaultVitessOrchestrator(vtorc **VitessOrchestratorSpec) {
 // The clusterDefaults should have already had its unspecified fields filled in with operator defaults.
 func DefaultVitessKeyspaceImages(dst *VitessKeyspaceImages, clusterDefaults *VitessImages) {
 	// Deep copying the cluster-level defaults to prevent
-	// overriding any value for subsequent keyspaces.
+	// overwriting any value for subsequent keyspaces.
 	defaults := clusterDefaults.DeepCopy()
 
 	if dst.Vttablet == "" {
