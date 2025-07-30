@@ -67,9 +67,10 @@ const (
 	defaultVtctldCPUMillis   = 100
 	defaultVtctldMemoryBytes = 128 * Mi
 
-	defaultVtadminReplicas    = 1
-	defaultVtadminCPUMillis   = 100
-	defaultVtadminMemoryBytes = 128 * Mi
+	defaultVtadminReplicas         = 1
+	defaultVtadminCPUMillis        = 100
+	defaultVtadminMemoryBytes      = 128 * Mi
+	defaultVtadminFetchCredentials = "omit"
 
 	defaultVtorcReplicas    = 0
 	defaultVtorcCPUMillis   = 100

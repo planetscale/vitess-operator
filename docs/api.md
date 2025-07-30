@@ -8528,6 +8528,21 @@ Kubernetes core/v1.ResourceRequirements
 </tr>
 <tr>
 <td>
+<code>fetchCredentials</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<p>FetchCredentials controls whether or not the browser includes credentials
+(e.g. cookies, auth headers) when vtadmin-web sends requests to
+vtadmin-api. For possible values, see
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#including_credentials">https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#including_credentials</a>.</p>
+<p>Default: omit.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>readOnly</code><br>
 <em>
 bool

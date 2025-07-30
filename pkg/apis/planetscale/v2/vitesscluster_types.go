@@ -479,6 +479,14 @@ type VtAdminSpec struct {
 	// APIResources determines the compute resources reserved for each vtadmin-api replica.
 	APIResources corev1.ResourceRequirements `json:"apiResources,omitempty"`
 
+	// FetchCredentials controls whether or not the browser includes credentials
+	// (e.g. cookies, auth headers) when vtadmin-web sends requests to
+	// vtadmin-api. For possible values, see
+	// https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#including_credentials.
+	//
+	// Default: omit.
+	FetchCredentials string `json:"fetchCredentials,omitempty"`
+
 	// ReadOnly specifies whether the web UI should be read-only
 	// or should it allow users to take actions
 	//

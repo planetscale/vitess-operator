@@ -130,6 +130,9 @@ func DefaultVtAdmin(dashboard **VtAdminSpec) {
 			corev1.ResourceMemory: *resource.NewQuantity(defaultVtadminMemoryBytes, resource.BinarySI),
 		}
 	}
+	if (*dashboard).FetchCredentials == "" {
+		(*dashboard).FetchCredentials = defaultVtadminFetchCredentials
+	}
 	DefaultServiceOverrides(&(*dashboard).Service)
 }
 
