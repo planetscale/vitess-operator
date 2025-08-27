@@ -15,7 +15,7 @@ spec:
     vtorc: vitess/lite:latest
     vtbackup: vitess/lite:latest
     mysqld:
-      mysql80Compatible: mysql:8.0.40
+      mysql80Compatible: mysql:8.4.6
     mysqldExporter: prom/mysqld-exporter:v0.14.0
   cells:
   - name: zone1
