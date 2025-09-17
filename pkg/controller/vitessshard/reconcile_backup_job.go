@@ -233,6 +233,8 @@ func vtbackupSpec(key client.ObjectKey, vts *planetscalev2.VitessShard, parentLa
 		InitContainers:           pool.InitContainers,
 		SidecarContainers:        pool.SidecarContainers,
 		ExtraEnv:                 pool.ExtraEnv,
+		ExtraVolumes:             pool.ExtraVolumes,
+		ExtraVolumeMounts:        pool.ExtraVolumeMounts,
 		Annotations:              annotations,
 		Affinity:                 pool.Affinity,
 		Tolerations:              pool.Tolerations,

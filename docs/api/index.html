@@ -8824,6 +8824,21 @@ set the string value to either &ldquo;true&rdquo; or &ldquo;false&rdquo;.</p>
 </tr>
 <tr>
 <td>
+<code>vtbackupExtraFlags</code><br>
+<em>
+map[string]string
+</em>
+</td>
+<td>
+<p>VtbackupExtraFlags can optionally be used to pass additional flags only to vtbackup.
+Use this to avoid sending vttablet-only flags to vtbackup, which may not support them.
+All entries must be key-value string pairs of the form &ldquo;flag&rdquo;: &ldquo;value&rdquo;. The flag name should
+not have any prefix (just &ldquo;flag&rdquo;, not &ldquo;-flag&rdquo;). To set a boolean flag, set the string value
+to either &ldquo;true&rdquo; or &ldquo;false&rdquo;.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>lifecycle</code><br>
 <em>
 <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#lifecycle-v1-core">

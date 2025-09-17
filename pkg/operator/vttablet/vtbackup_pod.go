@@ -119,6 +119,10 @@ func NewBackupPod(key client.ObjectKey, backupSpec *BackupSpec, mysqldImage stri
 	volumeMounts = append(volumeMounts, mysqldVolumeMounts.Get(tabletSpec)...)
 	volumeMounts = append(volumeMounts, tabletVolumeMounts.Get(tabletSpec)...)
 	volumeMounts = append(volumeMounts, vttabletVolumeMounts.Get(tabletSpec)...)
+	update.VolumeMounts(&volumeMounts, tabletSpec.ExtraVolumeMounts)
+
+	volumes := tabletVolumes.Get(tabletSpec)
+	update.Volumes(&volumes, tabletSpec.ExtraVolumes)
 
 	podSecurityContext := &corev1.PodSecurityContext{}
 	if planetscalev2.DefaultVitessFSGroup >= 0 {
@@ -145,7 +149,7 @@ func NewBackupPod(key client.ObjectKey, backupSpec *BackupSpec, mysqldImage stri
 		Spec: corev1.PodSpec{
 			ImagePullSecrets: tabletSpec.ImagePullSecrets,
 			RestartPolicy:    corev1.RestartPolicyOnFailure,
-			Volumes:          tabletVolumes.Get(tabletSpec),
+			Volumes:          volumes,
 			SecurityContext:  podSecurityContext,
 			Affinity:         tabletSpec.Affinity,
 			Tolerations:      tabletSpec.Tolerations,

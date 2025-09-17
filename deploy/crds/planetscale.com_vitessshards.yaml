@@ -656,6 +656,10 @@ spec:
                         terminationGracePeriodSeconds:
                           format: int64
                           type: integer
+                        vtbackupExtraFlags:
+                          additionalProperties:
+                            type: string
+                          type: object
                       required:
                       - resources
                       type: object
