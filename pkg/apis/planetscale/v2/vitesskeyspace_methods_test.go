@@ -23,7 +23,7 @@ import (
 
 func TestTranslationToVitessKeyRange(t *testing.T) {
 	table := []struct {
-		hezWidth int32
+		hexWidth int32
 		parts    int32
 		want     []VitessKeyRange
 	}{
@@ -64,7 +64,7 @@ func TestTranslationToVitessKeyRange(t *testing.T) {
 			},
 		},
 		{
-			hezWidth: 4,
+			hexWidth: 4,
 			parts:    7,
 			want: []VitessKeyRange{
 				{"", "2492"},
@@ -77,7 +77,7 @@ func TestTranslationToVitessKeyRange(t *testing.T) {
 			},
 		},
 		{
-			hezWidth: 4,
+			hexWidth: 4,
 			parts:    8,
 			want: []VitessKeyRange{
 				{"", "2000"},
@@ -94,7 +94,7 @@ func TestTranslationToVitessKeyRange(t *testing.T) {
 
 	for _, test := range table {
 		p := VitessKeyspaceEqualPartitioning{
-			HexWidth: test.hezWidth,
+			HexWidth: test.hexWidth,
 			Parts:    test.parts,
 		}
 		if got, want := p.KeyRanges(), test.want; !reflect.DeepEqual(got, want) {

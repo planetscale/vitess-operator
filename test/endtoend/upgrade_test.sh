@@ -80,16 +80,16 @@ function resharding() {
 
   echo "Apply 302_new_shards.yaml"
   kubectl apply -f 302_new_shards.yaml
-  checkPodStatusWithTimeout "example-customer-80-x-zone1-vtorc(.*)1/1(.*)Running(.*)"
-  checkPodStatusWithTimeout "example-customer-x-80-zone1-vtorc(.*)1/1(.*)Running(.*)"
+  checkPodStatusWithTimeout "example-customer-8000-x-zone1-vtorc(.*)1/1(.*)Running(.*)"
+  checkPodStatusWithTimeout "example-customer-x-8000-zone1-vtorc(.*)1/1(.*)Running(.*)"
   checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 12
 
   setupPortForwarding
-  waitForKeyspaceToBeServing customer -80 2
-  waitForKeyspaceToBeServing customer 80- 2
+  waitForKeyspaceToBeServing customer -8000 2
+  waitForKeyspaceToBeServing customer 8000- 2
 
   echo "Ready to reshard ..."
-  vtctldclient LegacyVtctlCommand -- Reshard --source_shards '-' --target_shards '-80,80-' Create customer.cust2cust
+  vtctldclient LegacyVtctlCommand -- Reshard --source_shards '-' --target_shards '-8000,8000-' Create customer.cust2cust
   if [ $? -ne 0 ]; then
     echo "Reshard Create failed"
     printMysqlErrorFiles
@@ -120,8 +120,8 @@ function resharding() {
 
   sleep 10
 
-  assertSelect ../common/select_customer-80_data.sql "customer/-80" << EOF
-Using customer/-80
+  assertSelect ../common/select_customer-80_data.sql "customer/-8000" << EOF
+Using customer/-8000
 Customer
 +-------------+--------------------+
 | customer_id | email              |
@@ -142,8 +142,8 @@ COrder
 +----------+-------------+----------+-------+
 EOF
 
-  assertSelect ../common/select_customer80-_data.sql "customer/80-" << EOF
-Using customer/80-
+  assertSelect ../common/select_customer80-_data.sql "customer/8000-" << EOF
+Using customer/8000-
 Customer
 +-------------+----------------+
 | customer_id | email          |
@@ -168,8 +168,8 @@ EOF
 
   kubectl apply -f 306_down_shard_0.yaml
   checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 9
-  waitForKeyspaceToBeServing customer -80 2
-  waitForKeyspaceToBeServing customer 80- 2
+  waitForKeyspaceToBeServing customer -8000 2
+  waitForKeyspaceToBeServing customer 8000- 2
 }
 
 function scheduledBackups() {
@@ -180,20 +180,20 @@ function scheduledBackups() {
   checkVitessBackupScheduleStatusWithTimeout "example-vbsc-customer(.*)"
 
   initialCommerceBackups=$(kubectl get vtb -n example --no-headers | grep "commerce-x-x" | wc -l)
-  initialCustomerFirstShardBackups=$(kubectl get vtb -n example --no-headers | grep "customer-x-80" | wc -l)
-  initialCustomerSecondShardBackups=$(kubectl get vtb -n example --no-headers | grep "customer-80-x" | wc -l)
+  initialCustomerFirstShardBackups=$(kubectl get vtb -n example --no-headers | grep "customer-x-8000" | wc -l)
+  initialCustomerSecondShardBackups=$(kubectl get vtb -n example --no-headers | grep "customer-8000-x" | wc -l)
 
   for i in {1..60} ; do
     commerceBackups=$(kubectl get vtb -n example --no-headers | grep "commerce-x-x" | wc -l)
-    customerFirstShardBackups=$(kubectl get vtb -n example --no-headers | grep "customer-x-80" | wc -l)
-    customerSecondShardBackups=$(kubectl get vtb -n example --no-headers | grep "customer-80-x" | wc -l)
+    customerFirstShardBackups=$(kubectl get vtb -n example --no-headers | grep "customer-x-8000" | wc -l)
+    customerSecondShardBackups=$(kubectl get vtb -n example --no-headers | grep "customer-8000-x" | wc -l)
 
     if [[ "${customerFirstShardBackups}" -ge $(( initialCustomerFirstShardBackups + 2 )) && "${customerSecondShardBackups}" -ge $(( initialCustomerSecondShardBackups + 2 )) && "${commerceBackups}" -ge $(( initialCommerceBackups + 2 )) ]]; then
       echo "Found all backups"
       return
     else
-      echo "Got: ${customerFirstShardBackups} customer-x-80 backups but want: $(( initialCustomerFirstShardBackups + 2 ))"
-      echo "Got: ${customerSecondShardBackups} customer-80-x backups but want: $(( initialCustomerSecondShardBackups + 2 ))"
+      echo "Got: ${customerFirstShardBackups} customer-x-8000 backups but want: $(( initialCustomerFirstShardBackups + 2 ))"
+      echo "Got: ${customerSecondShardBackups} customer-8000-x backups but want: $(( initialCustomerSecondShardBackups + 2 ))"
       echo "Got: ${commerceBackups} commerce-x-x backups but want: $(( initialCommerceBackups + 2 ))"
       echo ""
     fi
@@ -266,20 +266,20 @@ setupKindCluster
 cd test/endtoend/operator || exit 1
 
 get_started "operator-latest.yaml" "101_initial_cluster.yaml"
-#verifyVtGateVersion "22.0.1"
-#checkSemiSyncSetup
-## Initially too durability policy should be specified
-#verifyDurabilityPolicy "commerce" "semi_sync"
-#upgradeToLatest
-#verifyVtGateVersion "23.0.0"
-#verifyResourceSpec
-#checkSemiSyncSetup
-## After upgrading, we verify that the durability policy is still semi_sync
-#verifyDurabilityPolicy "commerce" "semi_sync"
-#move_tables
-#resharding
-#
-#scheduledBackups
-#
-## Teardown
-#teardownKindCluster
+verifyVtGateVersion "22.0.1"
+checkSemiSyncSetup
+# Initially too durability policy should be specified
+verifyDurabilityPolicy "commerce" "semi_sync"
+upgradeToLatest
+verifyVtGateVersion "23.0.0"
+verifyResourceSpec
+checkSemiSyncSetup
+# After upgrading, we verify that the durability policy is still semi_sync
+verifyDurabilityPolicy "commerce" "semi_sync"
+move_tables
+resharding
+
+scheduledBackups
+
+# Teardown
+teardownKindCluster

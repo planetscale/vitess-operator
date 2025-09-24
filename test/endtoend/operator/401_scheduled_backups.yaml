@@ -40,10 +40,10 @@ spec:
         strategies:
           - name: customer_80-x
             keyspace: "customer"
-            shard: "80-"
+            shard: "8000-"
           - name: customer_x-80
             keyspace: "customer"
-            shard: "-80"
+            shard: "-8000"
   images:
     vtctld: vitess/lite:mysql80
     vtgate: vitess/lite:mysql80
@@ -139,6 +139,7 @@ spec:
     partitionings:
     - equal:
         parts: 2
+        hexWidth: 4
         shardTemplate:
           databaseInitScriptSecret:
             name: example-cluster-config

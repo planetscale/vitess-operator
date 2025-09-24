@@ -411,7 +411,7 @@ function setupBuildContainerImage() {
 }
 
 function setupKindCluster() {
-  setupBuildContainerImage
+  #setupBuildContainerImage
   createKindCluster
   setupKubectlAccessForCI
   createExampleNamespace
