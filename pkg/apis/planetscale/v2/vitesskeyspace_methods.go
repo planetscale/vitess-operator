@@ -34,7 +34,7 @@ import (
 func (p *VitessKeyspaceEqualPartitioning) KeyRanges() []VitessKeyRange {
 	// Invariant: number of parts must be between 1-65536. This is enforced via
 	// the CRD.
-	ranges, err := key.GenerateShardRanges(int(p.Parts), 0)
+	ranges, err := key.GenerateShardRanges(int(p.Parts), int(p.HexWidth))
 	if err != nil {
 		panic(fmt.Sprintf("could not generate shard range with %d parts: %v", p.Parts, err))
 	}

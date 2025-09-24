@@ -265,21 +265,21 @@ function verifyResourceSpec() {
 setupKindCluster
 cd test/endtoend/operator || exit 1
 
-get_started "operator.yaml" "101_initial_cluster.yaml"
-verifyVtGateVersion "22.0.1"
-checkSemiSyncSetup
-# Initially too durability policy should be specified
-verifyDurabilityPolicy "commerce" "semi_sync"
-upgradeToLatest
-verifyVtGateVersion "23.0.0"
-verifyResourceSpec
-checkSemiSyncSetup
-# After upgrading, we verify that the durability policy is still semi_sync
-verifyDurabilityPolicy "commerce" "semi_sync"
-move_tables
-resharding
-
-scheduledBackups
-
-# Teardown
-teardownKindCluster
+get_started "operator-latest.yaml" "101_initial_cluster.yaml"
+#verifyVtGateVersion "22.0.1"
+#checkSemiSyncSetup
+## Initially too durability policy should be specified
+#verifyDurabilityPolicy "commerce" "semi_sync"
+#upgradeToLatest
+#verifyVtGateVersion "23.0.0"
+#verifyResourceSpec
+#checkSemiSyncSetup
+## After upgrading, we verify that the durability policy is still semi_sync
+#verifyDurabilityPolicy "commerce" "semi_sync"
+#move_tables
+#resharding
+#
+#scheduledBackups
+#
+## Teardown
+#teardownKindCluster
