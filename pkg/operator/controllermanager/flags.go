@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/spf13/pflag"
 	"vitess.io/vitess/go/vt/servenv"
@@ -45,10 +46,25 @@ func InitFlags() {
 	}
 
 	vtbackupFlags.VisitAll(func(f *pflag.Flag) {
-		_, isRequired := flagsRequiredByVTop[f.Name]
+		fName := f.Name
+		_, isRequired := flagsRequiredByVTop[fName]
 		if isRequired {
-			flagsRequiredByVTop[f.Name] = true
+			flagsRequiredByVTop[fName] = true
 			pflag.CommandLine.AddFlag(f)
+
+			// In Vitess v22 we are migrating flags to use underscores instead of
+			// dashes. The logic below duplicates flags with the dash version into
+			// the underscore version and adds them to the operator CLI so that the
+			// backup subcontroller is backward compatible and support both versions.
+			// TODO: this should be cleaned up in v23 to only use dashes.
+			underscoreFlagName := strings.ReplaceAll(fName, "-", "_")
+			if underscoreFlagName != fName {
+				flagsRequiredByVTop[underscoreFlagName] = true
+
+				fcopy := *f
+				fcopy.Name = underscoreFlagName
+				pflag.CommandLine.AddFlag(&fcopy)
+			}
 		}
 	})
 
@@ -71,12 +87,27 @@ func InitFlags() {
 		"topo-etcd-tls-key":               false,
 	}
 	vttabletFlags.VisitAll(func(f *pflag.Flag) {
-		_, isRequired := tlsFlags[f.Name]
+		fName := f.Name
+		_, isRequired := tlsFlags[fName]
 		if isRequired {
-			isAlreadyAdded := pflag.CommandLine.Lookup(f.Name) != nil
+			isAlreadyAdded := pflag.CommandLine.Lookup(fName) != nil
 			if !isAlreadyAdded {
 				pflag.CommandLine.AddFlag(f)
-				tlsFlags[f.Name] = true
+				tlsFlags[fName] = true
+			}
+
+			// In Vitess v22 we are migrating flags to use underscores instead of
+			// dashes. The logic below duplicates flags with the dash version into
+			// the underscore version and adds them to the operator CLI so that the
+			// backup subcontroller is backward compatible and support both versions.
+			// TODO: this should be cleaned up in v23 to only use dashes.
+			underscoreFlagName := strings.ReplaceAll(fName, "-", "_")
+			if underscoreFlagName != fName {
+				tlsFlags[underscoreFlagName] = true
+
+				fcopy := *f
+				fcopy.Name = underscoreFlagName
+				pflag.CommandLine.AddFlag(&fcopy)
 			}
 		}
 	})
