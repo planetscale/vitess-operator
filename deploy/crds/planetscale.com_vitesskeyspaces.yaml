@@ -1124,7 +1124,6 @@ spec:
                           - databaseInitScriptSecret
                           type: object
                       required:
-                      - hexWidth
                       - parts
                       type: object
                   type: object

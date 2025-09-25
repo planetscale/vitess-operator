@@ -362,7 +362,7 @@ type VitessKeyspaceEqualPartitioning struct {
 	// +kubebuilder:default=0
 	// +kubebuilder:validation:Minimum=0
 	// +kubebuilder:validation:Maximum=65536
-	HexWidth int32 `json:"hexWidth"`
+	HexWidth int32 `json:"hexWidth,omitempty"`
 
 	// ShardTemplate is the configuration used for each equal-sized shard.
 	// If you need shards that don't all share the same configuration,
