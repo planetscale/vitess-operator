@@ -136,6 +136,11 @@ func (r *ReconcileVitessBackupStorage) newSubcontrollerPodSpec(ctx context.Conte
 		if strings.HasPrefix(volume.Name, tokenNamePrefix) {
 			continue
 		}
+		// also skip volumes mounted by k8s v1.21+ BoundedServiceAccountToken
+		// https://cloud.google.com/blog/products/containers-kubernetes/kubernetes-bound-service-account-tokens
+		if strings.HasPrefix(volume.Name, "kube-api-access-") {
+			continue
+		}
 		newVolumes = append(newVolumes, volume)
 	}
 	spec.Volumes = newVolumes
@@ -147,6 +152,11 @@ func (r *ReconcileVitessBackupStorage) newSubcontrollerPodSpec(ctx context.Conte
 		for _, mount := range container.VolumeMounts {
 			// skip mounts from the automounted token
 			if strings.HasPrefix(mount.Name, tokenNamePrefix) {
+				continue
+			}
+			// also skip volumes mounted by k8s v1.21+ BoundedServiceAccountToken
+			// https://cloud.google.com/blog/products/containers-kubernetes/kubernetes-bound-service-account-tokens
+			if strings.HasPrefix(mount.Name, "kube-api-access-") {
 				continue
 			}
 			newMounts = append(newMounts, mount)
