@@ -104,7 +104,7 @@ const (
 	DefaultMysqlPortName = "mysql"
 
 	defaultVitessLiteImage = "vitess/lite:latest"
-	defaultMySQLImage      = "mysql:8.0.40"
+	defaultMySQLImage      = "mysql:8.4.6"
 
 	DefaultInitCPURequestMillis   = 100
 	DefaultInitMemoryRequestBytes = 32 * (1 << 20) // 32 MiB

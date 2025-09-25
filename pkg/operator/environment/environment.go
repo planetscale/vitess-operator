@@ -32,7 +32,7 @@ import (
 
 var (
 	reconcileTimeout   time.Duration
-	MySQLServerVersion = "8.0.40-Vitess"
+	MySQLServerVersion = "8.4.6-Vitess"
 	// truncateUILen truncate queries in debug UIs to the given length. 0 means unlimited.
 	truncateUILen = 512
 	// truncateErrLen truncate queries in error logs to the given length. 0 means unlimited.
