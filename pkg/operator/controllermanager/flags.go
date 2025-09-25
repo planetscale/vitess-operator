@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/spf13/pflag"
 	"vitess.io/vitess/go/vt/servenv"
@@ -28,27 +29,42 @@ func InitFlags() {
 
 	vtbackupFlags := servenv.GetFlagSetFor("vtbackup")
 	flagsRequiredByVTop := map[string]bool{
-		"backup_storage_implementation":  false,
-		"ceph_backup_storage_config":     false,
-		"azblob_backup_account_name":     false,
-		"azblob_backup_account_key_file": false,
-		"azblob_backup_container_name":   false,
-		"azblob_backup_storage_root":     false,
-		"file_backup_storage_root":       false,
-		"gcs_backup_storage_bucket":      false,
-		"gcs_backup_storage_root":        false,
-		"s3_backup_aws_region":           false,
-		"s3_backup_storage_bucket":       false,
-		"s3_backup_storage_root":         false,
-		"s3_backup_force_path_style":     false,
-		"s3_backup_aws_endpoint":         false,
+		"backup-storage-implementation":  false,
+		"ceph-backup-storage-config":     false,
+		"azblob-backup-account-name":     false,
+		"azblob-backup-account-key-file": false,
+		"azblob-backup-container-name":   false,
+		"azblob-backup-storage-root":     false,
+		"file-backup-storage-root":       false,
+		"gcs-backup-storage-bucket":      false,
+		"gcs-backup-storage-root":        false,
+		"s3-backup-aws-region":           false,
+		"s3-backup-storage-bucket":       false,
+		"s3-backup-storage-root":         false,
+		"s3-backup-force-path-style":     false,
+		"s3-backup-aws-endpoint":         false,
 	}
 
 	vtbackupFlags.VisitAll(func(f *pflag.Flag) {
-		_, isRequired := flagsRequiredByVTop[f.Name]
+		fName := f.Name
+		_, isRequired := flagsRequiredByVTop[fName]
 		if isRequired {
-			flagsRequiredByVTop[f.Name] = true
+			flagsRequiredByVTop[fName] = true
 			pflag.CommandLine.AddFlag(f)
+
+			// In Vitess v22 we are migrating flags to use underscores instead of
+			// dashes. The logic below duplicates flags with the dash version into
+			// the underscore version and adds them to the operator CLI so that the
+			// backup subcontroller is backward compatible and support both versions.
+			// TODO: this should be cleaned up in v23 to only use dashes.
+			underscoreFlagName := strings.ReplaceAll(fName, "-", "_")
+			if underscoreFlagName != fName {
+				flagsRequiredByVTop[underscoreFlagName] = true
+
+				fcopy := *f
+				fcopy.Name = underscoreFlagName
+				pflag.CommandLine.AddFlag(&fcopy)
+			}
 		}
 	})
 
@@ -63,20 +79,35 @@ func InitFlags() {
 	// vttablet set contains all required flags
 	vttabletFlags := servenv.GetFlagSetFor("vttablet")
 	tlsFlags := map[string]bool{
-		"tablet_manager_grpc_ca":          false,
-		"tablet_manager_grpc_server_name": false,
-		"topo_global_server_address":      false,
-		"topo_etcd_tls_ca":                false,
-		"topo_etcd_tls_cert":              false,
-		"topo_etcd_tls_key":               false,
+		"tablet-manager-grpc-ca":          false,
+		"tablet-manager-grpc-server-name": false,
+		"topo-global-server-address":      false,
+		"topo-etcd-tls-ca":                false,
+		"topo-etcd-tls-cert":              false,
+		"topo-etcd-tls-key":               false,
 	}
 	vttabletFlags.VisitAll(func(f *pflag.Flag) {
-		_, isRequired := tlsFlags[f.Name]
+		fName := f.Name
+		_, isRequired := tlsFlags[fName]
 		if isRequired {
-			isAlreadyAdded := pflag.CommandLine.Lookup(f.Name) != nil
+			isAlreadyAdded := pflag.CommandLine.Lookup(fName) != nil
 			if !isAlreadyAdded {
 				pflag.CommandLine.AddFlag(f)
-				tlsFlags[f.Name] = true
+				tlsFlags[fName] = true
+			}
+
+			// In Vitess v22 we are migrating flags to use underscores instead of
+			// dashes. The logic below duplicates flags with the dash version into
+			// the underscore version and adds them to the operator CLI so that the
+			// backup subcontroller is backward compatible and support both versions.
+			// TODO: this should be cleaned up in v23 to only use dashes.
+			underscoreFlagName := strings.ReplaceAll(fName, "-", "_")
+			if underscoreFlagName != fName {
+				tlsFlags[underscoreFlagName] = true
+
+				fcopy := *f
+				fcopy.Name = underscoreFlagName
+				pflag.CommandLine.AddFlag(&fcopy)
 			}
 		}
 	})
