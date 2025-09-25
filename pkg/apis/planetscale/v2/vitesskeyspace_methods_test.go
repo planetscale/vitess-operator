@@ -64,7 +64,7 @@ func TestTranslationToVitessKeyRange(t *testing.T) {
 			},
 		},
 		{
-			hexWidth: 4,
+			hexWidth: 2,
 			parts:    7,
 			want: []VitessKeyRange{
 				{"", "2492"},
@@ -77,7 +77,7 @@ func TestTranslationToVitessKeyRange(t *testing.T) {
 			},
 		},
 		{
-			hexWidth: 4,
+			hexWidth: 2,
 			parts:    8,
 			want: []VitessKeyRange{
 				{"", "2000"},
