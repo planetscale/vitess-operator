@@ -1,6 +1,6 @@
 module planetscale.dev/vitess-operator
 
-go 1.24.4
+go 1.25.1
 
 require (
 	github.com/ahmetb/gen-crd-api-reference-docs v0.3.0

@@ -9,12 +9,12 @@ metadata:
   namespace: example
 spec:
   images:
-    vtctld: vitess/lite:latest
+    vtctld: vitess/lite:mysql80
     vtadmin: vitess/vtadmin:latest
-    vtgate: vitess/lite:latest
-    vttablet: vitess/lite:latest
-    vtbackup: vitess/lite:latest
-    vtorc: vitess/lite:latest
+    vtgate: vitess/lite:mysql80
+    vttablet: vitess/lite:mysql80
+    vtbackup: vitess/lite:mysql80
+    vtorc: vitess/lite:mysql80
     mysqld:
       mysql80Compatible: mysql:8.0.40
     mysqldExporter: prom/mysqld-exporter:v0.14.0
@@ -194,11 +194,6 @@ stringData:
       LOCK TABLES, EXECUTE, REPLICATION SLAVE, REPLICATION CLIENT, CREATE VIEW,
       SHOW VIEW, CREATE ROUTINE, ALTER ROUTINE, CREATE USER, EVENT, TRIGGER
       ON *.* TO 'vt_filtered'@'localhost';
-
-    FLUSH PRIVILEGES;
-
-    RESET SLAVE ALL;
-    RESET MASTER;
 
     # custom sql is used to add custom scripts like creating users/passwords. We use it in our tests
     # {{custom_sql}}

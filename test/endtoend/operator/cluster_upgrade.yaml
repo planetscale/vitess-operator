@@ -15,13 +15,13 @@ spec:
           persistentVolumeClaim:
             claimName: vitess-backups
   images:
-    vtctld: vitess/lite:latest
-    vtgate: vitess/lite:latest
-    vttablet: vitess/lite:latest
-    vtorc: vitess/lite:latest
-    vtbackup: vitess/lite:latest
+    vtctld: vitess/lite:mysql80
+    vtgate: vitess/lite:mysql80
+    vttablet: vitess/lite:mysql80
+    vtorc: vitess/lite:mysql80
+    vtbackup: vitess/lite:mysql80
     mysqld:
-      mysql80Compatible: vitess/lite:latest
+      mysql80Compatible: vitess/lite:mysql80
     mysqldExporter: prom/mysqld-exporter:v0.14.0
   cells:
   - name: zone1
