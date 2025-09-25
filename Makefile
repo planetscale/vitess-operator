@@ -61,7 +61,7 @@ e2e-test-setup:
 	./tools/get-e2e-test-deps.sh
 
 # Upgrade test
-upgrade-test:
+upgrade-test: e2e-test-setup
 	echo "Running Upgrade test"
 	test/endtoend/upgrade_test.sh
 
