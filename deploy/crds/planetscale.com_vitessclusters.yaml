@@ -2140,6 +2140,12 @@ spec:
                             type: object
                           equal:
                             properties:
+                              hexWidth:
+                                default: 0
+                                format: int32
+                                maximum: 65536
+                                minimum: 0
+                                type: integer
                               parts:
                                 format: int32
                                 maximum: 65536

@@ -105,6 +105,7 @@ spec:
     partitionings:
     - equal:
         parts: 2
+        hexWidth: 4
         shardTemplate:
           databaseInitScriptSecret:
             name: example-cluster-config

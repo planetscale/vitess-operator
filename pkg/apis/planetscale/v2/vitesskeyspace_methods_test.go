@@ -23,8 +23,9 @@ import (
 
 func TestTranslationToVitessKeyRange(t *testing.T) {
 	table := []struct {
-		parts int32
-		want  []VitessKeyRange
+		hexWidth int32
+		parts    int32
+		want     []VitessKeyRange
 	}{
 		{
 			parts: 1,
@@ -62,10 +63,40 @@ func TestTranslationToVitessKeyRange(t *testing.T) {
 				{"e0", ""},
 			},
 		},
+		{
+			hexWidth: 4,
+			parts:    7,
+			want: []VitessKeyRange{
+				{"", "2492"},
+				{"2492", "4924"},
+				{"4924", "6db6"},
+				{"6db6", "9249"},
+				{"9249", "b6db"},
+				{"b6db", "db6d"},
+				{"db6d", ""},
+			},
+		},
+		{
+			hexWidth: 4,
+			parts:    8,
+			want: []VitessKeyRange{
+				{"", "2000"},
+				{"2000", "4000"},
+				{"4000", "6000"},
+				{"6000", "8000"},
+				{"8000", "a000"},
+				{"a000", "c000"},
+				{"c000", "e000"},
+				{"e000", ""},
+			},
+		},
 	}
 
 	for _, test := range table {
-		p := VitessKeyspaceEqualPartitioning{Parts: test.parts}
+		p := VitessKeyspaceEqualPartitioning{
+			HexWidth: test.hexWidth,
+			Parts:    test.parts,
+		}
 		if got, want := p.KeyRanges(), test.want; !reflect.DeepEqual(got, want) {
 			t.Errorf("KeyRanges(%v) = %#v; want %#v", test.parts, got, want)
 		}
