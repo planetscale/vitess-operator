@@ -21,8 +21,8 @@ compatible with certain Vitess and Kubernetes versions, as shown in this table:
 | `v2.13.*`               | `v20.0.*`                   | `v1.25.*`, `v1.26.*`, `v1.27.*`, or `v1.28.*` |
 | `v2.14.*`               | `v21.0.*`                   | `v1.29.*`, `v1.30.*`, `v1.31.*`               |
 | `v2.15.*`               | `v22.0.*`                   | `v1.30.*`, `v1.31.*`, `v1.32.*`               |
-| `v2.16.*`               | `v23.0.*`                   | `v1.30.*`, `v1.31.*`, `v1.32.*`               |
-| `latest`                | `latest`                    | `v1.30.*`, `v1.31.*`, `v1.32.*`               |
+| `v2.16.*`               | `v23.0.*`                   | `v1.31.*`, `v1.32.*`, `v1.33.*`, or `v1.34.*` |
+| `latest`                | `latest`                    | `v1.31.*`, `v1.32.*`, `v1.33.*`, or `v1.34.*` |
 
 If for some reason you must attempt to use versions outside the recommend
 window, we still welcome bug reports since a workaround might be possible.

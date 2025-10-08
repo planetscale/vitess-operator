@@ -13,7 +13,7 @@ DIR="${BASH_SOURCE%/*}"
 mkdir -p "${DIR}/_bin"
 cd "${DIR}/_bin"
 
-KUBE_VERSION="${KUBE_VERSION:-v1.32.2}"
+KUBE_VERSION="${KUBE_VERSION:-v1.34.1}"
 KUBERNETES_RELEASE_URL="${KUBERNETES_RELEASE_URL:-https://dl.k8s.io}"
 
 # Download kubectl if needed.
