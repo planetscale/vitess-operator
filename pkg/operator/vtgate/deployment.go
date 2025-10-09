@@ -267,26 +267,26 @@ func (spec *Spec) baseFlags() vitess.Flags {
 
 	return vitess.Flags{
 		"cell":                 spec.Cell.Name,
-		"cells_to_watch":       strings.Join(cellsToWatch, ","),
-		"tablet_types_to_wait": tabletTypesToWait,
+		"cells-to-watch":       strings.Join(cellsToWatch, ","),
+		"tablet-types-to-wait": tabletTypesToWait,
 
-		"enable_buffer":                     bufferMasterTrafficDuringFailover,
-		"buffer_min_time_between_failovers": bufferMinTimeBetweenFailovers,
-		"buffer_max_failover_duration":      bufferMaxFailoverDuration,
-		"buffer_size":                       bufferSize,
+		"enable-buffer":                     bufferMasterTrafficDuringFailover,
+		"buffer-min-time-between-failovers": bufferMinTimeBetweenFailovers,
+		"buffer-max-failover-duration":      bufferMaxFailoverDuration,
+		"buffer-size":                       bufferSize,
 
-		"grpc_max_message_size": grpcMaxMessageSize,
+		"grpc-max-message-size": grpcMaxMessageSize,
 
-		"mysql_server_port": planetscalev2.DefaultMysqlPort,
+		"mysql-server-port": planetscalev2.DefaultMysqlPort,
 
 		"logtostderr":                true,
-		"topo_implementation":        spec.Cell.GlobalLockserver.Implementation,
-		"topo_global_server_address": spec.Cell.GlobalLockserver.Address,
-		"topo_global_root":           spec.Cell.GlobalLockserver.RootPath,
+		"topo-implementation":        spec.Cell.GlobalLockserver.Implementation,
+		"topo-global-server-address": spec.Cell.GlobalLockserver.Address,
+		"topo-global-root":           spec.Cell.GlobalLockserver.RootPath,
 
-		"service_map": serviceMap,
+		"service-map": serviceMap,
 		"port":        planetscalev2.DefaultWebPort,
-		"grpc_port":   planetscalev2.DefaultGrpcPort,
+		"grpc-port":   planetscalev2.DefaultGrpcPort,
 	}
 }
 
@@ -295,9 +295,9 @@ func updateAuth(spec *Spec, flags vitess.Flags, container *corev1.Container, pod
 		staticAuthFile := secrets.Mount(spec.Authentication.Static.Secret, staticAuthDirName)
 
 		// Get usernames and passwords from a static file, mounted from a Secret.
-		flags["mysql_auth_server_impl"] = "static"
-		flags["mysql_auth_server_static_file"] = staticAuthFile.FilePath()
-		flags["mysql_auth_static_reload_interval"] = "30s"
+		flags["mysql-auth-server-impl"] = "static"
+		flags["mysql-auth-server-static-file"] = staticAuthFile.FilePath()
+		flags["mysql-auth-static-reload-interval"] = "30s"
 
 		// Add the volume to the Pod, if needed.
 		update.Volumes(&podSpec.Volumes, staticAuthFile.PodVolumes())
@@ -321,12 +321,12 @@ func updateTransport(spec *Spec, flags vitess.Flags, container *corev1.Container
 
 		// GRPC does not have an equivalent flag,
 		// and all GRPC transport is required to be encrypted when certs are set.
-		flags["mysql_server_require_secure_transport"] = spec.SecureTransport.Required
+		flags["mysql-server-require-secure-transport"] = spec.SecureTransport.Required
 
-		flags["mysql_server_ssl_cert"] = tlsCertFile.FilePath()
-		flags["mysql_server_ssl_key"] = tlsKeyFile.FilePath()
-		flags["grpc_cert"] = tlsCertFile.FilePath()
-		flags["grpc_key"] = tlsKeyFile.FilePath()
+		flags["mysql-server-ssl-cert"] = tlsCertFile.FilePath()
+		flags["mysql-server-ssl-key"] = tlsKeyFile.FilePath()
+		flags["grpc-cert"] = tlsCertFile.FilePath()
+		flags["grpc-key"] = tlsKeyFile.FilePath()
 
 		// Add the volumes to the Pod, if needed.
 		update.Volumes(&podSpec.Volumes, tlsCertFile.PodVolumes())
@@ -341,8 +341,8 @@ func updateTransport(spec *Spec, flags vitess.Flags, container *corev1.Container
 		if tls.ClientCACertSecret != nil {
 			clientCACertFile := secrets.Mount(tls.ClientCACertSecret, tlsClientCACertDirName)
 
-			flags["mysql_server_ssl_ca"] = clientCACertFile.FilePath()
-			flags["grpc_ca"] = clientCACertFile.FilePath()
+			flags["mysql-server-ssl-ca"] = clientCACertFile.FilePath()
+			flags["grpc-ca"] = clientCACertFile.FilePath()
 
 			update.Volumes(&podSpec.Volumes, clientCACertFile.PodVolumes())
 
