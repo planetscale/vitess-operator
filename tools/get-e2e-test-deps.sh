@@ -28,8 +28,9 @@ ln -sf "kubectl-${KUBE_VERSION}" kubectl
 # Download kind if needed.
 if ! command -v kind &> /dev/null
 then
-    echo "Installing kind..."
-    go install sigs.k8s.io/kind@v0.30.0
+    echo "Downloading kind..."
+    curl --silent -L https://kind.sigs.k8s.io/dl/v0.30.0/kind-linux-amd64 > "kind"
+    chmod +x "kind"
     echo "Installed kind"
 else
     echo "Kind already installed"
