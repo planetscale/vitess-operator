@@ -49,27 +49,27 @@ func init() {
 		spec := s.(*Spec)
 		return vitess.Flags{
 			"logtostderr":                true,
-			"topo_implementation":        spec.GlobalLockserver.Implementation,
-			"topo_global_server_address": spec.GlobalLockserver.Address,
-			"topo_global_root":           spec.GlobalLockserver.RootPath,
-			"grpc_max_message_size":      grpcMaxMessageSize,
+			"topo-implementation":        spec.GlobalLockserver.Implementation,
+			"topo-global-server-address": spec.GlobalLockserver.Address,
+			"topo-global-root":           spec.GlobalLockserver.RootPath,
+			"grpc-max-message-size":      grpcMaxMessageSize,
 
-			"service_map": serviceMap,
+			"service-map": serviceMap,
 			"port":        planetscalev2.DefaultWebPort,
-			"grpc_port":   planetscalev2.DefaultGrpcPort,
+			"grpc-port":   planetscalev2.DefaultGrpcPort,
 
 			"tablet-path": topoproto.TabletAliasString(&spec.Alias),
 
 			// We inject the POD_IP environment variable up above via the Pod Downward API.
 			// The Pod args list natively expands environment variables in this format,
 			// so we don't need to use a shell to launch vttablet.
-			"tablet_hostname": "$(POD_IP)",
+			"tablet-hostname": "$(POD_IP)",
 
-			"init_keyspace":    spec.KeyspaceName,
-			"init_shard":       spec.KeyRange.String(),
-			"init_tablet_type": spec.Type.InitTabletType(),
+			"init-keyspace":    spec.KeyspaceName,
+			"init-shard":       spec.KeyRange.String(),
+			"init-tablet-type": spec.Type.InitTabletType(),
 
-			"health_check_interval": healthCheckInterval,
+			"health-check-interval": healthCheckInterval,
 
 			"queryserver-config-max-result-size":  queryserverConfigMaxResultSize,
 			"queryserver-config-query-timeout":    fmt.Sprintf("%ds", queryserverConfigQueryTimeout),
@@ -85,13 +85,13 @@ func init() {
 		dbInitScript := secrets.Mount(&spec.DatabaseInitScriptSecret, dbInitScriptDirName)
 		return vitess.Flags{
 			"logtostderr":      true,
-			"tablet_uid":       spec.Alias.Uid,
-			"socket_file":      mysqlctlSocketPath,
-			"mysql_socket":     mysqlSocketPath,
-			"db_dba_user":      dbConfigDbaUname,
-			"db_charset":       spec.dbConfigCharset(),
-			"init_db_sql_file": dbInitScript.FilePath(),
-			"wait_time":        mysqlctlWaitTime,
+			"tablet-uid":       spec.Alias.Uid,
+			"socket-file":      mysqlctlSocketPath,
+			"mysql-socket":     mysqlSocketPath,
+			"db-dba-user":      dbConfigDbaUname,
+			"db-charset":       spec.dbConfigCharset(),
+			"init-db-sql-file": dbInitScript.FilePath(),
+			"wait-time":        mysqlctlWaitTime,
 		}
 	})
 
@@ -115,27 +115,27 @@ func init() {
 		return vitess.Flags{
 			// vtbackup-specific flags.
 			"concurrency":         vtbackupConcurrency,
-			"initial_backup":      backupSpec.InitialBackup,
-			"min_backup_interval": backupSpec.MinBackupInterval,
-			"min_retention_time":  backupSpec.MinRetentionTime,
-			"min_retention_count": backupSpec.MinRetentionCount,
+			"initial-backup":      backupSpec.InitialBackup,
+			"min-backup-interval": backupSpec.MinBackupInterval,
+			"min-retention-time":  backupSpec.MinRetentionTime,
+			"min-retention-count": backupSpec.MinRetentionCount,
 
 			// Flags that are common to vttablet and mysqlctld.
 			"logtostderr":                true,
-			"topo_implementation":        spec.GlobalLockserver.Implementation,
-			"topo_global_server_address": spec.GlobalLockserver.Address,
-			"topo_global_root":           spec.GlobalLockserver.RootPath,
+			"topo-implementation":        spec.GlobalLockserver.Implementation,
+			"topo-global-server-address": spec.GlobalLockserver.Address,
+			"topo-global-root":           spec.GlobalLockserver.RootPath,
 
-			"init_keyspace":         spec.KeyspaceName,
-			"init_shard":            spec.KeyRange.String(),
-			"init_db_name_override": spec.localDatabaseName(),
+			"init-keyspace":         spec.KeyspaceName,
+			"init-shard":            spec.KeyRange.String(),
+			"init-db-name-override": spec.localDatabaseName(),
 
-			"db_dba_user": dbConfigDbaUname,
-			"db_charset":  spec.dbConfigCharset(),
+			"db-dba-user": dbConfigDbaUname,
+			"db-charset":  spec.dbConfigCharset(),
 
-			"init_db_sql_file": dbInitScript.FilePath(),
+			"init-db-sql-file": dbInitScript.FilePath(),
 
-			"mysql_socket": mysqlSocketPath,
+			"mysql-socket": mysqlSocketPath,
 		}
 	})
 }

@@ -236,12 +236,12 @@ func (spec *Spec) flags() vitess.Flags {
 		"cell": spec.Cell.Name,
 
 		"port":        planetscalev2.DefaultWebPort,
-		"grpc_port":   planetscalev2.DefaultGrpcPort,
-		"service_map": serviceMap,
+		"grpc-port":   planetscalev2.DefaultGrpcPort,
+		"service-map": serviceMap,
 
-		"topo_implementation":        spec.GlobalLockserver.Implementation,
-		"topo_global_server_address": spec.GlobalLockserver.Address,
-		"topo_global_root":           spec.GlobalLockserver.RootPath,
+		"topo-implementation":        spec.GlobalLockserver.Implementation,
+		"topo-global-server-address": spec.GlobalLockserver.Address,
+		"topo-global-root":           spec.GlobalLockserver.RootPath,
 
 		"logtostderr": true,
 	}
@@ -249,11 +249,11 @@ func (spec *Spec) flags() vitess.Flags {
 		return flags
 	}
 	flags = flags.Merge(vitess.Flags{
-		"backup_engine_implementation": string(spec.BackupEngine),
+		"backup-engine-implementation": string(spec.BackupEngine),
 	})
 	if spec.BackupEngine == planetscalev2.VitessBackupEngineXtraBackup {
 		flags = flags.Merge(vitess.Flags{
-			"backup_storage_compress": true,
+			"backup-storage-compress": true,
 		})
 	}
 	clusterName := spec.Labels[planetscalev2.ClusterLabel]
