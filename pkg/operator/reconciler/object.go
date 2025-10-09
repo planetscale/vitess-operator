@@ -400,7 +400,7 @@ func describeDiff(curObj, newObj runtime.Object, kind runtime.Object) string {
 	if err != nil {
 		// Strategic merge patch might not work for every object.
 		// Fall back to a more generic diff mechanism.
-		return diff.ObjectReflectDiff(curObj, newObj)
+		return diff.Diff(curObj, newObj)
 	}
 	return patch
 }
