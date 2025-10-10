@@ -28,12 +28,12 @@ import (
 
 func xtrabackupFlags(backupThreads, restoreThreads int) vitess.Flags {
 	flags := vitess.Flags{
-		"xtrabackup_user":         xtrabackupUser,
-		"xtrabackup_stream_mode":  xtrabackupStreamMode,
-		"xtrabackup_stripes":      xtrabackupStripeCount,
-		"xtrabackup_backup_flags": fmt.Sprintf("--parallel=%d", backupThreads),
-		"xbstream_restore_flags":  fmt.Sprintf("--parallel=%d", restoreThreads),
-		"backup_storage_compress": true,
+		"xtrabackup-user":         xtrabackupUser,
+		"xtrabackup-stream-mode":  xtrabackupStreamMode,
+		"xtrabackup-stripes":      xtrabackupStripeCount,
+		"xtrabackup-backup-flags": fmt.Sprintf("--parallel=%d", backupThreads),
+		"xbstream-restore-flags":  fmt.Sprintf("--parallel=%d", restoreThreads),
+		"backup-storage-compress": true,
 	}
 
 	return flags
@@ -55,10 +55,10 @@ func init() {
 			return nil
 		}
 		flags := vitess.Flags{
-			"restore_from_backup":          true,
-			"restore_concurrency":          restoreConcurrency,
-			"wait_for_backup_interval":     waitForBackupInterval,
-			"backup_engine_implementation": string(spec.BackupEngine),
+			"restore-from-backup":          true,
+			"restore-concurrency":          restoreConcurrency,
+			"wait-for-backup-interval":     waitForBackupInterval,
+			"backup-engine-implementation": string(spec.BackupEngine),
 		}
 		switch spec.BackupEngine {
 		case planetscalev2.VitessBackupEngineXtraBackup:
@@ -94,7 +94,7 @@ func init() {
 			return nil
 		}
 		flags := vitess.Flags{
-			"backup_engine_implementation": string(spec.BackupEngine),
+			"backup-engine-implementation": string(spec.BackupEngine),
 		}
 		if spec.BackupEngine == planetscalev2.VitessBackupEngineXtraBackup {
 			// A vtbackup Pod is given the same resources as the mysqld

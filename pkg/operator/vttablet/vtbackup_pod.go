@@ -43,8 +43,8 @@ else
 fi
 ln -sf /dev/stderr /mnt/vt/config/stderr.symlink
 echo "log-error = /vt/config/stderr.symlink" > /mnt/vt/config/mycnf/log-error.cnf
-echo "binlog_format=row" > /mnt/vt/config/mycnf/rbr.cnf
-echo -e "sync_binlog=0\ninnodb_flush_log_at_trx_commit=0" > /mnt/vt/config/mycnf/vtbackup.cnf
+echo "binlog-format=row" > /mnt/vt/config/mycnf/rbr.cnf
+echo -e "sync-binlog=0\ninnodb-flush-log-at-trx-commit=0" > /mnt/vt/config/mycnf/vtbackup.cnf
 mkdir -p /mnt/vt/certs
 cp --no-clobber /etc/ssl/certs/ca-certificates.crt /mnt/vt/certs/
 echo "socket = ` + mysqlSocketPath + `" > /mnt/vt/config/mycnf/socket.cnf
