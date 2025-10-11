@@ -32,7 +32,7 @@ spec:
             name: example-cluster-config
             key: users.json
       extraFlags:
-        tablet-refresh-interval: 10s
+        tablet_refresh_interval: 10s
       replicas: 1
       resources:
         requests:
