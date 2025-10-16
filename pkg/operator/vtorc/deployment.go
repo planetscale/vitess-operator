@@ -211,12 +211,12 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 
 func (spec *Spec) flags() vitess.Flags {
 	return vitess.Flags{
-		"topo-implementation":        spec.GlobalLockserver.Implementation,
-		"topo-global-server-address": spec.GlobalLockserver.Address,
-		"topo-global-root":           spec.GlobalLockserver.RootPath,
+		"topo_implementation":        spec.GlobalLockserver.Implementation,
+		"topo_global_server_address": spec.GlobalLockserver.Address,
+		"topo_global_root":           spec.GlobalLockserver.RootPath,
 		"port":                       planetscalev2.DefaultWebPort,
 
-		"clusters-to-watch": spec.Keyspace + "/" + spec.Shard,
+		"clusters_to_watch": spec.Keyspace + "/" + spec.Shard,
 
 		"logtostderr": true,
 	}

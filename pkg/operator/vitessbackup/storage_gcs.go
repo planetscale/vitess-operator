@@ -26,9 +26,9 @@ import (
 
 func gcsBackupFlags(gcs *planetscalev2.GCSBackupLocation, clusterName string) vitess.Flags {
 	return vitess.Flags{
-		"backup-storage-implementation": gcsBackupStorageImplementationName,
-		"gcs-backup-storage-bucket":     gcs.Bucket,
-		"gcs-backup-storage-root":       rootKeyPrefix(gcs.KeyPrefix, clusterName),
+		"backup_storage_implementation": gcsBackupStorageImplementationName,
+		"gcs_backup_storage_bucket":     gcs.Bucket,
+		"gcs_backup_storage_root":       rootKeyPrefix(gcs.KeyPrefix, clusterName),
 	}
 }
 

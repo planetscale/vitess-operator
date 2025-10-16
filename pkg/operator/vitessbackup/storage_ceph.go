@@ -25,8 +25,8 @@ import (
 
 func cephBackupFlags(ceph *planetscalev2.CephBackupLocation) vitess.Flags {
 	flags := vitess.Flags{
-		"backup-storage-implementation": cephBackupStorageImplementationName,
-		"ceph-backup-storage-config":    secrets.Mount(&ceph.AuthSecret, cephAuthDirName).FilePath(),
+		"backup_storage_implementation": cephBackupStorageImplementationName,
+		"ceph_backup_storage_config":    secrets.Mount(&ceph.AuthSecret, cephAuthDirName).FilePath(),
 	}
 	return flags
 }

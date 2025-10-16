@@ -77,32 +77,32 @@ func datastoreFlags(spec *Spec) vitess.Flags {
 
 func localDatastoreFlags(spec *Spec) vitess.Flags {
 	return vitess.Flags{
-		"db-charset":       spec.dbConfigCharset(),
-		"db-app-user":      dbConfigAppUname,
-		"db-dba-user":      dbConfigDbaUname,
-		"db-repl-user":     dbConfigReplUname,
-		"db-filtered-user": dbConfigFilteredUname,
+		"db_charset":       spec.dbConfigCharset(),
+		"db_app_user":      dbConfigAppUname,
+		"db_dba_user":      dbConfigDbaUname,
+		"db_repl_user":     dbConfigReplUname,
+		"db_filtered_user": dbConfigFilteredUname,
 
 		// Only in the case of local mysql do we want to use the vt_ prefix.
-		"init-db-name-override": spec.localDatabaseName(),
+		"init_db_name_override": spec.localDatabaseName(),
 
-		"enforce-strict-trans-tables": true,
+		"enforce_strict_trans_tables": true,
 
 		// TODO: Should this be configurable?
-		"enable-replication-reporter": true,
+		"enable_replication_reporter": true,
 
-		"mysqlctl-socket":   mysqlctlSocketPath,
-		"mycnf-socket-file": mysqlSocketPath,
+		"mysqlctl_socket":   mysqlctlSocketPath,
+		"mycnf_socket_file": mysqlSocketPath,
 	}
 }
 
 func externalDatastoreSSLCAFlags(spec *Spec) vitess.Flags {
 	caCertFile := secrets.Mount(spec.ExternalDatastore.ServerCACertSecret, externalDatastoreCACertDirName)
 	return vitess.Flags{
-		"db-ssl-ca": caCertFile.FilePath(),
+		"db_ssl_ca": caCertFile.FilePath(),
 
 		// TODO: See if this should be passed in rather than hard coded.
-		"db-flags": enableSSLBitflag,
+		"db_flags": enableSSLBitflag,
 	}
 }
 
@@ -111,21 +111,21 @@ func externalDatastoreFlags(spec *Spec) vitess.Flags {
 
 	flags := vitess.Flags{
 		"unmanaged":             true,
-		"restore-from-backup":   false,
-		"db-app-user":           spec.ExternalDatastore.User,
-		"db-appdebug-user":      spec.ExternalDatastore.User,
-		"db-allprivs-user":      spec.ExternalDatastore.User,
-		"db-dba-user":           spec.ExternalDatastore.User,
-		"db-filtered-user":      spec.ExternalDatastore.User,
-		"db-repl-user":          spec.ExternalDatastore.User,
+		"restore_from_backup":   false,
+		"db_app_user":           spec.ExternalDatastore.User,
+		"db_appdebug_user":      spec.ExternalDatastore.User,
+		"db_allprivs_user":      spec.ExternalDatastore.User,
+		"db_dba_user":           spec.ExternalDatastore.User,
+		"db_filtered_user":      spec.ExternalDatastore.User,
+		"db_repl_user":          spec.ExternalDatastore.User,
 		"db-credentials-file":   credentialsFile.FilePath(),
-		"db-host":               spec.ExternalDatastore.Host,
-		"db-port":               spec.ExternalDatastore.Port,
-		"init-db-name-override": spec.ExternalDatastore.Database,
+		"db_host":               spec.ExternalDatastore.Host,
+		"db_port":               spec.ExternalDatastore.Port,
+		"init_db_name_override": spec.ExternalDatastore.Database,
 
-		"enable-replication-reporter": false,
+		"enable_replication_reporter": false,
 
-		"enforce-strict-trans-tables": false,
+		"enforce_strict_trans_tables": false,
 	}
 
 	return flags

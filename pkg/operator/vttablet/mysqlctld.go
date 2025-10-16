@@ -38,7 +38,7 @@ fi
 mkdir -p /mnt/vt/vtdataroot
 ln -sf /dev/stderr /mnt/vt/config/stderr.symlink
 echo "log-error = /vt/config/stderr.symlink" > /mnt/vt/config/mycnf/log-error.cnf
-echo "binlog-format=row" > /mnt/vt/config/mycnf/rbr.cnf
+echo "binlog_format=row" > /mnt/vt/config/mycnf/rbr.cnf
 echo "socket = ` + mysqlSocketPath + `" > /mnt/vt/config/mycnf/socket.cnf
 `
 

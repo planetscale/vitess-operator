@@ -26,11 +26,11 @@ import (
 
 func azblobBackupFlags(azblob *planetscalev2.AzblobBackupLocation, clusterName string) vitess.Flags {
 	return vitess.Flags{
-		"backup-storage-implementation":  azblobBackupStorageImplementationName,
-		"azblob-backup-account-name":     azblob.Account,
-		"azblob-backup-account-key-file": secrets.Mount(&azblob.AuthSecret, azblobAuthDirName).FilePath(),
-		"azblob-backup-container-name":   azblob.Container,
-		"azblob-backup-storage-root":     rootKeyPrefix(azblob.KeyPrefix, clusterName),
+		"backup_storage_implementation":  azblobBackupStorageImplementationName,
+		"azblob_backup_account_name":     azblob.Account,
+		"azblob_backup_account_key_file": secrets.Mount(&azblob.AuthSecret, azblobAuthDirName).FilePath(),
+		"azblob_backup_container_name":   azblob.Container,
+		"azblob_backup_storage_root":     rootKeyPrefix(azblob.KeyPrefix, clusterName),
 	}
 }
 
