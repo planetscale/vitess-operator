@@ -282,4 +282,4 @@ resharding
 scheduledBackups
 
 # Teardown
-#teardownKindCluster
+teardownKindCluster
