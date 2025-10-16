@@ -15,11 +15,11 @@ spec:
         persistentVolumeClaim:
           claimName: vitess-backups
   images:
-    vtctld: vitess/lite:mysql80
-    vtgate: vitess/lite:mysql80
-    vttablet: vitess/lite:mysql80
-    vtorc: vitess/lite:mysql80
-    vtbackup: vitess/lite:mysql80
+    vtctld: vitess/lite:v23.0.0-rc1-mysql80
+    vtgate: vitess/lite:v23.0.0-rc1-mysql80
+    vttablet: vitess/lite:v23.0.0-rc1-mysql80
+    vtorc: vitess/lite:v23.0.0-rc1-mysql80
+    vtbackup: vitess/lite:v23.0.0-rc1-mysql80
     mysqld:
       mysql80Compatible: mysql:8.0.40
     mysqldExporter: prom/mysqld-exporter:v0.14.0
