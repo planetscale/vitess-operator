@@ -5814,6 +5814,11 @@ int32
 <td>
 <p>HexWidth is the number of hex characters to use for the shard range start and end.
 If not set or set to 0, it will be automatically computed based on the number of requested shards.</p>
+<p>WARNING: DO NOT change the hex width in a partitioning after deploying.
+That&rsquo;s effectively deleting the old partitioning and adding a new one,
+which can lead to downtime or data loss. Instead, add an additional
+partitioning with the desired hex width, perform a resharding
+migration, and then remove the old partitioning.</p>
 </td>
 </tr>
 <tr>
