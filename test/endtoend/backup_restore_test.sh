@@ -29,7 +29,7 @@ setupKindCluster
 cd test/endtoend/operator || exit 1
 
 get_started "operator-latest.yaml" "101_initial_cluster_backup.yaml"
-verifyVtGateVersion "23.0.0"
+verifyVtGateVersion "23.0.0-rc1"
 checkSemiSyncSetup
 takeBackup "commerce/-"
 verifyListBackupsOutput
