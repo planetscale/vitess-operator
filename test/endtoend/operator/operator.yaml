@@ -3894,6 +3894,10 @@ spec:
                                               type: object
                                             mysqldExporter:
                                               properties:
+                                                extraFlags:
+                                                  additionalProperties:
+                                                    type: string
+                                                  type: object
                                                 resources:
                                                   properties:
                                                     claims:
@@ -3927,8 +3931,6 @@ spec:
                                                         x-kubernetes-int-or-string: true
                                                       type: object
                                                   type: object
-                                              required:
-                                                - resources
                                               type: object
                                             name:
                                               default: ""
@@ -4020,6 +4022,12 @@ spec:
                               type: object
                             equal:
                               properties:
+                                hexWidth:
+                                  default: 0
+                                  format: int32
+                                  maximum: 65536
+                                  minimum: 0
+                                  type: integer
                                 parts:
                                   format: int32
                                   maximum: 65536
@@ -4335,6 +4343,10 @@ spec:
                                             type: object
                                           mysqldExporter:
                                             properties:
+                                              extraFlags:
+                                                additionalProperties:
+                                                  type: string
+                                                type: object
                                               resources:
                                                 properties:
                                                   claims:
@@ -4368,8 +4380,6 @@ spec:
                                                       x-kubernetes-int-or-string: true
                                                     type: object
                                                 type: object
-                                            required:
-                                              - resources
                                             type: object
                                           name:
                                             default: ""
@@ -4455,6 +4465,7 @@ spec:
                                     - databaseInitScriptSecret
                                   type: object
                               required:
+                                - hexWidth
                                 - parts
                               type: object
                           type: object
@@ -4980,6 +4991,8 @@ spec:
                       type: array
                     extraVolumes:
                       x-kubernetes-preserve-unknown-fields: true
+                    fetchCredentials:
+                      type: string
                     initContainers:
                       x-kubernetes-preserve-unknown-fields: true
                     rbac:
@@ -5713,6 +5726,10 @@ spec:
                                         type: object
                                       mysqldExporter:
                                         properties:
+                                          extraFlags:
+                                            additionalProperties:
+                                              type: string
+                                            type: object
                                           resources:
                                             properties:
                                               claims:
@@ -5746,8 +5763,6 @@ spec:
                                                   x-kubernetes-int-or-string: true
                                                 type: object
                                             type: object
-                                        required:
-                                          - resources
                                         type: object
                                       name:
                                         default: ""
@@ -5839,6 +5854,12 @@ spec:
                         type: object
                       equal:
                         properties:
+                          hexWidth:
+                            default: 0
+                            format: int32
+                            maximum: 65536
+                            minimum: 0
+                            type: integer
                           parts:
                             format: int32
                             maximum: 65536
@@ -6154,6 +6175,10 @@ spec:
                                       type: object
                                     mysqldExporter:
                                       properties:
+                                        extraFlags:
+                                          additionalProperties:
+                                            type: string
+                                          type: object
                                         resources:
                                           properties:
                                             claims:
@@ -6187,8 +6212,6 @@ spec:
                                                 x-kubernetes-int-or-string: true
                                               type: object
                                           type: object
-                                      required:
-                                        - resources
                                       type: object
                                     name:
                                       default: ""
@@ -6274,6 +6297,7 @@ spec:
                               - databaseInitScriptSecret
                             type: object
                         required:
+                          - hexWidth
                           - parts
                         type: object
                     type: object
@@ -7148,6 +7172,10 @@ spec:
                         type: object
                       mysqldExporter:
                         properties:
+                          extraFlags:
+                            additionalProperties:
+                              type: string
+                            type: object
                           resources:
                             properties:
                               claims:
@@ -7181,8 +7209,6 @@ spec:
                                   x-kubernetes-int-or-string: true
                                 type: object
                             type: object
-                        required:
-                          - resources
                         type: object
                       name:
                         default: ""
@@ -7774,7 +7800,7 @@ spec:
                   fieldPath: metadata.name
             - name: OPERATOR_NAME
               value: vitess-operator
-          image: planetscale/vitess-operator:v2.15.1
+          image: planetscale/vitess-operator:v2.16.0-rc1
           name: vitess-operator
           resources:
             limits:
