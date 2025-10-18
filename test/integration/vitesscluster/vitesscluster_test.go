@@ -18,6 +18,7 @@ package vitesscluster
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -65,6 +66,8 @@ spec:
             replicas: 3
             vttablet:
               terminationGracePeriodSeconds: 60
+              vtbackupExtraFlags:
+                v: debug
             mysqld: {}
             dataVolumeClaimTemplate:
               accessModes: [ReadWriteOnce]
@@ -118,6 +121,39 @@ spec:
     - name: vbs1
     - name: ""
 `
+
+	vtbackupExtraFlagsCluster = `
+spec:
+  cells:
+  - name: cell1
+  keyspaces:
+  - name: ks
+    partitionings:
+    - equal:
+        parts: 1
+        shardTemplate:
+          databaseInitScriptSecret:
+            key: init_db.sql
+            name: init-script-secret
+          tabletPools:
+          - cell: cell1
+            type: replica
+            replicas: 1
+            vttablet:
+              terminationGracePeriodSeconds: 60
+              vtbackupExtraFlags:
+                -foo: bar
+                baz: qux
+            mysqld: {}
+            dataVolumeClaimTemplate:
+              accessModes: [ReadWriteOnce]
+              resources:
+                requests:
+                  storage: 1Gi
+  backup:
+    locations:
+    - name: vbs1
+`
 )
 
 func TestMain(m *testing.M) {
@@ -135,6 +171,41 @@ func TestBasicVitessCluster(t *testing.T) {
 
 	f.CreateVitessClusterYAML(ns, cluster, basicVitessCluster)
 	verifyBasicVitessCluster(f, ns, cluster)
+}
+
+func TestVtbackupExtraFlagsPropagated(t *testing.T) {
+	ctx := context.Background()
+
+	f := framework.NewFixture(ctx, t)
+	defer f.TearDown()
+
+	ns := "default"
+	cluster := "test-vtbackup-extra-flags"
+	keyspace := "ks"
+	shard := "-"
+
+	f.CreateVitessClusterYAML(ns, cluster, vtbackupExtraFlagsCluster)
+
+	// Wait for the vtbackup init pod to be created for the only shard.
+	podName := names.JoinWithConstraints(names.DefaultConstraints, cluster, keyspace, shard, "vtbackup", "init")
+	var pod corev1.Pod
+	f.MustGet(ns, podName, &pod)
+
+	// Find the vtbackup container and check args contain extra flags.
+	var args []string
+	for _, c := range pod.Spec.Containers {
+		if c.Name == "vtbackup" {
+			args = c.Args
+			break
+		}
+	}
+	joined := strings.Join(args, " ")
+	if !strings.Contains(joined, "--foo=bar") {
+		f.Fatalf("vtbackup args missing --foo=bar: %v", args)
+	}
+	if !strings.Contains(joined, "--baz=qux") {
+		f.Fatalf("vtbackup args missing --baz=qux: %v", args)
+	}
 }
 
 func verifyBasicVitessCluster(f *framework.Fixture, ns, cluster string) {

@@ -18,6 +18,7 @@ package vttablet
 
 import (
 	"fmt"
+	"strings"
 
 	corev1 "k8s.io/api/core/v1"
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
@@ -108,6 +109,12 @@ func init() {
 			}
 			flags.Merge(xtrabackupFlags(threads, threads))
 		}
+		vtbackupExtraFlags := make(vitess.Flags)
+		for key, value := range spec.Vttablet.VtbackupExtraFlags {
+			key = strings.TrimLeft(key, "-")
+			vtbackupExtraFlags[key] = value
+		}
+		flags.Merge(vtbackupExtraFlags)
 		clusterName := spec.Labels[planetscalev2.ClusterLabel]
 		storageLocationFlags := vitessbackup.StorageFlags(spec.BackupLocation, clusterName)
 		return flags.Merge(storageLocationFlags)

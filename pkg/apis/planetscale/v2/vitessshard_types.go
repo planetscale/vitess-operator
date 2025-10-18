@@ -291,6 +291,13 @@ type VttabletSpec struct {
 	// set the string value to either "true" or "false".
 	ExtraFlags map[string]string `json:"extraFlags,omitempty"`
 
+	// VtbackupExtraFlags can optionally be used to pass additional flags only to vtbackup.
+	// Use this to avoid sending vttablet-only flags to vtbackup, which may not support them.
+	// All entries must be key-value string pairs of the form "flag": "value". The flag name should
+	// not have any prefix (just "flag", not "-flag"). To set a boolean flag, set the string value
+	// to either "true" or "false".
+	VtbackupExtraFlags map[string]string `json:"vtbackupExtraFlags,omitempty"`
+
 	// Lifecycle can optionally be used to add container lifecycle hooks
 	// to vttablet container
 	// +kubebuilder:validation:Schemaless
