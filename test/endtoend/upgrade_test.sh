@@ -240,10 +240,10 @@ function upgradeToLatest() {
   checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 3
 
   # Wait for the cluster spec changes to take effect
-  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vtctld" 1 "image: vitess/lite:v23.0.0-rc1"
-  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vtgate" 1 "image: vitess/lite:v23.0.0-rc1"
-  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vtorc" 1 "image: vitess/lite:v23.0.0-rc1"
-  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vttablet" 12 "image: vitess/lite:v23.0.0-rc1"
+  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vtctld" 1 "image: vitess/lite:v23.0.0-rc2"
+  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vtgate" 1 "image: vitess/lite:v23.0.0-rc2"
+  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vtorc" 1 "image: vitess/lite:v23.0.0-rc2"
+  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vttablet" 12 "image: vitess/lite:v23.0.0-rc2"
 
   verifyVtgateDeploymentStrategy
 
@@ -271,7 +271,7 @@ checkSemiSyncSetup
 # Initially too durability policy should be specified
 verifyDurabilityPolicy "commerce" "semi_sync"
 upgradeToLatest
-verifyVtGateVersion "23.0.0-rc1"
+verifyVtGateVersion "23.0.0-rc2"
 verifyResourceSpec
 checkSemiSyncSetup
 # After upgrading, we verify that the durability policy is still semi_sync

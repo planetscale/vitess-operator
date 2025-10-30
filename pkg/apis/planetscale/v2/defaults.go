@@ -103,7 +103,7 @@ const (
 	// DefaultMysqlPortName is the name for the MySQL port.
 	DefaultMysqlPortName = "mysql"
 
-	defaultVitessLiteImage = "vitess/lite:v23.0.0-rc1"
+	defaultVitessLiteImage = "vitess/lite:v23.0.0-rc2"
 	defaultMySQLImage      = "mysql:8.0.40"
 
 	DefaultInitCPURequestMillis   = 100
