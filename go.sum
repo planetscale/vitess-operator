@@ -958,5 +958,5 @@ sigs.k8s.io/yaml v1.2.0/go.mod h1:yfXDCHCao9+ENCvLSE62v9VSji2MKu5jeNfTrofGhJc=
 sigs.k8s.io/yaml v1.4.0/go.mod h1:Ejl7/uTz7PSA4eKMyQCUTnhZYNmLIl+5c2lQPGR2BPY=
 sigs.k8s.io/yaml v1.6.0 h1:G8fkbMSAFqgEFgh4b1wmtzDnioxFCUgTZhlbj5P9QYs=
 sigs.k8s.io/yaml v1.6.0/go.mod h1:796bPqUfzR/0jLAl6XjHl3Ck7MiyVv8dbTdyT3/pMf4=
-vitess.io/vitess v0.23.0-rc2 h1:bHCFpETNKYBzIhNUPU/m7swxHbUiOEUERE0I1uwZZhA=
-vitess.io/vitess v0.23.0-rc2/go.mod h1:79F6ICWYB/ma+BSMMHO7CcE4ByqbgPYyFmZC8i01NmI=
+vitess.io/vitess v0.23.0 h1:XEzcon9q9KpnEOF8VkFmgpEdEZZR2+N+vDSgfKTjW7k=
+vitess.io/vitess v0.23.0/go.mod h1:79F6ICWYB/ma+BSMMHO7CcE4ByqbgPYyFmZC8i01NmI=
