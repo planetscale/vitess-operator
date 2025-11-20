@@ -68,7 +68,8 @@ spec:
             vttablet:
               terminationGracePeriodSeconds: 60
               vtbackupExtraFlags:
-                v: debug
+                foo: bar
+                baz: qux
             mysqld: {}
             dataVolumeClaimTemplate:
               accessModes: [ReadWriteOnce]
@@ -122,39 +123,6 @@ spec:
     - name: vbs1
     - name: ""
 `
-
-	vtbackupExtraFlagsCluster = `
-spec:
-  cells:
-  - name: cell1
-  keyspaces:
-  - name: ks
-    partitionings:
-    - equal:
-        parts: 1
-        shardTemplate:
-          databaseInitScriptSecret:
-            key: init_db.sql
-            name: init-script-secret
-          tabletPools:
-          - cell: cell1
-            type: replica
-            replicas: 1
-            vttablet:
-              terminationGracePeriodSeconds: 60
-              vtbackupExtraFlags:
-                -foo: bar
-                baz: qux
-            mysqld: {}
-            dataVolumeClaimTemplate:
-              accessModes: [ReadWriteOnce]
-              resources:
-                requests:
-                  storage: 1Gi
-  backup:
-    locations:
-    - name: vbs1
-`
 )
 
 func TestMain(m *testing.M) {
@@ -172,37 +140,6 @@ func TestBasicVitessCluster(t *testing.T) {
 
 	f.CreateVitessClusterYAML(ns, cluster, basicVitessCluster)
 	verifyBasicVitessCluster(f, ns, cluster)
-}
-
-func TestVtbackupExtraFlagsPropagated(t *testing.T) {
-	ctx := context.Background()
-
-	f := framework.NewFixture(ctx, t)
-	defer f.TearDown()
-
-	ns := "default"
-	cluster := "test-vtbackup-extra-flags"
-	keyspace := "ks"
-	shard := "-"
-
-	f.CreateVitessClusterYAML(ns, cluster, vtbackupExtraFlagsCluster)
-
-	// Wait for the vtbackup init pod to be created for the only shard.
-	podName := names.JoinWithConstraints(names.DefaultConstraints, cluster, keyspace, shard, "vtbackup", "init")
-	var pod corev1.Pod
-	f.MustGet(ns, podName, &pod)
-
-	// Find the vtbackup container and check args contain extra flags.
-	var args []string
-	for _, c := range pod.Spec.Containers {
-		if c.Name == "vtbackup" {
-			args = c.Args
-			break
-		}
-	}
-	joined := strings.Join(args, " ")
-	require.Contains(t, joined, "--foo=bar", "vtbackup args missing --foo=bar: %v", args)
-	require.Contains(t, joined, "--baz=qux", "vtbackup args missing --baz=qux: %v", args)
 }
 
 func verifyBasicVitessCluster(f *framework.Fixture, ns, cluster string) {
@@ -314,8 +251,24 @@ func verifyBasicVitessShard(f *framework.Fixture, ns, cluster, keyspace, shard s
 	}
 
 	// VitessShard creates vtbackup-init Pod/PVC.
-	f.MustGet(ns, names.JoinWithConstraints(names.DefaultConstraints, cluster, keyspace, shard, "vtbackup", "init"), &corev1.Pod{})
+	var pod corev1.Pod
+	var args []string
+	var found bool
+	f.MustGet(ns, names.JoinWithConstraints(names.DefaultConstraints, cluster, keyspace, shard, "vtbackup", "init"), &pod)
 	f.MustGet(ns, names.JoinWithConstraints(names.DefaultConstraints, cluster, keyspace, shard, "vtbackup", "init"), &corev1.PersistentVolumeClaim{})
+        containerNames := make([]string, len(pod.Spec.Containers))
+	for i, c := range pod.Spec.Containers {
+		containerNames[i] = c.Name
+		if c.Name == "vtbackup" {
+			args = c.Args
+			found = true
+			break
+		}
+	}
+	require.True(f.T, found, "vtbackup container not found in pod. Containers: %v", containerNames)
+	joined := strings.Join(args, " ")
+	require.Contains(f.T, joined, "--foo=bar", "vtbackup args missing --foo=bar. Args: %v", args)
+	require.Contains(f.T, joined, "--baz=qux", "vtbackup args missing --baz=qux. Args: %v", args)
 }
 
 func verifyBasicVitessShardExternal(f *framework.Fixture, ns, cluster, keyspace, shard string, expectedTabletCount []int) {
