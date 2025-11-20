@@ -3959,6 +3959,10 @@ spec:
                                                   additionalProperties:
                                                     type: string
                                                   type: object
+                                                vtbackupExtraFlags:
+                                                  additionalProperties:
+                                                    type: string
+                                                  type: object
                                                 lifecycle:
                                                   x-kubernetes-preserve-unknown-fields: true
                                                 resources:
@@ -4405,6 +4409,10 @@ spec:
                                           vttablet:
                                             properties:
                                               extraFlags:
+                                                additionalProperties:
+                                                  type: string
+                                                type: object
+                                              vtbackupExtraFlags:
                                                 additionalProperties:
                                                   type: string
                                                 type: object
@@ -5791,6 +5799,10 @@ spec:
                                             additionalProperties:
                                               type: string
                                             type: object
+                                          vtbackupExtraFlags:
+                                            additionalProperties:
+                                              type: string
+                                            type: object
                                           lifecycle:
                                             x-kubernetes-preserve-unknown-fields: true
                                           resources:
@@ -6237,6 +6249,10 @@ spec:
                                     vttablet:
                                       properties:
                                         extraFlags:
+                                          additionalProperties:
+                                            type: string
+                                          type: object
+                                        vtbackupExtraFlags:
                                           additionalProperties:
                                             type: string
                                           type: object
@@ -7234,6 +7250,10 @@ spec:
                       vttablet:
                         properties:
                           extraFlags:
+                            additionalProperties:
+                              type: string
+                            type: object
+                          vtbackupExtraFlags:
                             additionalProperties:
                               type: string
                             type: object

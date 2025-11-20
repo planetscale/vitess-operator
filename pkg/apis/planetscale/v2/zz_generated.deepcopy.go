@@ -2920,6 +2920,13 @@ func (in *VttabletSpec) DeepCopyInto(out *VttabletSpec) {
 			(*out)[key] = val
 		}
 	}
+	if in.VtbackupExtraFlags != nil {
+		in, out := &in.VtbackupExtraFlags, &out.VtbackupExtraFlags
+		*out = make(map[string]string, len(*in))
+		for key, val := range *in {
+			(*out)[key] = val
+		}
+	}
 	in.Lifecycle.DeepCopyInto(&out.Lifecycle)
 	if in.TerminationGracePeriodSeconds != nil {
 		in, out := &in.TerminationGracePeriodSeconds, &out.TerminationGracePeriodSeconds

@@ -18,8 +18,10 @@ package vitesscluster
 
 import (
 	"context"
+	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/require"
 	appsv1 "k8s.io/api/apps/v1"
 	autoscalingv2 "k8s.io/api/autoscaling/v2"
 	corev1 "k8s.io/api/core/v1"
@@ -65,6 +67,9 @@ spec:
             replicas: 3
             vttablet:
               terminationGracePeriodSeconds: 60
+              vtbackupExtraFlags:
+                foo: bar
+                baz: qux
             mysqld: {}
             dataVolumeClaimTemplate:
               accessModes: [ReadWriteOnce]
@@ -246,8 +251,24 @@ func verifyBasicVitessShard(f *framework.Fixture, ns, cluster, keyspace, shard s
 	}
 
 	// VitessShard creates vtbackup-init Pod/PVC.
-	f.MustGet(ns, names.JoinWithConstraints(names.DefaultConstraints, cluster, keyspace, shard, "vtbackup", "init"), &corev1.Pod{})
+	var pod corev1.Pod
+	var args []string
+	var found bool
+	f.MustGet(ns, names.JoinWithConstraints(names.DefaultConstraints, cluster, keyspace, shard, "vtbackup", "init"), &pod)
 	f.MustGet(ns, names.JoinWithConstraints(names.DefaultConstraints, cluster, keyspace, shard, "vtbackup", "init"), &corev1.PersistentVolumeClaim{})
+        containerNames := make([]string, len(pod.Spec.Containers))
+	for i, c := range pod.Spec.Containers {
+		containerNames[i] = c.Name
+		if c.Name == "vtbackup" {
+			args = c.Args
+			found = true
+			break
+		}
+	}
+	require.True(f.T, found, "vtbackup container not found in pod. Containers: %v", containerNames)
+	joined := strings.Join(args, " ")
+	require.Contains(f.T, joined, "--foo=bar", "vtbackup args missing --foo=bar. Args: %v", args)
+	require.Contains(f.T, joined, "--baz=qux", "vtbackup args missing --baz=qux. Args: %v", args)
 }
 
 func verifyBasicVitessShardExternal(f *framework.Fixture, ns, cluster, keyspace, shard string, expectedTabletCount []int) {
