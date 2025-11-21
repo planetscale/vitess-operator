@@ -53,20 +53,24 @@ func DefaultVitessOrchestrator(vtorc **VitessOrchestratorSpec) {
 // DefaultVitessKeyspaceImages fills in unspecified keyspace-level images from cluster-level defaults.
 // The clusterDefaults should have already had its unspecified fields filled in with operator defaults.
 func DefaultVitessKeyspaceImages(dst *VitessKeyspaceImages, clusterDefaults *VitessImages) {
+	// Deep copying the cluster-level defaults to prevent
+	// overwriting any value for subsequent keyspaces.
+	defaults := clusterDefaults.DeepCopy()
+
 	if dst.Vttablet == "" {
-		dst.Vttablet = clusterDefaults.Vttablet
+		dst.Vttablet = defaults.Vttablet
 	}
 	if dst.Vtorc == "" {
-		dst.Vtorc = clusterDefaults.Vtorc
+		dst.Vtorc = defaults.Vtorc
 	}
 	if dst.Vtbackup == "" {
-		dst.Vtbackup = clusterDefaults.Vtbackup
+		dst.Vtbackup = defaults.Vtbackup
 	}
 	if dst.Mysqld == nil {
-		dst.Mysqld = clusterDefaults.Mysqld
+		dst.Mysqld = defaults.Mysqld
 	}
 	if dst.MysqldExporter == "" {
-		dst.MysqldExporter = clusterDefaults.MysqldExporter
+		dst.MysqldExporter = defaults.MysqldExporter
 	}
 }
 
