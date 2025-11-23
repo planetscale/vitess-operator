@@ -51,6 +51,10 @@ type VitessBackupStorageSpec struct {
 	Location VitessBackupLocation `json:"location"`
 	// Subcontroller specifies any parameters needed for launching the VitessBackupStorage subcontroller pod.
 	Subcontroller *VitessBackupSubcontrollerSpec `json:"subcontroller,omitempty"`
+	// ExtraLabels can optionally be used to attach custom labels to the VitessBackupStorage subcontroller pod.
+	// This is populated from ClusterBackupSpec.ExtraLabels when the storage object is created.
+	// +optional
+	ExtraLabels map[string]string `json:"extraLabels,omitempty"`
 }
 
 type VitessBackupSubcontrollerSpec struct {
