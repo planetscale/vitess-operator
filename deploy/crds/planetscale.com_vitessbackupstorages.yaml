@@ -28,6 +28,10 @@ spec:
             type: object
           spec:
             properties:
+              extraLabels:
+                additionalProperties:
+                  type: string
+                type: object
               location:
                 properties:
                   annotations:
