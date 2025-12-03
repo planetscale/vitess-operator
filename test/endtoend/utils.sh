@@ -517,3 +517,15 @@ function checkVitessBackupScheduleStatusWithTimeout() {
   echo -e "ERROR: checkPodStatusWithTimeout timeout to find pod matching:\ngot:\n$out\nfor regex: $regex"
   exit 1
 }
+
+function checkMysqldExporterMetrics() {
+  for vttablet in $(kubectl get pods -n example --no-headers -o custom-columns=":metadata.name" | grep "vttablet") ; do
+    echo "Confirming that the mysqld_exporter is working in ${vttablet}"
+    open_files=$(kubectl -n example exec -it "${vttablet}" -c vttablet -- curl localhost:9104/metrics | grep -E "^mysql_global_status_open_files" | awk '{print $2}' | bc)
+    if [[ ${open_files} -lt 1 ]]; then
+      echo -e "ERROR: mysqld metrics do not appear to be successfully exported from the ${vttablet} pod (open_files result: ${open_files})"
+      exit 1
+    fi
+    echo "Confirmed working mysqld_exporter metrics: mysql_global_status_open_files = ${open_files}"
+  done
+}

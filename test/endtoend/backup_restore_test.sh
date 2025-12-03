@@ -31,6 +31,7 @@ cd test/endtoend/operator || exit 1
 get_started "operator-latest.yaml" "101_initial_cluster_backup.yaml"
 verifyVtGateVersion "24.0.0"
 checkSemiSyncSetup
+checkMysqldExporterMetrics
 takeBackup "commerce/-"
 verifyListBackupsOutput
 takedownShard
