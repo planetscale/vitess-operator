@@ -17,7 +17,6 @@ limitations under the License.
 package vttablet
 
 import (
-	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -210,9 +209,6 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 				// but people may not read that so we are liberal in what we accept.
 				key = strings.TrimLeft(key, "-")
 				mysqldExporterAllFlags[key] = value
-			}
-			if _, ok := mysqldExporterAllFlags["config.my-cnf"]; !ok {
-				mysqldExporterAllFlags["config.my-cnf"] = filepath.Join(vtMycnfPath, mysqldExporterMySQLCnf)
 			}
 		}
 

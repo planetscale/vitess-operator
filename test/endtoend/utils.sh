@@ -521,7 +521,7 @@ function checkVitessBackupScheduleStatusWithTimeout() {
 function checkMysqldExporterMetrics() {
   for vttablet in $(kubectl get pods -n example --no-headers -o custom-columns=":metadata.name" | grep "vttablet") ; do
     echo "Confirming that the mysqld_exporter is working in ${vttablet}"
-    open_files=$(kubectl -n example exec -it "${vttablet}" -c vttablet -- curl localhost:9104/metrics | grep -E "^mysql_global_status_open_files" | awk '{print $2}' | bc)
+    open_files=$(kubectl -n example exec -it "${vttablet}" -c vttablet -- curl --max-time 10 localhost:9104/metrics | grep -E "^mysql_global_status_open_files" | awk '{print $2}' | bc)
     if [[ ${open_files} -lt 1 ]]; then
       echo -e "ERROR: mysqld metrics do not appear to be successfully exported from the ${vttablet} pod (open_files result: ${open_files})"
       exit 1
