@@ -268,12 +268,14 @@ cd test/endtoend/operator || exit 1
 get_started "operator.yaml" "101_initial_cluster.yaml"
 verifyVtGateVersion "23.0.0"
 checkSemiSyncSetup
+checkMysqldExporterMetrics
 # Initially too durability policy should be specified
 verifyDurabilityPolicy "commerce" "semi_sync"
 upgradeToLatest
 verifyVtGateVersion "24.0.0"
 verifyResourceSpec
 checkSemiSyncSetup
+checkMysqldExporterMetrics
 # After upgrading, we verify that the durability policy is still semi_sync
 verifyDurabilityPolicy "commerce" "semi_sync"
 move_tables
