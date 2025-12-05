@@ -44,6 +44,10 @@ spec:
                 - Forbid
                 example: Forbid
                 type: string
+              extraLabels:
+                additionalProperties:
+                  type: string
+                type: object
               failedJobsHistoryLimit:
                 format: int32
                 minimum: 0
