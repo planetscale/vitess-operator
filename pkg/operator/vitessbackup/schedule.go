@@ -46,7 +46,7 @@ func NewVitessBackupSchedule(key client.ObjectKey, vt *planetscalev2.VitessClust
 
 	// Populate ExtraLabels from ClusterBackupSpec if available.
 	if vt.Spec.Backup.ExtraLabels != nil {
-		spec.ExtraLabels = make(map[string]string)
+		spec.ExtraLabels = make(map[string]string, len(vt.Spec.Backup.ExtraLabels))
 		for k, v := range vt.Spec.Backup.ExtraLabels {
 			spec.ExtraLabels[k] = v
 		}

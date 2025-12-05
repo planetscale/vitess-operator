@@ -88,7 +88,7 @@ func newVitessBackupStorage(key client.ObjectKey, parentLabels map[string]string
 
 	// Populate ExtraLabels from ClusterBackupSpec if available.
 	if extraLabels != nil {
-		spec.ExtraLabels = make(map[string]string)
+		spec.ExtraLabels = make(map[string]string, len(extraLabels))
 		for k, v := range extraLabels {
 			spec.ExtraLabels[k] = v
 		}
