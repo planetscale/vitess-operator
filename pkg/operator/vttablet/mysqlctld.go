@@ -40,6 +40,7 @@ ln -sf /dev/stderr /mnt/vt/config/stderr.symlink
 echo "log-error = /vt/config/stderr.symlink" > /mnt/vt/config/mycnf/log-error.cnf
 echo "binlog_format=row" > /mnt/vt/config/mycnf/rbr.cnf
 echo "socket = ` + mysqlSocketPath + `" > /mnt/vt/config/mycnf/socket.cnf
+echo -e "[client]\nuser=` + mysqldExporterUser + `\nsocket=` + mysqlSocketPath + `\n" > /mnt/vt/config/mycnf/` + mysqldExporterMySQLCnf + `
 `
 
 	mysqlSocketInitScript = `set -ex

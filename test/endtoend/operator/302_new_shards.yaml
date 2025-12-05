@@ -18,7 +18,7 @@ spec:
     vtbackup: vitess/lite:mysql80
     mysqld:
       mysql80Compatible: vitess/lite:mysql80
-    mysqldExporter: prom/mysqld-exporter:v0.14.0
+    mysqldExporter: prom/mysqld-exporter:v0.18.0
   cells:
   - name: zone1
     gateway:

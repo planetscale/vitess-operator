@@ -32,6 +32,7 @@ const (
 
 	mysqldExporterContainerName      = "mysqld-exporter"
 	mysqldExporterCommand            = "/bin/mysqld_exporter"
+	mysqldExporterMySQLCnf           = "client.cnf"
 	mysqldExporterUser               = "vt_dba"
 	mysqldExporterPort               = 9104
 	mysqldExporterPortName           = "metrics"

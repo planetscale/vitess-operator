@@ -137,7 +137,7 @@ var DefaultImages = &VitessImages{
 		Mysql80Compatible: defaultMySQLImage,
 	},
 
-	MysqldExporter: "prom/mysqld-exporter:v0.14.0",
+	MysqldExporter: "prom/mysqld-exporter:v0.18.0",
 }
 
 var (
