@@ -2,11 +2,9 @@ kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: vitess-operator-backup-storage
-  namespace: example
 subjects:
   - kind: ServiceAccount
     name: vitess-operator
-    namespace: example
 roleRef:
   kind: Role
   name: vitess-operator-backup-storage
