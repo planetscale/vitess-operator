@@ -7624,18 +7624,11 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: vitess-operator
-  namespace: example
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: vitess-operator
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: vitess-operator-backup-storage
-  namespace: example
 rules:
   - apiGroups:
       - planetscale.com
@@ -7744,7 +7737,6 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: vitess-operator-backup-storage
-  namespace: example
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -7752,7 +7744,6 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: vitess-operator
-    namespace: example
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
