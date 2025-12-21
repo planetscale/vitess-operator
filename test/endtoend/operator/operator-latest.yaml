@@ -7626,26 +7626,6 @@ metadata:
   name: vitess-operator
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: vitess-operator-backup-storage
-rules:
-  - apiGroups:
-      - planetscale.com
-    resources:
-      - vitessshards
-      - vitessshards/status
-      - vitessshards/finalizers
-      - vitessbackups
-      - vitessbackups/status
-      - vitessbackups/finalizers
-      - vitessbackupstorages
-      - vitessbackupstorages/status
-      - vitessbackupstorages/finalizers
-    verbs:
-      - '*'
----
-apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: vitess-operator
@@ -7732,18 +7712,6 @@ rules:
       - horizontalpodautoscalers
     verbs:
       - '*'
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: vitess-operator-backup-storage
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: vitess-operator-backup-storage
-subjects:
-  - kind: ServiceAccount
-    name: vitess-operator
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
