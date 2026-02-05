@@ -294,6 +294,13 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	desiredStateHash.AddStringMapKeys("labels-keys", spec.ExtraLabels)
 	desiredStateHash.AddStringMapKeys("annotations-keys", spec.Annotations)
 
+	// Record the storage size to force Pod recreation if the disk size changes.
+	if spec.DataVolumePVCSpec != nil {
+		if storage, ok := spec.DataVolumePVCSpec.Resources.Requests[corev1.ResourceStorage]; ok {
+			desiredStateHash.AddString("data-volume-size", storage.String())
+		}
+	}
+
 	// Record a hash of desired containers to force the Pod to be recreated if
 	// something is removed from our desired state that we otherwise might
 	// mistake for an item added by the API server and leave behind.
