@@ -50,7 +50,7 @@ func (r *ReconcileVitessCluster) reconcileBackupStorage(ctx context.Context, vt 
 				Name:      vitessbackup.StorageObjectName(vt.Name, location.Name),
 			}
 			keys = append(keys, key)
-			vbsMap[key] = newVitessBackupStorage(key, labels, location, vt.Spec.Backup.Subcontroller)
+			vbsMap[key] = newVitessBackupStorage(key, labels, location, vt.Spec.Backup.Subcontroller, vt.Spec.Backup.ExtraLabels)
 		}
 	}
 
@@ -72,7 +72,7 @@ func (r *ReconcileVitessCluster) reconcileBackupStorage(ctx context.Context, vt 
 	})
 }
 
-func newVitessBackupStorage(key client.ObjectKey, parentLabels map[string]string, location *planetscalev2.VitessBackupLocation, subcontroller *planetscalev2.VitessBackupSubcontrollerSpec) *planetscalev2.VitessBackupStorage {
+func newVitessBackupStorage(key client.ObjectKey, parentLabels map[string]string, location *planetscalev2.VitessBackupLocation, subcontroller *planetscalev2.VitessBackupSubcontrollerSpec, extraLabels map[string]string) *planetscalev2.VitessBackupStorage {
 	// Copy parent labels and add child-specific labels.
 	labels := map[string]string{
 		vitessbackup.LocationLabel: location.Name,
@@ -81,15 +81,25 @@ func newVitessBackupStorage(key client.ObjectKey, parentLabels map[string]string
 		labels[k] = v
 	}
 
+	spec := planetscalev2.VitessBackupStorageSpec{
+		Location:      *location,
+		Subcontroller: subcontroller,
+	}
+
+	// Populate ExtraLabels from ClusterBackupSpec if available.
+	if extraLabels != nil {
+		spec.ExtraLabels = make(map[string]string, len(extraLabels))
+		for k, v := range extraLabels {
+			spec.ExtraLabels[k] = v
+		}
+	}
+
 	return &planetscalev2.VitessBackupStorage{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: key.Namespace,
 			Name:      key.Name,
 			Labels:    labels,
 		},
-		Spec: planetscalev2.VitessBackupStorageSpec{
-			Location:      *location,
-			Subcontroller: subcontroller,
-		},
+		Spec: spec,
 	}
 }
