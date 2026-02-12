@@ -21,13 +21,9 @@ updates:
   - package-ecosystem: "docker"
     directories:
       - "/"
-      - "/build/*"
+      - "/build/"
     schedule:
       interval: "weekly"
-    ignore:
-      - dependency-name: "mysql"
-        versions:
-          - ">= 8.5"
     groups:
       all:
         patterns:
