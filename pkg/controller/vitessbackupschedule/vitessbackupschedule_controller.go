@@ -42,6 +42,7 @@ import (
 	"planetscale.dev/vitess-operator/pkg/operator/reconciler"
 	"planetscale.dev/vitess-operator/pkg/operator/results"
 	"planetscale.dev/vitess-operator/pkg/operator/resync"
+	"planetscale.dev/vitess-operator/pkg/operator/update"
 	"planetscale.dev/vitess-operator/pkg/operator/vitessbackup"
 	"planetscale.dev/vitess-operator/pkg/operator/vttablet"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
@@ -526,6 +527,10 @@ func (r *ReconcileVitessBackupsSchedule) createJob(
 		planetscalev2.KeyspaceLabel:       strategy.Keyspace,
 		planetscalev2.ShardLabel:          vkr.SafeName(),
 	}
+	// Merge user-provided extra labels.
+	if vbsc.Spec.ExtraLabels != nil {
+		update.Labels(&labels, vbsc.Spec.ExtraLabels)
+	}
 
 	meta := metav1.ObjectMeta{
 		Labels:      labels,
@@ -539,6 +544,10 @@ func (r *ReconcileVitessBackupsSchedule) createJob(
 	meta.Annotations[scheduledTimeAnnotation] = scheduledTime.Format(time.RFC3339)
 
 	maps.Copy(meta.Labels, vbsc.Labels)
+	// Merge user-provided extra labels into meta as well.
+	if vbsc.Spec.ExtraLabels != nil {
+		update.Labels(&meta.Labels, vbsc.Spec.ExtraLabels)
+	}
 
 	pod, vtbackupSpec, err := r.createJobPod(ctx, vbsc, strategy, name, vkr, labels)
 	if err != nil {
