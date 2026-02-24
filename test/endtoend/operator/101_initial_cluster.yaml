@@ -144,6 +144,9 @@ stringData:
     # Vitess defaults
     ###############################################################################
 
+    # Vitess-internal database.
+    CREATE DATABASE IF NOT EXISTS _vt;
+
     # Admin user with all privileges.
     CREATE USER 'vt_dba'@'localhost';
     GRANT ALL ON *.* TO 'vt_dba'@'localhost';
