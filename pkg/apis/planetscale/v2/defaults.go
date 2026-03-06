@@ -67,9 +67,10 @@ const (
 	defaultVtctldCPUMillis   = 100
 	defaultVtctldMemoryBytes = 128 * Mi
 
-	defaultVtadminReplicas    = 1
-	defaultVtadminCPUMillis   = 100
-	defaultVtadminMemoryBytes = 128 * Mi
+	defaultVtadminReplicas         = 1
+	defaultVtadminCPUMillis        = 100
+	defaultVtadminMemoryBytes      = 128 * Mi
+	defaultVtadminFetchCredentials = "omit"
 
 	defaultVtorcReplicas    = 0
 	defaultVtorcCPUMillis   = 100
@@ -103,7 +104,7 @@ const (
 	DefaultMysqlPortName = "mysql"
 
 	defaultVitessLiteImage = "vitess/lite:latest"
-	defaultMySQLImage      = "mysql:8.0.30"
+	defaultMySQLImage      = "mysql:8.0.40"
 
 	DefaultInitCPURequestMillis   = 100
 	DefaultInitMemoryRequestBytes = 32 * (1 << 20) // 32 MiB
@@ -136,7 +137,7 @@ var DefaultImages = &VitessImages{
 		Mysql80Compatible: defaultMySQLImage,
 	},
 
-	MysqldExporter: "prom/mysqld-exporter:v0.11.0",
+	MysqldExporter: "prom/mysqld-exporter:v0.18.0",
 }
 
 var (
@@ -182,5 +183,5 @@ var (
 	// DefaultEtcdImage is the image to use for etcd when the CRD doesn't specify.
 	// This value can be configured at operator startup time with the
 	// --default_etcd_image flag.
-	DefaultEtcdImage = "quay.io/coreos/etcd:v3.5.9"
+	DefaultEtcdImage = "quay.io/coreos/etcd:v3.5.17"
 )

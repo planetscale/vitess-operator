@@ -37,6 +37,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
+	autoscalingv2 "k8s.io/api/autoscaling/v2"
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 	"planetscale.dev/vitess-operator/pkg/operator/environment"
 	"planetscale.dev/vitess-operator/pkg/operator/metrics"
@@ -60,6 +61,7 @@ var log = logrus.WithField("controller", "VitessCell")
 var watchResources = []client.Object{
 	&corev1.Service{},
 	&appsv1.Deployment{},
+	&autoscalingv2.HorizontalPodAutoscaler{},
 
 	&planetscalev2.EtcdLockserver{},
 }
@@ -97,26 +99,26 @@ func add(mgr manager.Manager, r *ReconcileVitessCell) error {
 	}
 
 	// Watch for changes to primary resource VitessCell
-	err = c.Watch(source.Kind(mgr.GetCache(), &planetscalev2.VitessCell{}), &handler.EnqueueRequestForObject{})
+	err = c.Watch(source.Kind(mgr.GetCache(), &planetscalev2.VitessCell{}, &handler.TypedEnqueueRequestForObject[*planetscalev2.VitessCell]{}))
 	if err != nil {
 		return err
 	}
 
 	// Watch for changes to secondary resources and requeue the owner VitessCell.
 	for _, resource := range watchResources {
-		err := c.Watch(source.Kind(mgr.GetCache(), resource), handler.EnqueueRequestForOwner(
+		err := c.Watch(source.Kind(mgr.GetCache(), resource, handler.EnqueueRequestForOwner(
 			mgr.GetScheme(),
 			mgr.GetRESTMapper(),
 			&planetscalev2.VitessCell{},
 			handler.OnlyControllerOwner(),
-		))
+		)))
 		if err != nil {
 			return err
 		}
 	}
 
 	// Watch for changes in VitessKeyspaces, which we don't own, and requeue associated VitessCells.
-	err = c.Watch(source.Kind(mgr.GetCache(), &planetscalev2.VitessKeyspace{}), handler.EnqueueRequestsFromMapFunc(keyspaceCellsMapper))
+	err = c.Watch(source.Kind[*planetscalev2.VitessKeyspace](mgr.GetCache(), &planetscalev2.VitessKeyspace{}, handler.TypedEnqueueRequestsFromMapFunc[*planetscalev2.VitessKeyspace](keyspaceCellsMapper)))
 	if err != nil {
 		return err
 	}
@@ -125,13 +127,13 @@ func add(mgr manager.Manager, r *ReconcileVitessCell) error {
 	scm := &secretCellsMapper{
 		client: mgr.GetClient(),
 	}
-	err = c.Watch(source.Kind(mgr.GetCache(), &corev1.Secret{}), handler.EnqueueRequestsFromMapFunc(scm.Map))
+	err = c.Watch(source.Kind(mgr.GetCache(), &corev1.Secret{}, handler.TypedEnqueueRequestsFromMapFunc[*corev1.Secret](scm.Map)))
 	if err != nil {
 		return err
 	}
 
 	// Periodically resync even when no Kubernetes events have come in.
-	if err := c.Watch(r.resync.WatchSource(), &handler.EnqueueRequestForObject{}); err != nil {
+	if err := c.Watch(r.resync.WatchSource()); err != nil {
 		return err
 	}
 

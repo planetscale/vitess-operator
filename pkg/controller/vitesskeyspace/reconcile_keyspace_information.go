@@ -18,8 +18,8 @@ package vitesskeyspace
 
 import (
 	"context"
-	corev1 "k8s.io/api/core/v1"
 
+	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	topodatapb "vitess.io/vitess/go/vt/proto/topodata"
@@ -43,16 +43,19 @@ func (r *reconcileHandler) reconcileKeyspaceInformation(ctx context.Context) (re
 	topoServer := r.ts.Server
 	keyspaceName := r.vtk.Spec.Name
 	durabilityPolicy := r.vtk.Spec.DurabilityPolicy
+	sidecarDbName := r.vtk.Spec.SidecarDbName
+
 	keyspaceInfo, err := topoServer.GetKeyspace(ctx, keyspaceName)
 	if err != nil {
-		// The keyspace information record does not exist in the topo server.
-		// We should create the record
-		if !topo.IsErrType(err, topo.NoNode) {
-			// Create a normal keyspace with the requested durability policy
+		if topo.IsErrType(err, topo.NoNode) {
+			// The keyspace record does not exist in the topo server. Let's
+			// create a normal keyspace with the requested durability policy
+			// and sidecar DB name (if any).
 			_, err := r.wr.VtctldServer().CreateKeyspace(ctx, &vtctldatapb.CreateKeyspaceRequest{
 				Name:             keyspaceName,
 				Type:             topodatapb.KeyspaceType_NORMAL,
 				DurabilityPolicy: durabilityPolicy,
+				SidecarDbName:    sidecarDbName,
 			})
 			if err != nil {
 				resultBuilder.Error(err)

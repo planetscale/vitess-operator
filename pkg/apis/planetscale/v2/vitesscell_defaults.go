@@ -19,7 +19,7 @@ package v2
 import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 )
 
 // DefaultVitessCell fills in API-level defaults for a VitessCell object.
@@ -43,7 +43,7 @@ func DefaultLocalLockserver(ls *LockserverSpec) {
 
 func DefaultVitessGateway(gtway *VitessCellGatewaySpec) {
 	if gtway.Replicas == nil {
-		gtway.Replicas = pointer.Int32Ptr(defaultVtgateReplicas)
+		gtway.Replicas = ptr.To(int32(defaultVtgateReplicas))
 	}
 	if len(gtway.Resources.Requests) == 0 {
 		gtway.Resources.Requests = corev1.ResourceList{

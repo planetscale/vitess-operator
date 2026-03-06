@@ -120,8 +120,6 @@ type VitessKeyspaceTemplate struct {
 	DurabilityPolicy string `json:"durabilityPolicy,omitempty"`
 
 	// VitessOrchestrator deploys a set of Vitess Orchestrator (vtorc) servers for the Keyspace.
-	// It is highly recommended that you set disable_active_reparents=true
-	// for the vttablets if enabling vtorc.
 	VitessOrchestrator *VitessOrchestratorSpec `json:"vitessOrchestrator,omitempty"`
 
 	// Partitionings specify how to divide the keyspace up into shards by
@@ -185,16 +183,40 @@ type VitessKeyspaceTemplate struct {
 	// example: migrating from MySQL 5.7 to MySQL 8.0 via a `MoveTables`
 	// operation, after which the source keyspace is destroyed.
 	Images VitessKeyspaceTemplateImages `json:"images,omitempty"`
+
+	// SidecarDbName can optionally be used when calling CreateKeyspace
+	SidecarDbName string `json:"sidecarDbName,omitempty"`
 }
 
 // VitessKeyspaceTemplateImages specifies user-definable container images to
-// use for this keyspace.
+// use for this keyspace. The images defined here by the user will override
+// those defined at the top-level in VitessCluster.spec.images.
+//
+// While this field allows you to set a different Vitess version for some
+// components than the version defined at the top level, it is important to
+// note that Vitess only ensures compatibility between one version and the
+// next and previous one. For instance: N is only guaranteed  to be compatible
+// with N+1 and N-1. Do be careful when specifying multiple versions across
+// your cluster so that they respect this compatibility rule.
+//
+// Note: this structure is a copy of VitessKeyspaceImages, once we have gotten
+// rid of MysqldImage and replaced it by MysqldImageNew (planned for v2.15), we
+// should be able to remove VitessKeyspaceTemplateImages entirely and just use
+// VitessKeyspaceImages instead as it contains exactly the same fields.
 type VitessKeyspaceTemplateImages struct {
+	// Vttablet is the container image (including version tag) to use for Vitess Tablet instances.
+	Vttablet string `json:"vttablet,omitempty"`
+	// Vtorc is the container image (including version tag) to use for Vitess Orchestrator instances.
+	Vtorc string `json:"vtorc,omitempty"`
+	// Vtbackup is the container image (including version tag) to use for Vitess Backup jobs.
+	Vtbackup string `json:"vtbackup,omitempty"`
 	// Mysqld specifies the container image to use for mysqld, as well as
 	// declaring which MySQL flavor setting in Vitess the image is
 	// compatible with. Only one flavor image may be provided at a time.
 	// mysqld running alongside each tablet.
 	Mysqld *MysqldImageNew `json:"mysqld,omitempty"`
+	// MysqldExporter specifies the container image for mysqld-exporter.
+	MysqldExporter string `json:"mysqldExporter,omitempty"`
 }
 
 // VitessOrchestratorSpec specifies deployment parameters for vtorc.
@@ -334,6 +356,20 @@ type VitessKeyspaceEqualPartitioning struct {
 	// +kubebuilder:validation:Minimum=1
 	// +kubebuilder:validation:Maximum=65536
 	Parts int32 `json:"parts"`
+
+	// HexWidth is the number of hex characters to use for the shard range start and end.
+	// If not set or set to 0, it will be automatically computed based on the number of requested shards.
+	//
+	// WARNING: DO NOT change the hex width in a partitioning after deploying.
+	//          That's effectively deleting the old partitioning and adding a new one,
+	//          which can lead to downtime or data loss. Instead, add an additional
+	//          partitioning with the desired hex width, perform a resharding
+	//          migration, and then remove the old partitioning.
+	//
+	// +kubebuilder:default=0
+	// +kubebuilder:validation:Minimum=0
+	// +kubebuilder:validation:Maximum=65536
+	HexWidth int32 `json:"hexWidth,omitempty"`
 
 	// ShardTemplate is the configuration used for each equal-sized shard.
 	// If you need shards that don't all share the same configuration,

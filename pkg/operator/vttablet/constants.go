@@ -32,6 +32,7 @@ const (
 
 	mysqldExporterContainerName      = "mysqld-exporter"
 	mysqldExporterCommand            = "/bin/mysqld_exporter"
+	mysqldExporterMySQLCnf           = "client.cnf"
 	mysqldExporterUser               = "vt_dba"
 	mysqldExporterPort               = 9104
 	mysqldExporterPortName           = "metrics"
@@ -81,8 +82,6 @@ const (
 	dbConfigReplUname     = "vt_repl"
 	dbConfigFilteredUname = "vt_filtered"
 
-	vreplicationTabletType = "master"
-
 	dbInitScriptDirName = "db-init-script"
 
 	externalDatastoreCredentialsDirName = "external-datastore-credentials"
@@ -110,6 +109,9 @@ const (
 	xtrabackupStreamMode  = "xbstream"
 	xtrabackupStripeCount = 8
 	xtrabackupUser        = "vt_dba"
+
+	mysqlshellUser       = "vt_dba"
+	mysqlshellExtraFlags = "--defaults-file=/dev/null --no-password --js -u " + mysqlshellUser + " -S " + mysqlSocketPath
 
 	// mysqlctlWaitTime is how long mysqlctld will wait for mysqld to start up
 	// before assuming it's stuck and trying to restart it. We set this fairly

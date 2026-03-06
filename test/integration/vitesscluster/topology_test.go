@@ -113,13 +113,9 @@ func populateTopo(f *framework.Fixture, ts *topo.Server) {
 		f.Fatalf("Can't create keyspace: %v", err)
 	}
 
-	// To test shard and tablet pruning, we have to first create the actual
-	// desired keyspace and desired shards (which won't be pruned) because the
-	// operator doesn't do that. Normally the vttablets do that, but Vitess is
-	// not actually running here.
-	if err := ts.CreateKeyspace(f.Context(), "keyspace1", &topodatapb.Keyspace{}); err != nil {
-		f.Fatalf("Can't create keyspace: %v", err)
-	}
+	// To test shard and tablet pruning, we have to first create the desired
+	// shards (which won't be pruned) because the operator doesn't do that.
+	// Normally the vttablets do that, but Vitess is not actually running here.
 	if err := ts.CreateShard(f.Context(), "keyspace1", "-80"); err != nil {
 		f.Fatalf("Can't create shard: %v", err)
 	}

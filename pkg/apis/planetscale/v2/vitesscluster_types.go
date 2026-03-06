@@ -316,7 +316,7 @@ type ClusterBackupSpec struct {
 	// from one tablet in each shard. Otherwise, new tablets trying to restore
 	// will find that the latest backup was created with the wrong engine.
 	// Default: builtin
-	// +kubebuilder:validation:Enum=builtin;xtrabackup
+	// +kubebuilder:validation:Enum=builtin;xtrabackup;mysqlshell
 	Engine VitessBackupEngine `json:"engine,omitempty"`
 	// Subcontroller specifies any parameters needed for launching the VitessBackupStorage subcontroller pod.
 	Subcontroller *VitessBackupSubcontrollerSpec `json:"subcontroller,omitempty"`
@@ -337,6 +337,8 @@ const (
 	VitessBackupEngineBuiltIn VitessBackupEngine = "builtin"
 	// VitessBackupEngineXtraBackup uses Percona XtraBackup for backups.
 	VitessBackupEngineXtraBackup VitessBackupEngine = "xtrabackup"
+	// VitessBackupEngineMySQLShell uses MySQL Shell for backups.
+	VitessBackupEngineMySQLShell VitessBackupEngine = "mysqlshell"
 )
 
 // LockserverSpec specifies either a deployed or external lockserver,
@@ -476,6 +478,14 @@ type VtAdminSpec struct {
 
 	// APIResources determines the compute resources reserved for each vtadmin-api replica.
 	APIResources corev1.ResourceRequirements `json:"apiResources,omitempty"`
+
+	// FetchCredentials controls whether or not the browser includes credentials
+	// (e.g. cookies, auth headers) when vtadmin-web sends requests to
+	// vtadmin-api. For possible values, see
+	// https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch#including_credentials.
+	//
+	// Default: omit.
+	FetchCredentials string `json:"fetchCredentials,omitempty"`
 
 	// ReadOnly specifies whether the web UI should be read-only
 	// or should it allow users to take actions

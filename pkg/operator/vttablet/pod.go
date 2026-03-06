@@ -24,7 +24,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"planetscale.dev/vitess-operator/pkg/operator/mysql"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	topodatapb "vitess.io/vitess/go/vt/proto/topodata"
@@ -125,7 +125,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 
 	securityContext := &corev1.SecurityContext{}
 	if planetscalev2.DefaultVitessRunAsUser >= 0 {
-		securityContext.RunAsUser = pointer.Int64(planetscalev2.DefaultVitessRunAsUser)
+		securityContext.RunAsUser = ptr.To(planetscalev2.DefaultVitessRunAsUser)
 	}
 
 	vttabletLifecycle := &spec.Vttablet.Lifecycle
@@ -217,21 +217,26 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 
 		update.ResourceRequirements(&mysqldContainer.Resources, &spec.Mysqld.Resources)
 
+		// Compute all operator-generated mysqld_exporter flags first.
+		// Then apply user-provided overrides last so they take precedence.
+		mysqldExporterAllFlags := mysqldExporterFlags.Get(spec)
+		if spec.MysqldExporter != nil {
+			for key, value := range spec.MysqldExporter.ExtraFlags {
+				// We told users in the CRD API field doc not to put any leading '-',
+				// but people may not read that so we are liberal in what we accept.
+				key = strings.TrimLeft(key, "-")
+				mysqldExporterAllFlags[key] = value
+			}
+		}
+
 		// TODO: Can/should we still run mysqld_exporter pointing at external mysql?
 		mysqldExporterContainer = &corev1.Container{
 			Name:            mysqldExporterContainerName,
 			Image:           spec.Images.MysqldExporter,
 			ImagePullPolicy: spec.ImagePullPolicies.MysqldExporter,
 			Command:         []string{mysqldExporterCommand},
-			Args: []string{
-				"--config.my-cnf=" + spec.myCnfFilePath(),
-				// The default for `collect.info_schema.tables.databases` is
-				// `*`, which causes new time series to be created for each user
-				// table. This in turn causes scaling issues in Prometheus
-				// memory usage.
-				"--collect.info_schema.tables.databases=sys,_vt",
-			},
-			Env: mysqldExporterEnv,
+			Args:            mysqldExporterAllFlags.FormatArgsConvertBoolean(),
+			Env:             mysqldExporterEnv,
 			Ports: []corev1.ContainerPort{
 				{
 					Name:          mysqldExporterPortName,
@@ -240,7 +245,15 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 			},
 			SecurityContext: securityContext,
 			VolumeMounts:    mysqldMounts,
-			Resources: corev1.ResourceRequirements{
+			// TODO(enisoc): Add readiness and liveness probes that make sense for mysqld-exporter.
+			//   This depends on the exact semantics of each of mysqld-exporter's HTTP handlers,
+			//   so we need to do more investigation. For now it's better to leave them empty.
+		}
+
+		if spec.MysqldExporter != nil && (len(spec.MysqldExporter.Resources.Limits) > 0 || len(spec.MysqldExporter.Resources.Requests) > 0) {
+			update.ResourceRequirements(&mysqldExporterContainer.Resources, &spec.MysqldExporter.Resources)
+		} else {
+			mysqldExporterContainer.Resources = corev1.ResourceRequirements{
 				Requests: corev1.ResourceList{
 					corev1.ResourceCPU:    *resource.NewMilliQuantity(mysqldExporterCPURequestMillis, resource.DecimalSI),
 					corev1.ResourceMemory: *resource.NewQuantity(mysqldExporterMemoryRequestBytes, resource.BinarySI),
@@ -251,13 +264,13 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 					corev1.ResourceCPU:    *resource.NewMilliQuantity(mysqldExporterCPULimitMillis, resource.DecimalSI),
 					corev1.ResourceMemory: *resource.NewQuantity(mysqldExporterMemoryLimitBytes, resource.BinarySI),
 				},
-			},
+			}
 			// TODO(enisoc): Add readiness and liveness probes that make sense for mysqld-exporter.
 			//   This depends on the exact semantics of each of mysqld-exporter's HTTP handlers,
 			//   so we need to do more investigation. For now it's better to leave them empty.
 		}
 
-		if spec.MysqldExporter != nil {
+		if spec.MysqldExporter != nil && (len(spec.MysqldExporter.Resources.Limits) > 0 || len(spec.MysqldExporter.Resources.Requests) > 0) {
 			update.ResourceRequirements(&mysqldExporterContainer.Resources, &spec.MysqldExporter.Resources)
 		}
 	}
@@ -298,6 +311,13 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	desiredStateHash.AddStringMapKeys("labels-keys", spec.ExtraLabels)
 	desiredStateHash.AddStringMapKeys("annotations-keys", spec.Annotations)
 
+	// Record the storage size to force Pod recreation if the disk size changes.
+	if spec.DataVolumePVCSpec != nil {
+		if storage, ok := spec.DataVolumePVCSpec.Resources.Requests[corev1.ResourceStorage]; ok {
+			desiredStateHash.AddString("data-volume-size", storage.String())
+		}
+	}
+
 	// Record a hash of desired containers to force the Pod to be recreated if
 	// something is removed from our desired state that we otherwise might
 	// mistake for an item added by the API server and leave behind.
@@ -332,13 +352,13 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 		obj.Spec.SecurityContext = &corev1.PodSecurityContext{}
 	}
 	if planetscalev2.DefaultVitessFSGroup >= 0 {
-		obj.Spec.SecurityContext.FSGroup = pointer.Int64(planetscalev2.DefaultVitessFSGroup)
+		obj.Spec.SecurityContext.FSGroup = ptr.To(planetscalev2.DefaultVitessFSGroup)
 	}
 
 	if spec.Vttablet.TerminationGracePeriodSeconds != nil {
 		obj.Spec.TerminationGracePeriodSeconds = spec.Vttablet.TerminationGracePeriodSeconds
 	} else {
-		obj.Spec.TerminationGracePeriodSeconds = pointer.Int64(defaultTerminationGracePeriodSeconds)
+		obj.Spec.TerminationGracePeriodSeconds = ptr.To(int64(defaultTerminationGracePeriodSeconds))
 	}
 
 	// In both the case of the user injecting their own affinity and the default, we

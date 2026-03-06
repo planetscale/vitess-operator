@@ -3,8 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.11.3
-  creationTimestamp: null
+    controller-gen.kubebuilder.io/version: v0.17.2
   name: vitesskeyspaces.planetscale.com
 spec:
   group: planetscale.com
@@ -137,6 +136,9 @@ spec:
                           maxLength: 256
                           pattern: ^[^\r\n]*$
                           type: string
+                        minPartSize:
+                          format: int64
+                          type: integer
                         region:
                           minLength: 1
                           type: string
@@ -194,6 +196,7 @@ spec:
                 items:
                   properties:
                     name:
+                      default: ""
                       type: string
                   type: object
                   x-kubernetes-map-type: atomic
@@ -288,6 +291,7 @@ spec:
                                           items:
                                             type: string
                                           type: array
+                                          x-kubernetes-list-type: atomic
                                         dataSource:
                                           properties:
                                             apiGroup:
@@ -317,18 +321,6 @@ spec:
                                           type: object
                                         resources:
                                           properties:
-                                            claims:
-                                              items:
-                                                properties:
-                                                  name:
-                                                    type: string
-                                                required:
-                                                - name
-                                                type: object
-                                              type: array
-                                              x-kubernetes-list-map-keys:
-                                              - name
-                                              x-kubernetes-list-type: map
                                             limits:
                                               additionalProperties:
                                                 anyOf:
@@ -359,11 +351,13 @@ spec:
                                                     items:
                                                       type: string
                                                     type: array
+                                                    x-kubernetes-list-type: atomic
                                                 required:
                                                 - key
                                                 - operator
                                                 type: object
                                               type: array
+                                              x-kubernetes-list-type: atomic
                                             matchLabels:
                                               additionalProperties:
                                                 type: string
@@ -371,6 +365,8 @@ spec:
                                           type: object
                                           x-kubernetes-map-type: atomic
                                         storageClassName:
+                                          type: string
+                                        volumeAttributesClassName:
                                           type: string
                                         volumeMode:
                                           type: string
@@ -433,6 +429,7 @@ spec:
                                                   key:
                                                     type: string
                                                   name:
+                                                    default: ""
                                                     type: string
                                                   optional:
                                                     type: boolean
@@ -448,6 +445,23 @@ spec:
                                                     type: string
                                                 required:
                                                 - fieldPath
+                                                type: object
+                                                x-kubernetes-map-type: atomic
+                                              fileKeyRef:
+                                                properties:
+                                                  key:
+                                                    type: string
+                                                  optional:
+                                                    default: false
+                                                    type: boolean
+                                                  path:
+                                                    type: string
+                                                  volumeName:
+                                                    type: string
+                                                required:
+                                                - key
+                                                - path
+                                                - volumeName
                                                 type: object
                                                 x-kubernetes-map-type: atomic
                                               resourceFieldRef:
@@ -471,6 +485,7 @@ spec:
                                                   key:
                                                     type: string
                                                   name:
+                                                    default: ""
                                                     type: string
                                                   optional:
                                                     type: boolean
@@ -498,6 +513,8 @@ spec:
                                             type: string
                                           readOnly:
                                             type: boolean
+                                          recursiveReadOnly:
+                                            type: string
                                           subPath:
                                             type: string
                                           subPathExpr:
@@ -521,6 +538,8 @@ spec:
                                               items:
                                                 properties:
                                                   name:
+                                                    type: string
+                                                  request:
                                                     type: string
                                                 required:
                                                 - name
@@ -551,12 +570,18 @@ spec:
                                       type: object
                                     mysqldExporter:
                                       properties:
+                                        extraFlags:
+                                          additionalProperties:
+                                            type: string
+                                          type: object
                                         resources:
                                           properties:
                                             claims:
                                               items:
                                                 properties:
                                                   name:
+                                                    type: string
+                                                  request:
                                                     type: string
                                                 required:
                                                 - name
@@ -582,8 +607,6 @@ spec:
                                                 x-kubernetes-int-or-string: true
                                               type: object
                                           type: object
-                                      required:
-                                      - resources
                                       type: object
                                     name:
                                       default: ""
@@ -621,6 +644,8 @@ spec:
                                                 properties:
                                                   name:
                                                     type: string
+                                                  request:
+                                                    type: string
                                                 required:
                                                 - name
                                                 type: object
@@ -648,6 +673,10 @@ spec:
                                         terminationGracePeriodSeconds:
                                           format: int64
                                           type: integer
+                                        vtbackupExtraFlags:
+                                          additionalProperties:
+                                            type: string
+                                          type: object
                                       required:
                                       - resources
                                       type: object
@@ -673,6 +702,12 @@ spec:
                       type: object
                     equal:
                       properties:
+                        hexWidth:
+                          default: 0
+                          format: int32
+                          maximum: 65536
+                          minimum: 0
+                          type: integer
                         parts:
                           format: int32
                           maximum: 65536
@@ -726,6 +761,7 @@ spec:
                                         items:
                                           type: string
                                         type: array
+                                        x-kubernetes-list-type: atomic
                                       dataSource:
                                         properties:
                                           apiGroup:
@@ -755,18 +791,6 @@ spec:
                                         type: object
                                       resources:
                                         properties:
-                                          claims:
-                                            items:
-                                              properties:
-                                                name:
-                                                  type: string
-                                              required:
-                                              - name
-                                              type: object
-                                            type: array
-                                            x-kubernetes-list-map-keys:
-                                            - name
-                                            x-kubernetes-list-type: map
                                           limits:
                                             additionalProperties:
                                               anyOf:
@@ -797,11 +821,13 @@ spec:
                                                   items:
                                                     type: string
                                                   type: array
+                                                  x-kubernetes-list-type: atomic
                                               required:
                                               - key
                                               - operator
                                               type: object
                                             type: array
+                                            x-kubernetes-list-type: atomic
                                           matchLabels:
                                             additionalProperties:
                                               type: string
@@ -809,6 +835,8 @@ spec:
                                         type: object
                                         x-kubernetes-map-type: atomic
                                       storageClassName:
+                                        type: string
+                                      volumeAttributesClassName:
                                         type: string
                                       volumeMode:
                                         type: string
@@ -871,6 +899,7 @@ spec:
                                                 key:
                                                   type: string
                                                 name:
+                                                  default: ""
                                                   type: string
                                                 optional:
                                                   type: boolean
@@ -886,6 +915,23 @@ spec:
                                                   type: string
                                               required:
                                               - fieldPath
+                                              type: object
+                                              x-kubernetes-map-type: atomic
+                                            fileKeyRef:
+                                              properties:
+                                                key:
+                                                  type: string
+                                                optional:
+                                                  default: false
+                                                  type: boolean
+                                                path:
+                                                  type: string
+                                                volumeName:
+                                                  type: string
+                                              required:
+                                              - key
+                                              - path
+                                              - volumeName
                                               type: object
                                               x-kubernetes-map-type: atomic
                                             resourceFieldRef:
@@ -909,6 +955,7 @@ spec:
                                                 key:
                                                   type: string
                                                 name:
+                                                  default: ""
                                                   type: string
                                                 optional:
                                                   type: boolean
@@ -936,6 +983,8 @@ spec:
                                           type: string
                                         readOnly:
                                           type: boolean
+                                        recursiveReadOnly:
+                                          type: string
                                         subPath:
                                           type: string
                                         subPathExpr:
@@ -959,6 +1008,8 @@ spec:
                                             items:
                                               properties:
                                                 name:
+                                                  type: string
+                                                request:
                                                   type: string
                                               required:
                                               - name
@@ -989,12 +1040,18 @@ spec:
                                     type: object
                                   mysqldExporter:
                                     properties:
+                                      extraFlags:
+                                        additionalProperties:
+                                          type: string
+                                        type: object
                                       resources:
                                         properties:
                                           claims:
                                             items:
                                               properties:
                                                 name:
+                                                  type: string
+                                                request:
                                                   type: string
                                               required:
                                               - name
@@ -1020,8 +1077,6 @@ spec:
                                               x-kubernetes-int-or-string: true
                                             type: object
                                         type: object
-                                    required:
-                                    - resources
                                     type: object
                                   name:
                                     default: ""
@@ -1059,6 +1114,8 @@ spec:
                                               properties:
                                                 name:
                                                   type: string
+                                                request:
+                                                  type: string
                                               required:
                                               - name
                                               type: object
@@ -1086,6 +1143,10 @@ spec:
                                       terminationGracePeriodSeconds:
                                         format: int64
                                         type: integer
+                                      vtbackupExtraFlags:
+                                        additionalProperties:
+                                          type: string
+                                        type: object
                                     required:
                                     - resources
                                     type: object
@@ -1111,6 +1172,8 @@ spec:
                 maxItems: 2
                 minItems: 1
                 type: array
+              sidecarDbName:
+                type: string
               topologyReconciliation:
                 properties:
                   pruneCells:
@@ -1172,6 +1235,7 @@ spec:
                                 key:
                                   type: string
                                 name:
+                                  default: ""
                                   type: string
                                 optional:
                                   type: boolean
@@ -1187,6 +1251,23 @@ spec:
                                   type: string
                               required:
                               - fieldPath
+                              type: object
+                              x-kubernetes-map-type: atomic
+                            fileKeyRef:
+                              properties:
+                                key:
+                                  type: string
+                                optional:
+                                  default: false
+                                  type: boolean
+                                path:
+                                  type: string
+                                volumeName:
+                                  type: string
+                              required:
+                              - key
+                              - path
+                              - volumeName
                               type: object
                               x-kubernetes-map-type: atomic
                             resourceFieldRef:
@@ -1210,6 +1291,7 @@ spec:
                                 key:
                                   type: string
                                 name:
+                                  default: ""
                                   type: string
                                 optional:
                                   type: boolean
@@ -1241,6 +1323,8 @@ spec:
                           type: string
                         readOnly:
                           type: boolean
+                        recursiveReadOnly:
+                          type: string
                         subPath:
                           type: string
                         subPathExpr:
@@ -1260,6 +1344,8 @@ spec:
                         items:
                           properties:
                             name:
+                              type: string
+                            request:
                               type: string
                           required:
                           - name

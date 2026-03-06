@@ -117,3 +117,13 @@ func (b *Builder) AddVolumeNames(itemName string, vols []corev1.Volume) {
 	}
 	b.AddStringList(itemName, volNames)
 }
+
+// AddString adds a simple string to the state to be hashed.
+func (b *Builder) AddString(itemName string, value string) {
+	// Skip if the value is empty, following the pattern of other methods.
+	if value == "" {
+		return
+	}
+
+	b.state[itemName] = value
+}

@@ -152,6 +152,10 @@ func testMain(tests func() int) error {
 		return fmt.Errorf("cannot create default ServiceAccount: %v\n%s", err, out)
 	}
 
+	if out, err := execKubectl("create", "namespace", "example"); err != nil {
+		return fmt.Errorf("cannot create the example namespace: %v\n%s", err, out)
+	}
+
 	// Install vitess-operator base files, but not the Deployment itself.
 	files := []string{
 		"service_account.yaml",
@@ -189,7 +193,7 @@ func testMain(tests func() int) error {
 
 	// Set env vars that vitess-operator expects, to simulate the values
 	// provided in deploy/operator.yaml.
-	os.Setenv("WATCH_NAMESPACE", "default")
+	os.Setenv("WATCH_NAMESPACE", "default,example")
 	os.Setenv("POD_NAME", "vitess-operator")
 	os.Setenv("PS_OPERATOR_POD_NAMESPACE", "default")
 	os.Setenv("PS_OPERATOR_POD_NAME", "vitess-operator")

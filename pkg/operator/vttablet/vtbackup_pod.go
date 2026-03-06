@@ -22,7 +22,7 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"planetscale.dev/vitess-operator/pkg/operator/mysql"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -126,14 +126,18 @@ func NewBackupPod(key client.ObjectKey, backupSpec *BackupSpec, mysqldImage stri
 	volumeMounts = append(volumeMounts, mysqldVolumeMounts.Get(tabletSpec)...)
 	volumeMounts = append(volumeMounts, tabletVolumeMounts.Get(tabletSpec)...)
 	volumeMounts = append(volumeMounts, vttabletVolumeMounts.Get(tabletSpec)...)
+	update.VolumeMounts(&volumeMounts, tabletSpec.ExtraVolumeMounts)
+
+	volumes := tabletVolumes.Get(tabletSpec)
+	update.Volumes(&volumes, tabletSpec.ExtraVolumes)
 
 	podSecurityContext := &corev1.PodSecurityContext{}
 	if planetscalev2.DefaultVitessFSGroup >= 0 {
-		podSecurityContext.FSGroup = pointer.Int64(planetscalev2.DefaultVitessFSGroup)
+		podSecurityContext.FSGroup = ptr.To(planetscalev2.DefaultVitessFSGroup)
 	}
 	securityContext := &corev1.SecurityContext{}
 	if planetscalev2.DefaultVitessRunAsUser >= 0 {
-		securityContext.RunAsUser = pointer.Int64(planetscalev2.DefaultVitessRunAsUser)
+		securityContext.RunAsUser = ptr.To(planetscalev2.DefaultVitessRunAsUser)
 	}
 
 	var containerResources corev1.ResourceRequirements
@@ -157,7 +161,7 @@ func NewBackupPod(key client.ObjectKey, backupSpec *BackupSpec, mysqldImage stri
 		Spec: corev1.PodSpec{
 			ImagePullSecrets: tabletSpec.ImagePullSecrets,
 			RestartPolicy:    corev1.RestartPolicyOnFailure,
-			Volumes:          tabletVolumes.Get(tabletSpec),
+			Volumes:          volumes,
 			SecurityContext:  podSecurityContext,
 			Affinity:         tabletSpec.Affinity,
 			Tolerations:      tabletSpec.Tolerations,

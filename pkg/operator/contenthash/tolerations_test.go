@@ -20,7 +20,7 @@ import (
 	"testing"
 
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 )
 
 func TestTolerationSecondsNil(t *testing.T) {
@@ -29,7 +29,7 @@ func TestTolerationSecondsNil(t *testing.T) {
 		{TolerationSeconds: nil},
 	})
 	zeroHash := Tolerations([]corev1.Toleration{
-		{TolerationSeconds: pointer.Int64Ptr(0)},
+		{TolerationSeconds: ptr.To(int64(0))},
 	})
 	if nilHash == zeroHash {
 		t.Errorf("nilHash = zeroHash = %v; expected different values", nilHash)

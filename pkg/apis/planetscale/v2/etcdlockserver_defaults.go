@@ -19,7 +19,7 @@ package v2
 import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 )
 
 func DefaultEtcdLockserver(ls *EtcdLockserver) {
@@ -57,13 +57,13 @@ func DefaultEtcdLockserverTemplate(ls *EtcdLockserverTemplate) {
 		}
 	}
 	if ls.CreatePDB == nil {
-		ls.CreatePDB = pointer.BoolPtr(defaultEtcdCreatePDB)
+		ls.CreatePDB = ptr.To(defaultEtcdCreatePDB)
 	}
 	if ls.CreateClientService == nil {
-		ls.CreateClientService = pointer.BoolPtr(defaultEtcdCreateClientService)
+		ls.CreateClientService = ptr.To(defaultEtcdCreateClientService)
 	}
 	if ls.CreatePeerService == nil {
-		ls.CreatePeerService = pointer.BoolPtr(defaultEtcdCreatePeerService)
+		ls.CreatePeerService = ptr.To(defaultEtcdCreatePeerService)
 	}
 	DefaultServiceOverrides(&ls.ClientService)
 	DefaultServiceOverrides(&ls.PeerService)

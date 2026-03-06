@@ -20,7 +20,7 @@ import (
 	"path/filepath"
 
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 )
@@ -89,7 +89,7 @@ func (v *VolumeMount) PodVolumes() []corev1.Volume {
 			VolumeSource: corev1.VolumeSource{
 				Secret: &corev1.SecretVolumeSource{
 					SecretName:  v.Secret.Name,
-					DefaultMode: pointer.Int32Ptr(volumeMountMode),
+					DefaultMode: ptr.To(int32(volumeMountMode)),
 					Items: []corev1.KeyToPath{
 						{
 							Key:  v.Secret.Key,

@@ -6,17 +6,13 @@ source ./test/endtoend/utils.sh
 function move_tables() {
   echo "Apply 201_customer_tablets.yaml"
   kubectl apply -f 201_customer_tablets.yaml > /dev/null
-  sleep 300
-  checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 6
   checkPodStatusWithTimeout "example-customer-x-x-zone1-vtorc(.*)1/1(.*)Running(.*)"
+  checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 6
 
-  killall kubectl
-  ./pf.sh > /dev/null 2>&1 &
-
+  setupPortForwarding
   waitForKeyspaceToBeServing customer - 2
 
-  sleep 10
-
+  echo "Execute MoveTables"
   vtctldclient LegacyVtctlCommand -- MoveTables --source commerce --tables 'customer,corder' Create customer.commerce2customer
   if [ $? -ne 0 ]; then
     echo "MoveTables failed"
@@ -26,6 +22,7 @@ function move_tables() {
 
   sleep 10
 
+  echo "Execute VDiff"
   vdiff_out=$(vtctldclient LegacyVtctlCommand -- VDiff customer.commerce2customer)
   echo "$vdiff_out" | grep "ProcessedRows: 5" | wc -l | grep "2" > /dev/null
   if [ $? -ne 0 ]; then
@@ -33,6 +30,7 @@ function move_tables() {
     # Allow failure
   fi
 
+  echo "SwitchTraffic for rdonly"
   vtctldclient LegacyVtctlCommand -- MoveTables --tablet_types='rdonly,replica' SwitchTraffic customer.commerce2customer
   if [ $? -ne 0 ]; then
     echo "SwitchTraffic for rdonly and replica failed"
@@ -40,6 +38,7 @@ function move_tables() {
     exit 1
   fi
 
+  echo "SwitchTraffic for primary"
   vtctldclient LegacyVtctlCommand -- MoveTables --tablet_types='primary' SwitchTraffic customer.commerce2customer
   if [ $? -ne 0 ]; then
     echo "SwitchTraffic for primary failed"
@@ -47,6 +46,7 @@ function move_tables() {
     exit 1
   fi
 
+  echo "Complete MoveTables"
   vtctldclient LegacyVtctlCommand -- MoveTables Complete customer.commerce2customer
   if [ $? -ne 0 ]; then
     echo "MoveTables Complete failed"
@@ -80,21 +80,16 @@ function resharding() {
 
   echo "Apply 302_new_shards.yaml"
   kubectl apply -f 302_new_shards.yaml
+  checkPodStatusWithTimeout "example-customer-8000-x-zone1-vtorc(.*)1/1(.*)Running(.*)"
+  checkPodStatusWithTimeout "example-customer-x-8000-zone1-vtorc(.*)1/1(.*)Running(.*)"
   checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 12
-  checkPodStatusWithTimeout "example-customer-80-x-zone1-vtorc(.*)1/1(.*)Running(.*)"
-  checkPodStatusWithTimeout "example-customer-x-80-zone1-vtorc(.*)1/1(.*)Running(.*)"
 
-  killall kubectl
-  ./pf.sh > /dev/null 2>&1 &
-  sleep 5
-
-  waitForKeyspaceToBeServing customer -80 2
-  waitForKeyspaceToBeServing customer 80- 2
+  setupPortForwarding
+  waitForKeyspaceToBeServing customer -8000 2
+  waitForKeyspaceToBeServing customer 8000- 2
 
   echo "Ready to reshard ..."
-  sleep 15
-
-  vtctldclient LegacyVtctlCommand -- Reshard --source_shards '-' --target_shards '-80,80-' Create customer.cust2cust
+  vtctldclient LegacyVtctlCommand -- Reshard --source_shards '-' --target_shards '-8000,8000-' Create customer.cust2cust
   if [ $? -ne 0 ]; then
     echo "Reshard Create failed"
     printMysqlErrorFiles
@@ -125,8 +120,8 @@ function resharding() {
 
   sleep 10
 
-  assertSelect ../common/select_customer-80_data.sql "customer/-80" << EOF
-Using customer/-80
+  assertSelect ../common/select_customer-80_data.sql "customer/-8000" << EOF
+Using customer/-8000
 Customer
 +-------------+--------------------+
 | customer_id | email              |
@@ -147,8 +142,8 @@ COrder
 +----------+-------------+----------+-------+
 EOF
 
-  assertSelect ../common/select_customer80-_data.sql "customer/80-" << EOF
-Using customer/80-
+  assertSelect ../common/select_customer80-_data.sql "customer/8000-" << EOF
+Using customer/8000-
 Customer
 +-------------+----------------+
 | customer_id | email          |
@@ -173,90 +168,120 @@ EOF
 
   kubectl apply -f 306_down_shard_0.yaml
   checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 9
-  waitForKeyspaceToBeServing customer -80 2
-  waitForKeyspaceToBeServing customer 80- 2
+  waitForKeyspaceToBeServing customer -8000 2
+  waitForKeyspaceToBeServing customer 8000- 2
 }
 
-function waitAndVerifySetup() {
-  sleep 10
-  checkPodStatusWithTimeout "example-zone1-vtctld(.*)1/1(.*)Running(.*)"
-  checkPodStatusWithTimeout "example-zone1-vtgate(.*)1/1(.*)Running(.*)"
-  checkPodStatusWithTimeout "example-etcd(.*)1/1(.*)Running(.*)" 3
-  checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 3
-  checkPodStatusWithTimeout "example-commerce-x-x-zone1-vtorc(.*)1/1(.*)Running(.*)"
+function scheduledBackups() {
+  echo "Apply 401_scheduled_backups.yaml"
+  kubectl apply -f 401_scheduled_backups.yaml > /dev/null
+
+  checkVitessBackupScheduleStatusWithTimeout "example-vbsc-commerce(.*)"
+  checkVitessBackupScheduleStatusWithTimeout "example-vbsc-customer(.*)"
+
+  initialCommerceBackups=$(kubectl get vtb -n example --no-headers | grep "commerce-x-x" | wc -l)
+  initialCustomerFirstShardBackups=$(kubectl get vtb -n example --no-headers | grep "customer-x-8000" | wc -l)
+  initialCustomerSecondShardBackups=$(kubectl get vtb -n example --no-headers | grep "customer-8000-x" | wc -l)
+
+  for i in {1..60} ; do
+    commerceBackups=$(kubectl get vtb -n example --no-headers | grep "commerce-x-x" | wc -l)
+    customerFirstShardBackups=$(kubectl get vtb -n example --no-headers | grep "customer-x-8000" | wc -l)
+    customerSecondShardBackups=$(kubectl get vtb -n example --no-headers | grep "customer-8000-x" | wc -l)
+
+    if [[ "${customerFirstShardBackups}" -ge $(( initialCustomerFirstShardBackups + 2 )) && "${customerSecondShardBackups}" -ge $(( initialCustomerSecondShardBackups + 2 )) && "${commerceBackups}" -ge $(( initialCommerceBackups + 2 )) ]]; then
+      echo "Found all backups"
+      return
+    else
+      echo "Got: ${customerFirstShardBackups} customer-x-8000 backups but want: $(( initialCustomerFirstShardBackups + 2 ))"
+      echo "Got: ${customerSecondShardBackups} customer-8000-x backups but want: $(( initialCustomerSecondShardBackups + 2 ))"
+      echo "Got: ${commerceBackups} commerce-x-x backups but want: $(( initialCommerceBackups + 2 ))"
+      echo ""
+    fi
+    sleep 10
+  done
+
+  echo "Did not find the backups on time"
+  exit 1
+}
+
+function verifyVtgateDeploymentStrategy() {
+  echo "Verifying the deployment strategy of vtgate"
+  vtgate=$(kubectl get deployments  -n example --no-headers -o custom-columns=":metadata.name" | grep "vtgate")
+  if [[ $? -eq 1 ]]; then
+    echo "Could not find the vtgate deployment"
+    exit 1
+  fi
+
+  rollingUpdateStr=$(kubectl describe deployment -n example ${vtgate} | grep "RollingUpdateStrategy:")
+  if [[ $? -eq 1 ]]; then
+    echo "Could not find vtgate's rolling update strategy"
+    exit 1
+  fi
+
+  if [[ "${rollingUpdateStr}" != "RollingUpdateStrategy:  0 max unavailable, 1 max surge" ]]; then
+    echo "Could not find the correct rolling update strategy, got: ${rollingUpdateStr}"
+    exit 1
+  fi
+  echo "Found the correct deployment strategy"
 }
 
 function upgradeToLatest() {
-  echo "Apply operator-latest.yaml "
+  echo "Upgrade Vitess Operator"
   kubectl apply -f operator-latest.yaml
-  waitAndVerifySetup
+  checkPodSpecBySelectorWithTimeout default "app=vitess-operator" 1 "image: vitess-operator-pr:latest"
+  checkPodStatusWithTimeout "vitess-operator(.*)1/1(.*)Running(.*)"
 
-  echo "Upgrade all the other binaries"
+  echo "Upgrade Vitess binaries"
   kubectl apply -f cluster_upgrade.yaml
-  waitAndVerifySetup
+  checkPodStatusWithTimeout "example-etcd(.*)1/1(.*)Running(.*)" 3
+  checkPodStatusWithTimeout "example-zone1-vtctld(.*)1/1(.*)Running(.*)"
+  checkPodStatusWithTimeout "example-zone1-vtgate(.*)1/1(.*)Running(.*)"
+  checkPodStatusWithTimeout "example-commerce-x-x-zone1-vtorc(.*)1/1(.*)Running(.*)"
+  checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 3
 
-  killall kubectl
-  ./pf.sh > /dev/null 2>&1 &
+  # Wait for the cluster spec changes to take effect
+  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vtctld" 1 "image: vitess/lite:mysql80"
+  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vtgate" 1 "image: vitess/lite:mysql80"
+  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vtorc" 1 "image: vitess/lite:mysql80"
+  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vttablet" 12 "image: vitess/lite:mysql80"
 
-  sleep 10
+  verifyVtgateDeploymentStrategy
 
-  assertSelect ../common/select_commerce_data.sql "commerce" << EOF
-Using commerce
-Customer
-+-------------+--------------------+
-| customer_id | email              |
-+-------------+--------------------+
-|           1 | alice@domain.com   |
-|           2 | bob@domain.com     |
-|           3 | charlie@domain.com |
-|           4 | dan@domain.com     |
-|           5 | eve@domain.com     |
-+-------------+--------------------+
-Product
-+----------+-------------+-------+
-| sku      | description | price |
-+----------+-------------+-------+
-| SKU-1001 | Monitor     |   100 |
-| SKU-1002 | Keyboard    |    30 |
-+----------+-------------+-------+
-COrder
-+----------+-------------+----------+-------+
-| order_id | customer_id | sku      | price |
-+----------+-------------+----------+-------+
-|        1 |           1 | SKU-1001 |   100 |
-|        2 |           2 | SKU-1002 |    30 |
-|        3 |           3 | SKU-1002 |    30 |
-|        4 |           4 | SKU-1002 |    30 |
-|        5 |           5 | SKU-1002 |    30 |
-+----------+-------------+----------+-------+
-EOF
+  setupPortForwarding
+  waitForKeyspaceToBeServing commerce - 2
+  verifyDataCommerce
+}
+
+function verifyResourceSpec() {
+  echo "Verifying resource spec"
+
+  echo "mysqld_exporter flags:"
+  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vttablet" 3 "--no-collect.info_schema.innodb_cmpmem$"
+  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vttablet" 3 "--collect.info_schema.tables$"
+  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vttablet" 3 "--collect.info_schema.tables.databases=\*$"
 }
 
 # Test setup
-echo "Building the docker image"
-docker build -f build/Dockerfile.release -t vitess-operator-pr:latest .
-echo "Creating Kind cluster"
-kind create cluster --wait 30s --name kind-${BUILDKITE_BUILD_ID} --image ${KIND_VERSION}
-echo "Loading docker image into Kind cluster"
-kind load docker-image vitess-operator-pr:latest --name kind-${BUILDKITE_BUILD_ID}
-
-cd "$PWD/test/endtoend/operator"
-killall kubectl
-setupKubectlAccessForCI
+setupKindCluster
+cd test/endtoend/operator || exit 1
 
 get_started "operator.yaml" "101_initial_cluster.yaml"
-verifyVtGateVersion "20.0.0"
+verifyVtGateVersion "23.0.0"
 checkSemiSyncSetup
+checkMysqldExporterMetrics
 # Initially too durability policy should be specified
 verifyDurabilityPolicy "commerce" "semi_sync"
 upgradeToLatest
-verifyVtGateVersion "21.0.0"
+verifyVtGateVersion "24.0.0"
+verifyResourceSpec
 checkSemiSyncSetup
+checkMysqldExporterMetrics
 # After upgrading, we verify that the durability policy is still semi_sync
 verifyDurabilityPolicy "commerce" "semi_sync"
 move_tables
 resharding
 
+scheduledBackups
+
 # Teardown
-echo "Deleting Kind cluster. This also deletes the volume associated with it"
-kind delete cluster --name kind-${BUILDKITE_BUILD_ID}
+teardownKindCluster

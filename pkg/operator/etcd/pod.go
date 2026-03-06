@@ -22,7 +22,7 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
@@ -161,7 +161,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	var securityContext *corev1.SecurityContext
 	if planetscalev2.DefaultEtcdRunAsUser >= 0 {
 		securityContext = &corev1.SecurityContext{
-			RunAsUser: pointer.Int64Ptr(planetscalev2.DefaultEtcdRunAsUser),
+			RunAsUser: ptr.To(planetscalev2.DefaultEtcdRunAsUser),
 		}
 	}
 
@@ -234,7 +234,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 		if obj.Spec.SecurityContext == nil {
 			obj.Spec.SecurityContext = &corev1.PodSecurityContext{}
 		}
-		obj.Spec.SecurityContext.FSGroup = pointer.Int64Ptr(planetscalev2.DefaultEtcdFSGroup)
+		obj.Spec.SecurityContext.FSGroup = ptr.To(planetscalev2.DefaultEtcdFSGroup)
 	}
 
 	if planetscalev2.DefaultEtcdServiceAccount != "" {

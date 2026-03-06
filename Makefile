@@ -32,6 +32,9 @@ integration-test:
 generate:
 	go run sigs.k8s.io/controller-tools/cmd/controller-gen object crd:maxDescLen=0 paths="./pkg/apis/planetscale/v2" output:crd:artifacts:config=./deploy/crds
 	go run github.com/ahmetb/gen-crd-api-reference-docs -api-dir planetscale.dev/vitess-operator/pkg/apis/planetscale/v2 -config ./docs/api/config.json -template-dir ./docs/api/template -out-file ./docs/api/index.html
+	@echo 'Copying ./docs/api/index.html to ./docs/api.md'
+	@cp ./docs/api/index.html ./docs/api.md && ex -sc '1,2d|x' ./docs/api.md
+	@echo 'Written to ./docs/api.md'
 
 generate-and-diff: generate
 	git add --all
@@ -58,18 +61,26 @@ e2e-test-setup:
 	./tools/get-e2e-test-deps.sh
 
 # Upgrade test
-upgrade-test: build e2e-test-setup
+upgrade-test: e2e-test-setup
 	echo "Running Upgrade test"
 	test/endtoend/upgrade_test.sh
 
-backup-restore-test: build e2e-test-setup
+backup-restore-test: e2e-test-setup
 	echo "Running Backup-Restore test"
 	test/endtoend/backup_restore_test.sh
 
-backup-schedule-test: build e2e-test-setup
+backup-schedule-test: e2e-test-setup
 	echo "Running Backup-Schedule test"
 	test/endtoend/backup_schedule_test.sh
 
-vtorc-vtadmin-test: build e2e-test-setup
+vtorc-vtadmin-test: e2e-test-setup
 	echo "Running VTOrc and VtAdmin test"
 	test/endtoend/vtorc_vtadmin_test.sh
+
+unmanaged-tablet-test: e2e-test-setup
+	echo "Running Unmanaged Tablet test"
+	test/endtoend/unmanaged_tablet_test.sh
+
+hpa-test: e2e-test-setup
+	echo "Running HPA test"
+	test/endtoend/hpa_test.sh

@@ -37,6 +37,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/event"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
 
@@ -67,7 +68,7 @@ func NewPeriodic(name string, period time.Duration) *Periodic {
 // WatchSource returns the source.Source that can be passed to Controller.Watch()
 // to plug this resync into the controller.
 func (p *Periodic) WatchSource() source.Source {
-	return &source.Channel{Source: p.trigger}
+	return source.Channel(p.trigger, &handler.EnqueueRequestForObject{})
 }
 
 // Enqueue adds the given object to the periodic resync queue.

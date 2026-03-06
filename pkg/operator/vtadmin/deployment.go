@@ -25,7 +25,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
@@ -135,7 +135,7 @@ func UpdateDeploymentImmediate(obj *appsv1.Deployment, spec *Spec) {
 	update.Labels(&obj.Labels, spec.Labels)
 
 	// Scaling up or down doesn't require a rolling update.
-	obj.Spec.Replicas = pointer.Int32Ptr(spec.Replicas)
+	obj.Spec.Replicas = ptr.To(spec.Replicas)
 }
 
 // UpdateDeployment updates the mutable parts of the vtadmin Deployment
@@ -154,7 +154,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 	obj.Spec.Template.Annotations = spec.Annotations
 
 	// Deployment options.
-	obj.Spec.RevisionHistoryLimit = pointer.Int32Ptr(0)
+	obj.Spec.RevisionHistoryLimit = ptr.To(int32(0))
 
 	// Reset the list of volumes in the template so we remove old ones.
 	obj.Spec.Template.Spec.Volumes = nil
@@ -179,7 +179,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 
 	securityContext := &corev1.SecurityContext{}
 	if planetscalev2.DefaultVitessRunAsUser >= 0 {
-		securityContext.RunAsUser = pointer.Int64Ptr(planetscalev2.DefaultVitessRunAsUser)
+		securityContext.RunAsUser = ptr.To(planetscalev2.DefaultVitessRunAsUser)
 	}
 
 	update.PodTemplateContainers(&obj.Spec.Template.Spec.InitContainers, spec.InitContainers)

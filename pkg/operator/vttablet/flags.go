@@ -18,6 +18,7 @@ package vttablet
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"vitess.io/vitess/go/vt/topo/topoproto"
 
@@ -92,6 +93,17 @@ func init() {
 			"db_charset":       spec.dbConfigCharset(),
 			"init_db_sql_file": dbInitScript.FilePath(),
 			"wait_time":        mysqlctlWaitTime,
+		}
+	})
+
+	// Base mysqld_exporter flags.
+	mysqldExporterFlags.Add(func(s lazy.Spec) vitess.Flags {
+		return vitess.Flags{
+			"config.my-cnf": filepath.Join(vtMycnfPath, mysqldExporterMySQLCnf),
+			// The default for `collect.info_schema.tables.databases` is `*`,
+			// which causes new time series to be created for each user table.
+			// This in turn causes scaling issues in Prometheus memory usage.
+			"collect.info_schema.tables.databases": "sys,_vt",
 		}
 	})
 

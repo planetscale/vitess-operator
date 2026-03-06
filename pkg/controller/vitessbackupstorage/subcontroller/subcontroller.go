@@ -131,25 +131,25 @@ func add(mgr manager.Manager, r *ReconcileVitessBackupStorage) error {
 	}
 
 	// Watch for changes to primary resource VitessBackupStorage
-	if err := c.Watch(source.Kind(mgr.GetCache(), &planetscalev2.VitessBackupStorage{}), &handler.EnqueueRequestForObject{}); err != nil {
+	if err := c.Watch(source.Kind(mgr.GetCache(), &planetscalev2.VitessBackupStorage{}, &handler.TypedEnqueueRequestForObject[*planetscalev2.VitessBackupStorage]{})); err != nil {
 		return err
 	}
 
 	// Watch for changes to secondary resources and requeue the owner VitessBackupStorage.
 	for _, resource := range watchResources {
-		err := c.Watch(source.Kind(mgr.GetCache(), resource), handler.EnqueueRequestForOwner(
+		err := c.Watch(source.Kind(mgr.GetCache(), resource, handler.EnqueueRequestForOwner(
 			mgr.GetScheme(),
 			mgr.GetRESTMapper(),
 			&planetscalev2.VitessBackupStorage{},
 			handler.OnlyControllerOwner(),
-		))
+		)))
 		if err != nil {
 			return err
 		}
 	}
 
 	// Periodically resync even when no Kubernetes events have come in.
-	if err := c.Watch(r.resync.WatchSource(), &handler.EnqueueRequestForObject{}); err != nil {
+	if err := c.Watch(r.resync.WatchSource()); err != nil {
 		return err
 	}
 

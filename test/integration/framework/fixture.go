@@ -63,7 +63,7 @@ func NewFixture(ctx context.Context, t *testing.T) *Fixture {
 
 	httpClient, err := rest.HTTPClientFor(config)
 	require.NoError(t, err)
-	mapper, err := apiutil.NewDiscoveryRESTMapper(config, httpClient)
+	mapper, err := apiutil.NewDynamicRESTMapper(config, httpClient)
 	require.NoError(t, err)
 
 	kubeClient, err := client.New(config, client.Options{

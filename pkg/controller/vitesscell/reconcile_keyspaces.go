@@ -35,9 +35,7 @@ import (
 
 // Map maps a VitessKeyspace to a list of requests for VitessCells
 // in which the keyspace is deployed.
-func keyspaceCellsMapper(ctx context.Context, obj client.Object) []reconcile.Request {
-	vtk := obj.(*planetscalev2.VitessKeyspace)
-
+func keyspaceCellsMapper(ctx context.Context, vtk *planetscalev2.VitessKeyspace) []reconcile.Request {
 	// Request reconciliation for all the VitessCells to which this VitessKeyspace is deployed.
 	var requests []reconcile.Request
 	for _, cellName := range vtk.Spec.CellNames() {

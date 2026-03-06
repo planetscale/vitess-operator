@@ -3,8 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.11.3
-  creationTimestamp: null
+    controller-gen.kubebuilder.io/version: v0.17.2
   name: vitessbackupstorages.planetscale.com
 spec:
   group: planetscale.com
@@ -130,6 +129,9 @@ spec:
                         maxLength: 256
                         pattern: ^[^\r\n]*$
                         type: string
+                      minPartSize:
+                        format: int64
+                        type: integer
                       region:
                         minLength: 1
                         type: string

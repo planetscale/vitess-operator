@@ -34,16 +34,6 @@ const (
 	ForbidConcurrent ConcurrencyPolicy = "Forbid"
 )
 
-// BackupStrategyName describes the vtctldclient command that will be used to take a backup.
-// When scheduling a backup, you must specify at least one strategy.
-// +kubebuilder:validation:Enum=BackupShard
-type BackupStrategyName string
-
-const (
-	// BackupShard will use the "vtctldclient BackupShard" command to take a backup
-	BackupShard BackupStrategyName = "BackupShard"
-)
-
 // VitessBackupSchedule is the Schema for the VitessBackupSchedule API.
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
@@ -98,12 +88,12 @@ type VitessBackupScheduleTemplate struct {
 
 	// Strategy defines how we are going to take a backup.
 	// If you want to take several backups within the same schedule you can add more items
-	// to the Strategy list. Each VitessBackupScheduleStrategy will be executed by the same
-	// kubernetes job. This is useful if for instance you have one schedule, and you want to
-	// take a backup of all shards in a keyspace and don't want to re-create a second schedule.
-	// All the VitessBackupScheduleStrategy are concatenated into a single shell command that
-	// is executed when the Job's container starts.
+	// to the Strategy list. Each VitessBackupScheduleStrategy will be executed within different
+	// kubernetes jobs. This is useful if you want to have a single schedule backing up multiple shards
+	// at the same time.
 	// +kubebuilder:validation:MinItems=1
+	// +patchMergeKey=name
+	// +patchStrategy=merge
 	Strategy []VitessBackupScheduleStrategy `json:"strategies"`
 
 	// Resources specify the compute resources to allocate for every Jobs's pod.
@@ -136,11 +126,12 @@ type VitessBackupScheduleTemplate struct {
 
 	// ConcurrencyPolicy specifies ho to treat concurrent executions of a Job.
 	// Valid values are:
-	// - "Allow" (default): allows CronJobs to run concurrently;
-	// - "Forbid": forbids concurrent runs, skipping next run if previous run hasn't finished yet;
+	// - "Allow": allows CronJobs to run concurrently;
+	// - "Forbid" (default): forbids concurrent runs, skipping next run if previous run hasn't finished yet;
 	// - "Replace": cancels currently running job and replaces it with a new one.
 	// +optional
 	// +kubebuilder:example="Forbid"
+	// +kubebuilder:default="Forbid"
 	ConcurrencyPolicy ConcurrencyPolicy `json:"concurrencyPolicy,omitempty"`
 
 	// AllowedMissedRuns defines how many missed run of the schedule will be allowed before giving up on finding the last job.
@@ -180,7 +171,7 @@ type VitessBackupScheduleTemplate struct {
 // command line that will be executed in the Job's pod.
 type VitessBackupScheduleStrategy struct {
 	// Name of the backup strategy.
-	Name BackupStrategyName `json:"name"`
+	Name string `json:"name"`
 
 	// Keyspace defines the keyspace on which we want to take the backup.
 	// +kubebuilder:example="commerce"
@@ -198,12 +189,32 @@ type VitessBackupScheduleStrategy struct {
 // VitessBackupScheduleStatus defines the observed state of VitessBackupSchedule
 type VitessBackupScheduleStatus struct {
 	// A list of pointers to currently running jobs.
+	// This field is deprecated and no longer used in versions >= v2.15. It will be removed in a future release.
 	// +optional
 	Active []corev1.ObjectReference `json:"active,omitempty"`
 
 	// Information when was the last time the job was successfully scheduled.
+	// This field is deprecated and no longer used in versions >= v2.15. It will be removed in a future release.
+	// Please use lastScheduledTimes instead which maps the last schedule time to each VitessBackupScheduleStrategy
+	// in the VitessBackupSchedule.
 	// +optional
 	LastScheduledTime *metav1.Time `json:"lastScheduledTime,omitempty"`
+
+	// A list of the last schedule we executed for each VitessBackupScheduleStrategy.
+	// Note that these are not the times when the last execution started, only the scheduled times.
+	// +optional
+	LastScheduledTimes map[string]*metav1.Time `json:"lastScheduledTimes,omitempty"`
+}
+
+// NewVitessBackupScheduleStatus creates a new status with default values.
+func NewVitessBackupScheduleStatus(status VitessBackupScheduleStatus) VitessBackupScheduleStatus {
+	newStatus := VitessBackupScheduleStatus{
+		LastScheduledTimes: status.LastScheduledTimes,
+	}
+	if status.LastScheduledTimes == nil {
+		newStatus.LastScheduledTimes = make(map[string]*metav1.Time)
+	}
+	return newStatus
 }
 
 func init() {

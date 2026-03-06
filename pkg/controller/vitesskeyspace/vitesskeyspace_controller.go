@@ -98,26 +98,26 @@ func add(mgr manager.Manager, r *ReconcileVitessKeyspace) error {
 	}
 
 	// Watch for changes to primary resource VitessKeyspace
-	err = c.Watch(source.Kind(mgr.GetCache(), &planetscalev2.VitessKeyspace{}), &handler.EnqueueRequestForObject{})
+	err = c.Watch(source.Kind(mgr.GetCache(), &planetscalev2.VitessKeyspace{}, &handler.TypedEnqueueRequestForObject[*planetscalev2.VitessKeyspace]{}))
 	if err != nil {
 		return err
 	}
 
 	// Watch for changes to secondary resources and requeue the owner VitessKeyspace.
 	for _, resource := range watchResources {
-		err := c.Watch(source.Kind(mgr.GetCache(), resource), handler.EnqueueRequestForOwner(
+		err := c.Watch(source.Kind(mgr.GetCache(), resource, handler.EnqueueRequestForOwner(
 			mgr.GetScheme(),
 			mgr.GetRESTMapper(),
 			&planetscalev2.VitessKeyspace{},
 			handler.OnlyControllerOwner(),
-		))
+		)))
 		if err != nil {
 			return err
 		}
 	}
 
 	// Periodically resync even when no Kubernetes events have come in.
-	if err := c.Watch(r.resync.WatchSource(), &handler.EnqueueRequestForObject{}); err != nil {
+	if err := c.Watch(r.resync.WatchSource()); err != nil {
 		return err
 	}
 
