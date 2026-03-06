@@ -79,7 +79,7 @@ function takeBackup() {
   vtctldclient BackupShard "${keyspaceShard}"
 
   for i in {1..600} ; do
-    out=$(kubectl get vtb --no-headers | wc -l)
+    out=$(kubectl get vtb -n example --no-headers | wc -l)
     if echo "${out}" | grep -c "${finalBackupCount}" >/dev/null; then
       echo "Full backup created"
       break
@@ -100,7 +100,7 @@ function takeBackup() {
   let finalBackupCount=${finalBackupCount}+1
 
   for i in {1..600} ; do
-    out=$(kubectl get vtb --no-headers | wc -l)
+    out=$(kubectl get vtb -n example --no-headers | wc -l)
     if echo "${out}" | grep -c "${finalBackupCount}" >/dev/null; then
       echo "Incremental backup created"
       return 0
@@ -108,7 +108,7 @@ function takeBackup() {
     sleep 3
   done
 
-  echo -e "ERROR: Backups not created - ${out}. ${backupCount} backups expected."
+  echo -e "ERROR: Backups not created - ${out}. ${finalBackupCount} backups expected."
   exit 1
 }
 
@@ -135,9 +135,10 @@ function restoreBackup() {
 
   cell="${tabletAlias%-*}"
   uid="${tabletAlias##*-}"
+  uid=$((10#${uid}))
 
   for i in {1..600} ; do
-    out=$(kubectl get pods --no-headers -l "planetscale.com/cell=${cell},planetscale.com/tablet-uid=${uid}" | grep "Running" | wc -l)
+    out=$(kubectl get pods -n example --no-headers -l "planetscale.com/cell=${cell},planetscale.com/tablet-uid=${uid}" | grep "Running" | wc -l)
     if echo "$out" | grep -c "1" >/dev/null; then
       echo "Tablet ${tabletAlias} restore complete"
       return 0
