@@ -35,7 +35,6 @@ const (
 	vtbackupInitScript = `set -ex
 mkdir -p /mnt/vt/bin
 cp --no-clobber /vt/bin/vtbackup /mnt/vt/bin/
-cp --no-clobber /usr/bin/mysqlbinlog /mnt/vt/bin/
 mkdir -p /mnt/vt/config
 if [[ -d /vt/config/mycnf ]]; then
   cp --no-clobber -R /vt/config/mycnf /mnt/vt/config/
