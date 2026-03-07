@@ -75,13 +75,16 @@ declare INCREMENTAL_RESTORE_POS=""
 function takeBackup() {
   keyspaceShard=$1
 
+  # Record the baseline backup count before we start.
+  baselineCount=$(kubectl get vtb -n example --no-headers 2>/dev/null | wc -l | tr -d ' ')
+
   # Issue the BackupShard command to vtctldclient.
   vtctldclient BackupShard "${keyspaceShard}"
 
-  finalBackupCount=1
+  expectedCount=$((baselineCount + 1))
   for i in {1..600} ; do
-    out=$(kubectl get vtb -n example --no-headers | wc -l)
-    if echo "${out}" | grep -c "${finalBackupCount}" >/dev/null; then
+    out=$(kubectl get vtb -n example --no-headers | wc -l | tr -d ' ')
+    if [[ "${out}" -ge "${expectedCount}" ]]; then
       echo "Full backup created"
       break
     fi
@@ -101,18 +104,18 @@ function takeBackup() {
   runSQLWithRetry "insert into commerce.product(sku, description, price) values('SKU-PITR-MARKER', 'PITR Marker', 0)"
 
   vtctldclient BackupShard --incremental-from-pos=auto "${keyspaceShard}"
-  let finalBackupCount=${finalBackupCount}+1
+  expectedCount=$((expectedCount + 1))
 
   for i in {1..600} ; do
-    out=$(kubectl get vtb -n example --no-headers | wc -l)
-    if echo "${out}" | grep -c "${finalBackupCount}" >/dev/null; then
+    out=$(kubectl get vtb -n example --no-headers | wc -l | tr -d ' ')
+    if [[ "${out}" -ge "${expectedCount}" ]]; then
       echo "Incremental backup created"
       return 0
     fi
     sleep 3
   done
 
-  echo -e "ERROR: Backups not created - ${out}. ${finalBackupCount} backups expected."
+  echo -e "ERROR: Backups not created - ${out}. ${expectedCount} backups expected."
   exit 1
 }
 
@@ -139,14 +142,16 @@ function restoreBackup() {
 
   # Verify PITR correctness: the marker row inserted after the restore
   # position should NOT be present on the restored tablet.
-  if vtctldclient ExecuteFetchAsDba "${tabletAlias}" "select sku from commerce.product where sku='SKU-PITR-MARKER'" | grep -q "SKU-PITR-MARKER"; then
+  # Note: ExecuteFetchAsDba runs directly against MySQL where the database
+  # is named vt_commerce, so we must not use the commerce.* prefix.
+  if vtctldclient ExecuteFetchAsDba "${tabletAlias}" "select sku from product where sku='SKU-PITR-MARKER'" | grep -q "SKU-PITR-MARKER"; then
     echo "ERROR: PITR marker row found on restored tablet — restore did not stop at the correct position"
     exit 1
   fi
   echo "PITR verification passed: marker row correctly absent from restored tablet"
 
   # Verify the standard commerce data IS present at the restore position.
-  customerCount=$(vtctldclient ExecuteFetchAsDba "${tabletAlias}" "select count(*) as cnt from commerce.customer" | grep -oE '[0-9]+' | tail -1)
+  customerCount=$(vtctldclient ExecuteFetchAsDba "${tabletAlias}" "select count(*) as cnt from customer" | grep -oE '[0-9]+' | tail -1)
   if [[ "${customerCount}" -ne 5 ]]; then
     echo "ERROR: expected 5 customers on restored tablet, got ${customerCount}"
     exit 1
