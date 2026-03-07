@@ -78,6 +78,7 @@ function takeBackup() {
   # Issue the BackupShard command to vtctldclient.
   vtctldclient BackupShard "${keyspaceShard}"
 
+  finalBackupCount=1
   for i in {1..600} ; do
     out=$(kubectl get vtb -n example --no-headers | wc -l)
     if echo "${out}" | grep -c "${finalBackupCount}" >/dev/null; then

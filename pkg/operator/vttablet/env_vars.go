@@ -18,7 +18,6 @@ package vttablet
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
 	corev1 "k8s.io/api/core/v1"
@@ -41,10 +40,6 @@ func init() {
 				Name:  "EXTRA_MY_CNF",
 				Value: strings.Join(extraMyCnf.Get(spec), ":"),
 			},
-			// The mysqlbinlog binary is NOT in the vendor mysql container images
-			// so we copy it to /mnt/vt/bin when initializing the mysqld container
-			// so that mysqlctl can find it.
-			{Name: "PATH", Value: fmt.Sprintf("%s:%s", os.Getenv("PATH"), vtBinPath)},
 		}
 	})
 
