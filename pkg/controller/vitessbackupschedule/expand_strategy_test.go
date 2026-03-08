@@ -29,6 +29,17 @@ import (
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 )
 
+func readyShardStatus() planetscalev2.VitessShardStatus {
+	return planetscalev2.VitessShardStatus{
+		HasMaster:        corev1.ConditionTrue,
+		HasInitialBackup: corev1.ConditionTrue,
+		Tablets: map[string]planetscalev2.VitessTabletStatus{
+			"zone1-1": {Ready: corev1.ConditionTrue},
+			"zone1-2": {Ready: corev1.ConditionTrue},
+		},
+	}
+}
+
 func mustBuildExpansionContext(t *testing.T, r *ReconcileVitessBackupsSchedule, vbsc planetscalev2.VitessBackupSchedule) strategyExpansionContext {
 	t.Helper()
 	ctx, err := r.buildStrategyExpansionContext(context.Background(), vbsc)
@@ -537,4 +548,77 @@ func TestBuildStrategyExpansionContextCachesShardsByKeyspace(t *testing.T) {
 	ctx := mustBuildExpansionContext(t, r, vbsc)
 	require.Equal(t, []string{"-80", "80-"}, ctx.shardsByKeyspace["commerce"])
 	require.Len(t, ctx.allKeyspaces, 1)
+}
+
+func TestShardReadyForScheduledBackup(t *testing.T) {
+	tests := []struct {
+		name   string
+		status planetscalev2.VitessShardStatus
+		want   bool
+	}{
+		{name: "ready shard", status: readyShardStatus(), want: true},
+		{name: "missing master", status: planetscalev2.VitessShardStatus{HasInitialBackup: corev1.ConditionTrue, Tablets: readyShardStatus().Tablets}},
+		{name: "missing initial backup", status: planetscalev2.VitessShardStatus{HasMaster: corev1.ConditionTrue, Tablets: readyShardStatus().Tablets}},
+		{name: "unready tablet", status: planetscalev2.VitessShardStatus{HasMaster: corev1.ConditionTrue, HasInitialBackup: corev1.ConditionTrue, Tablets: map[string]planetscalev2.VitessTabletStatus{"zone1-1": {Ready: corev1.ConditionFalse}}}},
+		{name: "no tablets", status: planetscalev2.VitessShardStatus{HasMaster: corev1.ConditionTrue, HasInitialBackup: corev1.ConditionTrue}, want: false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			require.Equal(t, tt.want, shardReadyForScheduledBackup(planetscalev2.VitessShard{Status: tt.status}))
+		})
+	}
+}
+
+func TestCreateJobPodWaitsForShardBootstrap(t *testing.T) {
+	initBackup := true
+	vts := &planetscalev2.VitessShard{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "example-commerce-x-x",
+			Namespace: "default",
+			Labels: map[string]string{
+				planetscalev2.ClusterLabel:  "example",
+				planetscalev2.KeyspaceLabel: "commerce",
+			},
+		},
+		Spec: planetscalev2.VitessShardSpec{
+			VitessShardTemplate: planetscalev2.VitessShardTemplate{
+				TabletPools: []planetscalev2.VitessShardTabletPool{{
+					Cell:     "zone1",
+					Type:     planetscalev2.ReplicaPoolType,
+					Replicas: 1,
+					Vttablet: planetscalev2.VttabletSpec{},
+					Mysqld:   &planetscalev2.MysqldSpec{},
+				}},
+				Replication: planetscalev2.VitessReplicationSpec{
+					InitializeBackup: &initBackup,
+				},
+			},
+			Images: planetscalev2.VitessKeyspaceImages{
+				Vtbackup: "vitess/lite:mysql80",
+				Vttablet: "vitess/lite:mysql80",
+				Vtorc:    "vitess/lite:mysql80",
+				Mysqld: &planetscalev2.MysqldImage{
+					Mysql80Compatible: "vitess/lite:mysql80",
+				},
+			},
+			KeyRange:        planetscalev2.VitessKeyRange{},
+			BackupLocations: []planetscalev2.VitessBackupLocation{{Name: ""}},
+		},
+		Status: planetscalev2.VitessShardStatus{
+			HasMaster:        corev1.ConditionTrue,
+			HasInitialBackup: corev1.ConditionFalse,
+			Tablets: map[string]planetscalev2.VitessTabletStatus{
+				"zone1-1": {Ready: corev1.ConditionFalse},
+			},
+		},
+	}
+
+	r := &ReconcileVitessBackupsSchedule{
+		client: fake.NewClientBuilder().WithScheme(newScheme()).WithObjects(vts).Build(),
+	}
+	vbsc := planetscalev2.VitessBackupSchedule{ObjectMeta: metav1.ObjectMeta{Namespace: "default"}, Spec: planetscalev2.VitessBackupScheduleSpec{Cluster: "example"}}
+	strategy := planetscalev2.VitessBackupScheduleStrategy{Name: "commerce-x", Keyspace: "commerce", Shard: "-"}
+	_, _, err := r.createJobPod(context.Background(), vbsc, strategy, "test-job", planetscalev2.VitessKeyRange{}, map[string]string{})
+	require.ErrorIs(t, err, errWaitingForShardBootstrap)
 }

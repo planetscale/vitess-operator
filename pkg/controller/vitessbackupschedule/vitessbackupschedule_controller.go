@@ -18,6 +18,7 @@ package vitessbackupschedule
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"maps"
@@ -69,6 +70,8 @@ var (
 	scheduledTimeAnnotation = "planetscale.com/backup-scheduled-at"
 
 	log = logrus.WithField("controller", "VitessBackupSchedule")
+
+	errWaitingForShardBootstrap = errors.New("waiting for shard bootstrap before scheduled backup")
 )
 
 // watchResources should contain all the resource types that this controller creates.
@@ -364,6 +367,11 @@ func (r *ReconcileVitessBackupsSchedule) reconcileStrategy(
 	// Now that the different policies are checked, we can create and apply our new job.
 	job, err := r.createJob(ctx, vbsc, strategy, missedRun, vkr)
 	if err != nil {
+		if errors.Is(err, errWaitingForShardBootstrap) {
+			log.WithError(err).Info("skipping scheduled backup until shard bootstrap completes")
+			vbsc.Status.NextScheduledTimes[strategy.Name] = &metav1.Time{Time: nextRun}
+			return resultBuilder.Result()
+		}
 		// Re-queuing here does not make sense as we have an error with the template and the user needs to fix it first.
 		log.WithError(err).Error("unable to construct job from template")
 		return resultBuilder.Error(reconcile.TerminalError(err))
@@ -673,14 +681,13 @@ func (r *ReconcileVitessBackupsSchedule) createJobPod(
 		return nil, nil, err
 	}
 
-	backupType := vitessbackup.TypeUpdate
 	if len(completedBackups) == 0 {
-		if vts.Status.HasMaster == corev1.ConditionTrue {
-			return nil, nil, fmt.Errorf("this shard has 0 backup and a running primary, the schedule cannot create an empty backup, please create a backup manually first")
-		} else {
-			backupType = vitessbackup.TypeInit
+		if !shardReadyForScheduledBackup(vts) {
+			return nil, nil, fmt.Errorf("%w: shard %s/%s", errWaitingForShardBootstrap, strategy.Keyspace, strategy.Shard)
 		}
+		return nil, nil, fmt.Errorf("this shard has 0 completed backups, so scheduled backups must wait for the shard's initial backup to be seeded")
 	}
+	backupType := vitessbackup.TypeUpdate
 
 	podKey := client.ObjectKey{
 		Namespace: vbsc.Namespace,
@@ -695,6 +702,21 @@ func (r *ReconcileVitessBackupsSchedule) createJobPod(
 
 	p.Spec.Affinity = vbsc.Spec.Affinity
 	return p, vtbackupSpec, nil
+}
+
+func shardReadyForScheduledBackup(vts planetscalev2.VitessShard) bool {
+	if vts.Status.HasMaster != corev1.ConditionTrue || vts.Status.HasInitialBackup != corev1.ConditionTrue {
+		return false
+	}
+	if len(vts.Status.Tablets) == 0 {
+		return false
+	}
+	for _, tablet := range vts.Status.Tablets {
+		if tablet.Ready != corev1.ConditionTrue {
+			return false
+		}
+	}
+	return true
 }
 
 func (r *ReconcileVitessBackupsSchedule) getVtctldServiceName(ctx context.Context, vbsc *planetscalev2.VitessBackupSchedule, cluster string) (svcName string, svcPort int32, err error) {
