@@ -24,6 +24,19 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func requireExactCadence(t *testing.T, expr string, start time.Time, interval time.Duration, iterations int) {
+	t.Helper()
+	sched, err := cron.ParseStandard(expr)
+	require.NoError(t, err)
+
+	prev := sched.Next(start)
+	for i := 0; i < iterations; i++ {
+		next := sched.Next(prev)
+		require.Equal(t, interval, next.Sub(prev), "iteration %d", i)
+		prev = next
+	}
+}
+
 func TestGenerateCronFromFrequency_Determinism(t *testing.T) {
 	freq := 24 * time.Hour
 	cron1, err := generateCronFromFrequency(freq, "cluster1", "commerce", "-80", "daily")
@@ -62,6 +75,7 @@ func TestGenerateCronFromFrequency_CommonIntervals(t *testing.T) {
 		{"12h", 12 * time.Hour},
 		{"24h", 24 * time.Hour},
 	}
+	start := time.Date(2026, time.January, 1, 0, 0, 0, 0, time.UTC)
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -71,6 +85,7 @@ func TestGenerateCronFromFrequency_CommonIntervals(t *testing.T) {
 			// Verify it's parseable
 			_, err = cron.ParseStandard(expr)
 			require.NoError(t, err, "generated cron %q should be parseable", expr)
+			requireExactCadence(t, expr, start, tt.duration, 10)
 		})
 	}
 }
@@ -78,6 +93,21 @@ func TestGenerateCronFromFrequency_CommonIntervals(t *testing.T) {
 func TestGenerateCronFromFrequency_SubMinuteRejects(t *testing.T) {
 	_, err := generateCronFromFrequency(30*time.Second, "c", "k", "s", "n")
 	require.Error(t, err, "expected error for sub-minute frequency")
+}
+
+func TestGenerateCronFromFrequency_RejectsUnsupportedIntervals(t *testing.T) {
+	unsupported := []time.Duration{
+		45 * time.Minute,
+		90 * time.Minute,
+		48 * time.Hour,
+	}
+
+	for _, interval := range unsupported {
+		t.Run(interval.String(), func(t *testing.T) {
+			_, err := generateCronFromFrequency(interval, "c", "k", "s", "n")
+			require.Error(t, err)
+		})
+	}
 }
 
 func TestGenerateCronFromFrequency_AllOutputsParseable(t *testing.T) {
@@ -90,9 +120,9 @@ func TestGenerateCronFromFrequency_AllOutputsParseable(t *testing.T) {
 		6 * time.Hour,
 		12 * time.Hour,
 		24 * time.Hour,
-		48 * time.Hour,
 	}
 	shards := []string{"-", "-80", "80-", "-40", "40-80", "80-c0", "c0-"}
+	start := time.Date(2026, time.January, 1, 0, 0, 0, 0, time.UTC)
 
 	for _, interval := range intervals {
 		for _, shard := range shards {
@@ -100,6 +130,7 @@ func TestGenerateCronFromFrequency_AllOutputsParseable(t *testing.T) {
 			require.NoError(t, err, "interval=%s shard=%s", interval, shard)
 			_, err = cron.ParseStandard(expr)
 			require.NoError(t, err, "interval=%s shard=%s: generated %q should be parseable", interval, shard, expr)
+			requireExactCadence(t, expr, start, interval, 5)
 		}
 	}
 }

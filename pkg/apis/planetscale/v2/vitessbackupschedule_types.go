@@ -21,6 +21,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const SupportedBackupFrequencyExamples = "1m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 12h, 24h"
+
 // BackupScope defines the scope at which a backup strategy operates.
 // +kubebuilder:validation:Enum=Shard;Keyspace;Cluster
 type BackupScope string
@@ -101,9 +103,11 @@ type VitessBackupScheduleTemplate struct {
 	// +kubebuilder:example="0 0 * * *"
 	Schedule string `json:"schedule,omitempty"`
 
-	// Frequency is a Go duration string (e.g. "24h", "6h", "30m") that defines how often
-	// backups should run. When set, the controller generates deterministic per-shard cron
-	// schedules staggered across the interval to avoid bandwidth spikes.
+	// Frequency is a Go duration string that defines how often backups should run.
+	// Since schedules are executed via cron, only frequencies that can be represented exactly
+	// in cron are supported. Examples include 1m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 12h, and 24h.
+	// When set, the controller generates deterministic per-shard cron schedules staggered
+	// across the interval to avoid bandwidth spikes.
 	// Mutually exclusive with Schedule.
 	// +optional
 	Frequency string `json:"frequency,omitempty"`
@@ -241,6 +245,11 @@ type VitessBackupScheduleStatus struct {
 	// into the deterministic per-shard cron schedules.
 	// +optional
 	GeneratedSchedules map[string]string `json:"generatedSchedules,omitempty"`
+
+	// NextScheduledTimes maps expanded strategy names to the next scheduled execution time.
+	// This is populated for both cron-based and frequency-based schedules.
+	// +optional
+	NextScheduledTimes map[string]*metav1.Time `json:"nextScheduledTimes,omitempty"`
 }
 
 // NewVitessBackupScheduleStatus creates a new status with default values.
@@ -248,12 +257,16 @@ func NewVitessBackupScheduleStatus(status VitessBackupScheduleStatus) VitessBack
 	newStatus := VitessBackupScheduleStatus{
 		LastScheduledTimes: status.LastScheduledTimes,
 		GeneratedSchedules: status.GeneratedSchedules,
+		NextScheduledTimes: status.NextScheduledTimes,
 	}
 	if status.LastScheduledTimes == nil {
 		newStatus.LastScheduledTimes = make(map[string]*metav1.Time)
 	}
 	if status.GeneratedSchedules == nil {
 		newStatus.GeneratedSchedules = make(map[string]string)
+	}
+	if status.NextScheduledTimes == nil {
+		newStatus.NextScheduledTimes = make(map[string]*metav1.Time)
 	}
 	return newStatus
 }

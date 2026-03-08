@@ -2710,6 +2710,21 @@ This is populated when Frequency is used instead of Schedule, providing observab
 into the deterministic per-shard cron schedules.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>nextScheduledTimes</code><br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#*k8s.io/apimachinery/pkg/apis/meta/v1.time--">
+map[string]*k8s.io/apimachinery/pkg/apis/meta/v1.Time
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>NextScheduledTimes maps expanded strategy names to the next scheduled execution time.
+This is populated for both cron-based and frequency-based schedules.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="planetscale.com/v2.VitessBackupScheduleStrategy">VitessBackupScheduleStrategy
@@ -2850,9 +2865,11 @@ string
 </td>
 <td>
 <em>(Optional)</em>
-<p>Frequency is a Go duration string (e.g. &ldquo;24h&rdquo;, &ldquo;6h&rdquo;, &ldquo;30m&rdquo;) that defines how often
-backups should run. When set, the controller generates deterministic per-shard cron
-schedules staggered across the interval to avoid bandwidth spikes.
+<p>Frequency is a Go duration string that defines how often backups should run.
+Since schedules are executed via cron, only frequencies that can be represented exactly
+in cron are supported. Examples include 1m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 12h, and 24h.
+When set, the controller generates deterministic per-shard cron schedules staggered
+across the interval to avoid bandwidth spikes.
 Mutually exclusive with Schedule.</p>
 </td>
 </tr>

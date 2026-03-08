@@ -23,16 +23,17 @@ import (
 	"time"
 
 	"github.com/robfig/cron"
+	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 )
 
 // generateCronFromFrequency generates a deterministic cron expression for a given frequency
 // and identity (cluster, keyspace, shard, scheduleName). The same inputs always produce
 // the same output, but different shards get staggered across the interval.
 func generateCronFromFrequency(frequency time.Duration, cluster, keyspace, shard, scheduleName string) (string, error) {
-	totalMinutes := int(frequency.Minutes())
-	if totalMinutes < 1 {
-		return "", fmt.Errorf("frequency must be at least 1 minute, got %s", frequency)
+	if err := planetscalev2.ValidateBackupFrequency(frequency); err != nil {
+		return "", err
 	}
+	totalMinutes := int(frequency.Minutes())
 
 	// Hash the identity to produce a deterministic offset
 	h := sha256.New()

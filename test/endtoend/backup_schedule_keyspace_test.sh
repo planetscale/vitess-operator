@@ -54,6 +54,27 @@ function verifyGeneratedSchedulesExist() {
   exit 1
 }
 
+# verifyNextScheduledTimesExist checks that a VBSC matching the given name prefix
+# has non-empty nextScheduledTimes in its status.
+function verifyNextScheduledTimesExist() {
+  local namePattern=$1
+  echo "Checking that VBSC matching '${namePattern}' has nextScheduledTimes in status"
+  for i in {1..600} ; do
+    local vbscName
+    vbscName=$(getVBSCName "${namePattern}")
+    if [[ -n "${vbscName}" ]]; then
+      status=$(kubectl get VitessBackupSchedule "${vbscName}" -n example -o jsonpath='{.status.nextScheduledTimes}' 2>/dev/null)
+      if [[ -n "${status}" && "${status}" != "{}" && "${status}" != "map[]" ]]; then
+        echo "nextScheduledTimes found for ${vbscName}: ${status}"
+        return
+      fi
+    fi
+    sleep 1
+  done
+  echo "ERROR: nextScheduledTimes not found for VBSC matching '${namePattern}' within timeout"
+  exit 1
+}
+
 # verifyAutoExclusion checks that the cluster-scope schedule does NOT create jobs for the
 # excluded keyspace (customer), while it DOES create jobs for the non-excluded keyspace (commerce).
 # It also checks that the keyspace-scope schedule creates jobs for the customer keyspace.
@@ -160,6 +181,8 @@ checkVitessBackupScheduleStatusWithTimeout "example-vbsc-customer-ks-every-minut
 echo "=== Verifying frequency-based schedule generation ==="
 verifyGeneratedSchedulesExist "cluster-every-minute"
 verifyGeneratedSchedulesExist "customer-ks-every-minute"
+verifyNextScheduledTimesExist "cluster-every-minute"
+verifyNextScheduledTimesExist "customer-ks-every-minute"
 
 echo "=== Verifying auto-exclusion ==="
 verifyAutoExclusion
