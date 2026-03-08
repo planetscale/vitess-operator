@@ -647,6 +647,15 @@ SecretSource
 </tr>
 </tbody>
 </table>
+<h3 id="planetscale.com/v2.BackupScope">BackupScope
+(<code>string</code> alias)</p></h3>
+<p>
+(<em>Appears on:</em>
+<a href="#planetscale.com/v2.VitessBackupScheduleStrategy">VitessBackupScheduleStrategy</a>)
+</p>
+<p>
+<p>BackupScope defines the scope at which a backup strategy operates.</p>
+</p>
 <h3 id="planetscale.com/v2.CephBackupLocation">CephBackupLocation
 </h3>
 <p>
@@ -2685,6 +2694,20 @@ map[string]*k8s.io/apimachinery/pkg/apis/meta/v1.Time
 Note that these are not the times when the last execution started, only the scheduled times.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>generatedSchedules</code><br>
+<em>
+map[string]string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>GeneratedSchedules maps expanded strategy names to their generated cron expressions.
+This is populated when Frequency is used instead of Schedule, providing observability
+into the deterministic per-shard cron schedules.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="planetscale.com/v2.VitessBackupScheduleStrategy">VitessBackupScheduleStrategy
@@ -2719,13 +2742,30 @@ string
 </tr>
 <tr>
 <td>
+<code>scope</code><br>
+<em>
+<a href="#planetscale.com/v2.BackupScope">
+BackupScope
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Scope defines whether this strategy targets a single Shard, all shards in a Keyspace,
+or all shards in the Cluster. Defaults to &ldquo;Shard&rdquo; for backward compatibility.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>keyspace</code><br>
 <em>
 string
 </em>
 </td>
 <td>
-<p>Keyspace defines the keyspace on which we want to take the backup.</p>
+<em>(Optional)</em>
+<p>Keyspace defines the keyspace on which we want to take the backup.
+Required for Shard and Keyspace scopes.</p>
 </td>
 </tr>
 <tr>
@@ -2736,7 +2776,9 @@ string
 </em>
 </td>
 <td>
-<p>Shard defines the shard on which we want to take a backup.</p>
+<em>(Optional)</em>
+<p>Shard defines the shard on which we want to take a backup.
+Required only for Shard scope.</p>
 </td>
 </tr>
 <tr>
@@ -2792,7 +2834,24 @@ string
 </em>
 </td>
 <td>
-<p>The schedule in Cron format, see <a href="https://en.wikipedia.org/wiki/Cron">https://en.wikipedia.org/wiki/Cron</a>.</p>
+<em>(Optional)</em>
+<p>The schedule in Cron format, see <a href="https://en.wikipedia.org/wiki/Cron">https://en.wikipedia.org/wiki/Cron</a>.
+Mutually exclusive with Frequency.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>frequency</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Frequency is a Go duration string (e.g. &ldquo;24h&rdquo;, &ldquo;6h&rdquo;, &ldquo;30m&rdquo;) that defines how often
+backups should run. When set, the controller generates deterministic per-shard cron
+schedules staggered across the interval to avoid bandwidth spikes.
+Mutually exclusive with Schedule.</p>
 </td>
 </tr>
 <tr>

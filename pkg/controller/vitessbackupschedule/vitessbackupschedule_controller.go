@@ -222,9 +222,43 @@ func (r *ReconcileVitessBackupsSchedule) Reconcile(ctx context.Context, req ctrl
 func (r *ReconcileVitessBackupsSchedule) reconcileStrategies(ctx context.Context, req ctrl.Request, vbsc planetscalev2.VitessBackupSchedule) (ctrl.Result, error) {
 	resultBuilder := &results.Builder{}
 
-	for _, strategy := range vbsc.Spec.Strategy {
-		_, _ = resultBuilder.Merge(r.reconcileStrategy(ctx, strategy, req, vbsc))
+	// Validate schedule configuration
+	if err := vbsc.Spec.VitessBackupScheduleTemplate.ValidateScheduleConfig(); err != nil {
+		return resultBuilder.Error(reconcile.TerminalError(err))
 	}
+	if err := vbsc.Spec.VitessBackupScheduleTemplate.ValidateStrategies(); err != nil {
+		return resultBuilder.Error(reconcile.TerminalError(err))
+	}
+
+	// Track which strategy names we see in this reconcile to clean up stale status entries
+	activeStrategyNames := make(map[string]bool)
+
+	for _, strategy := range vbsc.Spec.Strategy {
+		expanded, err := r.expandStrategy(ctx, strategy, vbsc)
+		if err != nil {
+			log.WithError(err).Errorf("unable to expand strategy %s", strategy.Name)
+			_, _ = resultBuilder.Error(err)
+			continue
+		}
+		for _, es := range expanded {
+			activeStrategyNames[es.Name] = true
+			_, _ = resultBuilder.Merge(r.reconcileStrategy(ctx, es, req, vbsc))
+		}
+	}
+
+	// Clean up stale LastScheduledTimes entries for strategies that no longer exist
+	for name := range vbsc.Status.LastScheduledTimes {
+		if !activeStrategyNames[name] {
+			delete(vbsc.Status.LastScheduledTimes, name)
+		}
+	}
+	// Clean up stale GeneratedSchedules entries
+	for name := range vbsc.Status.GeneratedSchedules {
+		if !activeStrategyNames[name] {
+			delete(vbsc.Status.GeneratedSchedules, name)
+		}
+	}
+
 	return resultBuilder.Result()
 }
 
@@ -261,7 +295,22 @@ func (r *ReconcileVitessBackupsSchedule) reconcileStrategy(
 		return resultBuilder.Error(err)
 	}
 
-	missedRun, nextRun, err := getNextSchedule(vbsc, time.Now(), mostRecentTime)
+	// Determine the effective cron schedule string
+	effectiveSchedule := vbsc.Spec.Schedule
+	if vbsc.Spec.Frequency != "" {
+		freq, err := time.ParseDuration(vbsc.Spec.Frequency)
+		if err != nil {
+			return resultBuilder.Error(reconcile.TerminalError(fmt.Errorf("invalid frequency %q: %v", vbsc.Spec.Frequency, err)))
+		}
+		generated, err := generateCronFromFrequency(freq, vbsc.Spec.Cluster, strategy.Keyspace, strategy.Shard, strategy.Name)
+		if err != nil {
+			return resultBuilder.Error(reconcile.TerminalError(err))
+		}
+		effectiveSchedule = generated
+		vbsc.Status.GeneratedSchedules[strategy.Name] = generated
+	}
+
+	missedRun, nextRun, err := getNextSchedule(effectiveSchedule, vbsc, time.Now(), mostRecentTime)
 	if err != nil {
 		log.Error(err, "unable to figure out VitessBackupSchedule schedule")
 		// Re-queuing here does not make sense as we have an error with the schedule and the user needs to fix it first.
@@ -317,10 +366,10 @@ func (r *ReconcileVitessBackupsSchedule) reconcileStrategy(
 	return resultBuilder.Result()
 }
 
-func getNextSchedule(vbsc planetscalev2.VitessBackupSchedule, now time.Time, mostRecentTime *time.Time) (time.Time, time.Time, error) {
-	sched, err := cron.ParseStandard(vbsc.Spec.Schedule)
+func getNextSchedule(cronSchedule string, vbsc planetscalev2.VitessBackupSchedule, now time.Time, mostRecentTime *time.Time) (time.Time, time.Time, error) {
+	sched, err := cron.ParseStandard(cronSchedule)
 	if err != nil {
-		return time.Time{}, time.Time{}, fmt.Errorf("unable to parse schedule %q: %v", vbsc.Spec.Schedule, err)
+		return time.Time{}, time.Time{}, fmt.Errorf("unable to parse schedule %q: %v", cronSchedule, err)
 	}
 
 	// Set the last scheduled time by either looking at the VitessBackupSchedule's Status or
@@ -704,8 +753,153 @@ func (r *ReconcileVitessBackupsSchedule) getAllShardsInCluster(ctx context.Conte
 			ks.shards = append(ks.shards, shardName)
 		}
 		if len(ks.shards) > 0 {
+			sort.Strings(ks.shards)
 			result = append(result, ks)
 		}
 	}
+	sort.Slice(result, func(i, j int) bool { return result[i].name < result[j].name })
 	return result, nil
+}
+
+// expandStrategy expands a strategy based on its Scope.
+// Shard scope (or empty) returns the strategy as-is.
+// Keyspace scope expands to one strategy per shard in the keyspace.
+// Cluster scope expands to one strategy per shard across all keyspaces, excluding
+// keyspaces that have Keyspace-scope overrides in any schedule for the same cluster.
+func (r *ReconcileVitessBackupsSchedule) expandStrategy(
+	ctx context.Context,
+	strategy planetscalev2.VitessBackupScheduleStrategy,
+	vbsc planetscalev2.VitessBackupSchedule,
+) ([]planetscalev2.VitessBackupScheduleStrategy, error) {
+	scope := strategy.Scope
+	if scope == "" {
+		scope = planetscalev2.BackupScopeShard
+	}
+
+	switch scope {
+	case planetscalev2.BackupScopeShard:
+		return []planetscalev2.VitessBackupScheduleStrategy{strategy}, nil
+
+	case planetscalev2.BackupScopeKeyspace:
+		shards, err := r.getShardsForKeyspace(ctx, vbsc.Namespace, vbsc.Spec.Cluster, strategy.Keyspace)
+		if err != nil {
+			return nil, err
+		}
+		if len(shards) == 0 {
+			log.Warnf("no shards found for keyspace %s, skipping", strategy.Keyspace)
+			return nil, nil
+		}
+		return expandToShards(strategy, strategy.Keyspace, shards), nil
+
+	case planetscalev2.BackupScopeCluster:
+		allKeyspaces, err := r.getAllShardsInCluster(ctx, vbsc.Namespace, vbsc.Spec.Cluster)
+		if err != nil {
+			return nil, err
+		}
+
+		excluded, err := r.getExcludedKeyspaces(ctx, vbsc)
+		if err != nil {
+			return nil, err
+		}
+
+		var result []planetscalev2.VitessBackupScheduleStrategy
+		for _, ks := range allKeyspaces {
+			if excluded[ks.name] {
+				log.Infof("excluding keyspace %s from cluster-scope strategy %s (overridden by keyspace-scope)", ks.name, strategy.Name)
+				continue
+			}
+			result = append(result, expandToShards(strategy, ks.name, ks.shards)...)
+		}
+		return result, nil
+
+	default:
+		return nil, fmt.Errorf("unknown scope %q for strategy %s", scope, strategy.Name)
+	}
+}
+
+// expandToShards creates one Shard-scope strategy per shard from a base strategy.
+func expandToShards(base planetscalev2.VitessBackupScheduleStrategy, ksName string, shards []string) []planetscalev2.VitessBackupScheduleStrategy {
+	result := make([]planetscalev2.VitessBackupScheduleStrategy, 0, len(shards))
+	for _, shard := range shards {
+		s := planetscalev2.VitessBackupScheduleStrategy{
+			Name:       fmt.Sprintf("%s-%s-%s", base.Name, ksName, shardSafeName(shard)),
+			Scope:      planetscalev2.BackupScopeShard,
+			Keyspace:   ksName,
+			Shard:      shard,
+			ExtraFlags: base.ExtraFlags,
+		}
+		result = append(result, s)
+	}
+	return result
+}
+
+// shardSafeName converts a shard name like "-80" to a safe string for use in names.
+func shardSafeName(shard string) string {
+	start, end, ok := strings.Cut(shard, "-")
+	if !ok {
+		return shard
+	}
+	vkr := planetscalev2.VitessKeyRange{Start: start, End: end}
+	return vkr.SafeName()
+}
+
+// getShardsForKeyspace returns a sorted list of shard names for the given keyspace.
+func (r *ReconcileVitessBackupsSchedule) getShardsForKeyspace(ctx context.Context, namespace, cluster, ksName string) ([]string, error) {
+	ksList := &planetscalev2.VitessKeyspaceList{}
+	listOpts := &client.ListOptions{
+		Namespace: namespace,
+		LabelSelector: apilabels.Set{
+			planetscalev2.ClusterLabel: cluster,
+		}.AsSelector(),
+	}
+	if err := r.client.List(ctx, ksList, listOpts); err != nil {
+		return nil, fmt.Errorf("unable to list keyspaces in namespace %s: %v", namespace, err)
+	}
+	for _, item := range ksList.Items {
+		if item.Spec.Name != ksName {
+			continue
+		}
+		shards := make([]string, 0, len(item.Status.Shards))
+		for shardName := range item.Status.Shards {
+			shards = append(shards, shardName)
+		}
+		sort.Strings(shards)
+		return shards, nil
+	}
+	return nil, nil
+}
+
+// getExcludedKeyspaces returns the set of keyspace names that should be excluded from
+// Cluster-scope expansion because they have Keyspace-scope strategies defined
+// in any VitessBackupSchedule for the same cluster (including the current one).
+func (r *ReconcileVitessBackupsSchedule) getExcludedKeyspaces(ctx context.Context, vbsc planetscalev2.VitessBackupSchedule) (map[string]bool, error) {
+	excluded := make(map[string]bool)
+
+	// First, check strategies within the same schedule object
+	for _, s := range vbsc.Spec.Strategy {
+		if s.Scope == planetscalev2.BackupScopeKeyspace && s.Keyspace != "" {
+			excluded[s.Keyspace] = true
+		}
+	}
+
+	// Then, check other VitessBackupSchedule objects in the same namespace with the same cluster
+	var allSchedules planetscalev2.VitessBackupScheduleList
+	if err := r.client.List(ctx, &allSchedules, client.InNamespace(vbsc.Namespace), client.MatchingLabels{
+		planetscalev2.ClusterLabel: vbsc.Spec.Cluster,
+	}); err != nil {
+		return nil, fmt.Errorf("unable to list VitessBackupSchedules: %v", err)
+	}
+
+	for _, sched := range allSchedules.Items {
+		if sched.Name == vbsc.Name {
+			continue // already scanned above
+		}
+		for _, s := range sched.Spec.Strategy {
+			if s.Scope == planetscalev2.BackupScopeKeyspace && s.Keyspace != "" {
+				excluded[s.Keyspace] = true
+			}
+		}
+	}
+
+	return excluded, nil
 }

@@ -48,6 +48,8 @@ spec:
                 format: int32
                 minimum: 0
                 type: integer
+              frequency:
+                type: string
               image:
                 type: string
               imagePullPolicy:
@@ -115,13 +117,17 @@ spec:
                       type: string
                     name:
                       type: string
+                    scope:
+                      enum:
+                      - Shard
+                      - Keyspace
+                      - Cluster
+                      type: string
                     shard:
                       example: '-'
                       type: string
                   required:
-                  - keyspace
                   - name
-                  - shard
                   type: object
                 minItems: 1
                 type: array
@@ -135,7 +141,6 @@ spec:
             - cluster
             - name
             - resources
-            - schedule
             - strategies
             type: object
           status:
@@ -160,6 +165,10 @@ spec:
                   type: object
                   x-kubernetes-map-type: atomic
                 type: array
+              generatedSchedules:
+                additionalProperties:
+                  type: string
+                type: object
               lastScheduledTime:
                 format: date-time
                 type: string

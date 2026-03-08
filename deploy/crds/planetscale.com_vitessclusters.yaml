@@ -178,6 +178,8 @@ spec:
                           format: int32
                           minimum: 0
                           type: integer
+                        frequency:
+                          type: string
                         jobTimeoutMinute:
                           default: 10
                           format: int32
@@ -241,13 +243,17 @@ spec:
                                 type: string
                               name:
                                 type: string
+                              scope:
+                                enum:
+                                - Shard
+                                - Keyspace
+                                - Cluster
+                                type: string
                               shard:
                                 example: '-'
                                 type: string
                             required:
-                            - keyspace
                             - name
-                            - shard
                             type: object
                           minItems: 1
                           type: array
@@ -260,7 +266,6 @@ spec:
                       required:
                       - name
                       - resources
-                      - schedule
                       - strategies
                       type: object
                     type: array

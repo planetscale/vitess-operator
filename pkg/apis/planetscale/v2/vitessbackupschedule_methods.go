@@ -16,6 +16,57 @@ limitations under the License.
 
 package v2
 
+import "fmt"
+
+// ValidateScheduleConfig validates that exactly one of Schedule or Frequency is set.
+func (t *VitessBackupScheduleTemplate) ValidateScheduleConfig() error {
+	hasSchedule := t.Schedule != ""
+	hasFrequency := t.Frequency != ""
+	if hasSchedule && hasFrequency {
+		return fmt.Errorf("schedule %q: Schedule and Frequency are mutually exclusive, set only one", t.Name)
+	}
+	if !hasSchedule && !hasFrequency {
+		return fmt.Errorf("schedule %q: one of Schedule or Frequency must be set", t.Name)
+	}
+	return nil
+}
+
+// ValidateStrategies validates that Scope, Keyspace, and Shard are set consistently.
+func (t *VitessBackupScheduleTemplate) ValidateStrategies() error {
+	for _, s := range t.Strategy {
+		scope := s.Scope
+		if scope == "" {
+			scope = BackupScopeShard
+		}
+		switch scope {
+		case BackupScopeShard:
+			if s.Keyspace == "" {
+				return fmt.Errorf("strategy %q: Keyspace is required for Shard scope", s.Name)
+			}
+			if s.Shard == "" {
+				return fmt.Errorf("strategy %q: Shard is required for Shard scope", s.Name)
+			}
+		case BackupScopeKeyspace:
+			if s.Keyspace == "" {
+				return fmt.Errorf("strategy %q: Keyspace is required for Keyspace scope", s.Name)
+			}
+			if s.Shard != "" {
+				return fmt.Errorf("strategy %q: Shard must not be set for Keyspace scope", s.Name)
+			}
+		case BackupScopeCluster:
+			if s.Keyspace != "" {
+				return fmt.Errorf("strategy %q: Keyspace must not be set for Cluster scope", s.Name)
+			}
+			if s.Shard != "" {
+				return fmt.Errorf("strategy %q: Shard must not be set for Cluster scope", s.Name)
+			}
+		default:
+			return fmt.Errorf("strategy %q: unknown scope %q", s.Name, scope)
+		}
+	}
+	return nil
+}
+
 // GetFailedJobsLimit returns the number of failed jobs to keep.
 // Returns -1 if the value was not specified by the user.
 func (vbsc *VitessBackupSchedule) GetFailedJobsLimit() int32 {
