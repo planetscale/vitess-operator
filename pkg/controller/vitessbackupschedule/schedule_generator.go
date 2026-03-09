@@ -35,7 +35,7 @@ func generateCronFromFrequency(frequency time.Duration, cluster, keyspace, shard
 	}
 	totalMinutes := int(frequency.Minutes())
 
-	// Hash the identity to produce a deterministic offset
+	// Hash the identity to produce a deterministic offset.
 	h := sha256.New()
 	fmt.Fprintf(h, "%s|%s|%s|%s", cluster, keyspace, shard, scheduleName)
 	sum := h.Sum(nil)
@@ -71,7 +71,7 @@ func cronFromInterval(totalMinutes, offsetMinutes int) (string, error) {
 		}
 
 	case totalMinutes >= 60 && totalMinutes%60 == 0:
-		// Hourly intervals (e.g. 1h, 2h, 3h, 4h, 6h, 8h, 12h)
+		// Hourly intervals (e.g. 1h, 2h, 3h, 4h, 6h, 8h, 12h).
 		stepHours := totalMinutes / 60
 		mm := offsetMinutes % 60
 		startHour := (offsetMinutes / 60) % stepHours
@@ -82,7 +82,7 @@ func cronFromInterval(totalMinutes, offsetMinutes int) (string, error) {
 		}
 
 	case totalMinutes < 60:
-		// Sub-hourly intervals (e.g. 30m, 15m, 10m)
+		// Sub-hourly intervals (e.g. 30m, 15m, 10m).
 		startMinute := offsetMinutes % totalMinutes
 		expr = fmt.Sprintf("%d/%d * * * *", startMinute, totalMinutes)
 
@@ -94,7 +94,7 @@ func cronFromInterval(totalMinutes, offsetMinutes int) (string, error) {
 		expr = fmt.Sprintf("%d %d * * *", mm, hh)
 	}
 
-	// Validate the generated expression
+	// Validate the generated expression.
 	if _, err := cron.ParseStandard(expr); err != nil {
 		return "", fmt.Errorf("generated invalid cron expression %q from interval=%dm offset=%dm: %v", expr, totalMinutes, offsetMinutes, err)
 	}

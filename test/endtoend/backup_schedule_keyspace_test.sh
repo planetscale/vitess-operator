@@ -17,7 +17,7 @@ function get_started_two_keyspaces() {
     checkPodStatusWithTimeout "example-zone1-vtgate(.*)1/1(.*)Running(.*)"
     checkPodStatusWithTimeout "example-commerce-x-x-zone1-vtorc(.*)1/1(.*)Running(.*)"
     checkPodStatusWithTimeout "example-customer-x-x-zone1-vtorc(.*)1/1(.*)Running(.*)"
-    # 3 tablets for commerce + 3 tablets for customer = 6 total
+    # 3 tablets for commerce + 3 tablets for customer = 6 total.
     checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 6
 
     setupPortForwarding
@@ -83,7 +83,7 @@ function verifyAutoExclusion() {
 
   local clusterVBSC customerVBSC
 
-  # Discover actual VBSC names
+  # Discover actual VBSC names.
   for i in {1..300} ; do
     clusterVBSC=$(getVBSCName "cluster-every-minute")
     customerVBSC=$(getVBSCName "customer-ks-every-minute")
@@ -99,20 +99,20 @@ function verifyAutoExclusion() {
   echo "Found cluster VBSC: ${clusterVBSC}"
   echo "Found customer VBSC: ${customerVBSC}"
 
-  # Wait for generatedSchedules to appear on cluster VBSC
+  # Wait for generatedSchedules to appear on cluster VBSC.
   echo "Checking cluster-scope schedule excludes customer keyspace"
   for i in {1..300} ; do
     clusterSchedules=$(kubectl get VitessBackupSchedule "${clusterVBSC}" -n example -o jsonpath='{.status.generatedSchedules}' 2>/dev/null)
     if [[ -n "${clusterSchedules}" && "${clusterSchedules}" != "{}" ]]; then
       echo "Cluster-scope generatedSchedules: ${clusterSchedules}"
-      # Check that commerce is present (the expanded strategy name contains "commerce")
+      # Check that commerce is present (the expanded strategy name contains "commerce").
       if echo "${clusterSchedules}" | grep -q "commerce"; then
         echo "OK: cluster-scope schedule includes commerce"
       else
         echo "ERROR: cluster-scope schedule does not include commerce"
         exit 1
       fi
-      # Check that customer is NOT present (auto-excluded by keyspace-scope override)
+      # Check that customer is NOT present (auto-excluded by keyspace-scope override).
       if echo "${clusterSchedules}" | grep -q "customer"; then
         echo "ERROR: cluster-scope schedule includes customer, but it should be auto-excluded"
         exit 1
@@ -123,7 +123,7 @@ function verifyAutoExclusion() {
     sleep 1
   done
 
-  # Verify keyspace-scope has customer entries in generatedSchedules
+  # Verify keyspace-scope has customer entries in generatedSchedules.
   echo "Checking keyspace-scope schedule includes customer keyspace"
   customerSchedules=$(kubectl get VitessBackupSchedule "${customerVBSC}" -n example -o jsonpath='{.status.generatedSchedules}' 2>/dev/null)
   echo "Keyspace-scope generatedSchedules: ${customerSchedules}"
@@ -139,7 +139,7 @@ function verifyAutoExclusion() {
 # keyspace-scope and cluster-scope schedules.
 function verifyBackupsCreatedWithKeyspaceScope() {
   echo "Waiting for backup jobs to be created by scope-based schedules"
-  # Wait for at least 2 backups (one from each scope: cluster-scope for commerce, keyspace-scope for customer)
+  # Wait for at least 2 backups (one from each scope: cluster-scope for commerce, keyspace-scope for customer).
   for i in {1..600} ; do
     backupCount=$(kubectl get vtb -n example --no-headers 2>/dev/null | wc -l | tr -d ' ')
     echo "Found ${backupCount} backups"
@@ -147,11 +147,11 @@ function verifyBackupsCreatedWithKeyspaceScope() {
       echo "Found at least 2 backups"
 
       echo "Checking for completed backup job pods"
-      # Check for cluster-scope job pods (commerce keyspace)
+      # Check for cluster-scope job pods (commerce keyspace).
       checkPodExistWithTimeout "example-vbsc-cluster-every-minute-(.*)0/1(.*)Completed(.*)"
       echo "OK: cluster-scope backup job completed for commerce"
 
-      # Check for keyspace-scope job pods (customer keyspace)
+      # Check for keyspace-scope job pods (customer keyspace).
       checkPodExistWithTimeout "example-vbsc-customer-ks-every-minute-(.*)0/1(.*)Completed(.*)"
       echo "OK: keyspace-scope backup job completed for customer"
 
@@ -165,13 +165,13 @@ function verifyBackupsCreatedWithKeyspaceScope() {
   exit 1
 }
 
-# Test setup
+# Set up the test.
 setupKindCluster
 cd test/endtoend/operator || exit 1
 
 echo "=== Starting Keyspace-wide Backup Schedule E2E Test ==="
 
-# Start cluster with two keyspaces and scope-based schedules
+# Start the cluster with two keyspaces and scope-based schedules.
 get_started_two_keyspaces "operator-latest.yaml" "102_initial_cluster_keyspace_backup_schedule.yaml"
 
 echo "=== Verifying VitessBackupSchedule resources ==="
@@ -192,5 +192,5 @@ verifyBackupsCreatedWithKeyspaceScope
 
 echo "=== Keyspace-wide Backup Schedule E2E Test PASSED ==="
 
-# Teardown
+# Tear down the cluster.
 teardownKindCluster

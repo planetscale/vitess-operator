@@ -30,7 +30,7 @@ func requireExactCadence(t *testing.T, expr string, start time.Time, interval ti
 	require.NoError(t, err)
 
 	prev := sched.Next(start)
-	for i := 0; i < iterations; i++ {
+	for i := range iterations {
 		next := sched.Next(prev)
 		require.Equal(t, interval, next.Sub(prev), "iteration %d", i)
 		prev = next
@@ -50,15 +50,24 @@ func TestGenerateCronFromFrequency_Determinism(t *testing.T) {
 
 func TestGenerateCronFromFrequency_Distribution(t *testing.T) {
 	freq := 24 * time.Hour
-	shards := []string{"-80", "80-"}
+	shards := []string{"-10", "10-20", "20-30", "30-40", "40-50", "50-60", "60-70", "70-80", "80-90", "90-a0", "a0-b0", "b0-c0", "c0-d0", "d0-e0", "e0-f0", "f0-"}
 	results := make(map[string]string)
 	for _, shard := range shards {
 		expr, err := generateCronFromFrequency(freq, "cluster1", "commerce", shard, "daily")
 		require.NoError(t, err, "shard %s", shard)
 		results[shard] = expr
 	}
-	// Different shards should (very likely) produce different schedules
-	require.NotEqual(t, results["-80"], results["80-"], "expected different schedules for different shards")
+	// Different shards should produce different schedules.
+	seen := make(map[string]bool)
+	unique := true
+	for _, expr := range results {
+		if seen[expr] {
+			unique = false
+			break
+		}
+		seen[expr] = true
+	}
+	require.True(t, unique, "expected different schedules for different shards")
 }
 
 func TestGenerateCronFromFrequency_CommonIntervals(t *testing.T) {
@@ -82,7 +91,7 @@ func TestGenerateCronFromFrequency_CommonIntervals(t *testing.T) {
 			expr, err := generateCronFromFrequency(tt.duration, "cluster1", "ks1", "-", "sched1")
 			require.NoError(t, err)
 			require.NotEmpty(t, expr)
-			// Verify it's parseable
+			// Verify it's parseable.
 			_, err = cron.ParseStandard(expr)
 			require.NoError(t, err, "generated cron %q should be parseable", expr)
 			requireExactCadence(t, expr, start, tt.duration, 10)
@@ -111,7 +120,7 @@ func TestGenerateCronFromFrequency_RejectsUnsupportedIntervals(t *testing.T) {
 }
 
 func TestGenerateCronFromFrequency_AllOutputsParseable(t *testing.T) {
-	// Test many different shards across several intervals to ensure all outputs are valid cron
+	// Test many different shards across several intervals to ensure all outputs are valid cron.
 	intervals := []time.Duration{
 		15 * time.Minute,
 		30 * time.Minute,
@@ -136,29 +145,29 @@ func TestGenerateCronFromFrequency_AllOutputsParseable(t *testing.T) {
 }
 
 func TestCronFromInterval_Daily(t *testing.T) {
-	// 24h = 1440 minutes, offset of 90 minutes = 1:30 AM
+	// 24h = 1440 minutes, offset of 90 minutes = 1:30 AM.
 	expr, err := cronFromInterval(1440, 90)
 	require.NoError(t, err)
 	require.Equal(t, "30 1 * * *", expr)
 }
 
 func TestCronFromInterval_SixHourly(t *testing.T) {
-	// 6h = 360 minutes, offset of 45 = minute 45 of the first hour window
+	// 6h = 360 minutes, offset of 45 = minute 45 of the first hour window.
 	expr, err := cronFromInterval(360, 45)
 	require.NoError(t, err)
-	// minute = 45%60 = 45, startHour = (45/60) % 6 = 0
+	// minute = 45%60 = 45, startHour = (45/60) % 6 = 0.
 	require.Equal(t, "45 0/6 * * *", expr)
 }
 
 func TestCronFromInterval_Hourly(t *testing.T) {
-	// 1h = 60 minutes, offset of 15 = :15 of every hour
+	// 1h = 60 minutes, offset of 15 = :15 of every hour.
 	expr, err := cronFromInterval(60, 15)
 	require.NoError(t, err)
 	require.Equal(t, "15 * * * *", expr)
 }
 
 func TestCronFromInterval_SubHourly(t *testing.T) {
-	// 30 minutes, offset of 7 = start at :07, every 30 min
+	// 30 minutes, offset of 7 = start at :07, every 30 min.
 	expr, err := cronFromInterval(30, 7)
 	require.NoError(t, err)
 	require.Equal(t, "7/30 * * * *", expr)

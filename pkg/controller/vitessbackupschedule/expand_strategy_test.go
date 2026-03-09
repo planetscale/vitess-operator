@@ -17,7 +17,6 @@ limitations under the License.
 package vitessbackupschedule
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -42,7 +41,7 @@ func readyShardStatus() planetscalev2.VitessShardStatus {
 
 func mustBuildExpansionContext(t *testing.T, r *ReconcileVitessBackupsSchedule, vbsc planetscalev2.VitessBackupSchedule) strategyExpansionContext {
 	t.Helper()
-	ctx, err := r.buildStrategyExpansionContext(context.Background(), vbsc)
+	ctx, err := r.buildStrategyExpansionContext(t.Context(), vbsc)
 	require.NoError(t, err)
 	return ctx
 }
@@ -71,7 +70,7 @@ func TestExpandStrategy_ShardScope(t *testing.T) {
 		},
 	}
 
-	result, err := r.expandStrategy(context.Background(), strategy, vbsc, mustBuildExpansionContext(t, r, vbsc))
+	result, err := r.expandStrategy(t.Context(), strategy, vbsc, mustBuildExpansionContext(t, r, vbsc))
 	require.NoError(t, err)
 	require.Len(t, result, 1)
 	require.Equal(t, "my-shard", result[0].Name)
@@ -92,9 +91,15 @@ func TestExpandStrategy_EmptyScopeDefaultsToShard(t *testing.T) {
 		Spec: planetscalev2.VitessBackupScheduleSpec{Cluster: "c"},
 	}
 
-	result, err := r.expandStrategy(context.Background(), strategy, vbsc, mustBuildExpansionContext(t, r, vbsc))
+	result, err := r.expandStrategy(t.Context(), strategy, vbsc, mustBuildExpansionContext(t, r, vbsc))
 	require.NoError(t, err)
 	require.Len(t, result, 1)
+	s := result[0]
+	// Empty means the default, which is Shard scope.
+	require.True(t, (s.Scope == "" || s.Scope == planetscalev2.BackupScopeShard), "expected empty/implicit or explicit Shard scope")
+	require.Equal(t, "commerce", s.Keyspace)
+	// And confirm that the shard is set.
+	require.NotEmpty(t, s.Shard)
 }
 
 func TestExpandStrategy_KeyspaceScope(t *testing.T) {
@@ -134,11 +139,11 @@ func TestExpandStrategy_KeyspaceScope(t *testing.T) {
 		Spec:       planetscalev2.VitessBackupScheduleSpec{Cluster: "test-cluster"},
 	}
 
-	result, err := r.expandStrategy(context.Background(), strategy, vbsc, mustBuildExpansionContext(t, r, vbsc))
+	result, err := r.expandStrategy(t.Context(), strategy, vbsc, mustBuildExpansionContext(t, r, vbsc))
 	require.NoError(t, err)
 	require.Len(t, result, 2, "expected 2 strategies (one per shard)")
 
-	// Verify strategies have correct fields
+	// Verify strategies have correct fields.
 	names := make(map[string]bool)
 	for _, s := range result {
 		require.Equal(t, planetscalev2.BackupScopeShard, s.Scope)
@@ -201,9 +206,9 @@ func TestExpandStrategy_ClusterScope(t *testing.T) {
 		},
 	}
 
-	result, err := r.expandStrategy(context.Background(), strategy, vbsc, mustBuildExpansionContext(t, r, vbsc))
+	result, err := r.expandStrategy(t.Context(), strategy, vbsc, mustBuildExpansionContext(t, r, vbsc))
 	require.NoError(t, err)
-	// commerce has 1 shard, customer has 2 shards = 3 total
+	// commerce has 1 shard, customer has 2 shards = 3 total.
 	require.Len(t, result, 3)
 }
 
@@ -239,7 +244,7 @@ func TestExpandStrategy_ClusterScopeAutoExclusion(t *testing.T) {
 		},
 	}
 
-	// Create a separate VitessBackupSchedule that has a Keyspace-scope strategy for "customer"
+	// Create a separate VitessBackupSchedule that has a Keyspace-scope strategy for "customer".
 	otherSchedule := &planetscalev2.VitessBackupSchedule{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "customer-frequent",
@@ -283,9 +288,9 @@ func TestExpandStrategy_ClusterScopeAutoExclusion(t *testing.T) {
 		},
 	}
 
-	result, err := r.expandStrategy(context.Background(), strategy, vbsc, mustBuildExpansionContext(t, r, vbsc))
+	result, err := r.expandStrategy(t.Context(), strategy, vbsc, mustBuildExpansionContext(t, r, vbsc))
 	require.NoError(t, err)
-	// customer is excluded (has Keyspace-scope override), only commerce's 1 shard remains
+	// customer is excluded (has Keyspace-scope override), only commerce's 1 shard remains.
 	require.Len(t, result, 1, "expected 1 strategy (customer excluded)")
 	require.Equal(t, "commerce", result[0].Keyspace)
 }
@@ -325,7 +330,7 @@ func TestExpandStrategy_SelfAutoExclusion(t *testing.T) {
 			WithObjects(ks1, ks2).Build(),
 	}
 
-	// Same schedule has both Cluster and Keyspace strategies
+	// Same schedule has both Cluster and Keyspace strategies.
 	clusterStrategy := planetscalev2.VitessBackupScheduleStrategy{
 		Name:  "all",
 		Scope: planetscalev2.BackupScopeCluster,
@@ -345,9 +350,9 @@ func TestExpandStrategy_SelfAutoExclusion(t *testing.T) {
 		},
 	}
 
-	result, err := r.expandStrategy(context.Background(), clusterStrategy, vbsc, mustBuildExpansionContext(t, r, vbsc))
+	result, err := r.expandStrategy(t.Context(), clusterStrategy, vbsc, mustBuildExpansionContext(t, r, vbsc))
 	require.NoError(t, err)
-	// customer excluded from Cluster scope because same schedule has Keyspace scope for it
+	// customer is excluded from Cluster scope because the same schedule has Keyspace scope for it.
 	require.Len(t, result, 1, "expected 1 strategy (self-exclusion of customer)")
 	require.Equal(t, "commerce", result[0].Keyspace)
 }
@@ -381,7 +386,7 @@ func TestExpandStrategy_ShardScopeDoesNotExclude(t *testing.T) {
 		},
 	}
 
-	// A Shard-scope strategy for customer should NOT exclude customer from Cluster scope
+	// A Shard-scope strategy for customer should NOT exclude customer from Cluster scope.
 	otherSchedule := &planetscalev2.VitessBackupSchedule{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "hot-shard",
@@ -426,15 +431,15 @@ func TestExpandStrategy_ShardScopeDoesNotExclude(t *testing.T) {
 		},
 	}
 
-	result, err := r.expandStrategy(context.Background(), strategy, vbsc, mustBuildExpansionContext(t, r, vbsc))
+	result, err := r.expandStrategy(t.Context(), strategy, vbsc, mustBuildExpansionContext(t, r, vbsc))
 	require.NoError(t, err)
-	// Shard-scope does NOT exclude, so all 3 shards (1 commerce + 2 customer) should appear
+	// Shard-scope does NOT exclude, so all 3 shards (1 commerce + 2 customer) should appear.
 	require.Len(t, result, 3, "shard-scope does not exclude")
 }
 
 func TestExpandStrategy_EmptyKeyspace(t *testing.T) {
 	scheme := newScheme()
-	// Keyspace exists but has no shards yet
+	// Keyspace exists but has no shards yet.
 	ks := &planetscalev2.VitessKeyspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "test-cluster-commerce",
@@ -465,7 +470,7 @@ func TestExpandStrategy_EmptyKeyspace(t *testing.T) {
 		Spec:       planetscalev2.VitessBackupScheduleSpec{Cluster: "test-cluster"},
 	}
 
-	result, err := r.expandStrategy(context.Background(), strategy, vbsc, mustBuildExpansionContext(t, r, vbsc))
+	result, err := r.expandStrategy(t.Context(), strategy, vbsc, mustBuildExpansionContext(t, r, vbsc))
 	require.NoError(t, err)
 	require.Empty(t, result, "expected 0 strategies for empty keyspace")
 }
@@ -507,7 +512,7 @@ func TestExpandStrategy_NamingUniqueness(t *testing.T) {
 		Spec:       planetscalev2.VitessBackupScheduleSpec{Cluster: "test-cluster"},
 	}
 
-	result, err := r.expandStrategy(context.Background(), strategy, vbsc, mustBuildExpansionContext(t, r, vbsc))
+	result, err := r.expandStrategy(t.Context(), strategy, vbsc, mustBuildExpansionContext(t, r, vbsc))
 	require.NoError(t, err)
 	require.Len(t, result, 4)
 
@@ -619,7 +624,7 @@ func TestCreateJobPodWaitsForShardBootstrap(t *testing.T) {
 	}
 	vbsc := planetscalev2.VitessBackupSchedule{ObjectMeta: metav1.ObjectMeta{Namespace: "default"}, Spec: planetscalev2.VitessBackupScheduleSpec{Cluster: "example"}}
 	strategy := planetscalev2.VitessBackupScheduleStrategy{Name: "commerce-x", Keyspace: "commerce", Shard: "-"}
-	_, _, err := r.createJobPod(context.Background(), vbsc, strategy, "test-job", planetscalev2.VitessKeyRange{}, map[string]string{})
+	_, _, err := r.createJobPod(t.Context(), vbsc, strategy, "test-job", planetscalev2.VitessKeyRange{}, map[string]string{})
 	require.ErrorIs(t, err, errWaitingForShardBootstrap)
 }
 
@@ -666,7 +671,7 @@ func TestCreateJobPodAllowsReadyShardWithoutCompletedBackupCRs(t *testing.T) {
 	}
 	vbsc := planetscalev2.VitessBackupSchedule{ObjectMeta: metav1.ObjectMeta{Namespace: "default"}, Spec: planetscalev2.VitessBackupScheduleSpec{Cluster: "example"}}
 	strategy := planetscalev2.VitessBackupScheduleStrategy{Name: "commerce-x", Keyspace: "commerce", Shard: "-"}
-	pod, spec, err := r.createJobPod(context.Background(), vbsc, strategy, "test-job", planetscalev2.VitessKeyRange{}, map[string]string{})
+	pod, spec, err := r.createJobPod(t.Context(), vbsc, strategy, "test-job", planetscalev2.VitessKeyRange{}, map[string]string{})
 	require.NoError(t, err)
 	require.NotNil(t, pod)
 	require.NotNil(t, spec)

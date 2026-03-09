@@ -11,7 +11,7 @@ spec:
           persistentVolumeClaim:
             claimName: vitess-backups
     schedules:
-      # Existing per-shard schedule (unchanged, backward compatible)
+      # Existing per-shard schedule (unchanged, backward compatible).
       - name: "commerce"
         schedule: "*/2 * * * *"
         resources:
@@ -45,7 +45,7 @@ spec:
           - name: customer_x-80
             keyspace: "customer"
             shard: "-8000"
-      # Cluster-wide default with frequency-based staggering
+      # Cluster-wide default with frequency-based staggering.
       - name: "cluster-daily"
         frequency: "24h"
         resources:
@@ -60,7 +60,7 @@ spec:
         strategies:
           - name: all
             scope: Cluster
-      # Keyspace-scope override: customer gets backed up more frequently
+      # Keyspace-scope override: customer gets backed up more frequently.
       - name: "frequent-customer"
         frequency: "6h"
         resources:

@@ -16,7 +16,7 @@ spec:
         persistentVolumeClaim:
           claimName: vitess-backups
     schedules:
-      # Cluster-wide default: every minute, staggered via frequency
+      # Cluster-wide default: every minute, staggered via frequency.
       - name: "cluster-every-minute"
         frequency: "1m"
         resources:
@@ -31,7 +31,7 @@ spec:
         strategies:
           - name: all
             scope: Cluster
-      # Keyspace override for customer: also every minute, but with its own schedule
+      # Keyspace override for customer: also every minute, but with its own schedule.
       # This should auto-exclude "customer" from the cluster-wide schedule above.
       - name: "customer-ks-every-minute"
         frequency: "1m"
@@ -197,7 +197,7 @@ stringData:
     # This file is executed immediately after initializing a fresh data directory.
 
     ###############################################################################
-    # Equivalent of mysql_secure_installation
+    # The following block is equivalent to mysql_secure_installation.
     ###############################################################################
 
     # We need to ensure that super_read_only is disabled so that we can execute
@@ -217,7 +217,7 @@ stringData:
     DROP DATABASE IF EXISTS test;
 
     ###############################################################################
-    # Vitess defaults
+    # The following settings are Vitess defaults.
     ###############################################################################
 
     # Admin user with all privileges.
@@ -247,7 +247,7 @@ stringData:
       SHOW VIEW, CREATE ROUTINE, ALTER ROUTINE, CREATE USER, EVENT, TRIGGER
       ON *.* TO 'vt_allprivs'@'localhost';
 
-    # User for slave replication connections.
+    # User for replica replication connections.
     CREATE USER 'vt_repl'@'%';
     GRANT REPLICATION SLAVE ON *.* TO 'vt_repl'@'%';
 
@@ -274,7 +274,7 @@ stringData:
     #GRANT SELECT
     #  ON _vt.* TO 'orc_client_user'@'%';
 
-    # We need to set super_read_only back to what it was before
+    # We need to set super_read_only back to what it was before.
     SET GLOBAL super_read_only=IFNULL(@original_super_read_only, 'ON');
 ---
 apiVersion: v1
