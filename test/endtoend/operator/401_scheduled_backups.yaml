@@ -61,7 +61,7 @@ spec:
           - name: all
             scope: Cluster
       # Keyspace-scope override: customer gets backed up more frequently
-      - name: "customer-frequent"
+      - name: "frequent-customer"
         frequency: "6h"
         resources:
           requests:
@@ -77,13 +77,13 @@ spec:
             scope: Keyspace
             keyspace: "customer"
   images:
-    vtctld: vitess/lite:mysql84
-    vtgate: vitess/lite:mysql84
-    vttablet: vitess/lite:mysql84
-    vtorc: vitess/lite:mysql84
-    vtbackup: vitess/lite:mysql84
+    vtctld: vitess/lite:mysql80
+    vtgate: vitess/lite:mysql80
+    vttablet: vitess/lite:mysql80
+    vtorc: vitess/lite:mysql80
+    vtbackup: vitess/lite:mysql80
     mysqld:
-      mysql80Compatible: vitess/lite:mysql84
+      mysql80Compatible: vitess/lite:mysql80
     mysqldExporter: prom/mysqld-exporter:v0.18.0
   cells:
   - name: zone1
