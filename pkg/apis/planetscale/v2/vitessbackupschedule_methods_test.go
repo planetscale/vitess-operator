@@ -19,6 +19,8 @@ package v2
 import (
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestValidateBackupFrequency(t *testing.T) {
@@ -40,11 +42,10 @@ func TestValidateBackupFrequency(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := ValidateBackupFrequency(tt.frequency)
-			if tt.wantErr && err == nil {
-				t.Fatalf("ValidateBackupFrequency(%s) error = nil, want error", tt.frequency)
-			}
-			if !tt.wantErr && err != nil {
-				t.Fatalf("ValidateBackupFrequency(%s) error = %v, want nil", tt.frequency, err)
+			if tt.wantErr {
+				require.Error(t, err, "ValidateBackupFrequency(%s) error = nil, want error", tt.frequency)
+			} else {
+				require.NoError(t, err, "ValidateBackupFrequency(%s) error = %v, want nil", tt.frequency, err)
 			}
 		})
 	}
@@ -61,21 +62,13 @@ func TestValidateScheduleConfigRejectsUnsupportedFrequency(t *testing.T) {
 		}},
 	}
 
-	if err := template.ValidateScheduleConfig(); err == nil {
-		t.Fatal("ValidateScheduleConfig() error = nil, want error")
-	}
+	require.Error(t, template.ValidateScheduleConfig(), "ValidateScheduleConfig() error = nil, want error")
 }
 
 func TestNewVitessBackupScheduleStatusInitializesMaps(t *testing.T) {
 	status := NewVitessBackupScheduleStatus(VitessBackupScheduleStatus{})
 
-	if status.LastScheduledTimes == nil {
-		t.Fatal("LastScheduledTimes not initialized")
-	}
-	if status.GeneratedSchedules == nil {
-		t.Fatal("GeneratedSchedules not initialized")
-	}
-	if status.NextScheduledTimes == nil {
-		t.Fatal("NextScheduledTimes not initialized")
-	}
+	require.NotNil(t, status.LastScheduledTimes, "LastScheduledTimes not initialized")
+	require.NotNil(t, status.GeneratedSchedules, "GeneratedSchedules not initialized")
+	require.NotNil(t, status.NextScheduledTimes, "NextScheduledTimes not initialized")
 }
