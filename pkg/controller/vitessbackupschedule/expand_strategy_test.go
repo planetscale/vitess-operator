@@ -622,3 +622,53 @@ func TestCreateJobPodWaitsForShardBootstrap(t *testing.T) {
 	_, _, err := r.createJobPod(context.Background(), vbsc, strategy, "test-job", planetscalev2.VitessKeyRange{}, map[string]string{})
 	require.ErrorIs(t, err, errWaitingForShardBootstrap)
 }
+
+func TestCreateJobPodAllowsReadyShardWithoutCompletedBackupCRs(t *testing.T) {
+	initBackup := true
+	vts := &planetscalev2.VitessShard{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "example-commerce-x-x",
+			Namespace: "default",
+			Labels: map[string]string{
+				planetscalev2.ClusterLabel:  "example",
+				planetscalev2.KeyspaceLabel: "commerce",
+			},
+		},
+		Spec: planetscalev2.VitessShardSpec{
+			VitessShardTemplate: planetscalev2.VitessShardTemplate{
+				TabletPools: []planetscalev2.VitessShardTabletPool{{
+					Cell:     "zone1",
+					Type:     planetscalev2.ReplicaPoolType,
+					Replicas: 1,
+					Vttablet: planetscalev2.VttabletSpec{},
+					Mysqld:   &planetscalev2.MysqldSpec{},
+				}},
+				Replication: planetscalev2.VitessReplicationSpec{
+					InitializeBackup: &initBackup,
+				},
+			},
+			Images: planetscalev2.VitessKeyspaceImages{
+				Vtbackup: "vitess/lite:mysql80",
+				Vttablet: "vitess/lite:mysql80",
+				Vtorc:    "vitess/lite:mysql80",
+				Mysqld: &planetscalev2.MysqldImage{
+					Mysql80Compatible: "vitess/lite:mysql80",
+				},
+			},
+			KeyRange:        planetscalev2.VitessKeyRange{},
+			BackupLocations: []planetscalev2.VitessBackupLocation{{Name: ""}},
+		},
+		Status: readyShardStatus(),
+	}
+
+	r := &ReconcileVitessBackupsSchedule{
+		client: fake.NewClientBuilder().WithScheme(newScheme()).WithObjects(vts).Build(),
+	}
+	vbsc := planetscalev2.VitessBackupSchedule{ObjectMeta: metav1.ObjectMeta{Namespace: "default"}, Spec: planetscalev2.VitessBackupScheduleSpec{Cluster: "example"}}
+	strategy := planetscalev2.VitessBackupScheduleStrategy{Name: "commerce-x", Keyspace: "commerce", Shard: "-"}
+	pod, spec, err := r.createJobPod(context.Background(), vbsc, strategy, "test-job", planetscalev2.VitessKeyRange{}, map[string]string{})
+	require.NoError(t, err)
+	require.NotNil(t, pod)
+	require.NotNil(t, spec)
+	require.False(t, spec.InitialBackup)
+}

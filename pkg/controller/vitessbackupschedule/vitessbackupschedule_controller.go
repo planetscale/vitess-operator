@@ -685,7 +685,6 @@ func (r *ReconcileVitessBackupsSchedule) createJobPod(
 		if !shardReadyForScheduledBackup(vts) {
 			return nil, nil, fmt.Errorf("%w: shard %s/%s", errWaitingForShardBootstrap, strategy.Keyspace, strategy.Shard)
 		}
-		return nil, nil, fmt.Errorf("this shard has 0 completed backups, so scheduled backups must wait for the shard's initial backup to be seeded")
 	}
 	backupType := vitessbackup.TypeUpdate
 
