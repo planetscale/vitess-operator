@@ -41,10 +41,10 @@ func TestGenerateCronFromFrequency_Determinism(t *testing.T) {
 	freq := 24 * time.Hour
 	cron1, err := generateCronFromFrequency(freq, "cluster1", "commerce", "-80", "daily")
 	require.NoError(t, err)
-	require.Regexp(t, " * * *$", cron1, "unexpected cron expression for daily frequency")
+	require.Regexp(t, `^\d+ \d+ \* \* \*$`, cron1, "unexpected cron expression for daily frequency")
 	cron2, err := generateCronFromFrequency(freq, "cluster1", "commerce", "-80", "daily")
 	require.NoError(t, err)
-	require.Regexp(t, " * * *$", cron2, "unexpected cron expression for daily frequency")
+	require.Regexp(t, `^\d+ \d+ \* \* \*$`, cron2, "unexpected cron expression for daily frequency")
 	require.Equal(t, cron1, cron2, "expected deterministic output")
 }
 
