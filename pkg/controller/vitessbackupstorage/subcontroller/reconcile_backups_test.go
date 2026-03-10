@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -31,11 +32,13 @@ import (
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	ctrlclientfake "sigs.k8s.io/controller-runtime/pkg/client/fake"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"vitess.io/vitess/go/vt/mysqlctl/backupstorage"
 	mysqlctlerrors "vitess.io/vitess/go/vt/mysqlctl/errors"
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 	"planetscale.dev/vitess-operator/pkg/operator/reconciler"
+	"planetscale.dev/vitess-operator/pkg/operator/resync"
 	"planetscale.dev/vitess-operator/pkg/operator/vitessbackup"
 )
 
@@ -155,6 +158,32 @@ func newTestReconciler(t *testing.T, scheme *runtime.Scheme, objs ...client.Obje
 		recorder:   recorder,
 		reconciler: reconciler.New(k8sClient, scheme, recorder),
 	}, k8sClient, recorder
+}
+
+type fakeStatusWriter struct {
+	client.SubResourceWriter
+	mu          sync.Mutex
+	updateCalls int
+	lastStatus  planetscalev2.VitessBackupStorageStatus
+}
+
+func (w *fakeStatusWriter) Update(ctx context.Context, obj client.Object, opts ...client.SubResourceUpdateOption) error {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	w.updateCalls++
+	if vbs, ok := obj.(*planetscalev2.VitessBackupStorage); ok {
+		w.lastStatus = vbs.Status
+	}
+	return w.SubResourceWriter.Update(ctx, obj, opts...)
+}
+
+type fakeClient struct {
+	client.Client
+	statusWriter *fakeStatusWriter
+}
+
+func (c *fakeClient) Status() client.SubResourceWriter {
+	return c.statusWriter
 }
 
 func collectEvents(t *testing.T, recorder *record.FakeRecorder) []string {
@@ -334,6 +363,77 @@ func TestReconcileBackups_InventoryLimitPreventsChildReconcile(t *testing.T) {
 	backupList := &planetscalev2.VitessBackupList{}
 	require.NoError(t, k8sClient.List(t.Context(), backupList, &client.ListOptions{Namespace: namespace}))
 	require.Len(t, backupList.Items, 1)
+}
+
+func TestValidateMaxBackupsPerReconcile(t *testing.T) {
+	t.Run("accepts zero", func(t *testing.T) {
+		require.NoError(t, validateMaxBackupsPerReconcile(0))
+	})
+
+	t.Run("accepts positive values", func(t *testing.T) {
+		require.NoError(t, validateMaxBackupsPerReconcile(10000))
+	})
+
+	t.Run("rejects negative values", func(t *testing.T) {
+		err := validateMaxBackupsPerReconcile(-1)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "must be >= 0")
+	})
+}
+
+func TestReconcile_InventoryLimitPreservesPreviousStatus(t *testing.T) {
+	scheme := newTestScheme(t)
+	namespace := "test-ns"
+	clusterName := "test-cluster"
+	locationName := "s3-backups"
+	shard := newTestShard(namespace, clusterName, "commerce", planetscalev2.VitessKeyRange{Start: "", End: "80"})
+	vbs := newTestBackupStorageCR(namespace, clusterName, locationName)
+	vbs.Status.TotalBackupCount = 5
+	vbs.Status.ObservedGeneration = vbs.Generation
+
+	oldLimit := *maxBackupsPerReconcile
+	oldGetBackupStorage := getBackupStorage
+	t.Cleanup(func() {
+		*maxBackupsPerReconcile = oldLimit
+		getBackupStorage = oldGetBackupStorage
+	})
+
+	baseTime := time.Date(2026, time.March, 10, 12, 0, 0, 0, time.UTC)
+	backupDir := fmt.Sprintf("%s/%s", shard.Labels[planetscalev2.KeyspaceLabel], shard.Spec.Name)
+	*maxBackupsPerReconcile = 1
+	storage := &fakeBackupStorage{backupsByDir: map[string][]backupstorage.BackupHandle{
+		backupDir: {
+			newFakeBackupHandle(backupDir, newFakeBackupName(t, baseTime, 600)),
+			newFakeBackupHandle(backupDir, newFakeBackupName(t, baseTime.Add(time.Minute), 601)),
+		},
+	}}
+	getBackupStorage = func() (backupstorage.BackupStorage, error) { return storage, nil }
+
+	baseClient := ctrlclientfake.NewClientBuilder().WithScheme(scheme).WithStatusSubresource(&planetscalev2.VitessBackupStorage{}).WithObjects(shard, vbs).Build()
+	statusWriter := &fakeStatusWriter{SubResourceWriter: baseClient.Status()}
+	fakeK8sClient := &fakeClient{Client: baseClient, statusWriter: statusWriter}
+	recorder := record.NewFakeRecorder(20)
+	r := &ReconcileVitessBackupStorage{
+		client:     fakeK8sClient,
+		scheme:     scheme,
+		resync:     resync.NewPeriodic("test-vitessbackupstorage-subcontroller", time.Hour),
+		recorder:   recorder,
+		reconciler: reconciler.New(fakeK8sClient, scheme, recorder),
+		objectKey:  client.ObjectKey{Namespace: namespace, Name: vbs.Name},
+	}
+
+	_, err := r.Reconcile(t.Context(), reconcile.Request{NamespacedName: client.ObjectKey{Namespace: namespace, Name: vbs.Name}})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "backup inventory exceeded limit")
+	require.Zero(t, statusWriter.updateCalls)
+	require.Zero(t, statusWriter.lastStatus.TotalBackupCount)
+
+	updated := &planetscalev2.VitessBackupStorage{}
+	require.NoError(t, fakeK8sClient.Get(t.Context(), client.ObjectKey{Namespace: namespace, Name: vbs.Name}, updated))
+	require.EqualValues(t, 5, updated.Status.TotalBackupCount)
+
+	events := collectEvents(t, recorder)
+	require.Contains(t, strings.Join(events, "\n"), "InventoryLimitExceeded")
 }
 
 var _ backupstorage.BackupHandle = (*fakeBackupHandle)(nil)

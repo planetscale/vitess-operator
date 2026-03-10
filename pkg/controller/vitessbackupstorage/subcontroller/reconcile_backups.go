@@ -46,10 +46,22 @@ import (
 
 var getBackupStorage = backupstorage.GetBackupStorage
 
+func validateMaxBackupsPerReconcile(limit int) error {
+	if limit < 0 {
+		return fmt.Errorf("--vitessbackupstorage_subcontroller_max_backups_per_reconcile must be >= 0, got %d", limit)
+	}
+	return nil
+}
+
 func (r *ReconcileVitessBackupStorage) reconcileBackups(ctx context.Context, vbs *planetscalev2.VitessBackupStorage) (reconcile.Result, error) {
 	resultBuilder := results.Builder{}
 	clusterName := vbs.Labels[planetscalev2.ClusterLabel]
 	backupLocationName := vbs.Spec.Location.Name
+
+	if err := validateMaxBackupsPerReconcile(*maxBackupsPerReconcile); err != nil {
+		r.recorder.Eventf(vbs, corev1.EventTypeWarning, "InvalidConfiguration", "invalid backup inventory limit: %v", err)
+		return resultBuilder.Error(err)
+	}
 
 	parentLabels := map[string]string{
 		planetscalev2.ClusterLabel: clusterName,
