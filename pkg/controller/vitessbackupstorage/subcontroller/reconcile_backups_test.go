@@ -199,6 +199,9 @@ func collectEvents(t *testing.T, recorder *record.FakeRecorder) []string {
 	}
 }
 
+// Tests in this file mutate package-level state (getBackupStorage and
+// *maxBackupsPerReconcile). Do not use t.Parallel() on any test or subtest.
+
 func TestReconcileBackups_MaxBackupsPerReconcile(t *testing.T) {
 	scheme := newTestScheme(t)
 	namespace := "test-ns"
@@ -277,6 +280,7 @@ func TestReconcileBackups_MaxBackupsPerReconcile(t *testing.T) {
 		_, err := r.reconcileBackups(t.Context(), vbsCopy)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "backup inventory exceeded limit")
+		require.Contains(t, err.Error(), "discovered 2 backups (limit 1)")
 		require.Contains(t, err.Error(), "partial inventory results were not applied")
 		require.Zero(t, vbsCopy.Status.TotalBackupCount)
 		require.Equal(t, 1, storage.closeCalls)
@@ -309,6 +313,91 @@ func TestReconcileBackups_MaxBackupsPerReconcile(t *testing.T) {
 		require.NoError(t, err)
 		require.EqualValues(t, 2, vbsCopy.Status.TotalBackupCount)
 		require.Equal(t, 1, storage.closeCalls)
+	})
+}
+
+func TestReconcileBackups_MultiShardCumulativeLimit(t *testing.T) {
+	scheme := newTestScheme(t)
+	namespace := "test-ns"
+	clusterName := "test-cluster"
+	locationName := "s3-backups"
+	shard1 := newTestShard(namespace, clusterName, "commerce", planetscalev2.VitessKeyRange{Start: "", End: "80"})
+	shard2 := newTestShard(namespace, clusterName, "commerce", planetscalev2.VitessKeyRange{Start: "80", End: ""})
+
+	oldLimit := *maxBackupsPerReconcile
+	oldGetBackupStorage := getBackupStorage
+	t.Cleanup(func() {
+		*maxBackupsPerReconcile = oldLimit
+		getBackupStorage = oldGetBackupStorage
+	})
+
+	baseTime := time.Date(2026, time.March, 10, 12, 0, 0, 0, time.UTC)
+	dir1 := fmt.Sprintf("%s/%s", shard1.Labels[planetscalev2.KeyspaceLabel], shard1.Spec.Name)
+	dir2 := fmt.Sprintf("%s/%s", shard2.Labels[planetscalev2.KeyspaceLabel], shard2.Spec.Name)
+
+	t.Run("cumulative count across shards exceeds limit", func(t *testing.T) {
+		// Shard1 has 3 backups, shard2 has 3 backups. Limit is 5.
+		// Shard1 alone is under the limit, but shard1+shard2 = 6 > 5.
+		*maxBackupsPerReconcile = 5
+		vbs := newTestBackupStorageCR(namespace, clusterName, locationName)
+		r, k8sClient, recorder := newTestReconciler(t, scheme, shard1, shard2)
+		storage := &fakeBackupStorage{backupsByDir: map[string][]backupstorage.BackupHandle{
+			dir1: {
+				newFakeBackupHandle(dir1, newFakeBackupName(t, baseTime, 700)),
+				newFakeBackupHandle(dir1, newFakeBackupName(t, baseTime.Add(time.Minute), 701)),
+				newFakeBackupHandle(dir1, newFakeBackupName(t, baseTime.Add(2*time.Minute), 702)),
+			},
+			dir2: {
+				newFakeBackupHandle(dir2, newFakeBackupName(t, baseTime, 710)),
+				newFakeBackupHandle(dir2, newFakeBackupName(t, baseTime.Add(time.Minute), 711)),
+				newFakeBackupHandle(dir2, newFakeBackupName(t, baseTime.Add(2*time.Minute), 712)),
+			},
+		}}
+		getBackupStorage = func() (backupstorage.BackupStorage, error) { return storage, nil }
+
+		vbsCopy := vbs.DeepCopy()
+		_, err := r.reconcileBackups(t.Context(), vbsCopy)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "backup inventory exceeded limit")
+		require.Zero(t, vbsCopy.Status.TotalBackupCount)
+
+		events := collectEvents(t, recorder)
+		require.Contains(t, strings.Join(events, "\n"), "InventoryLimitExceeded")
+
+		// No VitessBackup objects should be created since the early return
+		// skips ReconcileObjectSet.
+		backupList := &planetscalev2.VitessBackupList{}
+		require.NoError(t, k8sClient.List(t.Context(), backupList, &client.ListOptions{Namespace: namespace}))
+		require.Empty(t, backupList.Items)
+	})
+
+	t.Run("cumulative count across shards within limit succeeds", func(t *testing.T) {
+		// Shard1 has 3 backups, shard2 has 3 backups. Limit is 6.
+		*maxBackupsPerReconcile = 6
+		vbs := newTestBackupStorageCR(namespace, clusterName, locationName)
+		r, k8sClient, _ := newTestReconciler(t, scheme, shard1, shard2)
+		storage := &fakeBackupStorage{backupsByDir: map[string][]backupstorage.BackupHandle{
+			dir1: {
+				newFakeBackupHandle(dir1, newFakeBackupName(t, baseTime, 720)),
+				newFakeBackupHandle(dir1, newFakeBackupName(t, baseTime.Add(time.Minute), 721)),
+				newFakeBackupHandle(dir1, newFakeBackupName(t, baseTime.Add(2*time.Minute), 722)),
+			},
+			dir2: {
+				newFakeBackupHandle(dir2, newFakeBackupName(t, baseTime, 730)),
+				newFakeBackupHandle(dir2, newFakeBackupName(t, baseTime.Add(time.Minute), 731)),
+				newFakeBackupHandle(dir2, newFakeBackupName(t, baseTime.Add(2*time.Minute), 732)),
+			},
+		}}
+		getBackupStorage = func() (backupstorage.BackupStorage, error) { return storage, nil }
+
+		vbsCopy := vbs.DeepCopy()
+		_, err := r.reconcileBackups(t.Context(), vbsCopy)
+		require.NoError(t, err)
+		require.EqualValues(t, 6, vbsCopy.Status.TotalBackupCount)
+
+		backupList := &planetscalev2.VitessBackupList{}
+		require.NoError(t, k8sClient.List(t.Context(), backupList, &client.ListOptions{Namespace: namespace}))
+		require.Len(t, backupList.Items, 6)
 	})
 }
 

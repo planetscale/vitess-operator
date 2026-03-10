@@ -58,6 +58,9 @@ func (r *ReconcileVitessBackupStorage) reconcileBackups(ctx context.Context, vbs
 	clusterName := vbs.Labels[planetscalev2.ClusterLabel]
 	backupLocationName := vbs.Spec.Location.Name
 
+	// Validate again at reconcile time as a defensive check. The primary validation
+	// happens at startup in newReconciler, but tests construct reconcilers directly
+	// and may set arbitrary flag values.
 	if err := validateMaxBackupsPerReconcile(*maxBackupsPerReconcile); err != nil {
 		r.recorder.Eventf(vbs, corev1.EventTypeWarning, "InvalidConfiguration", "invalid backup inventory limit: %v", err)
 		return resultBuilder.Error(err)
@@ -123,7 +126,7 @@ func (r *ReconcileVitessBackupStorage) reconcileBackups(ctx context.Context, vbs
 
 		pendingTotalCount := totalBackupCount + len(backups)
 		if *maxBackupsPerReconcile > 0 && pendingTotalCount > *maxBackupsPerReconcile {
-			err := fmt.Errorf("backup inventory exceeded limit for location %q: discovered more than %d backups; partial inventory results were not applied; reduce retained backups or increase --vitessbackupstorage_subcontroller_max_backups_per_reconcile", backupLocationName, *maxBackupsPerReconcile)
+			err := fmt.Errorf("backup inventory exceeded limit for location %q: discovered %d backups (limit %d); partial inventory results were not applied; reduce retained backups or increase --vitessbackupstorage_subcontroller_max_backups_per_reconcile", backupLocationName, pendingTotalCount, *maxBackupsPerReconcile)
 			r.recorder.Eventf(vbs, corev1.EventTypeWarning, "InventoryLimitExceeded", "backup inventory exceeded configured limit of %d for location %q after discovering %d backups; partial inventory results were not applied; reduce retained backups or increase --vitessbackupstorage_subcontroller_max_backups_per_reconcile", *maxBackupsPerReconcile, backupLocationName, pendingTotalCount)
 			return resultBuilder.Error(err)
 		}
