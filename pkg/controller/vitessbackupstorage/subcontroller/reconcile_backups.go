@@ -19,6 +19,7 @@ package subcontroller
 import (
 	"context"
 	"fmt"
+	"maps"
 	"time"
 
 	"planetscale.dev/vitess-operator/pkg/operator/reconciler"
@@ -43,6 +44,8 @@ import (
 	"planetscale.dev/vitess-operator/pkg/operator/vitessbackup"
 )
 
+var getBackupStorage = backupstorage.GetBackupStorage
+
 func (r *ReconcileVitessBackupStorage) reconcileBackups(ctx context.Context, vbs *planetscalev2.VitessBackupStorage) (reconcile.Result, error) {
 	resultBuilder := results.Builder{}
 	clusterName := vbs.Labels[planetscalev2.ClusterLabel]
@@ -59,6 +62,7 @@ func (r *ReconcileVitessBackupStorage) reconcileBackups(ctx context.Context, vbs
 	backupObjects := map[client.ObjectKey]*planetscalev2.VitessBackup{}
 	// Keep a map from object key to Vitess BackupHandle.
 	backupHandles := map[client.ObjectKey]backupstorage.BackupHandle{}
+	totalBackupCount := 0
 
 	// List VitessShard objects for this cluster.
 	shardList := &planetscalev2.VitessShardList{}
@@ -75,7 +79,7 @@ func (r *ReconcileVitessBackupStorage) reconcileBackups(ctx context.Context, vbs
 		return resultBuilder.Error(err)
 	}
 
-	backupStorage, err := backupstorage.GetBackupStorage()
+	backupStorage, err := getBackupStorage()
 	if err != nil {
 		r.recorder.Eventf(vbs, corev1.EventTypeWarning, "OpenFailed", "failed to open backup storage client: %v", err)
 		return resultBuilder.Error(err)
@@ -103,8 +107,13 @@ func (r *ReconcileVitessBackupStorage) reconcileBackups(ctx context.Context, vbs
 			planetscalev2.KeyspaceLabel: keyspaceName,
 			planetscalev2.ShardLabel:    shard.Spec.KeyRange.SafeName(),
 		}
-		for k, v := range parentLabels {
-			labels[k] = v
+		maps.Copy(labels, parentLabels)
+
+		pendingTotalCount := totalBackupCount + len(backups)
+		if *maxBackupsPerReconcile > 0 && pendingTotalCount > *maxBackupsPerReconcile {
+			err := fmt.Errorf("backup inventory exceeded limit for location %q: discovered more than %d backups; partial inventory results were not applied; reduce retained backups or increase --vitessbackupstorage_subcontroller_max_backups_per_reconcile", backupLocationName, *maxBackupsPerReconcile)
+			r.recorder.Eventf(vbs, corev1.EventTypeWarning, "InventoryLimitExceeded", "backup inventory exceeded configured limit of %d for location %q after discovering %d backups; partial inventory results were not applied; reduce retained backups or increase --vitessbackupstorage_subcontroller_max_backups_per_reconcile", *maxBackupsPerReconcile, backupLocationName, pendingTotalCount)
+			return resultBuilder.Error(err)
 		}
 
 		// For each backup, generate a VitessBackup object.
@@ -133,9 +142,10 @@ func (r *ReconcileVitessBackupStorage) reconcileBackups(ctx context.Context, vbs
 					StorageName:      backup.Name(),
 				},
 			}
-			vbs.Status.TotalBackupCount++
+			totalBackupCount++
 		}
 	}
+	vbs.Status.TotalBackupCount = int32(totalBackupCount)
 
 	// Now reconcile the set of VitessBackup objects.
 	err = r.reconciler.ReconcileObjectSet(ctx, vbs, keys, parentLabels, reconciler.Strategy{
