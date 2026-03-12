@@ -1,6 +1,6 @@
 ## The Vitess operator automates the management of Vitess on Kubernetes.
 
-[Running Vitess on Kubernetes](https://vitess.io/docs/get-started/kubernetes/) using a Helm chart provides automated deployment. However, this pattern still requires significant maintenance tasks, like planned failover, updates, and resharding. The purpose of the Vitess Operator is to automate much of that maintenance work.
+[Running Vitess on Kubernetes](https://vitess.io/docs/get-started/operator/) using a Helm chart provides automated deployment. However, this pattern still requires significant maintenance tasks, like planned failover, updates, and resharding. The purpose of the Vitess Operator is to automate much of that maintenance work.
 
 The Vitess Operator automates tasks like these:
 
