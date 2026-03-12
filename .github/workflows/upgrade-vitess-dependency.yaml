@@ -39,5 +39,6 @@ jobs:
           title: "Upgrade Vitess Dependency to Latest"
           body: "Weekly Vitess dependency upgrade running on a cron schedule"
           reviewers: |
-            frouioui
-            GuptaManan100
+            mattlord
+            mhamza15
+            timvaillancourt
