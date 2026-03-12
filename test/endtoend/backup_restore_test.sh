@@ -24,6 +24,39 @@ function resurrectShard() {
   verifyDataCommerce
 }
 
+function deleteSeedBackupFromStorage() {
+  cleanup_pod="backup-storage-cleaner"
+
+  cat <<EOF | kubectl apply -n example -f -
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ${cleanup_pod}
+spec:
+  restartPolicy: Never
+  containers:
+  - name: cleanup
+    image: busybox:1.36
+    command: ["sh", "-c", "sleep 600"]
+    volumeMounts:
+    - name: backups
+      mountPath: /vt/backups
+  volumes:
+  - name: backups
+    persistentVolumeClaim:
+      claimName: vitess-backups
+EOF
+
+  kubectl wait --for=condition=Ready -n example pod/${cleanup_pod} --timeout=120s
+
+  for backup_name in $(vtctldclient GetBackups "$keyspaceShard" | grep "vtbackup-"); do
+    echo "Deleting seed backup ${backup_name} from shared storage"
+    kubectl exec -n example "$cleanup_pod" -- rm -rf "/vt/backups/example/${keyspaceShard}/${backup_name}"
+  done
+
+  kubectl delete pod -n example "$cleanup_pod" --ignore-not-found=true
+}
+
 # Test setup
 setupKindCluster
 cd test/endtoend/operator || exit 1
@@ -34,6 +67,8 @@ checkSemiSyncSetup
 checkMysqldExporterMetrics
 takeBackup "commerce/-"
 verifyListBackupsOutput
+deleteSeedBackupFromStorage
+restoreBackup "$(vtctldclient GetTablets --keyspace commerce --tablet-type replica --shard '-' | head -1 | awk '{print $1}')"
 takedownShard
 resurrectShard
 checkSemiSyncSetup

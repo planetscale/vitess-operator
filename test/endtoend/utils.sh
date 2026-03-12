@@ -71,17 +71,108 @@ function printMysqlErrorFiles() {
 
 # takeBackup:
 # $1: keyspace-shard for which the backup needs to be taken
+declare INCREMENTAL_RESTORE_POS=""
 function takeBackup() {
   keyspaceShard=$1
 
-  # Issue the BackupShard command to vtctldclient.
-  vtctldclient BackupShard "$keyspaceShard"
+  # Record the baseline backup count before we start.
+  baselineCount=$(kubectl get vtb -n example --no-headers 2>/dev/null | wc -l | tr -d ' ')
 
-  if [[ $? -ne 0 ]]; then
-    echo "Backup failed"
+  # Issue the BackupShard command to vtctldclient.
+  vtctldclient BackupShard "${keyspaceShard}"
+
+  expectedCount=$((baselineCount + 1))
+  for i in {1..600} ; do
+    out=$(kubectl get vtb -n example --no-headers | wc -l | tr -d ' ')
+    if [[ "${out}" -ge "${expectedCount}" ]]; then
+      echo "Full backup created"
+      break
+    fi
+    sleep 3
+  done
+
+  # Now perform an incremental backup.
+  insertWithRetry
+  pos=$(mysql -sN -e "select @@global.gtid_executed")
+  INCREMENTAL_RESTORE_POS="MySQL56/${pos//\\n/}"
+  sleep 2
+  echo "Backup position is $INCREMENTAL_RESTORE_POS"
+  sleep 2
+  # Insert a marker row AFTER the restore position. This row should NOT
+  # exist after a PITR restore to INCREMENTAL_RESTORE_POS, proving the
+  # restore stopped at the correct position.
+  runSQLWithRetry "insert into commerce.product(sku, description, price) values('SKU-PITR-MARKER', 'PITR Marker', 0)"
+
+  vtctldclient BackupShard --incremental-from-pos=auto "${keyspaceShard}"
+  expectedCount=$((expectedCount + 1))
+
+  for i in {1..600} ; do
+    out=$(kubectl get vtb -n example --no-headers | wc -l | tr -d ' ')
+    if [[ "${out}" -ge "${expectedCount}" ]]; then
+      echo "Incremental backup created"
+      return 0
+    fi
+    sleep 3
+  done
+
+  echo -e "ERROR: Backups not created - ${out}. ${expectedCount} backups expected."
+  exit 1
+}
+
+# restoreBackup:
+# $1: tablet alias for which the backup needs to be restored
+function restoreBackup() {
+  tabletAlias=$1
+  if [[ -z "${tabletAlias}" ]]; then
+    echo "Tablet alias not provided as restore target"
     exit 1
   fi
-  echo "Backup completed"
+
+  # Issue the PITR restore command to vtctldclient.
+  # This should restore the last full backup, followed by applying the
+  # binary logs to reach the desired timestamp.
+  echo "Listing backups"
+  vtctldclient GetBackups "$keyspaceShard"
+  echo "End listing backups"
+  echo "Restoring tablet ${tabletAlias} to position ${INCREMENTAL_RESTORE_POS}"
+  if ! vtctldclient RestoreFromBackup --restore-to-pos "${INCREMENTAL_RESTORE_POS}" "${tabletAlias}"; then
+    echo "ERROR: failed to perform incremental restore"
+    exit 1
+  fi
+
+  # Verify PITR correctness: the marker row inserted after the restore
+  # position should NOT be present on the restored tablet.
+  # Note: ExecuteFetchAsDba runs directly against MySQL where the database
+  # is named vt_commerce, so we must not use the commerce.* prefix.
+  if vtctldclient ExecuteFetchAsDba "${tabletAlias}" "select sku from product where sku='SKU-PITR-MARKER'" | grep -q "SKU-PITR-MARKER"; then
+    echo "ERROR: PITR marker row found on restored tablet — restore did not stop at the correct position"
+    exit 1
+  fi
+  echo "PITR verification passed: marker row correctly absent from restored tablet"
+
+  # Verify the standard commerce data IS present at the restore position.
+  customerCount=$(vtctldclient ExecuteFetchAsDba "${tabletAlias}" "select count(*) as cnt from customer" | grep -oE '[0-9]+' | tail -1)
+  if [[ "${customerCount}" -ne 5 ]]; then
+    echo "ERROR: expected 5 customers on restored tablet, got ${customerCount}"
+    exit 1
+  fi
+  echo "PITR verification passed: found expected 5 customers on restored tablet"
+
+  cell="${tabletAlias%-*}"
+  uid="${tabletAlias##*-}"
+  uid=$((10#${uid}))
+
+  for i in {1..600} ; do
+    out=$(kubectl get pods -n example --no-headers -l "planetscale.com/cell=${cell},planetscale.com/tablet-uid=${uid}" | grep "Running" | wc -l)
+    if echo "$out" | grep -c "1" >/dev/null; then
+      echo "Tablet ${tabletAlias} restore complete"
+      return 0
+    fi
+    sleep 3
+  done
+
+  echo -e "ERROR: restored tablet ${tabletAlias} did not become healthy after the restore."
+  exit 1
 }
 
 function verifyListBackupsOutput() {
@@ -358,7 +449,9 @@ function waitForKeyspaceToBeServing() {
   nb_of_replica=$3
   for i in {1..600} ; do
     out=$(mysql --table --execute="show vitess_tablets")
+    echo "Serving output: ${out}"
     numtablets=$(echo "$out" | grep -E "$ks(.*)$shard(.*)PRIMARY(.*)SERVING|$ks(.*)$shard(.*)REPLICA(.*)SERVING" | wc -l)
+    echo "Number of serving tablets: ${numtablets}"
     if [[ $numtablets -ge $((nb_of_replica+1)) ]]; then
       echo "Shard $ks/$shard is serving"
       return

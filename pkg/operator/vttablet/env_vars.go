@@ -20,8 +20,8 @@ import (
 	"fmt"
 	"strings"
 
-	"planetscale.dev/vitess-operator/pkg/operator/lazy"
 	corev1 "k8s.io/api/core/v1"
+	"planetscale.dev/vitess-operator/pkg/operator/lazy"
 )
 
 func init() {
