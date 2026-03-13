@@ -14,14 +14,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-    - name: Set up Go
-      uses: actions/setup-go@v6
-      with:
-        go-version: 1.25.6
-      id: go
-
     - name: Check out code into the Go module directory
       uses: actions/checkout@v6
+
+    - name: Set up Go
+      uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
+      with:
+        go-version-file: go.mod
+      id: go
 
     - name: Integration Test
       run: make integration-test
