@@ -34,6 +34,14 @@ import (
 // defined at the VitessCluster level, so it provides access to metadata
 // about backups stored in that location for any keyspace and any shard in that
 // cluster.
+//
+// The VitessBackupStorage subcontroller periodically inventories backups in the
+// remote storage location. Large retained backup counts can increase memory
+// usage and reconcile time. To fail fast with a clear error instead of risking
+// an out-of-memory condition, the subcontroller enforces a configurable backup
+// inventory limit per reconcile by default. That limit must be greater than or
+// equal to zero, and zero disables it. Users should configure backup retention
+// or object lifecycle policies so old backups are cleaned up.
 // +kubebuilder:resource:path=vitessbackupstorages,shortName=vtbs
 // +kubebuilder:subresource:status
 type VitessBackupStorage struct {
@@ -184,7 +192,8 @@ type VitessBackupStorageStatus struct {
 	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
 
 	// TotalBackupCount is the total number of backups found in this storage
-	// location, across all keyspaces and shards.
+	// location, across all keyspaces and shards, during the last successful full
+	// inventory.
 	TotalBackupCount int32 `json:"totalBackupCount,omitempty"`
 }
 

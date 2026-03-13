@@ -3084,6 +3084,13 @@ storage location. One VitessBackupStorage represents a storage location
 defined at the VitessCluster level, so it provides access to metadata
 about backups stored in that location for any keyspace and any shard in that
 cluster.</p>
+<p>The VitessBackupStorage subcontroller periodically inventories backups in the
+remote storage location. Large retained backup counts can increase memory
+usage and reconcile time. To fail fast with a clear error instead of risking
+an out-of-memory condition, the subcontroller enforces a configurable backup
+inventory limit per reconcile by default. That limit must be greater than or
+equal to zero, and zero disables it. Users should configure backup retention
+or object lifecycle policies so old backups are cleaned up.</p>
 </p>
 <table class="table table-striped">
 <thead class="thead-dark">
@@ -3247,7 +3254,8 @@ int32
 </td>
 <td>
 <p>TotalBackupCount is the total number of backups found in this storage
-location, across all keyspaces and shards.</p>
+location, across all keyspaces and shards, during the last successful full
+inventory.</p>
 </td>
 </tr>
 </tbody>
