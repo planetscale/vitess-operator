@@ -28,7 +28,7 @@ func ScheduleName(clusterName string, scheduleName string) string {
 }
 
 func NewVitessBackupSchedule(key client.ObjectKey, vt *planetscalev2.VitessCluster, vbsc *planetscalev2.VitessBackupScheduleTemplate, labels map[string]string) *planetscalev2.VitessBackupSchedule {
-	if vt.Spec.Backup == nil || vbsc == nil || vbsc.Schedule == "" {
+	if vt.Spec.Backup == nil || vbsc == nil || (vbsc.Schedule == "" && vbsc.Frequency == "") {
 		return nil
 	}
 
