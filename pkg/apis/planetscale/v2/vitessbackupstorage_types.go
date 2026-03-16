@@ -37,11 +37,13 @@ import (
 //
 // The VitessBackupStorage subcontroller periodically inventories backups in the
 // remote storage location. Large retained backup counts can increase memory
-// usage and reconcile time. To fail fast with a clear error instead of risking
-// an out-of-memory condition, the subcontroller enforces a configurable backup
-// inventory limit per reconcile by default. That limit must be greater than or
-// equal to zero, and zero disables it. Users should configure backup retention
-// or object lifecycle policies so old backups are cleaned up.
+// usage and reconcile time. To fail fast with a clear error before reconciling
+// an excessively large inventory, the subcontroller enforces a configurable
+// backup inventory limit per reconcile by default. That limit must be greater
+// than or equal to zero, and zero disables it. This is a partial safeguard: the
+// current backup storage client still lists each shard's backups before the
+// limit is checked. Users should configure backup retention or object lifecycle
+// policies so old backups are cleaned up.
 // +kubebuilder:resource:path=vitessbackupstorages,shortName=vtbs
 // +kubebuilder:subresource:status
 type VitessBackupStorage struct {
