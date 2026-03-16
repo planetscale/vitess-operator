@@ -217,13 +217,18 @@ func (r *ReconcileVitessBackupStorage) Reconcile(cctx context.Context, request r
 	reconcileResult, reconcileErr := r.reconcileBackups(ctx, vbs)
 	resultBuilder.Merge(reconcileResult, reconcileErr)
 	if reconcileErr != nil {
-		// Preserve the previous successful inventory-derived status when the
-		// current inventory pass fails.
+		// Preserve the entire previous status (including ObservedGeneration)
+		// when the current inventory pass fails. This avoids claiming we
+		// observed a new spec generation when the inventory derived from it
+		// never succeeded — which matters when the spec change itself (e.g. a
+		// different bucket) is the reason the inventory failed.
 		vbs.Status = oldStatus
+	} else {
+		// Only advance ObservedGeneration on a successful inventory so that
+		// the status always reflects the generation that produced the
+		// TotalBackupCount.
+		vbs.Status.ObservedGeneration = vbs.Generation
 	}
-
-	// Update status if needed.
-	vbs.Status.ObservedGeneration = vbs.Generation
 	if !apiequality.Semantic.DeepEqual(&vbs.Status, &oldStatus) {
 		if err := r.client.Status().Update(ctx, vbs); err != nil {
 			if !apierrors.IsConflict(err) {

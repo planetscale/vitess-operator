@@ -525,6 +525,76 @@ func TestReconcile_InventoryLimitPreservesPreviousStatus(t *testing.T) {
 	require.Contains(t, strings.Join(events, "\n"), "InventoryLimitExceeded")
 }
 
+// TestReconcile_InventoryFailureDoesNotAdvanceObservedGeneration verifies that
+// when the spec changes (generation bumps) but the resulting inventory fails,
+// ObservedGeneration is NOT advanced. This prevents the status from claiming it
+// observed a generation whose inventory never succeeded — which matters when
+// the spec change itself (e.g. a different bucket) is the reason it failed.
+func TestReconcile_InventoryFailureDoesNotAdvanceObservedGeneration(t *testing.T) {
+	scheme := newTestScheme(t)
+	namespace := "test-ns"
+	clusterName := "test-cluster"
+	locationName := "s3-backups"
+	shard := newTestShard(namespace, clusterName, "commerce", planetscalev2.VitessKeyRange{Start: "", End: "80"})
+	vbs := newTestBackupStorageCR(namespace, clusterName, locationName)
+
+	// Simulate a previously successful reconcile at generation 1.
+	vbs.Generation = 1
+	vbs.Status.TotalBackupCount = 5
+	vbs.Status.ObservedGeneration = 1
+
+	// Now bump the generation to 2 to simulate a spec change.
+	vbs.Generation = 2
+
+	oldLimit := *maxBackupsPerReconcile
+	oldGetBackupStorage := getBackupStorage
+	t.Cleanup(func() {
+		*maxBackupsPerReconcile = oldLimit
+		getBackupStorage = oldGetBackupStorage
+	})
+
+	baseTime := time.Date(2026, time.March, 10, 12, 0, 0, 0, time.UTC)
+	backupDir := fmt.Sprintf("%s/%s", shard.Labels[planetscalev2.KeyspaceLabel], shard.Spec.Name)
+	*maxBackupsPerReconcile = 1
+	storage := &fakeBackupStorage{backupsByDir: map[string][]backupstorage.BackupHandle{
+		backupDir: {
+			newFakeBackupHandle(backupDir, newFakeBackupName(t, baseTime, 700)),
+			newFakeBackupHandle(backupDir, newFakeBackupName(t, baseTime.Add(time.Minute), 701)),
+		},
+	}}
+	getBackupStorage = func() (backupstorage.BackupStorage, error) { return storage, nil }
+
+	baseClient := ctrlclientfake.NewClientBuilder().WithScheme(scheme).WithStatusSubresource(&planetscalev2.VitessBackupStorage{}).WithObjects(shard, vbs).Build()
+	statusWriter := &fakeStatusWriter{SubResourceWriter: baseClient.Status()}
+	fakeK8sClient := &fakeClient{Client: baseClient, statusWriter: statusWriter}
+	recorder := record.NewFakeRecorder(20)
+	r := &ReconcileVitessBackupStorage{
+		client:     fakeK8sClient,
+		scheme:     scheme,
+		resync:     resync.NewPeriodic("test-vitessbackupstorage-subcontroller", time.Hour),
+		recorder:   recorder,
+		reconciler: reconciler.New(fakeK8sClient, scheme, recorder),
+		objectKey:  client.ObjectKey{Namespace: namespace, Name: vbs.Name},
+	}
+
+	_, err := r.Reconcile(t.Context(), reconcile.Request{NamespacedName: client.ObjectKey{Namespace: namespace, Name: vbs.Name}})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "backup inventory exceeded limit")
+
+	// Status should NOT have been updated: the old status (generation 1,
+	// count 5) should be fully preserved without advancing ObservedGeneration
+	// to generation 2.
+	require.Zero(t, statusWriter.updateCalls,
+		"status should not be updated when inventory fails — old status should be fully preserved")
+
+	updated := &planetscalev2.VitessBackupStorage{}
+	require.NoError(t, fakeK8sClient.Get(t.Context(), client.ObjectKey{Namespace: namespace, Name: vbs.Name}, updated))
+	require.EqualValues(t, 5, updated.Status.TotalBackupCount,
+		"TotalBackupCount should be preserved from the last successful inventory")
+	require.EqualValues(t, 1, updated.Status.ObservedGeneration,
+		"ObservedGeneration should stay at the last successfully inventoried generation")
+}
+
 var _ backupstorage.BackupHandle = (*fakeBackupHandle)(nil)
 var _ backupstorage.BackupStorage = (*fakeBackupStorage)(nil)
 var _ client.Object = (*planetscalev2.VitessBackupStorage)(nil)
