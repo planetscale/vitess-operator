@@ -326,6 +326,8 @@ func (r *ReconcileVitessBackupsSchedule) reconcileStrategy(
 		}
 		effectiveSchedule = generated
 		vbsc.Status.GeneratedSchedules[strategy.Name] = generated
+	} else {
+		delete(vbsc.Status.GeneratedSchedules, strategy.Name)
 	}
 
 	missedRun, nextRun, err := getNextSchedule(effectiveSchedule, vbsc, time.Now(), mostRecentTime)
@@ -927,23 +929,28 @@ func (r *ReconcileVitessBackupsSchedule) getExcludedKeyspaces(ctx context.Contex
 	excluded := make(map[string]bool)
 
 	// First, check strategies within the same schedule object.
-	for _, s := range vbsc.Spec.Strategy {
-		if s.Scope == planetscalev2.BackupScopeKeyspace && s.Keyspace != "" {
-			excluded[s.Keyspace] = true
+	if !scheduleSuspended(vbsc) {
+		warnIfClusterLabelMismatched(vbsc)
+		for _, s := range vbsc.Spec.Strategy {
+			if s.Scope == planetscalev2.BackupScopeKeyspace && s.Keyspace != "" {
+				excluded[s.Keyspace] = true
+			}
 		}
 	}
 
 	// Then, check other VitessBackupSchedule objects in the same namespace within the same cluster.
 	var allSchedules planetscalev2.VitessBackupScheduleList
-	if err := r.client.List(ctx, &allSchedules, client.InNamespace(vbsc.Namespace), client.MatchingLabels{
-		planetscalev2.ClusterLabel: vbsc.Spec.Cluster,
-	}); err != nil {
+	if err := r.client.List(ctx, &allSchedules, client.InNamespace(vbsc.Namespace)); err != nil {
 		return nil, fmt.Errorf("unable to list VitessBackupSchedules: %v", err)
 	}
 
 	for _, sched := range allSchedules.Items {
 		if sched.Name == vbsc.Name {
 			continue // already scanned above
+		}
+		warnIfClusterLabelMismatched(sched)
+		if sched.Spec.Cluster != vbsc.Spec.Cluster || scheduleSuspended(sched) {
+			continue
 		}
 		for _, s := range sched.Spec.Strategy {
 			if s.Scope == planetscalev2.BackupScopeKeyspace && s.Keyspace != "" {
@@ -953,4 +960,19 @@ func (r *ReconcileVitessBackupsSchedule) getExcludedKeyspaces(ctx context.Contex
 	}
 
 	return excluded, nil
+}
+
+func scheduleSuspended(vbsc planetscalev2.VitessBackupSchedule) bool {
+	return vbsc.Spec.Suspend != nil && *vbsc.Spec.Suspend
+}
+
+func warnIfClusterLabelMismatched(vbsc planetscalev2.VitessBackupSchedule) {
+	if vbsc.Labels == nil {
+		return
+	}
+	labelCluster, ok := vbsc.Labels[planetscalev2.ClusterLabel]
+	if !ok || labelCluster == vbsc.Spec.Cluster {
+		return
+	}
+	log.Warnf("VitessBackupSchedule %s/%s has cluster label %q but spec.cluster %q; using spec.cluster for exclusion", vbsc.Namespace, vbsc.Name, labelCluster, vbsc.Spec.Cluster)
 }
