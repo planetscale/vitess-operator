@@ -300,6 +300,146 @@ func TestExpandStrategy_ClusterScopeAutoExclusion(t *testing.T) {
 	require.Equal(t, "commerce", result[0].Keyspace)
 }
 
+func TestExpandStrategy_ClusterScopeInvalidPeerScheduleConfigDoesNotExclude(t *testing.T) {
+	scheme := newScheme()
+	ks1 := &planetscalev2.VitessKeyspace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "test-cluster-commerce",
+			Namespace: "default",
+			Labels:    map[string]string{planetscalev2.ClusterLabel: "test-cluster"},
+		},
+		Spec: planetscalev2.VitessKeyspaceSpec{
+			VitessKeyspaceTemplate: planetscalev2.VitessKeyspaceTemplate{Name: "commerce"},
+		},
+		Status: planetscalev2.VitessKeyspaceStatus{
+			Shards: map[string]planetscalev2.VitessKeyspaceShardStatus{"-": {}},
+		},
+	}
+	ks2 := &planetscalev2.VitessKeyspace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "test-cluster-customer",
+			Namespace: "default",
+			Labels:    map[string]string{planetscalev2.ClusterLabel: "test-cluster"},
+		},
+		Spec: planetscalev2.VitessKeyspaceSpec{
+			VitessKeyspaceTemplate: planetscalev2.VitessKeyspaceTemplate{Name: "customer"},
+		},
+		Status: planetscalev2.VitessKeyspaceStatus{
+			Shards: map[string]planetscalev2.VitessKeyspaceShardStatus{"-80": {}, "80-": {}},
+		},
+	}
+	otherSchedule := &planetscalev2.VitessBackupSchedule{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "customer-frequent",
+			Namespace: "default",
+			Labels:    map[string]string{planetscalev2.ClusterLabel: "test-cluster"},
+		},
+		Spec: planetscalev2.VitessBackupScheduleSpec{
+			Cluster: "test-cluster",
+			VitessBackupScheduleTemplate: planetscalev2.VitessBackupScheduleTemplate{
+				Name:      "customer-frequent",
+				Schedule:  "0 */6 * * *",
+				Frequency: "6h",
+				Strategy: []planetscalev2.VitessBackupScheduleStrategy{{
+					Name:     "customer-all",
+					Scope:    planetscalev2.BackupScopeKeyspace,
+					Keyspace: "customer",
+				}},
+				Resources: corev1.ResourceRequirements{},
+			},
+		},
+	}
+
+	r := &ReconcileVitessBackupsSchedule{
+		client: fake.NewClientBuilder().WithScheme(scheme).
+			WithStatusSubresource(&planetscalev2.VitessKeyspace{}, &planetscalev2.VitessBackupSchedule{}).
+			WithObjects(ks1, ks2, otherSchedule).Build(),
+	}
+
+	strategy := planetscalev2.VitessBackupScheduleStrategy{Name: "all", Scope: planetscalev2.BackupScopeCluster}
+	vbsc := planetscalev2.VitessBackupSchedule{
+		ObjectMeta: metav1.ObjectMeta{Name: "cluster-daily", Namespace: "default", Labels: map[string]string{planetscalev2.ClusterLabel: "test-cluster"}},
+		Spec: planetscalev2.VitessBackupScheduleSpec{
+			Cluster:                      "test-cluster",
+			VitessBackupScheduleTemplate: planetscalev2.VitessBackupScheduleTemplate{Strategy: []planetscalev2.VitessBackupScheduleStrategy{strategy}},
+		},
+	}
+
+	result, err := r.expandStrategy(t.Context(), strategy, vbsc, mustBuildExpansionContext(t, r, vbsc))
+	require.NoError(t, err)
+	require.Len(t, result, 3, "invalid peer schedule config should not exclude customer")
+}
+
+func TestExpandStrategy_ClusterScopeInvalidPeerStrategyDoesNotExclude(t *testing.T) {
+	scheme := newScheme()
+	ks1 := &planetscalev2.VitessKeyspace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "test-cluster-commerce",
+			Namespace: "default",
+			Labels:    map[string]string{planetscalev2.ClusterLabel: "test-cluster"},
+		},
+		Spec: planetscalev2.VitessKeyspaceSpec{
+			VitessKeyspaceTemplate: planetscalev2.VitessKeyspaceTemplate{Name: "commerce"},
+		},
+		Status: planetscalev2.VitessKeyspaceStatus{
+			Shards: map[string]planetscalev2.VitessKeyspaceShardStatus{"-": {}},
+		},
+	}
+	ks2 := &planetscalev2.VitessKeyspace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "test-cluster-customer",
+			Namespace: "default",
+			Labels:    map[string]string{planetscalev2.ClusterLabel: "test-cluster"},
+		},
+		Spec: planetscalev2.VitessKeyspaceSpec{
+			VitessKeyspaceTemplate: planetscalev2.VitessKeyspaceTemplate{Name: "customer"},
+		},
+		Status: planetscalev2.VitessKeyspaceStatus{
+			Shards: map[string]planetscalev2.VitessKeyspaceShardStatus{"-80": {}, "80-": {}},
+		},
+	}
+	otherSchedule := &planetscalev2.VitessBackupSchedule{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "customer-frequent",
+			Namespace: "default",
+			Labels:    map[string]string{planetscalev2.ClusterLabel: "test-cluster"},
+		},
+		Spec: planetscalev2.VitessBackupScheduleSpec{
+			Cluster: "test-cluster",
+			VitessBackupScheduleTemplate: planetscalev2.VitessBackupScheduleTemplate{
+				Name:     "customer-frequent",
+				Schedule: "0 */6 * * *",
+				Strategy: []planetscalev2.VitessBackupScheduleStrategy{{
+					Name:     "customer-all",
+					Scope:    planetscalev2.BackupScopeKeyspace,
+					Keyspace: "customer",
+					Shard:    "-80",
+				}},
+				Resources: corev1.ResourceRequirements{},
+			},
+		},
+	}
+
+	r := &ReconcileVitessBackupsSchedule{
+		client: fake.NewClientBuilder().WithScheme(scheme).
+			WithStatusSubresource(&planetscalev2.VitessKeyspace{}, &planetscalev2.VitessBackupSchedule{}).
+			WithObjects(ks1, ks2, otherSchedule).Build(),
+	}
+
+	strategy := planetscalev2.VitessBackupScheduleStrategy{Name: "all", Scope: planetscalev2.BackupScopeCluster}
+	vbsc := planetscalev2.VitessBackupSchedule{
+		ObjectMeta: metav1.ObjectMeta{Name: "cluster-daily", Namespace: "default", Labels: map[string]string{planetscalev2.ClusterLabel: "test-cluster"}},
+		Spec: planetscalev2.VitessBackupScheduleSpec{
+			Cluster:                      "test-cluster",
+			VitessBackupScheduleTemplate: planetscalev2.VitessBackupScheduleTemplate{Strategy: []planetscalev2.VitessBackupScheduleStrategy{strategy}},
+		},
+	}
+
+	result, err := r.expandStrategy(t.Context(), strategy, vbsc, mustBuildExpansionContext(t, r, vbsc))
+	require.NoError(t, err)
+	require.Len(t, result, 3, "invalid peer strategy config should not exclude customer")
+}
+
 func TestExpandStrategy_ClusterScopeSuspendedKeyspaceScheduleDoesNotExclude(t *testing.T) {
 	scheme := newScheme()
 	ks1 := &planetscalev2.VitessKeyspace{

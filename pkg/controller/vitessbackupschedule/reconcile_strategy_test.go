@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -63,4 +64,117 @@ func TestReconcileStrategy_ClearsGeneratedScheduleWhenUsingExplicitSchedule(t *t
 	_, err := r.reconcileStrategy(t.Context(), strategy, ctrl.Request{NamespacedName: types.NamespacedName{Namespace: "default", Name: "daily"}}, vbsc)
 	require.NoError(t, err)
 	require.NotContains(t, vbsc.Status.GeneratedSchedules, strategy.Name)
+}
+
+func TestReconcileStrategies_RejectsDuplicateEffectiveShardTargetsWithinSchedule(t *testing.T) {
+	scheme := newScheme()
+	commerce := &planetscalev2.VitessKeyspace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "test-cluster-commerce",
+			Namespace: "default",
+			Labels:    map[string]string{planetscalev2.ClusterLabel: "test-cluster"},
+		},
+		Spec: planetscalev2.VitessKeyspaceSpec{
+			VitessKeyspaceTemplate: planetscalev2.VitessKeyspaceTemplate{Name: "commerce"},
+		},
+		Status: planetscalev2.VitessKeyspaceStatus{
+			Shards: map[string]planetscalev2.VitessKeyspaceShardStatus{"-": {}},
+		},
+	}
+	r := &ReconcileVitessBackupsSchedule{
+		client: fake.NewClientBuilder().WithScheme(scheme).
+			WithStatusSubresource(&planetscalev2.VitessKeyspace{}, &planetscalev2.VitessBackupSchedule{}).
+			WithObjects(commerce).Build(),
+	}
+
+	vbsc := planetscalev2.VitessBackupSchedule{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:              "daily",
+			Namespace:         "default",
+			CreationTimestamp: metav1.NewTime(time.Now().Add(2 * time.Hour)),
+		},
+		Spec: planetscalev2.VitessBackupScheduleSpec{
+			Cluster: "test-cluster",
+			VitessBackupScheduleTemplate: planetscalev2.VitessBackupScheduleTemplate{
+				Name:      "daily",
+				Schedule:  "0 0 * * *",
+				Resources: corev1.ResourceRequirements{},
+				Strategy: []planetscalev2.VitessBackupScheduleStrategy{
+					{Name: "cluster-all", Scope: planetscalev2.BackupScopeCluster},
+					{Name: "commerce-explicit", Scope: planetscalev2.BackupScopeShard, Keyspace: "commerce", Shard: "-"},
+				},
+			},
+		},
+		Status: planetscalev2.NewVitessBackupScheduleStatus(planetscalev2.VitessBackupScheduleStatus{}),
+	}
+
+	_, err := r.reconcileStrategies(t.Context(), ctrl.Request{NamespacedName: types.NamespacedName{Namespace: "default", Name: "daily"}}, vbsc)
+	require.Error(t, err)
+	require.ErrorContains(t, err, "terminal error:")
+	require.ErrorContains(t, err, "duplicate effective shard target")
+	require.ErrorContains(t, err, "commerce/-")
+}
+
+func TestReconcileStrategies_AllowsDuplicateTargetsAcrossDifferentSchedules(t *testing.T) {
+	scheme := newScheme()
+	commerce := &planetscalev2.VitessKeyspace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "test-cluster-commerce",
+			Namespace: "default",
+			Labels:    map[string]string{planetscalev2.ClusterLabel: "test-cluster"},
+		},
+		Spec: planetscalev2.VitessKeyspaceSpec{
+			VitessKeyspaceTemplate: planetscalev2.VitessKeyspaceTemplate{Name: "commerce"},
+		},
+		Status: planetscalev2.VitessKeyspaceStatus{
+			Shards: map[string]planetscalev2.VitessKeyspaceShardStatus{"-": {}},
+		},
+	}
+	otherSchedule := &planetscalev2.VitessBackupSchedule{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:              "cluster-daily",
+			Namespace:         "default",
+			CreationTimestamp: metav1.NewTime(time.Now().Add(2 * time.Hour)),
+		},
+		Spec: planetscalev2.VitessBackupScheduleSpec{
+			Cluster: "test-cluster",
+			VitessBackupScheduleTemplate: planetscalev2.VitessBackupScheduleTemplate{
+				Name:      "cluster-daily",
+				Schedule:  "0 0 * * *",
+				Resources: corev1.ResourceRequirements{},
+				Strategy: []planetscalev2.VitessBackupScheduleStrategy{
+					{Name: "cluster-all", Scope: planetscalev2.BackupScopeCluster},
+				},
+			},
+		},
+		Status: planetscalev2.NewVitessBackupScheduleStatus(planetscalev2.VitessBackupScheduleStatus{}),
+	}
+	r := &ReconcileVitessBackupsSchedule{
+		client: fake.NewClientBuilder().WithScheme(scheme).
+			WithStatusSubresource(&planetscalev2.VitessKeyspace{}, &planetscalev2.VitessBackupSchedule{}).
+			WithObjects(commerce, otherSchedule).Build(),
+	}
+
+	vbsc := planetscalev2.VitessBackupSchedule{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:              "daily",
+			Namespace:         "default",
+			CreationTimestamp: metav1.NewTime(time.Now().Add(2 * time.Hour)),
+		},
+		Spec: planetscalev2.VitessBackupScheduleSpec{
+			Cluster: "test-cluster",
+			VitessBackupScheduleTemplate: planetscalev2.VitessBackupScheduleTemplate{
+				Name:      "daily",
+				Schedule:  "0 0 * * *",
+				Resources: corev1.ResourceRequirements{},
+				Strategy: []planetscalev2.VitessBackupScheduleStrategy{
+					{Name: "commerce-explicit", Scope: planetscalev2.BackupScopeShard, Keyspace: "commerce", Shard: "-"},
+				},
+			},
+		},
+		Status: planetscalev2.NewVitessBackupScheduleStatus(planetscalev2.VitessBackupScheduleStatus{}),
+	}
+
+	_, err := r.reconcileStrategies(t.Context(), ctrl.Request{NamespacedName: types.NamespacedName{Namespace: "default", Name: "daily"}}, vbsc)
+	require.NoError(t, err)
 }

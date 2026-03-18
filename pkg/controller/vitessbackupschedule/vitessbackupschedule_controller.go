@@ -238,6 +238,9 @@ func (r *ReconcileVitessBackupsSchedule) reconcileStrategies(ctx context.Context
 	if err := vbsc.Spec.VitessBackupScheduleTemplate.ValidateStrategies(); err != nil {
 		return resultBuilder.Error(reconcile.TerminalError(err))
 	}
+	if err := r.validateNoDuplicateEffectiveShardTargets(ctx, vbsc); err != nil {
+		return resultBuilder.Error(reconcile.TerminalError(err))
+	}
 
 	// Track which strategy names we see in this reconcile to clean up stale status entries.
 	activeStrategyNames := make(map[string]bool)
@@ -278,6 +281,30 @@ func (r *ReconcileVitessBackupsSchedule) reconcileStrategies(ctx context.Context
 	}
 
 	return resultBuilder.Result()
+}
+
+func (r *ReconcileVitessBackupsSchedule) validateNoDuplicateEffectiveShardTargets(ctx context.Context, vbsc planetscalev2.VitessBackupSchedule) error {
+	expansionCtx, err := r.buildLocalStrategyExpansionContext(ctx, vbsc)
+	if err != nil {
+		return err
+	}
+
+	seenTargets := make(map[string]string)
+	for _, strategy := range vbsc.Spec.Strategy {
+		expanded, err := r.expandStrategy(ctx, strategy, vbsc, expansionCtx)
+		if err != nil {
+			return err
+		}
+		for _, expandedStrategy := range expanded {
+			target := expandedStrategy.Keyspace + "/" + expandedStrategy.Shard
+			if existing, ok := seenTargets[target]; ok {
+				return fmt.Errorf("duplicate effective shard target %s in strategies %q and %q", target, existing, expandedStrategy.Name)
+			}
+			seenTargets[target] = expandedStrategy.Name
+		}
+	}
+
+	return nil
 }
 
 func (r *ReconcileVitessBackupsSchedule) reconcileStrategy(
@@ -858,6 +885,18 @@ func (r *ReconcileVitessBackupsSchedule) buildStrategyExpansionContext(ctx conte
 		return strategyExpansionContext{}, err
 	}
 
+	return newStrategyExpansionContext(allKeyspaces, excluded), nil
+}
+
+func (r *ReconcileVitessBackupsSchedule) buildLocalStrategyExpansionContext(ctx context.Context, vbsc planetscalev2.VitessBackupSchedule) (strategyExpansionContext, error) {
+	allKeyspaces, err := r.getAllShardsInCluster(ctx, vbsc.Namespace, vbsc.Spec.Cluster)
+	if err != nil {
+		return strategyExpansionContext{}, err
+	}
+	return newStrategyExpansionContext(allKeyspaces, localExcludedKeyspaces(vbsc)), nil
+}
+
+func newStrategyExpansionContext(allKeyspaces []keyspace, excluded map[string]bool) strategyExpansionContext {
 	shardsByKeyspace := make(map[string][]string, len(allKeyspaces))
 	for _, ks := range allKeyspaces {
 		shardsByKeyspace[ks.name] = ks.shards
@@ -867,7 +906,17 @@ func (r *ReconcileVitessBackupsSchedule) buildStrategyExpansionContext(ctx conte
 		allKeyspaces:      allKeyspaces,
 		excludedKeyspaces: excluded,
 		shardsByKeyspace:  shardsByKeyspace,
-	}, nil
+	}
+}
+
+func localExcludedKeyspaces(vbsc planetscalev2.VitessBackupSchedule) map[string]bool {
+	excluded := make(map[string]bool)
+	for _, s := range vbsc.Spec.Strategy {
+		if s.Scope == planetscalev2.BackupScopeKeyspace && s.Keyspace != "" {
+			excluded[s.Keyspace] = true
+		}
+	}
+	return excluded
 }
 
 // expandToShards creates one Shard-scope strategy per shard from a base strategy.
@@ -950,6 +999,14 @@ func (r *ReconcileVitessBackupsSchedule) getExcludedKeyspaces(ctx context.Contex
 		}
 		warnIfClusterLabelMismatched(sched)
 		if sched.Spec.Cluster != vbsc.Spec.Cluster || scheduleSuspended(sched) {
+			continue
+		}
+		if err := sched.Spec.VitessBackupScheduleTemplate.ValidateScheduleConfig(); err != nil {
+			log.WithError(err).Warnf("skipping exclusions from invalid peer VitessBackupSchedule %s/%s", sched.Namespace, sched.Name)
+			continue
+		}
+		if err := sched.Spec.VitessBackupScheduleTemplate.ValidateStrategies(); err != nil {
+			log.WithError(err).Warnf("skipping exclusions from invalid peer VitessBackupSchedule %s/%s", sched.Namespace, sched.Name)
 			continue
 		}
 		for _, s := range sched.Spec.Strategy {
