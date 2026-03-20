@@ -178,3 +178,81 @@ func TestReconcileStrategies_AllowsDuplicateTargetsAcrossDifferentSchedules(t *t
 	_, err := r.reconcileStrategies(t.Context(), ctrl.Request{NamespacedName: types.NamespacedName{Namespace: "default", Name: "daily"}}, vbsc)
 	require.NoError(t, err)
 }
+
+func TestReconcileStrategies_AllowsExplicitShardWhenPeerKeyspaceOverrideExcludesClusterExpansion(t *testing.T) {
+	scheme := newScheme()
+	commerce := &planetscalev2.VitessKeyspace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "test-cluster-commerce",
+			Namespace: "default",
+			Labels:    map[string]string{planetscalev2.ClusterLabel: "test-cluster"},
+		},
+		Spec: planetscalev2.VitessKeyspaceSpec{
+			VitessKeyspaceTemplate: planetscalev2.VitessKeyspaceTemplate{Name: "commerce"},
+		},
+		Status: planetscalev2.VitessKeyspaceStatus{
+			Shards: map[string]planetscalev2.VitessKeyspaceShardStatus{"-": {}},
+		},
+	}
+	customer := &planetscalev2.VitessKeyspace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "test-cluster-customer",
+			Namespace: "default",
+			Labels:    map[string]string{planetscalev2.ClusterLabel: "test-cluster"},
+		},
+		Spec: planetscalev2.VitessKeyspaceSpec{
+			VitessKeyspaceTemplate: planetscalev2.VitessKeyspaceTemplate{Name: "customer"},
+		},
+		Status: planetscalev2.VitessKeyspaceStatus{
+			Shards: map[string]planetscalev2.VitessKeyspaceShardStatus{"-80": {}, "80-": {}},
+		},
+	}
+	peerSchedule := &planetscalev2.VitessBackupSchedule{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:              "customer-override",
+			Namespace:         "default",
+			CreationTimestamp: metav1.NewTime(time.Now().Add(2 * time.Hour)),
+		},
+		Spec: planetscalev2.VitessBackupScheduleSpec{
+			Cluster: "test-cluster",
+			VitessBackupScheduleTemplate: planetscalev2.VitessBackupScheduleTemplate{
+				Name:      "customer-override",
+				Schedule:  "0 6 * * *",
+				Resources: corev1.ResourceRequirements{},
+				Strategy: []planetscalev2.VitessBackupScheduleStrategy{
+					{Name: "customer-all", Scope: planetscalev2.BackupScopeKeyspace, Keyspace: "customer"},
+				},
+			},
+		},
+		Status: planetscalev2.NewVitessBackupScheduleStatus(planetscalev2.VitessBackupScheduleStatus{}),
+	}
+	r := &ReconcileVitessBackupsSchedule{
+		client: fake.NewClientBuilder().WithScheme(scheme).
+			WithStatusSubresource(&planetscalev2.VitessKeyspace{}, &planetscalev2.VitessBackupSchedule{}).
+			WithObjects(commerce, customer, peerSchedule).Build(),
+	}
+
+	vbsc := planetscalev2.VitessBackupSchedule{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:              "daily",
+			Namespace:         "default",
+			CreationTimestamp: metav1.NewTime(time.Now().Add(2 * time.Hour)),
+		},
+		Spec: planetscalev2.VitessBackupScheduleSpec{
+			Cluster: "test-cluster",
+			VitessBackupScheduleTemplate: planetscalev2.VitessBackupScheduleTemplate{
+				Name:      "daily",
+				Schedule:  "0 0 * * *",
+				Resources: corev1.ResourceRequirements{},
+				Strategy: []planetscalev2.VitessBackupScheduleStrategy{
+					{Name: "cluster-all", Scope: planetscalev2.BackupScopeCluster},
+					{Name: "customer-hot", Scope: planetscalev2.BackupScopeShard, Keyspace: "customer", Shard: "-80"},
+				},
+			},
+		},
+		Status: planetscalev2.NewVitessBackupScheduleStatus(planetscalev2.VitessBackupScheduleStatus{}),
+	}
+
+	_, err := r.reconcileStrategies(t.Context(), ctrl.Request{NamespacedName: types.NamespacedName{Namespace: "default", Name: "daily"}}, vbsc)
+	require.NoError(t, err)
+}
