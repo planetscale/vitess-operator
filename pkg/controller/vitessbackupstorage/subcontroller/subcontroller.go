@@ -67,9 +67,10 @@ const (
 )
 
 var (
-	resyncPeriod     = flag.Duration("vitessbackupstorage_subcontroller_resync_period", 60*time.Second, "reconcile each vitessbackupstorage with this period even if no Kubernetes events occur")
-	reconcileTimeout = flag.Duration("vitessbackupstorage_subcontroller_reconcile_timeout", 10*time.Minute, "timeout for a single reconcile pass of the vitessbackupstorage subcontroller")
-	requestTimeout   = flag.Duration("vitessbackupstorage_subcontroller_request_timeout", 10*time.Second, "timeout for a single request by the vitessbackupstorage subcontroller to read the status of a backup")
+	resyncPeriod           = flag.Duration("vitessbackupstorage_subcontroller_resync_period", 60*time.Second, "reconcile each vitessbackupstorage with this period even if no Kubernetes events occur")
+	reconcileTimeout       = flag.Duration("vitessbackupstorage_subcontroller_reconcile_timeout", 10*time.Minute, "timeout for a single reconcile pass of the vitessbackupstorage subcontroller")
+	requestTimeout         = flag.Duration("vitessbackupstorage_subcontroller_request_timeout", 10*time.Second, "timeout for a single request by the vitessbackupstorage subcontroller to read the status of a backup")
+	maxBackupsPerReconcile = flag.Int("vitessbackupstorage_subcontroller_max_backups_per_reconcile", 10000, "maximum number of backups to inventory in a single vitessbackupstorage reconcile; must be >= 0, and 0 disables the limit")
 )
 
 var log = logrus.WithField("subcontroller", "VitessBackupStorage")
@@ -94,6 +95,10 @@ func Add(mgr manager.Manager) error {
 
 // newReconciler returns a new reconcile.Reconciler
 func newReconciler(mgr manager.Manager) (*ReconcileVitessBackupStorage, error) {
+	if err := validateMaxBackupsPerReconcile(*maxBackupsPerReconcile); err != nil {
+		return nil, err
+	}
+
 	// This subcontroller runs in a forked subprocess and only processes one object.
 	var key client.ObjectKey
 	key.Namespace = os.Getenv(VBSNamespaceEnvVar)
@@ -209,10 +214,21 @@ func (r *ReconcileVitessBackupStorage) Reconcile(cctx context.Context, request r
 	oldStatus := vbs.Status
 	vbs.Status = *planetscalev2.NewVitessBackupStorageStatus()
 
-	resultBuilder.Merge(r.reconcileBackups(ctx, vbs))
-
-	// Update status if needed.
-	vbs.Status.ObservedGeneration = vbs.Generation
+	reconcileResult, reconcileErr := r.reconcileBackups(ctx, vbs)
+	resultBuilder.Merge(reconcileResult, reconcileErr)
+	if reconcileErr != nil {
+		// Preserve the entire previous status (including ObservedGeneration)
+		// when the current inventory pass fails. This avoids claiming we
+		// observed a new spec generation when the inventory derived from it
+		// never succeeded — which matters when the spec change itself (e.g. a
+		// different bucket) is the reason the inventory failed.
+		vbs.Status = oldStatus
+	} else {
+		// Only advance ObservedGeneration on a successful inventory so that
+		// the status always reflects the generation that produced the
+		// TotalBackupCount.
+		vbs.Status.ObservedGeneration = vbs.Generation
+	}
 	if !apiequality.Semantic.DeepEqual(&vbs.Status, &oldStatus) {
 		if err := r.client.Status().Update(ctx, vbs); err != nil {
 			if !apierrors.IsConflict(err) {
