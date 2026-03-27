@@ -42,6 +42,8 @@ const (
 	TabletIndexLabel = LabelPrefix + "/" + "tablet-index"
 	// BackupScheduleLabel is the key for identifying to which VitessBackupSchedule a Job belongs to.
 	BackupScheduleLabel = LabelPrefix + "/" + "backup-schedule"
+	// BackupMethodLabel is the key for identifying the backup method used by a VitessBackupSchedule job.
+	BackupMethodLabel = LabelPrefix + "/" + "backup-method"
 
 	// VtctldComponentName is the ComponentLabel value for vtctld.
 	VtctldComponentName = "vtctld"

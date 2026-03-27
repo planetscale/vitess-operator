@@ -35,6 +35,12 @@ spec:
                 additionalProperties:
                   type: string
                 type: object
+              backupMethod:
+                default: vtbackup
+                enum:
+                - vtbackup
+                - vtctldclient
+                type: string
               cluster:
                 type: string
               concurrencyPolicy:
