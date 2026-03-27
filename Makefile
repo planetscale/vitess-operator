@@ -77,6 +77,10 @@ backup-schedule-keyspace-test: e2e-test-setup
 	echo "Running Backup-Schedule Keyspace-wide test"
 	test/endtoend/backup_schedule_keyspace_test.sh
 
+backup-schedule-vtctldclient-test: e2e-test-setup
+	echo "Running Backup-Schedule vtctldclient method test"
+	test/endtoend/backup_schedule_vtctldclient_test.sh
+
 vtorc-vtadmin-test: e2e-test-setup
 	echo "Running VTOrc and VtAdmin test"
 	test/endtoend/vtorc_vtadmin_test.sh
