@@ -97,7 +97,7 @@ function chromiumHeadlessRequest() {
   dataToAssert=$2
   for i in {1..600} ; do
     chromiumBinary=$(getChromiumBinaryName)
-    res=$($chromiumBinary --headless --no-sandbox --disable-gpu --enable-logging --dump-dom  --virtual-time-budget=900000000 "$url")
+    res=$($chromiumBinary --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --enable-logging --dump-dom --timeout=10000 --virtual-time-budget=900000000 "$url")
     if [[ $? -eq 0 ]]; then
       echo "$res" | grep "$dataToAssert" > /dev/null 2>&1
       if [[ $? -ne 0 ]]; then

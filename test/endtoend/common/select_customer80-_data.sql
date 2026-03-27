@@ -1,5 +1,5 @@
-\! echo 'Using customer/80-'
-use customer/80-;
+\! echo 'Using customer/8000-'
+use customer/8000-;
 \! echo 'Customer'
 select * from customer;
 \! echo 'COrder'

@@ -21,6 +21,21 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const SupportedBackupFrequencyExamples = "1m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 12h, 24h"
+
+// BackupScope defines the scope at which a backup strategy operates.
+// +kubebuilder:validation:Enum=Shard;Keyspace;Cluster
+type BackupScope string
+
+const (
+	// BackupScopeShard targets a single specific shard (default, original behavior).
+	BackupScopeShard BackupScope = "Shard"
+	// BackupScopeKeyspace dynamically discovers all shards in the specified keyspace.
+	BackupScopeKeyspace BackupScope = "Keyspace"
+	// BackupScopeCluster dynamically discovers all shards across all keyspaces in the cluster.
+	BackupScopeCluster BackupScope = "Cluster"
+)
+
 // ConcurrencyPolicy describes how the concurrency of new jobs created by VitessBackupSchedule
 // is handled, the default is set to AllowConcurrent.
 // +kubebuilder:validation:Enum=Allow;Forbid
@@ -82,9 +97,20 @@ type VitessBackupScheduleTemplate struct {
 	Name string `json:"name"`
 
 	// The schedule in Cron format, see https://en.wikipedia.org/wiki/Cron.
+	// Mutually exclusive with Frequency.
+	// +optional
 	// +kubebuilder:validation:MinLength=0
 	// +kubebuilder:example="0 0 * * *"
-	Schedule string `json:"schedule"`
+	Schedule string `json:"schedule,omitempty"`
+
+	// Frequency is a Go duration string that defines how often backups should run.
+	// Since schedules are executed via cron, only frequencies that can be represented exactly
+	// in cron are supported. Examples include 1m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 12h, and 24h.
+	// When set, the controller generates deterministic per-shard cron schedules staggered
+	// across the interval to avoid bandwidth spikes.
+	// Mutually exclusive with Schedule.
+	// +optional
+	Frequency string `json:"frequency,omitempty"`
 
 	// Strategy defines how we are going to take a backup.
 	// If you want to take several backups within the same schedule you can add more items
@@ -173,13 +199,22 @@ type VitessBackupScheduleStrategy struct {
 	// Name of the backup strategy.
 	Name string `json:"name"`
 
+	// Scope defines whether this strategy targets a single Shard, all shards in a Keyspace,
+	// or all shards in the Cluster. Defaults to "Shard" for backward compatibility.
+	// +optional
+	Scope BackupScope `json:"scope,omitempty"`
+
 	// Keyspace defines the keyspace on which we want to take the backup.
+	// Required for Shard and Keyspace scopes.
+	// +optional
 	// +kubebuilder:example="commerce"
-	Keyspace string `json:"keyspace"`
+	Keyspace string `json:"keyspace,omitempty"`
 
 	// Shard defines the shard on which we want to take a backup.
+	// Required only for Shard scope.
+	// +optional
 	// +kubebuilder:example="-"
-	Shard string `json:"shard"`
+	Shard string `json:"shard,omitempty"`
 
 	// ExtraFlags is a map of flags that will be sent down to vtctldclient when taking the backup.
 	// +optional
@@ -204,15 +239,34 @@ type VitessBackupScheduleStatus struct {
 	// Note that these are not the times when the last execution started, only the scheduled times.
 	// +optional
 	LastScheduledTimes map[string]*metav1.Time `json:"lastScheduledTimes,omitempty"`
+
+	// GeneratedSchedules maps expanded strategy names to their generated cron expressions.
+	// This is populated when Frequency is used instead of Schedule, providing observability
+	// into the deterministic per-shard cron schedules.
+	// +optional
+	GeneratedSchedules map[string]string `json:"generatedSchedules,omitempty"`
+
+	// NextScheduledTimes maps expanded strategy names to the next scheduled execution time.
+	// This is populated for both cron-based and frequency-based schedules.
+	// +optional
+	NextScheduledTimes map[string]*metav1.Time `json:"nextScheduledTimes,omitempty"`
 }
 
 // NewVitessBackupScheduleStatus creates a new status with default values.
 func NewVitessBackupScheduleStatus(status VitessBackupScheduleStatus) VitessBackupScheduleStatus {
 	newStatus := VitessBackupScheduleStatus{
 		LastScheduledTimes: status.LastScheduledTimes,
+		GeneratedSchedules: status.GeneratedSchedules,
+		NextScheduledTimes: status.NextScheduledTimes,
 	}
 	if status.LastScheduledTimes == nil {
 		newStatus.LastScheduledTimes = make(map[string]*metav1.Time)
+	}
+	if status.GeneratedSchedules == nil {
+		newStatus.GeneratedSchedules = make(map[string]string)
+	}
+	if status.NextScheduledTimes == nil {
+		newStatus.NextScheduledTimes = make(map[string]*metav1.Time)
 	}
 	return newStatus
 }

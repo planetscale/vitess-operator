@@ -11,6 +11,7 @@ spec:
           persistentVolumeClaim:
             claimName: vitess-backups
     schedules:
+      # Existing per-shard schedule (unchanged, backward compatible).
       - name: "commerce"
         schedule: "*/2 * * * *"
         resources:
@@ -44,6 +45,37 @@ spec:
           - name: customer_x-80
             keyspace: "customer"
             shard: "-8000"
+      # Cluster-wide default with frequency-based staggering.
+      - name: "cluster-daily"
+        frequency: "24h"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 1024Mi
+          limits:
+            memory: 1024Mi
+        successfulJobsHistoryLimit: 2
+        failedJobsHistoryLimit: 3
+        jobTimeoutMinute: 5
+        strategies:
+          - name: all
+            scope: Cluster
+      # Keyspace-scope override: customer gets backed up more frequently.
+      - name: "frequent-customer"
+        frequency: "6h"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 1024Mi
+          limits:
+            memory: 1024Mi
+        successfulJobsHistoryLimit: 2
+        failedJobsHistoryLimit: 3
+        jobTimeoutMinute: 5
+        strategies:
+          - name: customer-all
+            scope: Keyspace
+            keyspace: "customer"
   images:
     vtctld: vitess/lite:mysql80
     vtgate: vitess/lite:mysql80

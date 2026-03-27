@@ -480,13 +480,29 @@ function applySchemaWithRetry() {
 }
 
 function assertSelect() {
-  sql=$1
-  shard=$2
-  expected=$3
-  data=$(mysql --table < $sql)
-  echo "$data" | grep "$expected" > /dev/null 2>&1
-  if [[ $? -ne 0 ]]; then
-    echo -e "The data in $shard's tables is incorrect, got:\n$data"
+  local sql="$1"
+  local shard="$2"
+  local expected
+  local data
+  local status
+
+  if [[ $# -ge 3 ]]; then
+    expected="$3"
+  else
+    expected=$(cat)
+  fi
+
+  data=$(mysql --table --unbuffered < "$sql" 2>&1)
+  status=$?
+  if [[ $status -ne 0 ]]; then
+    echo -e "Failed to query ${shard}'s tables using ${sql}:\n${data}"
+    exit 1
+  fi
+
+  if [[ "$data" != "$expected" ]]; then
+    echo "The data in ${shard}'s tables is incorrect."
+    echo "Diff (expected vs actual):"
+    diff -u <(printf '%s\n' "$expected") <(printf '%s\n' "$data") || true
     exit 1
   fi
 }
