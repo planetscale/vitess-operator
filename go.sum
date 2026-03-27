@@ -958,8 +958,8 @@ k8s.io/kube-openapi v0.0.0-20250910181357-589584f1c912 h1:Y3gxNAuB0OBLImH611+UDZ
 k8s.io/kube-openapi v0.0.0-20250910181357-589584f1c912/go.mod h1:kdmbQkyfwUagLfXIad1y2TdrjPFWp2Q89B3qkRwf/pQ=
 k8s.io/kubectl v0.35.2 h1:aSmqhSOfsoG9NR5oR8OD5eMKpLN9x8oncxfqLHbJJII=
 k8s.io/kubectl v0.35.2/go.mod h1:+OJC779UsDJGxNPbHxCwvb4e4w9Eh62v/DNYU2TlsyM=
-k8s.io/kubernetes v1.35.2 h1:2HthVDfK3YJYv624imuKXPzUJ17xQop9OT5dgT+IMKE=
-k8s.io/kubernetes v1.35.2/go.mod h1:AaPpCpiS8oAqRbEwpY5r3RitLpwpVp5lVXKFkJril58=
+k8s.io/kubernetes v1.35.3 h1:J3dk2wybKFHwoH4eydDUGHJo4HAD+9CZbSlvk/YQuao=
+k8s.io/kubernetes v1.35.3/go.mod h1:AaPpCpiS8oAqRbEwpY5r3RitLpwpVp5lVXKFkJril58=
 k8s.io/utils v0.0.0-20251002143259-bc988d571ff4 h1:SjGebBtkBqHFOli+05xYbK8YF1Dzkbzn+gDM4X9T4Ck=
 k8s.io/utils v0.0.0-20251002143259-bc988d571ff4/go.mod h1:OLgZIPagt7ERELqWJFomSt595RzquPNLL48iOWgYOg0=
 sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.31.2 h1:jpcvIRr3GLoUoEKRkHKSmGjxb6lWwrBlJsXc+eUYQHM=
