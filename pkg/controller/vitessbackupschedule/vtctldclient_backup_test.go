@@ -54,19 +54,47 @@ func vtctldService() *corev1.Service {
 	}
 }
 
+func vtctldCluster() *planetscalev2.VitessCluster {
+	return &planetscalev2.VitessCluster{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "example",
+			Namespace: "default",
+		},
+		Spec: planetscalev2.VitessClusterSpec{
+			Images: planetscalev2.VitessImages{
+				Vtctld: "vitess/operator:mysql80",
+			},
+			ImagePullPolicies: planetscalev2.VitessImagePullPolicies{
+				Vtctld: corev1.PullAlways,
+			},
+			ImagePullSecrets: []corev1.LocalObjectReference{
+				{Name: "regcred"},
+			},
+			VitessDashboard: &planetscalev2.VitessDashboardSpec{
+				Tolerations: []corev1.Toleration{
+					{
+						Key:      "dedicated",
+						Operator: corev1.TolerationOpExists,
+					},
+				},
+			},
+		},
+	}
+}
+
 func vtctldclientVBSC() planetscalev2.VitessBackupSchedule {
 	return planetscalev2.VitessBackupSchedule{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:              "daily",
 			Namespace:         "default",
-			CreationTimestamp:  metav1.NewTime(time.Now().Add(-2 * time.Hour)),
+			CreationTimestamp: metav1.NewTime(time.Now().Add(-2 * time.Hour)),
 			UID:               types.UID("test-uid"),
 			ResourceVersion:   "1",
 			Generation:        1,
 		},
 		Spec: planetscalev2.VitessBackupScheduleSpec{
-			Cluster: "example",
-			Image:   "vitess/lite:mysql80",
+			Cluster:         "example",
+			Image:           "vitess/lite:mysql80",
 			ImagePullPolicy: corev1.PullIfNotPresent,
 			VitessBackupScheduleTemplate: planetscalev2.VitessBackupScheduleTemplate{
 				Name:         "daily",
@@ -93,7 +121,7 @@ func vtctldclientVBSC() planetscalev2.VitessBackupSchedule {
 
 func TestCreateVtctldclientJobPod_BasicPodSpec(t *testing.T) {
 	r := &ReconcileVitessBackupsSchedule{
-		client: fake.NewClientBuilder().WithScheme(newScheme()).WithObjects(vtctldService()).Build(),
+		client: fake.NewClientBuilder().WithScheme(newScheme()).WithObjects(vtctldService(), vtctldCluster()).Build(),
 	}
 
 	vbsc := vtctldclientVBSC()
@@ -121,9 +149,32 @@ func TestCreateVtctldclientJobPod_BasicPodSpec(t *testing.T) {
 	assert.Empty(t, pod.Spec.Volumes)
 }
 
+func TestCreateVtctldclientJobPod_InheritsClusterDefaults(t *testing.T) {
+	cluster := vtctldCluster()
+	r := &ReconcileVitessBackupsSchedule{
+		client: fake.NewClientBuilder().WithScheme(newScheme()).WithObjects(vtctldService(), cluster).Build(),
+	}
+
+	vbsc := vtctldclientVBSC()
+	vbsc.Spec.Image = ""
+	vbsc.Spec.ImagePullPolicy = ""
+	strategy := vbsc.Spec.Strategy[0]
+
+	pod, err := r.createVtctldclientJobPod(t.Context(), vbsc, strategy)
+	require.NoError(t, err)
+	require.NotNil(t, pod)
+
+	container := pod.Spec.Containers[0]
+	assert.Equal(t, cluster.Spec.Images.Vtctld, container.Image)
+	assert.Equal(t, cluster.Spec.ImagePullPolicies.Vtctld, container.ImagePullPolicy)
+	assert.Equal(t, cluster.Spec.ImagePullSecrets, pod.Spec.ImagePullSecrets)
+	assert.Equal(t, cluster.Spec.VitessDashboard.Tolerations, pod.Spec.Tolerations)
+	assert.Equal(t, planetscalev2.DefaultVitessPriorityClass, pod.Spec.PriorityClassName)
+}
+
 func TestCreateVtctldclientJobPod_CorrectArgs(t *testing.T) {
 	r := &ReconcileVitessBackupsSchedule{
-		client: fake.NewClientBuilder().WithScheme(newScheme()).WithObjects(vtctldService()).Build(),
+		client: fake.NewClientBuilder().WithScheme(newScheme()).WithObjects(vtctldService(), vtctldCluster()).Build(),
 	}
 
 	vbsc := vtctldclientVBSC()
@@ -141,7 +192,7 @@ func TestCreateVtctldclientJobPod_CorrectArgs(t *testing.T) {
 
 func TestCreateVtctldclientJobPod_ExtraFlags(t *testing.T) {
 	r := &ReconcileVitessBackupsSchedule{
-		client: fake.NewClientBuilder().WithScheme(newScheme()).WithObjects(vtctldService()).Build(),
+		client: fake.NewClientBuilder().WithScheme(newScheme()).WithObjects(vtctldService(), vtctldCluster()).Build(),
 	}
 
 	vbsc := vtctldclientVBSC()
@@ -150,8 +201,8 @@ func TestCreateVtctldclientJobPod_ExtraFlags(t *testing.T) {
 		Keyspace: "commerce",
 		Shard:    "-",
 		ExtraFlags: map[string]string{
-			"concurrency":      "4",
-			"allow-primary":    "true",
+			"concurrency":   "4",
+			"allow-primary": "true",
 		},
 	}
 
@@ -172,7 +223,7 @@ func TestCreateVtctldclientJobPod_ExtraFlags(t *testing.T) {
 func TestCreateVtctldclientJobPod_NoVtctldService(t *testing.T) {
 	// No vtctld service in the fake client
 	r := &ReconcileVitessBackupsSchedule{
-		client: fake.NewClientBuilder().WithScheme(newScheme()).Build(),
+		client: fake.NewClientBuilder().WithScheme(newScheme()).WithObjects(vtctldCluster()).Build(),
 	}
 
 	vbsc := vtctldclientVBSC()
@@ -187,7 +238,7 @@ func TestCreateVtctldclientJobPod_NoVtctldService(t *testing.T) {
 func TestCreateJob_VtctldclientMethodNoPVC(t *testing.T) {
 	scheme := newScheme()
 	r := &ReconcileVitessBackupsSchedule{
-		client: fake.NewClientBuilder().WithScheme(scheme).WithObjects(vtctldService()).Build(),
+		client: fake.NewClientBuilder().WithScheme(scheme).WithObjects(vtctldService(), vtctldCluster()).Build(),
 		scheme: scheme,
 	}
 
@@ -265,7 +316,7 @@ func TestCreateJob_VtbackupMethodCreatesPVC(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:              "daily",
 			Namespace:         "default",
-			CreationTimestamp:  metav1.NewTime(time.Now().Add(-2 * time.Hour)),
+			CreationTimestamp: metav1.NewTime(time.Now().Add(-2 * time.Hour)),
 			UID:               types.UID("test-uid"),
 			ResourceVersion:   "1",
 		},
@@ -357,7 +408,7 @@ func TestCreateJob_DefaultMethodIsVtbackup(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:              "daily",
 			Namespace:         "default",
-			CreationTimestamp:  metav1.NewTime(time.Now().Add(-2 * time.Hour)),
+			CreationTimestamp: metav1.NewTime(time.Now().Add(-2 * time.Hour)),
 			UID:               types.UID("test-uid"),
 			ResourceVersion:   "1",
 		},
@@ -390,6 +441,32 @@ func TestCreateJob_DefaultMethodIsVtbackup(t *testing.T) {
 	err = r.client.List(t.Context(), pvcList, client.InNamespace("default"))
 	require.NoError(t, err)
 	assert.Len(t, pvcList.Items, 1)
+}
+
+func TestCreateJob_ControllerOwnedLabelsCannotBeOverridden(t *testing.T) {
+	scheme := newScheme()
+	r := &ReconcileVitessBackupsSchedule{
+		client: fake.NewClientBuilder().WithScheme(scheme).WithObjects(vtctldService(), vtctldCluster()).Build(),
+		scheme: scheme,
+	}
+
+	vbsc := vtctldclientVBSC()
+	vbsc.Labels = map[string]string{
+		planetscalev2.BackupMethodLabel: "vtbackup",
+		planetscalev2.ClusterLabel:      "wrong-cluster",
+		"custom":                        "kept",
+	}
+	strategy := vbsc.Spec.Strategy[0]
+	vkr := planetscalev2.VitessKeyRange{}
+
+	job, err := r.createJob(t.Context(), vbsc, strategy, time.Now(), vkr)
+	require.NoError(t, err)
+	require.NotNil(t, job)
+
+	assert.Equal(t, string(planetscalev2.BackupMethodVtctldclient), job.Labels[planetscalev2.BackupMethodLabel])
+	assert.Equal(t, vbsc.Spec.Cluster, job.Labels[planetscalev2.ClusterLabel])
+	assert.Equal(t, vbsc.Name, job.Labels[planetscalev2.BackupScheduleLabel])
+	assert.Equal(t, "kept", job.Labels["custom"])
 }
 
 func TestCleanupJobsWithLimit_SkipsPVCForVtctldclientJobs(t *testing.T) {
@@ -488,7 +565,7 @@ func TestRemoveTimeoutJobs_SkipsPVCForVtctldclientJobs(t *testing.T) {
 
 func TestCreateVtctldclientJobPod_SecurityContext(t *testing.T) {
 	r := &ReconcileVitessBackupsSchedule{
-		client: fake.NewClientBuilder().WithScheme(newScheme()).WithObjects(vtctldService()).Build(),
+		client: fake.NewClientBuilder().WithScheme(newScheme()).WithObjects(vtctldService(), vtctldCluster()).Build(),
 	}
 
 	vbsc := vtctldclientVBSC()
@@ -515,7 +592,7 @@ func TestCreateVtctldclientJobPod_SecurityContext(t *testing.T) {
 
 func TestCreateVtctldclientJobPod_Affinity(t *testing.T) {
 	r := &ReconcileVitessBackupsSchedule{
-		client: fake.NewClientBuilder().WithScheme(newScheme()).WithObjects(vtctldService()).Build(),
+		client: fake.NewClientBuilder().WithScheme(newScheme()).WithObjects(vtctldService(), vtctldCluster()).Build(),
 	}
 
 	vbsc := vtctldclientVBSC()

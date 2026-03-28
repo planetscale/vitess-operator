@@ -635,7 +635,7 @@ func (r *ReconcileVitessBackupsSchedule) createJob(
 	}
 
 	meta := metav1.ObjectMeta{
-		Labels:      labels,
+		Labels:      maps.Clone(labels),
 		Annotations: make(map[string]string),
 		Name:        name,
 		Namespace:   vbsc.Namespace,
@@ -646,6 +646,7 @@ func (r *ReconcileVitessBackupsSchedule) createJob(
 	meta.Annotations[scheduledTimeAnnotation] = scheduledTime.Format(time.RFC3339)
 
 	maps.Copy(meta.Labels, vbsc.Labels)
+	maps.Copy(meta.Labels, labels)
 
 	switch method {
 	case planetscalev2.BackupMethodVtctldclient:
@@ -797,11 +798,56 @@ func shardReadyForScheduledBackup(vts planetscalev2.VitessShard) bool {
 
 const vtctldclientPath = "/vt/bin/vtctldclient"
 
+type vtctldclientJobPodConfig struct {
+	image            string
+	imagePullPolicy  corev1.PullPolicy
+	imagePullSecrets []corev1.LocalObjectReference
+	tolerations      []corev1.Toleration
+}
+
+func (r *ReconcileVitessBackupsSchedule) getVtctldclientJobPodConfig(
+	ctx context.Context,
+	vbsc *planetscalev2.VitessBackupSchedule,
+) (*vtctldclientJobPodConfig, error) {
+	vt := &planetscalev2.VitessCluster{}
+	key := client.ObjectKey{Namespace: vbsc.Namespace, Name: vbsc.Spec.Cluster}
+	if err := r.client.Get(ctx, key, vt); err != nil {
+		return nil, fmt.Errorf("unable to get VitessCluster %q for backup schedule %s/%s: %w", vbsc.Spec.Cluster, vbsc.Namespace, vbsc.Name, err)
+	}
+
+	// The controller applies defaults in-process instead of relying on a mutating webhook.
+	planetscalev2.DefaultVitessCluster(vt)
+
+	config := &vtctldclientJobPodConfig{
+		image:            vbsc.Spec.Image,
+		imagePullPolicy:  vbsc.Spec.ImagePullPolicy,
+		imagePullSecrets: vt.Spec.ImagePullSecrets,
+		tolerations:      vt.Spec.VitessDashboard.Tolerations,
+	}
+
+	if config.image == "" {
+		config.image = vt.Spec.Images.Vtctld
+	}
+	if config.imagePullPolicy == "" {
+		config.imagePullPolicy = vt.Spec.ImagePullPolicies.Vtctld
+	}
+	if config.image == "" {
+		return nil, fmt.Errorf("no vtctld image configured for VitessCluster %q", vt.Name)
+	}
+
+	return config, nil
+}
+
 func (r *ReconcileVitessBackupsSchedule) createVtctldclientJobPod(
 	ctx context.Context,
 	vbsc planetscalev2.VitessBackupSchedule,
 	strategy planetscalev2.VitessBackupScheduleStrategy,
 ) (*corev1.Pod, error) {
+	podConfig, err := r.getVtctldclientJobPodConfig(ctx, &vbsc)
+	if err != nil {
+		return nil, err
+	}
+
 	svcName, svcPort, err := r.getVtctldServiceName(ctx, &vbsc, vbsc.Spec.Cluster)
 	if err != nil {
 		return nil, err
@@ -835,14 +881,17 @@ func (r *ReconcileVitessBackupsSchedule) createVtctldclientJobPod(
 
 	pod := &corev1.Pod{
 		Spec: corev1.PodSpec{
-			RestartPolicy:   corev1.RestartPolicyNever,
-			SecurityContext: podSecurityContext,
-			Affinity:        vbsc.Spec.Affinity,
+			ImagePullSecrets:  podConfig.imagePullSecrets,
+			RestartPolicy:     corev1.RestartPolicyNever,
+			SecurityContext:   podSecurityContext,
+			Affinity:          vbsc.Spec.Affinity,
+			PriorityClassName: planetscalev2.DefaultVitessPriorityClass,
+			Tolerations:       podConfig.tolerations,
 			Containers: []corev1.Container{
 				{
 					Name:            "vtctldclient",
-					Image:           vbsc.Spec.Image,
-					ImagePullPolicy: vbsc.Spec.ImagePullPolicy,
+					Image:           podConfig.image,
+					ImagePullPolicy: podConfig.imagePullPolicy,
 					Command:         []string{vtctldclientPath},
 					Args:            args,
 					Resources:       vbsc.Spec.Resources,
