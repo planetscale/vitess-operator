@@ -2820,7 +2820,8 @@ map[string]string
 </td>
 <td>
 <em>(Optional)</em>
-<p>ExtraFlags is a map of flags that will be sent down to vtctldclient when taking the backup.</p>
+<p>ExtraFlags is a map of additional flags passed to vtctldclient&rsquo;s BackupShard command.
+This field is only used when backupMethod is &ldquo;vtctldclient&rdquo;; it is ignored for &ldquo;vtbackup&rdquo;.</p>
 </td>
 </tr>
 </tbody>
