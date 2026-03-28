@@ -243,7 +243,8 @@ type VitessBackupScheduleStrategy struct {
 	// +kubebuilder:example="-"
 	Shard string `json:"shard,omitempty"`
 
-	// ExtraFlags is a map of flags that will be sent down to vtctldclient when taking the backup.
+	// ExtraFlags is a map of additional flags passed to vtctldclient's BackupShard command.
+	// This field is only used when backupMethod is "vtctldclient"; it is ignored for "vtbackup".
 	// +optional
 	ExtraFlags map[string]string `json:"extraFlags,omitempty"`
 }
