@@ -650,7 +650,7 @@ func (r *ReconcileVitessBackupsSchedule) createJob(
 
 	switch method {
 	case planetscalev2.BackupMethodVtctldclient:
-		return r.createVtctldclientJob(ctx, vbsc, strategy, name, meta)
+		return r.createVtctldclientJob(ctx, vbsc, strategy, meta)
 	default:
 		return r.createVtbackupJob(ctx, vbsc, strategy, name, meta, vkr, labels)
 	}
@@ -712,7 +712,6 @@ func (r *ReconcileVitessBackupsSchedule) createVtctldclientJob(
 	ctx context.Context,
 	vbsc planetscalev2.VitessBackupSchedule,
 	strategy planetscalev2.VitessBackupScheduleStrategy,
-	name string,
 	meta metav1.ObjectMeta,
 ) (*kbatch.Job, error) {
 	pod, err := r.createVtctldclientJobPod(ctx, vbsc, strategy)
