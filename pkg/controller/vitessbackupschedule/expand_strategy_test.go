@@ -1060,7 +1060,7 @@ func TestCreateJobPodWaitsForShardBootstrap(t *testing.T) {
 	}
 	vbsc := planetscalev2.VitessBackupSchedule{ObjectMeta: metav1.ObjectMeta{Namespace: "default"}, Spec: planetscalev2.VitessBackupScheduleSpec{Cluster: "example"}}
 	strategy := planetscalev2.VitessBackupScheduleStrategy{Name: "commerce-x", Keyspace: "commerce", Shard: "-"}
-	_, _, err := r.createJobPod(t.Context(), vbsc, strategy, "test-job", planetscalev2.VitessKeyRange{}, map[string]string{})
+	_, _, err := r.createVtbackupJobPod(t.Context(), vbsc, strategy, "test-job", planetscalev2.VitessKeyRange{}, map[string]string{})
 	require.ErrorIs(t, err, errWaitingForShardBootstrap)
 }
 
@@ -1107,7 +1107,7 @@ func TestCreateJobPodAllowsReadyShardWithoutCompletedBackupCRs(t *testing.T) {
 	}
 	vbsc := planetscalev2.VitessBackupSchedule{ObjectMeta: metav1.ObjectMeta{Namespace: "default"}, Spec: planetscalev2.VitessBackupScheduleSpec{Cluster: "example"}}
 	strategy := planetscalev2.VitessBackupScheduleStrategy{Name: "commerce-x", Keyspace: "commerce", Shard: "-"}
-	pod, spec, err := r.createJobPod(t.Context(), vbsc, strategy, "test-job", planetscalev2.VitessKeyRange{}, map[string]string{})
+	pod, spec, err := r.createVtbackupJobPod(t.Context(), vbsc, strategy, "test-job", planetscalev2.VitessKeyRange{}, map[string]string{})
 	require.NoError(t, err)
 	require.NotNil(t, pod)
 	require.NotNil(t, spec)

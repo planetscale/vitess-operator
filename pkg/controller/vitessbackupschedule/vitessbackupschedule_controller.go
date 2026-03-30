@@ -665,7 +665,7 @@ func (r *ReconcileVitessBackupsSchedule) createVtbackupJob(
 	vkr planetscalev2.VitessKeyRange,
 	labels map[string]string,
 ) (*kbatch.Job, error) {
-	pod, vtbackupSpec, err := r.createJobPod(ctx, vbsc, strategy, name, vkr, labels)
+	pod, vtbackupSpec, err := r.createVtbackupJobPod(ctx, vbsc, strategy, name, vkr, labels)
 	if err != nil {
 		return nil, err
 	}
@@ -736,7 +736,7 @@ func (r *ReconcileVitessBackupsSchedule) createVtctldclientJob(
 	return job, nil
 }
 
-func (r *ReconcileVitessBackupsSchedule) createJobPod(
+func (r *ReconcileVitessBackupsSchedule) createVtbackupJobPod(
 	ctx context.Context,
 	vbsc planetscalev2.VitessBackupSchedule,
 	strategy planetscalev2.VitessBackupScheduleStrategy,
@@ -794,8 +794,6 @@ func shardReadyForScheduledBackup(vts planetscalev2.VitessShard) bool {
 	}
 	return true
 }
-
-const vtctldclientPath = "/vt/bin/vtctldclient"
 
 type vtctldclientJobPodConfig struct {
 	image            string
