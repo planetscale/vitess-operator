@@ -43,6 +43,46 @@ func readyShardStatus() planetscalev2.VitessShardStatus {
 	}
 }
 
+func readyShardWithTabletPoolTolerations(tolerations []corev1.Toleration) *planetscalev2.VitessShard {
+	initBackup := true
+	return &planetscalev2.VitessShard{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "example-commerce-x-x",
+			Namespace: "default",
+			Labels: map[string]string{
+				planetscalev2.ClusterLabel:  "example",
+				planetscalev2.KeyspaceLabel: "commerce",
+			},
+		},
+		Spec: planetscalev2.VitessShardSpec{
+			VitessShardTemplate: planetscalev2.VitessShardTemplate{
+				TabletPools: []planetscalev2.VitessShardTabletPool{{
+					Cell:        "zone1",
+					Type:        planetscalev2.ReplicaPoolType,
+					Replicas:    1,
+					Vttablet:    planetscalev2.VttabletSpec{},
+					Mysqld:      &planetscalev2.MysqldSpec{},
+					Tolerations: tolerations,
+				}},
+				Replication: planetscalev2.VitessReplicationSpec{
+					InitializeBackup: &initBackup,
+				},
+			},
+			Images: planetscalev2.VitessKeyspaceImages{
+				Vtbackup: "vitess/lite:mysql80",
+				Vttablet: "vitess/lite:mysql80",
+				Vtorc:    "vitess/lite:mysql80",
+				Mysqld: &planetscalev2.MysqldImage{
+					Mysql80Compatible: "vitess/lite:mysql80",
+				},
+			},
+			KeyRange:        planetscalev2.VitessKeyRange{},
+			BackupLocations: []planetscalev2.VitessBackupLocation{{Name: ""}},
+		},
+		Status: readyShardStatus(),
+	}
+}
+
 func mustBuildExpansionContext(t *testing.T, r *ReconcileVitessBackupsSchedule, vbsc planetscalev2.VitessBackupSchedule) strategyExpansionContext {
 	t.Helper()
 	ctx, err := r.buildStrategyExpansionContext(t.Context(), vbsc)
@@ -1112,4 +1152,89 @@ func TestCreateJobPodAllowsReadyShardWithoutCompletedBackupCRs(t *testing.T) {
 	require.NotNil(t, pod)
 	require.NotNil(t, spec)
 	require.False(t, spec.InitialBackup)
+}
+
+func TestCreateVtbackupJobPod_InheritsTabletPoolTolerations(t *testing.T) {
+	inherited := []corev1.Toleration{
+		{
+			Key:      "pool",
+			Operator: corev1.TolerationOpExists,
+		},
+	}
+	vts := readyShardWithTabletPoolTolerations(inherited)
+
+	r := &ReconcileVitessBackupsSchedule{
+		client: fake.NewClientBuilder().WithScheme(newScheme()).WithObjects(vts).Build(),
+	}
+	vbsc := planetscalev2.VitessBackupSchedule{
+		ObjectMeta: metav1.ObjectMeta{Namespace: "default"},
+		Spec:       planetscalev2.VitessBackupScheduleSpec{Cluster: "example"},
+	}
+	strategy := planetscalev2.VitessBackupScheduleStrategy{Name: "commerce-x", Keyspace: "commerce", Shard: "-"}
+
+	pod, _, err := r.createVtbackupJobPod(t.Context(), vbsc, strategy, "test-job", planetscalev2.VitessKeyRange{}, map[string]string{})
+	require.NoError(t, err)
+	require.Equal(t, inherited, pod.Spec.Tolerations)
+}
+
+func TestCreateVtbackupJobPod_TolerationsOverride(t *testing.T) {
+	inherited := []corev1.Toleration{
+		{
+			Key:      "pool",
+			Operator: corev1.TolerationOpExists,
+		},
+	}
+	override := []corev1.Toleration{
+		{
+			Key:      "backup",
+			Operator: corev1.TolerationOpExists,
+			Effect:   corev1.TaintEffectNoSchedule,
+		},
+	}
+	vts := readyShardWithTabletPoolTolerations(inherited)
+
+	r := &ReconcileVitessBackupsSchedule{
+		client: fake.NewClientBuilder().WithScheme(newScheme()).WithObjects(vts).Build(),
+	}
+	vbsc := planetscalev2.VitessBackupSchedule{
+		ObjectMeta: metav1.ObjectMeta{Namespace: "default"},
+		Spec: planetscalev2.VitessBackupScheduleSpec{
+			Cluster: "example",
+		},
+	}
+	vbsc.Spec.Tolerations = &override
+	strategy := planetscalev2.VitessBackupScheduleStrategy{Name: "commerce-x", Keyspace: "commerce", Shard: "-"}
+
+	pod, _, err := r.createVtbackupJobPod(t.Context(), vbsc, strategy, "test-job", planetscalev2.VitessKeyRange{}, map[string]string{})
+	require.NoError(t, err)
+	require.Equal(t, override, pod.Spec.Tolerations)
+}
+
+func TestCreateVtbackupJobPod_EmptyTolerationsOverrideClearsDefaults(t *testing.T) {
+	inherited := []corev1.Toleration{
+		{
+			Key:      "pool",
+			Operator: corev1.TolerationOpExists,
+		},
+	}
+	override := []corev1.Toleration{}
+	vts := readyShardWithTabletPoolTolerations(inherited)
+
+	r := &ReconcileVitessBackupsSchedule{
+		client: fake.NewClientBuilder().WithScheme(newScheme()).WithObjects(vts).Build(),
+	}
+	vbsc := planetscalev2.VitessBackupSchedule{
+		ObjectMeta: metav1.ObjectMeta{Namespace: "default"},
+		Spec: planetscalev2.VitessBackupScheduleSpec{
+			Cluster: "example",
+			VitessBackupScheduleTemplate: planetscalev2.VitessBackupScheduleTemplate{
+				Tolerations: &override,
+			},
+		},
+	}
+	strategy := planetscalev2.VitessBackupScheduleStrategy{Name: "commerce-x", Keyspace: "commerce", Shard: "-"}
+
+	pod, _, err := r.createVtbackupJobPod(t.Context(), vbsc, strategy, "test-job", planetscalev2.VitessKeyRange{}, map[string]string{})
+	require.NoError(t, err)
+	require.Empty(t, pod.Spec.Tolerations)
 }

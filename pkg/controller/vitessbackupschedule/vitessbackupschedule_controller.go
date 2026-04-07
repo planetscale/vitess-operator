@@ -777,6 +777,7 @@ func (r *ReconcileVitessBackupsSchedule) createVtbackupJobPod(
 	p.Spec.RestartPolicy = corev1.RestartPolicyNever
 
 	p.Spec.Affinity = vbsc.Spec.Affinity
+	p.Spec.Tolerations = resolveBackupJobTolerations(vbsc.Spec.Tolerations, p.Spec.Tolerations)
 	return p, vtbackupSpec, nil
 }
 
@@ -800,6 +801,13 @@ type vtctldclientJobPodConfig struct {
 	imagePullPolicy  corev1.PullPolicy
 	imagePullSecrets []corev1.LocalObjectReference
 	tolerations      []corev1.Toleration
+}
+
+func resolveBackupJobTolerations(override *[]corev1.Toleration, defaults []corev1.Toleration) []corev1.Toleration {
+	if override != nil {
+		return append([]corev1.Toleration(nil), (*override)...)
+	}
+	return append([]corev1.Toleration(nil), defaults...)
 }
 
 func (r *ReconcileVitessBackupsSchedule) getVtctldclientJobPodConfig(
@@ -883,7 +891,7 @@ func (r *ReconcileVitessBackupsSchedule) createVtctldclientJobPod(
 			SecurityContext:   podSecurityContext,
 			Affinity:          vbsc.Spec.Affinity,
 			PriorityClassName: planetscalev2.DefaultVitessPriorityClass,
-			Tolerations:       podConfig.tolerations,
+			Tolerations:       resolveBackupJobTolerations(vbsc.Spec.Tolerations, podConfig.tolerations),
 			Containers: []corev1.Container{
 				{
 					Name:            "vtctldclient",

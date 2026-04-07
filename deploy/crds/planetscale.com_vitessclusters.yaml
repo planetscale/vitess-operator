@@ -269,6 +269,8 @@ spec:
                           type: integer
                         suspend:
                           type: boolean
+                        tolerations:
+                          x-kubernetes-preserve-unknown-fields: true
                       required:
                       - name
                       - resources

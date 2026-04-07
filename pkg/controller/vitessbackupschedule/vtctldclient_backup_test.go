@@ -172,6 +172,40 @@ func TestCreateVtctldclientJobPod_InheritsClusterDefaults(t *testing.T) {
 	assert.Equal(t, planetscalev2.DefaultVitessPriorityClass, pod.Spec.PriorityClassName)
 }
 
+func TestCreateVtctldclientJobPod_TolerationsOverride(t *testing.T) {
+	r := &ReconcileVitessBackupsSchedule{
+		client: fake.NewClientBuilder().WithScheme(newScheme()).WithObjects(vtctldService(), vtctldCluster()).Build(),
+	}
+
+	vbsc := vtctldclientVBSC()
+	override := []corev1.Toleration{
+		{
+			Key:      "backup",
+			Operator: corev1.TolerationOpExists,
+			Effect:   corev1.TaintEffectNoSchedule,
+		},
+	}
+	vbsc.Spec.Tolerations = &override
+
+	pod, err := r.createVtctldclientJobPod(t.Context(), vbsc, vbsc.Spec.Strategy[0])
+	require.NoError(t, err)
+	assert.Equal(t, override, pod.Spec.Tolerations)
+}
+
+func TestCreateVtctldclientJobPod_EmptyTolerationsOverrideClearsDefaults(t *testing.T) {
+	r := &ReconcileVitessBackupsSchedule{
+		client: fake.NewClientBuilder().WithScheme(newScheme()).WithObjects(vtctldService(), vtctldCluster()).Build(),
+	}
+
+	vbsc := vtctldclientVBSC()
+	override := []corev1.Toleration{}
+	vbsc.Spec.Tolerations = &override
+
+	pod, err := r.createVtctldclientJobPod(t.Context(), vbsc, vbsc.Spec.Strategy[0])
+	require.NoError(t, err)
+	assert.Empty(t, pod.Spec.Tolerations)
+}
+
 func TestCreateVtctldclientJobPod_CorrectArgs(t *testing.T) {
 	r := &ReconcileVitessBackupsSchedule{
 		client: fake.NewClientBuilder().WithScheme(newScheme()).WithObjects(vtctldService(), vtctldCluster()).Build(),

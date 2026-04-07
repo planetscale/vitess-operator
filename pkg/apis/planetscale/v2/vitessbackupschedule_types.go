@@ -217,6 +217,14 @@ type VitessBackupScheduleTemplate struct {
 	// +kubebuilder:validation:Schemaless
 	// +kubebuilder:pruning:PreserveUnknownFields
 	Affinity *corev1.Affinity `json:"affinity,omitempty"`
+
+	// Tolerations allow you to schedule backup pods onto nodes with matching taints.
+	// If omitted, the controller uses the default tolerations for the selected backup method.
+	// To explicitly clear inherited tolerations, set this field to an empty list.
+	// +optional
+	// +kubebuilder:validation:Schemaless
+	// +kubebuilder:pruning:PreserveUnknownFields
+	Tolerations *[]corev1.Toleration `json:"tolerations,omitempty"`
 }
 
 // VitessBackupScheduleStrategy defines how we are going to take a backup.

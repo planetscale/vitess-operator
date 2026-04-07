@@ -3067,6 +3067,20 @@ WARNING: These affinity rules will override all default affinities that we set; 
 guarantee optimal scheduling of your pods if you choose to set this field.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>tolerations</code><br>
+<em>
+[]k8s.io/api/core/v1.Toleration
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Tolerations allow you to schedule backup pods onto nodes with matching taints.
+If omitted, the controller uses the default tolerations for the selected backup method.
+To explicitly clear inherited tolerations, set this field to an empty list.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="planetscale.com/v2.VitessBackupSpec">VitessBackupSpec
