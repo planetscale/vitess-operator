@@ -121,8 +121,10 @@ function takeBackup() {
 
 # restoreBackup:
 # $1: tablet alias for which the backup needs to be restored
+# $2: optional backup timestamp to restore from
 function restoreBackup() {
   tabletAlias=$1
+  backupTimestamp=$2
   if [[ -z "${tabletAlias}" ]]; then
     echo "Tablet alias not provided as restore target"
     exit 1
@@ -134,21 +136,32 @@ function restoreBackup() {
   echo "Listing backups"
   vtctldclient GetBackups "$keyspaceShard"
   echo "End listing backups"
-  echo "Restoring tablet ${tabletAlias} to position ${INCREMENTAL_RESTORE_POS}"
-  if ! vtctldclient RestoreFromBackup --restore-to-pos "${INCREMENTAL_RESTORE_POS}" "${tabletAlias}"; then
-    echo "ERROR: failed to perform incremental restore"
+  restoreArgs=()
+  if [[ -n "${backupTimestamp}" ]]; then
+    restoreArgs+=(--backup-timestamp "${backupTimestamp}")
+  fi
+  if [[ -n "${INCREMENTAL_RESTORE_POS}" ]]; then
+    echo "Restoring tablet ${tabletAlias} to position ${INCREMENTAL_RESTORE_POS}"
+    restoreArgs+=(--restore-to-pos "${INCREMENTAL_RESTORE_POS}")
+  else
+    echo "Restoring tablet ${tabletAlias} from backup ${backupTimestamp:-latest}"
+  fi
+  if ! vtctldclient RestoreFromBackup "${restoreArgs[@]}" "${tabletAlias}"; then
+    echo "ERROR: failed to restore backup"
     exit 1
   fi
 
-  # Verify PITR correctness: the marker row inserted after the restore
-  # position should NOT be present on the restored tablet.
-  # Note: ExecuteFetchAsDba runs directly against MySQL where the database
-  # is named vt_commerce, so we must not use the commerce.* prefix.
-  if vtctldclient ExecuteFetchAsDba "${tabletAlias}" "select sku from product where sku='SKU-PITR-MARKER'" | grep -q "SKU-PITR-MARKER"; then
-    echo "ERROR: PITR marker row found on restored tablet — restore did not stop at the correct position"
-    exit 1
+  if [[ -n "${INCREMENTAL_RESTORE_POS}" ]]; then
+    # Verify PITR correctness: the marker row inserted after the restore
+    # position should NOT be present on the restored tablet.
+    # Note: ExecuteFetchAsDba runs directly against MySQL where the database
+    # is named vt_commerce, so we must not use the commerce.* prefix.
+    if vtctldclient ExecuteFetchAsDba "${tabletAlias}" "select sku from product where sku='SKU-PITR-MARKER'" | grep -q "SKU-PITR-MARKER"; then
+      echo "ERROR: PITR marker row found on restored tablet — restore did not stop at the correct position"
+      exit 1
+    fi
+    echo "PITR verification passed: marker row correctly absent from restored tablet"
   fi
-  echo "PITR verification passed: marker row correctly absent from restored tablet"
 
   # Verify the standard commerce data IS present at the restore position.
   customerCount=$(vtctldclient ExecuteFetchAsDba "${tabletAlias}" "select count(*) as cnt from customer" | grep -oE '[0-9]+' | tail -1)

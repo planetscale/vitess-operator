@@ -3,6 +3,45 @@
 source ./tools/test.env
 source ./test/endtoend/utils.sh
 
+function latestCompleteScheduledVtctldclientBackupName() {
+  kubectl get vtb -n example --sort-by='.status.startTime' --no-headers \
+    -o custom-columns="STORAGE:.status.storageName,COMPLETE:.status.complete" \
+    | awk '$2 == "true" && $1 !~ /vtbackup-/ { name = $1 } END { print name }'
+}
+
+function suspendVtbackupSchedule() {
+  kubectl patch vitessclusters.planetscale.com example -n example --type='json' \
+    -p='[{"op":"add","path":"/spec/backup/schedules/0/suspend","value":true}]'
+
+  for i in {1..120}; do
+    suspended=$(kubectl get vitessbackupschedules.planetscale.com example-vbsc-vtbackup-every-minute -n example -o jsonpath='{.spec.suspend}')
+    if [[ "${suspended}" == "true" ]]; then
+      echo "vtbackup schedule suspended"
+      return 0
+    fi
+    sleep 1
+  done
+
+  echo "ERROR: vtbackup schedule was not suspended"
+  exit 1
+}
+
+function waitForAdditionalScheduledVtctldclientBackup() {
+  baselineBackupName="$1"
+
+  for i in {1..600}; do
+    backupName=$(latestCompleteScheduledVtctldclientBackupName)
+    if [[ -n "${backupName}" && "${backupName}" != "${baselineBackupName}" ]]; then
+      echo "${backupName}"
+      return 0
+    fi
+    sleep 1
+  done
+
+  echo "ERROR: did not observe a new vtctldclient scheduled backup"
+  exit 1
+}
+
 function verifyVtctldclientScheduleJobs() {
   echo -e "Check for VitessBackupSchedule status"
   checkVitessBackupScheduleStatusWithTimeout "example-vbsc-vtbackup-every-minute(.*)"
@@ -15,6 +54,9 @@ function verifyVtctldclientScheduleJobs() {
     backupCount=$(kubectl get vtb -n example --no-headers | wc -l)
     echo "Found ${backupCount} backups"
     if [[ "${backupCount}" -ge 3 ]]; then
+      echo -e "Verify Vitess can list the scheduled backups"
+      verifyListBackupsOutput
+
       echo -e "Check for Jobs' pods"
       checkPodExistWithTimeout "example-vbsc-vtbackup-every-minute-(.*)0/1(.*)Completed(.*)"
       checkPodExistWithTimeout "example-vbsc-vtctldclient-every-minute-(.*)0/1(.*)Completed(.*)"
@@ -59,6 +101,24 @@ function verifyVtctldclientScheduleJobs() {
         exit 1
       fi
       echo "OK: vtctldclient pod ran vtctldclient binary"
+
+      echo -e "Suspend vtbackup schedule and wait for another vtctldclient scheduled backup"
+      baselineBackupName=$(latestCompleteScheduledVtctldclientBackupName)
+      if [[ -z "${baselineBackupName}" ]]; then
+        echo "ERROR: Could not find an existing vtctldclient scheduled backup"
+        exit 1
+      fi
+      suspendVtbackupSchedule
+      scheduledBackupName=$(waitForAdditionalScheduledVtctldclientBackup "${baselineBackupName}")
+      backupTimestamp=$(echo "${scheduledBackupName}" | awk -F'.' '{print $1"."$2}')
+      echo "Restoring from vtctldclient scheduled backup ${scheduledBackupName}"
+
+      tabletAlias=$(vtctldclient GetTablets --keyspace commerce --tablet-type replica --shard '-' | head -1 | awk '{print $1}')
+      if [[ -z "${tabletAlias}" ]]; then
+        echo "ERROR: Could not find a replica tablet to restore"
+        exit 1
+      fi
+      restoreBackup "${tabletAlias}" "${backupTimestamp}"
       return
     fi
     sleep 1
