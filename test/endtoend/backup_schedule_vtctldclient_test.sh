@@ -3,6 +3,8 @@
 source ./tools/test.env
 source ./test/endtoend/utils.sh
 
+keyspaceShard="commerce/-"
+
 function latestCompleteScheduledVtctldclientBackupName() {
   kubectl get vtb -n example --sort-by='.status.startTime' --no-headers \
     -o custom-columns="STORAGE:.status.storageName,COMPLETE:.status.complete" \
