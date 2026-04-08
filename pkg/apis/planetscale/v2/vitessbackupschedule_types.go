@@ -36,6 +36,22 @@ const (
 	BackupScopeCluster BackupScope = "Cluster"
 )
 
+// BackupMethod defines the method used to take scheduled backups.
+// +kubebuilder:validation:Enum=vtbackup;vtctldclient
+type BackupMethod string
+
+const (
+	// BackupMethodVtbackup uses vtbackup to take backups. A Kubernetes Job runs
+	// a vtbackup pod (with a PVC) that starts mysqld locally, restores the latest
+	// backup, catches up on replication, and then uploads a new backup.
+	BackupMethodVtbackup BackupMethod = "vtbackup"
+
+	// BackupMethodVtctldclient uses vtctldclient to take backups. A lightweight
+	// Kubernetes Job sends a BackupShard command to vtctld, which tells a running
+	// serving replica to take the backup. No PVC is needed.
+	BackupMethodVtctldclient BackupMethod = "vtctldclient"
+)
+
 // ConcurrencyPolicy describes how the concurrency of new jobs created by VitessBackupSchedule
 // is handled, the default is set to AllowConcurrent.
 // +kubebuilder:validation:Enum=Allow;Forbid
@@ -77,12 +93,14 @@ type VitessBackupScheduleSpec struct {
 	// Cluster on which this schedule runs.
 	Cluster string `json:"cluster"`
 
-	// Image should be any image that already contains vtctldclient installed.
-	// The controller will re-use the vtctld image by default.
+	// Image is the container image used by vtctldclient backup jobs.
+	// The controller re-uses the vtctld image by default.
+	// This field is only used when backupMethod is set to "vtctldclient".
 	Image string `json:"image,omitempty"`
 
 	// ImagePullPolicy defines the policy to pull the Docker image in the job's pod.
 	// The PullPolicy used will be the same as the one used to pull the vtctld image.
+	// This field is only used when backupMethod is set to "vtctldclient".
 	ImagePullPolicy corev1.PullPolicy `json:"imagePullPolicy,omitempty"`
 }
 
@@ -111,6 +129,15 @@ type VitessBackupScheduleTemplate struct {
 	// Mutually exclusive with Schedule.
 	// +optional
 	Frequency string `json:"frequency,omitempty"`
+
+	// BackupMethod defines the method used to take scheduled backups.
+	// "vtbackup" (default) runs a dedicated vtbackup pod with a local mysqld that
+	// restores from the latest backup, catches up on replication, and takes a new backup.
+	// "vtctldclient" sends a BackupShard command to vtctld, which tells a running serving
+	// replica to take the backup directly. No PVC is needed for vtctldclient.
+	// +optional
+	// +kubebuilder:default="vtbackup"
+	BackupMethod BackupMethod `json:"backupMethod,omitempty"`
 
 	// Strategy defines how we are going to take a backup.
 	// If you want to take several backups within the same schedule you can add more items
@@ -190,11 +217,19 @@ type VitessBackupScheduleTemplate struct {
 	// +kubebuilder:validation:Schemaless
 	// +kubebuilder:pruning:PreserveUnknownFields
 	Affinity *corev1.Affinity `json:"affinity,omitempty"`
+
+	// Tolerations allow you to schedule backup pods onto nodes with matching taints.
+	// If omitted, the controller uses the default tolerations for the selected backup method.
+	// To explicitly clear inherited tolerations, set this field to an empty list.
+	// +optional
+	// +kubebuilder:validation:Schemaless
+	// +kubebuilder:pruning:PreserveUnknownFields
+	Tolerations *[]corev1.Toleration `json:"tolerations,omitempty"`
 }
 
 // VitessBackupScheduleStrategy defines how we are going to take a backup.
-// The VitessBackupSchedule controller uses this data to build the vtctldclient
-// command line that will be executed in the Job's pod.
+// The VitessBackupSchedule controller uses this data to build either a vtbackup
+// pod or a vtctldclient command, depending on the configured BackupMethod.
 type VitessBackupScheduleStrategy struct {
 	// Name of the backup strategy.
 	Name string `json:"name"`
@@ -216,7 +251,8 @@ type VitessBackupScheduleStrategy struct {
 	// +kubebuilder:example="-"
 	Shard string `json:"shard,omitempty"`
 
-	// ExtraFlags is a map of flags that will be sent down to vtctldclient when taking the backup.
+	// ExtraFlags is a map of additional flags passed to vtctldclient's BackupShard command.
+	// This field is only used when backupMethod is "vtctldclient"; it is ignored for "vtbackup".
 	// +optional
 	ExtraFlags map[string]string `json:"extraFlags,omitempty"`
 }

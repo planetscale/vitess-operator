@@ -37,6 +37,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	apilabels "k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/tools/record"
+	"k8s.io/utils/ptr"
 	"planetscale.dev/vitess-operator/pkg/controller/vitessshard"
 	"planetscale.dev/vitess-operator/pkg/operator/metrics"
 	"planetscale.dev/vitess-operator/pkg/operator/names"
@@ -525,6 +526,11 @@ func (r *ReconcileVitessBackupsSchedule) cleanupJobsWithLimit(ctx context.Contex
 			log.Infof("deleted old job: %s", job.Name)
 		}
 
+		// vtctldclient jobs don't have PVCs, so skip PVC cleanup for them.
+		if job.Labels[planetscalev2.BackupMethodLabel] == string(planetscalev2.BackupMethodVtctldclient) {
+			continue
+		}
+
 		// delete the vtbackup pod's PVC
 		pvc := &corev1.PersistentVolumeClaim{}
 		err := r.client.Get(ctx, client.ObjectKey{Namespace: job.Namespace, Name: job.Name}, pvc)
@@ -558,6 +564,11 @@ func (r *ReconcileVitessBackupsSchedule) removeTimeoutJobs(ctx context.Context, 
 				log.Infof("deleted timed out job: %s", job.Name)
 			}
 			timeoutJobsCount.WithLabelValues(vbscName, metrics.Result(err)).Inc()
+
+			// vtctldclient jobs don't have PVCs, so skip PVC cleanup for them.
+			if job.Labels[planetscalev2.BackupMethodLabel] == string(planetscalev2.BackupMethodVtctldclient) {
+				continue
+			}
 
 			pvc := &corev1.PersistentVolumeClaim{}
 			err := r.client.Get(ctx, client.ObjectKey{Namespace: job.Namespace, Name: job.Name}, pvc)
@@ -608,6 +619,11 @@ func (r *ReconcileVitessBackupsSchedule) createJob(
 	scheduledTime time.Time,
 	vkr planetscalev2.VitessKeyRange,
 ) (*kbatch.Job, error) {
+	method := vbsc.Spec.BackupMethod
+	if method == "" {
+		method = planetscalev2.BackupMethodVtbackup
+	}
+
 	name := names.JoinWithConstraints(names.ServiceConstraints, vbsc.Name, strategy.Keyspace, vkr.SafeName(), strconv.Itoa(int(scheduledTime.Unix())))
 
 	labels := map[string]string{
@@ -615,10 +631,11 @@ func (r *ReconcileVitessBackupsSchedule) createJob(
 		planetscalev2.ClusterLabel:        vbsc.Spec.Cluster,
 		planetscalev2.KeyspaceLabel:       strategy.Keyspace,
 		planetscalev2.ShardLabel:          vkr.SafeName(),
+		planetscalev2.BackupMethodLabel:   string(method),
 	}
 
 	meta := metav1.ObjectMeta{
-		Labels:      labels,
+		Labels:      maps.Clone(labels),
 		Annotations: make(map[string]string),
 		Name:        name,
 		Namespace:   vbsc.Namespace,
@@ -629,8 +646,26 @@ func (r *ReconcileVitessBackupsSchedule) createJob(
 	meta.Annotations[scheduledTimeAnnotation] = scheduledTime.Format(time.RFC3339)
 
 	maps.Copy(meta.Labels, vbsc.Labels)
+	maps.Copy(meta.Labels, labels)
 
-	pod, vtbackupSpec, err := r.createJobPod(ctx, vbsc, strategy, name, vkr, labels)
+	switch method {
+	case planetscalev2.BackupMethodVtctldclient:
+		return r.createVtctldclientJob(ctx, vbsc, strategy, meta)
+	default:
+		return r.createVtbackupJob(ctx, vbsc, strategy, name, meta, vkr, labels)
+	}
+}
+
+func (r *ReconcileVitessBackupsSchedule) createVtbackupJob(
+	ctx context.Context,
+	vbsc planetscalev2.VitessBackupSchedule,
+	strategy planetscalev2.VitessBackupScheduleStrategy,
+	name string,
+	meta metav1.ObjectMeta,
+	vkr planetscalev2.VitessKeyRange,
+	labels map[string]string,
+) (*kbatch.Job, error) {
+	pod, vtbackupSpec, err := r.createVtbackupJobPod(ctx, vbsc, strategy, name, vkr, labels)
 	if err != nil {
 		return nil, err
 	}
@@ -673,7 +708,35 @@ func (r *ReconcileVitessBackupsSchedule) createJob(
 	return job, nil
 }
 
-func (r *ReconcileVitessBackupsSchedule) createJobPod(
+func (r *ReconcileVitessBackupsSchedule) createVtctldclientJob(
+	ctx context.Context,
+	vbsc planetscalev2.VitessBackupSchedule,
+	strategy planetscalev2.VitessBackupScheduleStrategy,
+	meta metav1.ObjectMeta,
+) (*kbatch.Job, error) {
+	pod, err := r.createVtctldclientJobPod(ctx, vbsc, strategy)
+	if err != nil {
+		return nil, err
+	}
+	job := &kbatch.Job{
+		ObjectMeta: meta,
+		Spec: kbatch.JobSpec{
+			Template: corev1.PodTemplateSpec{
+				ObjectMeta: meta,
+				Spec:       pod.Spec,
+			},
+		},
+	}
+
+	if err := ctrl.SetControllerReference(&vbsc, job, r.scheme); err != nil {
+		return nil, err
+	}
+
+	// vtctldclient jobs do not need a PVC since the backup runs on a serving replica.
+	return job, nil
+}
+
+func (r *ReconcileVitessBackupsSchedule) createVtbackupJobPod(
 	ctx context.Context,
 	vbsc planetscalev2.VitessBackupSchedule,
 	strategy planetscalev2.VitessBackupScheduleStrategy,
@@ -714,6 +777,7 @@ func (r *ReconcileVitessBackupsSchedule) createJobPod(
 	p.Spec.RestartPolicy = corev1.RestartPolicyNever
 
 	p.Spec.Affinity = vbsc.Spec.Affinity
+	p.Spec.Tolerations = resolveBackupJobTolerations(vbsc.Spec.Tolerations, p.Spec.Tolerations)
 	return p, vtbackupSpec, nil
 }
 
@@ -730,6 +794,123 @@ func shardReadyForScheduledBackup(vts planetscalev2.VitessShard) bool {
 		}
 	}
 	return true
+}
+
+type vtctldclientJobPodConfig struct {
+	image            string
+	imagePullPolicy  corev1.PullPolicy
+	imagePullSecrets []corev1.LocalObjectReference
+	tolerations      []corev1.Toleration
+}
+
+func resolveBackupJobTolerations(override *[]corev1.Toleration, defaults []corev1.Toleration) []corev1.Toleration {
+	if override != nil {
+		return append([]corev1.Toleration(nil), (*override)...)
+	}
+	return append([]corev1.Toleration(nil), defaults...)
+}
+
+func (r *ReconcileVitessBackupsSchedule) getVtctldclientJobPodConfig(
+	ctx context.Context,
+	vbsc *planetscalev2.VitessBackupSchedule,
+) (*vtctldclientJobPodConfig, error) {
+	vt := &planetscalev2.VitessCluster{}
+	key := client.ObjectKey{Namespace: vbsc.Namespace, Name: vbsc.Spec.Cluster}
+	if err := r.client.Get(ctx, key, vt); err != nil {
+		return nil, fmt.Errorf("unable to get VitessCluster %q for backup schedule %s/%s: %w", vbsc.Spec.Cluster, vbsc.Namespace, vbsc.Name, err)
+	}
+
+	// The controller applies defaults in-process instead of relying on a mutating webhook.
+	planetscalev2.DefaultVitessCluster(vt)
+
+	config := &vtctldclientJobPodConfig{
+		image:            vbsc.Spec.Image,
+		imagePullPolicy:  vbsc.Spec.ImagePullPolicy,
+		imagePullSecrets: vt.Spec.ImagePullSecrets,
+		tolerations:      vt.Spec.VitessDashboard.Tolerations,
+	}
+
+	if config.image == "" {
+		config.image = vt.Spec.Images.Vtctld
+	}
+	if config.imagePullPolicy == "" {
+		config.imagePullPolicy = vt.Spec.ImagePullPolicies.Vtctld
+	}
+	if config.image == "" {
+		return nil, fmt.Errorf("no vtctld image configured for VitessCluster %q", vt.Name)
+	}
+
+	return config, nil
+}
+
+func (r *ReconcileVitessBackupsSchedule) createVtctldclientJobPod(
+	ctx context.Context,
+	vbsc planetscalev2.VitessBackupSchedule,
+	strategy planetscalev2.VitessBackupScheduleStrategy,
+) (*corev1.Pod, error) {
+	podConfig, err := r.getVtctldclientJobPodConfig(ctx, &vbsc)
+	if err != nil {
+		return nil, err
+	}
+
+	svcName, svcPort, err := r.getVtctldServiceName(ctx, &vbsc, vbsc.Spec.Cluster)
+	if err != nil {
+		return nil, err
+	}
+
+	args := []string{
+		fmt.Sprintf("--server=%s:%d", svcName, svcPort),
+		"BackupShard",
+	}
+
+	// Sort extra flag keys for deterministic ordering.
+	extraFlagKeys := make([]string, 0, len(strategy.ExtraFlags))
+	for k := range strategy.ExtraFlags {
+		extraFlagKeys = append(extraFlagKeys, k)
+	}
+	sort.Strings(extraFlagKeys)
+	for _, k := range extraFlagKeys {
+		args = append(args, fmt.Sprintf("--%s=%s", k, strategy.ExtraFlags[k]))
+	}
+
+	args = append(args, fmt.Sprintf("%s/%s", strategy.Keyspace, strategy.Shard))
+
+	podSecurityContext := &corev1.PodSecurityContext{}
+	if planetscalev2.DefaultVitessFSGroup >= 0 {
+		podSecurityContext.FSGroup = ptr.To(planetscalev2.DefaultVitessFSGroup)
+	}
+	securityContext := &corev1.SecurityContext{}
+	if planetscalev2.DefaultVitessRunAsUser >= 0 {
+		securityContext.RunAsUser = ptr.To(planetscalev2.DefaultVitessRunAsUser)
+	}
+
+	pod := &corev1.Pod{
+		Spec: corev1.PodSpec{
+			ImagePullSecrets:  podConfig.imagePullSecrets,
+			RestartPolicy:     corev1.RestartPolicyNever,
+			SecurityContext:   podSecurityContext,
+			Affinity:          vbsc.Spec.Affinity,
+			PriorityClassName: planetscalev2.DefaultVitessPriorityClass,
+			Tolerations:       resolveBackupJobTolerations(vbsc.Spec.Tolerations, podConfig.tolerations),
+			Containers: []corev1.Container{
+				{
+					Name:            "vtctldclient",
+					Image:           podConfig.image,
+					ImagePullPolicy: podConfig.imagePullPolicy,
+					Command:         []string{vtctldclientPath},
+					Args:            args,
+					Resources:       vbsc.Spec.Resources,
+					SecurityContext: securityContext,
+				},
+			},
+		},
+	}
+
+	if planetscalev2.DefaultVitessServiceAccount != "" {
+		pod.Spec.ServiceAccountName = planetscalev2.DefaultVitessServiceAccount
+	}
+
+	return pod, nil
 }
 
 func (r *ReconcileVitessBackupsSchedule) getVtctldServiceName(ctx context.Context, vbsc *planetscalev2.VitessBackupSchedule, cluster string) (svcName string, svcPort int32, err error) {

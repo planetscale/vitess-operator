@@ -167,6 +167,12 @@ spec:
                           additionalProperties:
                             type: string
                           type: object
+                        backupMethod:
+                          default: vtbackup
+                          enum:
+                          - vtbackup
+                          - vtctldclient
+                          type: string
                         concurrencyPolicy:
                           default: Forbid
                           enum:
@@ -263,6 +269,8 @@ spec:
                           type: integer
                         suspend:
                           type: boolean
+                        tolerations:
+                          x-kubernetes-preserve-unknown-fields: true
                       required:
                       - name
                       - resources

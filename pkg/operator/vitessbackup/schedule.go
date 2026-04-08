@@ -44,8 +44,8 @@ func NewVitessBackupSchedule(key client.ObjectKey, vt *planetscalev2.VitessClust
 
 			Cluster: vt.Name,
 
-			// To take backups we only care about having the vtctldclient installed in the container.
-			// For this reason, we re-use the vtctld Docker image and the same image pull policy.
+			// For vtctldclient backups, we need the vtctld image which contains the vtctldclient binary.
+			// We re-use the vtctld Docker image and the same image pull policy.
 			Image:           vt.Spec.Images.Vtctld,
 			ImagePullPolicy: vt.Spec.ImagePullPolicies.Vtctld,
 		},

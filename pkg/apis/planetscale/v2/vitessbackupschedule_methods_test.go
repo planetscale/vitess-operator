@@ -17,10 +17,12 @@ limitations under the License.
 package v2
 
 import (
+	"encoding/json"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
+	corev1 "k8s.io/api/core/v1"
 )
 
 func TestValidateBackupFrequency(t *testing.T) {
@@ -71,4 +73,23 @@ func TestNewVitessBackupScheduleStatusInitializesMaps(t *testing.T) {
 	require.NotNil(t, status.LastScheduledTimes, "LastScheduledTimes not initialized")
 	require.NotNil(t, status.GeneratedSchedules, "GeneratedSchedules not initialized")
 	require.NotNil(t, status.NextScheduledTimes, "NextScheduledTimes not initialized")
+}
+
+func TestVitessBackupScheduleTemplateTolerationsJSONSemantics(t *testing.T) {
+	var omitted VitessBackupScheduleTemplate
+	require.NoError(t, json.Unmarshal([]byte(`{}`), &omitted))
+	require.Nil(t, omitted.Tolerations)
+
+	var explicitEmpty VitessBackupScheduleTemplate
+	require.NoError(t, json.Unmarshal([]byte(`{"tolerations":[]}`), &explicitEmpty))
+	require.NotNil(t, explicitEmpty.Tolerations)
+	require.Empty(t, *explicitEmpty.Tolerations)
+
+	var explicitValues VitessBackupScheduleTemplate
+	require.NoError(t, json.Unmarshal([]byte(`{"tolerations":[{"key":"backup","operator":"Exists"}]}`), &explicitValues))
+	require.NotNil(t, explicitValues.Tolerations)
+	require.Equal(t, []corev1.Toleration{{
+		Key:      "backup",
+		Operator: corev1.TolerationOpExists,
+	}}, *explicitValues.Tolerations)
 }

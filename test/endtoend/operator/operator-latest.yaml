@@ -413,6 +413,12 @@ spec:
                 additionalProperties:
                   type: string
                 type: object
+              backupMethod:
+                default: vtbackup
+                enum:
+                - vtbackup
+                - vtctldclient
+                type: string
               cluster:
                 type: string
               concurrencyPolicy:
@@ -2063,6 +2069,12 @@ spec:
                           additionalProperties:
                             type: string
                           type: object
+                        backupMethod:
+                          default: vtbackup
+                          enum:
+                          - vtbackup
+                          - vtctldclient
+                          type: string
                         concurrencyPolicy:
                           default: Forbid
                           enum:
