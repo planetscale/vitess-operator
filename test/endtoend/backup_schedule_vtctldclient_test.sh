@@ -11,23 +11,6 @@ function latestCompleteScheduledVtctldclientBackupName() {
     | awk '$2 == "true" && $1 !~ /vtbackup-/ { name = $1 } END { print name }'
 }
 
-function suspendVtbackupSchedule() {
-  kubectl patch vitessclusters.planetscale.com example -n example --type='json' \
-    -p='[{"op":"add","path":"/spec/backup/schedules/0/suspend","value":true}]'
-
-  for i in {1..120}; do
-    suspended=$(kubectl get vitessbackupschedules.planetscale.com example-vbsc-vtbackup-every-minute -n example -o jsonpath='{.spec.suspend}')
-    if [[ "${suspended}" == "true" ]]; then
-      echo "vtbackup schedule suspended"
-      return 0
-    fi
-    sleep 1
-  done
-
-  echo "ERROR: vtbackup schedule was not suspended"
-  exit 1
-}
-
 function waitForAdditionalScheduledVtctldclientBackup() {
   baselineBackupName="$1"
 
@@ -104,13 +87,12 @@ function verifyVtctldclientScheduleJobs() {
       fi
       echo "OK: vtctldclient pod ran vtctldclient binary"
 
-      echo -e "Suspend vtbackup schedule and wait for another vtctldclient scheduled backup"
+      echo -e "Wait for another vtctldclient scheduled backup"
       baselineBackupName=$(latestCompleteScheduledVtctldclientBackupName)
       if [[ -z "${baselineBackupName}" ]]; then
         echo "ERROR: Could not find an existing vtctldclient scheduled backup"
         exit 1
       fi
-      suspendVtbackupSchedule
       scheduledBackupName=$(waitForAdditionalScheduledVtctldclientBackup "${baselineBackupName}")
       backupTimestamp=$(echo "${scheduledBackupName}" | awk -F'.' '{print $1"."$2}')
       echo "Restoring from vtctldclient scheduled backup ${scheduledBackupName}"
