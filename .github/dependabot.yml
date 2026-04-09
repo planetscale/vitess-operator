@@ -4,6 +4,8 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 14
     groups:
       all:
         patterns:
@@ -13,6 +15,8 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 14
     groups:
       all:
         patterns:
@@ -24,6 +28,8 @@ updates:
       - "/build/"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 14
     groups:
       all:
         patterns:
