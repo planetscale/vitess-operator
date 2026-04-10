@@ -5,7 +5,7 @@ source ./test/endtoend/utils.sh
 
 function verifyHpaCount() {
   expectedCount=$1
-  count=$(kubectl get hpa -n example --no-headers | wc -l)
+  count=$(kubectl get hpa -n example -o name | wc -l | tr -d ' ')
   if [[ "$count" -eq "$expectedCount" ]]; then
     echo "HorizontalPodAutoscaler count is $count"
     return 0
@@ -34,7 +34,7 @@ setupKindCluster
 cd test/endtoend/operator || exit 1
 
 get_started "operator-latest.yaml" "101_initial_cluster_autoscale.yaml"
-verifyVtGateVersion "24.0.0"
+verifyVtGateVersion "25.0.0"
 checkSemiSyncSetup
 checkMysqldExporterMetrics
 
