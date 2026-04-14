@@ -48,13 +48,13 @@ spec:
             keyspace: "commerce"
             shard: "-"
   images:
-    vtctld: vitess/lite:mysql84
-    vtgate: vitess/lite:mysql84
-    vttablet: vitess/lite:mysql84
-    vtorc: vitess/lite:mysql84
-    vtbackup: vitess/lite:mysql84
+    vtctld: vitess/lite:v24.0.0-rc1
+    vtgate: vitess/lite:v24.0.0-rc1
+    vttablet: vitess/lite:v24.0.0-rc1
+    vtorc: vitess/lite:v24.0.0-rc1
+    vtbackup: vitess/lite:v24.0.0-rc1
     mysqld:
-      mysql80Compatible: vitess/lite:mysql84
+      mysql80Compatible: vitess/lite:v24.0.0-rc1
     mysqldExporter: prom/mysqld-exporter:v0.18.0
   cells:
   - name: zone1
