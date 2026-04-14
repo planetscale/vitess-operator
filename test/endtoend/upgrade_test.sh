@@ -272,7 +272,7 @@ checkMysqldExporterMetrics
 # Initially too durability policy should be specified
 verifyDurabilityPolicy "commerce" "semi_sync"
 upgradeToLatest
-verifyVtGateVersion "25.0.0"
+verifyVtGateVersion "24.0.0-rc1"
 verifyResourceSpec
 checkSemiSyncSetup
 checkMysqldExporterMetrics

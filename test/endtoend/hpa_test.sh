@@ -34,7 +34,7 @@ setupKindCluster
 cd test/endtoend/operator || exit 1
 
 get_started "operator-latest.yaml" "101_initial_cluster_autoscale.yaml"
-verifyVtGateVersion "25.0.0"
+verifyVtGateVersion "24.0.0-rc1"
 checkSemiSyncSetup
 checkMysqldExporterMetrics
 
