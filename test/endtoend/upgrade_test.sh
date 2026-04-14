@@ -266,7 +266,7 @@ setupKindCluster
 cd test/endtoend/operator || exit 1
 
 get_started "operator.yaml" "101_initial_cluster.yaml"
-verifyVtGateVersion "23.0.0"
+verifyVtGateVersion "24.0.0-rc1"
 checkSemiSyncSetup
 checkMysqldExporterMetrics
 # Initially too durability policy should be specified
