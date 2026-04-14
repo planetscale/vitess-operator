@@ -240,10 +240,10 @@ function upgradeToLatest() {
   checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 3
 
   # Wait for the cluster spec changes to take effect
-  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vtctld" 1 "image: vitess/lite:mysql80"
-  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vtgate" 1 "image: vitess/lite:mysql80"
-  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vtorc" 1 "image: vitess/lite:mysql80"
-  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vttablet" 12 "image: vitess/lite:mysql80"
+  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vtctld" 1 "image: vitess/lite:v24.0.0-rc1-mysql80"
+  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vtgate" 1 "image: vitess/lite:v24.0.0-rc1-mysql80"
+  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vtorc" 1 "image: vitess/lite:v24.0.0-rc1-mysql80"
+  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vttablet" 12 "image: vitess/lite:v24.0.0-rc1-mysql80"
 
   verifyVtgateDeploymentStrategy
 
@@ -266,13 +266,13 @@ setupKindCluster
 cd test/endtoend/operator || exit 1
 
 get_started "operator.yaml" "101_initial_cluster.yaml"
-verifyVtGateVersion "23.0.0"
+verifyVtGateVersion "23.0.3"
 checkSemiSyncSetup
 checkMysqldExporterMetrics
 # Initially too durability policy should be specified
 verifyDurabilityPolicy "commerce" "semi_sync"
 upgradeToLatest
-verifyVtGateVersion "25.0.0"
+verifyVtGateVersion "24.0.0-rc1"
 verifyResourceSpec
 checkSemiSyncSetup
 checkMysqldExporterMetrics
