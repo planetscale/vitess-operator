@@ -39,6 +39,18 @@ jobs:
       # "kind-<CI_JOB_ID>-control-plane", and Linux HOST_NAME_MAX is 64.
       CI_JOB_ID: ${{ matrix.test.target }}
     steps:
+    - name: Prepare runner for kind (Ubuntu 24.04)
+      run: |
+        # Ubuntu 24.04 defaults to kernel.apparmor_restrict_unprivileged_userns=1,
+        # which prevents nested containers inside kind from creating user
+        # namespaces. mysqld inside the vttablet pods crashes within ~17ms on
+        # startup as a result. Disable the restriction so kind-in-GHA behaves
+        # the way BK's older-kernel agents do.
+        sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+        # kind needs generous inotify limits to watch all pod files.
+        sudo sysctl -w fs.inotify.max_user_watches=524288
+        sudo sysctl -w fs.inotify.max_user_instances=512
+
     - name: Check out code
       uses: actions/checkout@v6
 
