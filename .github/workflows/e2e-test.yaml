@@ -1,0 +1,105 @@
+name: e2e-test
+on:
+  push:
+    branches:
+    - main
+    - release-**
+  pull_request:
+    branches:
+    - main
+    - release-**
+
+jobs:
+  e2e:
+    name: ${{ matrix.test.name }}
+    runs-on: vitess-operator-runner
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        test:
+          - name: "Upgrade Test"
+            target: upgrade-test
+          - name: "Backup Restore Test"
+            target: backup-restore-test
+          - name: "Backup Schedule Cluster/Keyspace Scope Test"
+            target: backup-schedule-keyspace-test
+          - name: "Backup Schedule Test"
+            target: backup-schedule-test
+          - name: "Backup Schedule vtctldclient Method Test"
+            target: backup-schedule-vtctldclient-test
+          - name: "VTOrc and VTAdmin Test"
+            target: vtorc-vtadmin-test
+          - name: "Unmanaged Tablet Test"
+            target: unmanaged-tablet-test
+          - name: "HPA Test"
+            target: hpa-test
+    env:
+      # Kept short because kind sets the control-plane container hostname to
+      # "kind-<CI_JOB_ID>-control-plane", and Linux HOST_NAME_MAX is 64.
+      CI_JOB_ID: ${{ matrix.test.target }}
+    steps:
+    - name: Prepare runner for kind (Ubuntu 24.04)
+      run: |
+        # Ubuntu 24.04 ships with several kernel-level restrictions on
+        # unprivileged user namespaces that break mysqld when it runs inside
+        # a nested container (vttablet pod → kind → docker → runner VM).
+        # Buildkite's older-kernel agents don't hit these.
+        #
+        # Only sysctls here — do NOT stop apparmor.service or run
+        # aa-teardown, because Docker/BuildKit applies the docker-default
+        # AppArmor profile to build containers and will fail with
+        # "unable to apply apparmor profile" if the profile is unloaded.
+        sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
+        sudo sysctl -w kernel.apparmor_restrict_unprivileged_unconfined=0 || true
+        sudo sysctl -w kernel.unprivileged_userns_clone=1 || true
+        sudo sysctl -w user.max_user_namespaces=65536 || true
+        # kind needs generous inotify limits once pod count grows.
+        sudo sysctl -w fs.inotify.max_user_watches=524288
+        sudo sysctl -w fs.inotify.max_user_instances=512
+
+    - name: Check out code
+      uses: actions/checkout@v6
+
+    - name: Set up Go
+      uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+      with:
+        go-version-file: go.mod
+
+    - name: Install test dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y mysql-client
+
+    - name: Install chromium (vtorc-vtadmin only)
+      if: matrix.test.target == 'vtorc-vtadmin-test'
+      uses: browser-actions/setup-chrome@v2
+      with:
+        chrome-version: stable
+
+    - name: Alias chrome as chromium-browser
+      if: matrix.test.target == 'vtorc-vtadmin-test'
+      run: |
+        CHROME_BIN="$(command -v chrome || command -v google-chrome)"
+        sudo ln -sf "$CHROME_BIN" /usr/local/bin/chromium-browser
+
+    - name: Build operator image
+      # Build before we tear down AppArmor. BuildKit refuses to start build
+      # containers once the docker-default AppArmor profile is unloaded.
+      # The image is tagged vitess-operator-pr:latest, which the test's
+      # setupBuildContainerImage will detect and skip rebuilding.
+      run: docker build --progress plain --file build/Dockerfile.release --tag vitess-operator-pr:latest .
+
+    - name: Disable AppArmor before kind
+      # Now tear down AppArmor so the kind container and the pods it runs
+      # (in particular mysqld inside vttablet pods) aren't subject to Ubuntu
+      # 24.04's docker-default profile, which appears to be what's killing
+      # mysqld on startup ("Failed to open required defaults file" within
+      # ~17ms of spawn even though mysqlctld just wrote the file).
+      run: |
+        sudo systemctl stop apparmor.service || true
+        sudo systemctl disable apparmor.service || true
+        sudo aa-teardown || true
+
+    - name: Run ${{ matrix.test.name }}
+      run: make ${{ matrix.test.target }}
