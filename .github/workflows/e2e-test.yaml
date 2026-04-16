@@ -35,7 +35,9 @@ jobs:
           - name: "HPA Test"
             target: hpa-test
     env:
-      CI_JOB_ID: ${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.test.target }}
+      # Kept short because kind sets the control-plane container hostname to
+      # "kind-<CI_JOB_ID>-control-plane", and Linux HOST_NAME_MAX is 64.
+      CI_JOB_ID: ${{ matrix.test.target }}
     steps:
     - name: Check out code
       uses: actions/checkout@v6
@@ -48,7 +50,19 @@ jobs:
     - name: Install test dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y mysql-client chromium-browser
+        sudo apt-get install -y mysql-client
+
+    - name: Install chromium (vtorc-vtadmin only)
+      if: matrix.test.target == 'vtorc-vtadmin-test'
+      uses: browser-actions/setup-chrome@v2
+      with:
+        chrome-version: stable
+
+    - name: Alias chrome as chromium-browser
+      if: matrix.test.target == 'vtorc-vtadmin-test'
+      run: |
+        CHROME_BIN="$(command -v chrome || command -v google-chrome)"
+        sudo ln -sf "$CHROME_BIN" /usr/local/bin/chromium-browser
 
     - name: Run ${{ matrix.test.name }}
       run: make ${{ matrix.test.target }}
