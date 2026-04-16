@@ -112,7 +112,7 @@ The `upgrade_test.sh`, `backup_restore_test.sh`, `vtorc_vtadmin_test.sh` and `un
 ##### CI Failures
 
 > **Note**
-> It is likely that the buildkite tests will fail on the release PR initially because of the unavailability of the latest vitess and vitess-operator docker images. This however doesn't block the release. The tests should be restarted after the said images are built and available.
+> It is likely that the end-to-end tests will fail on the release PR initially because of the unavailability of the latest vitess and vitess-operator docker images. This however doesn't block the release. The tests should be restarted after the said images are built and available.
 
 -------------------
 

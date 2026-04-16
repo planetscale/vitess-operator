@@ -1,0 +1,54 @@
+name: e2e-test
+on:
+  push:
+    branches:
+    - main
+    - release-**
+  pull_request:
+    branches:
+    - main
+    - release-**
+
+jobs:
+  e2e:
+    name: ${{ matrix.test.name }}
+    runs-on: ubuntu-latest-8-cores
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        test:
+          - name: "Upgrade Test"
+            target: upgrade-test
+          - name: "Backup Restore Test"
+            target: backup-restore-test
+          - name: "Backup Schedule Cluster/Keyspace Scope Test"
+            target: backup-schedule-keyspace-test
+          - name: "Backup Schedule Test"
+            target: backup-schedule-test
+          - name: "Backup Schedule vtctldclient Method Test"
+            target: backup-schedule-vtctldclient-test
+          - name: "VTOrc and VTAdmin Test"
+            target: vtorc-vtadmin-test
+          - name: "Unmanaged Tablet Test"
+            target: unmanaged-tablet-test
+          - name: "HPA Test"
+            target: hpa-test
+    env:
+      CI_JOB_ID: ${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.test.target }}
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v6
+
+    - name: Set up Go
+      uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
+      with:
+        go-version-file: go.mod
+
+    - name: Install test dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y mysql-client chromium-browser
+
+    - name: Run ${{ matrix.test.name }}
+      run: make ${{ matrix.test.target }}

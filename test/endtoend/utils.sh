@@ -6,7 +6,7 @@
 # set -x
 shopt -s expand_aliases
 alias vtctldclient="vtctldclient --server=localhost:15999"
-BUILDKITE_JOB_ID="${BUILDKITE_JOB_ID:-0}"
+CI_JOB_ID="${CI_JOB_ID:-0}"
 
 # Suppress warnings when using MariaDB Client
 mysql_version="$(mysql --version 2>/dev/null)"
@@ -523,9 +523,9 @@ function assertSelect() {
 function setupBuildContainerImage() {
   echo "Building the container image"
 
-  # Clean up build output in CI
+  # Use plain progress output in CI so logs are line-buffered and readable.
   local progress="auto"
-  if [[ "${BUILDKITE_JOB_ID}" != "0" ]]; then
+  if [[ -n "${CI:-}" ]]; then
     progress="plain"
   fi
 
@@ -535,23 +535,7 @@ function setupBuildContainerImage() {
 function setupKindCluster() {
   setupBuildContainerImage
   createKindCluster
-  setupKubectlAccessForCI
   createExampleNamespace
-}
-
-function setupKubectlAccessForCI() {
-  if [[ "${BUILDKITE_JOB_ID}" != "0" ]]; then
-    # The script is being run from buildkite, so we need to do stuff
-    # https://github.com/kubernetes-sigs/kind/issues/1846#issuecomment-691565834
-    # Since kind is running in a sibling container, communicating with it through kubectl is not trivial.
-    # To accomplish we need to add the current docker container in the same network as the kind container
-    # and change the kubectl configuration to use the port listed in the internal endpoint instead of the one
-    # that is exported to the localhost by kind.
-    local docker_container_name
-    docker_container_name="$(hostname -s)"
-    docker network connect kind "${docker_container_name}"
-    kind get kubeconfig --internal --name "kind-${BUILDKITE_JOB_ID}" > "${HOME}/.kube/config"
-  fi
 }
 
 # shellcheck disable=SC2120 # function has an optional argument
@@ -590,14 +574,14 @@ function setupPortForwarding() {
 
 function teardownKindCluster() {
   echo "Deleting the Kind cluster. This also deletes the volume associated with it."
-  kind delete cluster --name "kind-${BUILDKITE_JOB_ID}"
+  kind delete cluster --name "kind-${CI_JOB_ID}"
 }
 
 function createKindCluster() {
   echo "Creating Kind cluster"
-  kind create cluster --wait 30s --name "kind-${BUILDKITE_JOB_ID}" --image "${KIND_VERSION}"
+  kind create cluster --wait 30s --name "kind-${CI_JOB_ID}" --image "${KIND_VERSION}"
   echo "Loading docker image into Kind cluster"
-  kind load docker-image vitess-operator-pr:latest --name "kind-${BUILDKITE_JOB_ID}"
+  kind load docker-image vitess-operator-pr:latest --name "kind-${CI_JOB_ID}"
 }
 
 function createExampleNamespace() {
