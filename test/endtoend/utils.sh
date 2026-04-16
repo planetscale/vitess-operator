@@ -521,6 +521,14 @@ function assertSelect() {
 }
 
 function setupBuildContainerImage() {
+  # Skip the build if the image is already present. This lets CI build the
+  # image in a dedicated step before disabling AppArmor (BuildKit refuses to
+  # run if the docker-default AppArmor profile is unloaded).
+  if docker image inspect vitess-operator-pr:latest >/dev/null 2>&1; then
+    echo "vitess-operator-pr:latest already present, skipping build"
+    return
+  fi
+
   echo "Building the container image"
 
   # Use plain progress output in CI so logs are line-buffered and readable.
