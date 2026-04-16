@@ -41,13 +41,21 @@ jobs:
     steps:
     - name: Prepare runner for kind (Ubuntu 24.04)
       run: |
-        # Ubuntu 24.04 defaults to kernel.apparmor_restrict_unprivileged_userns=1,
-        # which prevents nested containers inside kind from creating user
-        # namespaces. mysqld inside the vttablet pods crashes within ~17ms on
-        # startup as a result. Disable the restriction so kind-in-GHA behaves
-        # the way BK's older-kernel agents do.
-        sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
-        # kind needs generous inotify limits to watch all pod files.
+        # Ubuntu 24.04 ships with several kernel-level restrictions on
+        # unprivileged user namespaces and AppArmor enforcement that break
+        # mysqld when it runs inside a nested container (vittablet pod →
+        # kind → docker → runner VM). Buildkite's older-kernel agents don't
+        # hit these, so vitess-operator's e2e tests have never needed them.
+        # Since the runner VM is ephemeral we can just turn the restrictions
+        # off wholesale rather than crafting a minimal AppArmor profile.
+        sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
+        sudo sysctl -w kernel.apparmor_restrict_unprivileged_unconfined=0 || true
+        sudo sysctl -w kernel.unprivileged_userns_clone=1 || true
+        sudo sysctl -w user.max_user_namespaces=65536 || true
+        sudo systemctl stop apparmor.service || true
+        sudo systemctl disable apparmor.service || true
+        sudo aa-teardown || true
+        # kind needs generous inotify limits once pod count grows.
         sudo sysctl -w fs.inotify.max_user_watches=524288
         sudo sysctl -w fs.inotify.max_user_instances=512
 
