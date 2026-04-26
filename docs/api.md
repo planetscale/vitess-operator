@@ -784,6 +784,20 @@ This is a list of VitessBackupScheduleTemplate where the &ldquo;name&rdquo; fiel
 across all the items of the list.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>extraLabels</code><br>
+<em>
+map[string]string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>ExtraLabels can optionally be used to attach custom labels to pods created by backup schedules
+and the VitessBackupStorage subcontroller. These labels will be applied to both the backup
+schedule job pods and the subcontroller pod.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="planetscale.com/v2.ConcurrencyPolicy">ConcurrencyPolicy
@@ -2551,6 +2565,19 @@ The PullPolicy used will be the same as the one used to pull the vtctld image.
 This field is only used when backupMethod is set to &ldquo;vtctldclient&rdquo;.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>extraLabels</code><br>
+<em>
+map[string]string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>ExtraLabels can optionally be used to attach custom labels to the pods created by VitessBackupSchedule.
+This is populated from ClusterBackupSpec.ExtraLabels when the schedule is created.</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -2639,6 +2666,19 @@ Kubernetes core/v1.PullPolicy
 <p>ImagePullPolicy defines the policy to pull the Docker image in the job&rsquo;s pod.
 The PullPolicy used will be the same as the one used to pull the vtctld image.
 This field is only used when backupMethod is set to &ldquo;vtctldclient&rdquo;.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>extraLabels</code><br>
+<em>
+map[string]string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>ExtraLabels can optionally be used to attach custom labels to the pods created by VitessBackupSchedule.
+This is populated from ClusterBackupSpec.ExtraLabels when the schedule is created.</p>
 </td>
 </tr>
 </tbody>
@@ -3278,6 +3318,19 @@ VitessBackupSubcontrollerSpec
 <p>Subcontroller specifies any parameters needed for launching the VitessBackupStorage subcontroller pod.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>extraLabels</code><br>
+<em>
+map[string]string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>ExtraLabels can optionally be used to attach custom labels to the VitessBackupStorage subcontroller pod.
+This is populated from ClusterBackupSpec.ExtraLabels when the storage object is created.</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -3337,6 +3390,19 @@ VitessBackupSubcontrollerSpec
 </td>
 <td>
 <p>Subcontroller specifies any parameters needed for launching the VitessBackupStorage subcontroller pod.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>extraLabels</code><br>
+<em>
+map[string]string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>ExtraLabels can optionally be used to attach custom labels to the VitessBackupStorage subcontroller pod.
+This is populated from ClusterBackupSpec.ExtraLabels when the storage object is created.</p>
 </td>
 </tr>
 </tbody>

@@ -193,6 +193,9 @@ func NewBackupPod(key client.ObjectKey, backupSpec *BackupSpec, mysqldImage stri
 		},
 	}
 
+	// Apply ExtraLabels to the pod, similar to regular vttablet pods.
+	update.Labels(&pod.Labels, tabletSpec.ExtraLabels)
+
 	if planetscalev2.DefaultVitessServiceAccount != "" {
 		pod.Spec.ServiceAccountName = planetscalev2.DefaultVitessServiceAccount
 	}
