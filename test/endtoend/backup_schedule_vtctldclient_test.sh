@@ -116,7 +116,7 @@ setupKindCluster
 cd test/endtoend/operator || exit 1
 
 get_started "operator-latest.yaml" "103_initial_cluster_vtctldclient_backup_schedule.yaml"
-verifyVtGateVersion "24.0.0-rc1"
+verifyVtGateVersion "24.0.0"
 verifyVtctldclientScheduleJobs
 
 # Teardown
