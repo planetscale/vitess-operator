@@ -40,7 +40,7 @@ fi
 if ! command -v vtctldclient &> /dev/null
 then
   echo "Downloading vtctldclient..."
-  version=21.0.0-rc1
+  version=24.0.0
   file=vitess-${version}-7908b43.tar.gz
   wget -q https://github.com/vitessio/vitess/releases/download/v${version}/${file}
   tar -xzf ${file}
