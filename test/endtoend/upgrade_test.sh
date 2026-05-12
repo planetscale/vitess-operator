@@ -271,6 +271,9 @@ checkSemiSyncSetup
 checkMysqldExporterMetrics
 # Initially too durability policy should be specified
 verifyDurabilityPolicy "commerce" "semi_sync"
+# VTOrc --cell is gated on Vitess v24+ in the operator. The initial cluster
+# pins v24.0.0-rc1, so the flag must be on the vtorc pod.
+checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vtorc" 1 "--cell=zone1"
 upgradeToLatest
 verifyVtGateVersion "25.0.0"
 verifyResourceSpec
