@@ -4,6 +4,7 @@ go 1.26.2
 
 require (
 	github.com/ahmetb/gen-crd-api-reference-docs v0.3.0
+	github.com/blang/semver/v4 v4.0.0
 	github.com/google/uuid v1.6.0
 	github.com/planetscale/operator-sdk-libs v0.0.0-20220216002626-1af183733234
 	github.com/prometheus/client_golang v1.23.2
@@ -85,7 +86,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sts v1.41.10 // indirect
 	github.com/aws/smithy-go v1.24.3 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/blang/semver/v4 v4.0.0 // indirect
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cihub/seelog v0.0.0-20170130134532-f561c5e57575 // indirect

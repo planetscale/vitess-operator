@@ -17,16 +17,14 @@ limitations under the License.
 package vitess
 
 import (
-	"regexp"
-	"strconv"
 	"strings"
-)
 
-var vitessTagMajorRegExp = regexp.MustCompile(`^v(\d+)\.`)
+	"github.com/blang/semver/v4"
+)
 
 // MajorVersionFromImage parses the Vitess major version from a Docker image
 // reference like "vitess/lite:v24.0.0-mysql80". Returns (major, true) when
-// the tag begins with "v<digits>." and (0, false) for unparseable tags
+// the image carries a SemVer-compatible tag and (0, false) otherwise
 // (rolling tags such as "mysql80" or "latest", digests, or empty input).
 func MajorVersionFromImage(image string) (int, bool) {
 	if image == "" {
@@ -40,14 +38,9 @@ func MajorVersionFromImage(image string) (int, bool) {
 	if colon < 0 {
 		return 0, false
 	}
-	tag := image[colon+1:]
-	m := vitessTagMajorRegExp.FindStringSubmatch(tag)
-	if m == nil {
-		return 0, false
-	}
-	major, err := strconv.Atoi(m[1])
+	v, err := semver.ParseTolerant(image[colon+1:])
 	if err != nil {
 		return 0, false
 	}
-	return major, true
+	return int(v.Major), true
 }

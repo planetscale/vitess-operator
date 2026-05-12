@@ -96,10 +96,16 @@ func TestMajorVersionFromImage(t *testing.T) {
 			wantOK: false,
 		},
 		{
-			name:   "tag starts with digit but no v prefix",
+			name:   "tag without v prefix still parses as semver",
 			image:  "vitess/lite:24.0.0",
-			want:   0,
-			wantOK: false,
+			want:   24,
+			wantOK: true,
+		},
+		{
+			name:   "tag with only major still parses (tolerant)",
+			image:  "vitess/lite:v24",
+			want:   24,
+			wantOK: true,
 		},
 	}
 
