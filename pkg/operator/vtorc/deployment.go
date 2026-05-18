@@ -210,7 +210,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 }
 
 func (spec *Spec) flags() vitess.Flags {
-	return vitess.Flags{
+	flags := vitess.Flags{
 		"topo_implementation":        spec.GlobalLockserver.Implementation,
 		"topo_global_server_address": spec.GlobalLockserver.Address,
 		"topo_global_root":           spec.GlobalLockserver.RootPath,
@@ -220,4 +220,11 @@ func (spec *Spec) flags() vitess.Flags {
 
 		"logtostderr": true,
 	}
+	// --cell was introduced in Vitess v24 and is required in v25+. Only emit
+	// it when we can confirm the image is on a supported version; on rolling
+	// or unparseable tags users can still force it via ExtraFlags.
+	if major, ok := vitess.MajorVersionFromImage(spec.Image); ok && major >= 24 {
+		flags["cell"] = spec.Cell
+	}
+	return flags
 }
