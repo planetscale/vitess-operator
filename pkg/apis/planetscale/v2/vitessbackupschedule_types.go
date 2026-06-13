@@ -102,6 +102,11 @@ type VitessBackupScheduleSpec struct {
 	// The PullPolicy used will be the same as the one used to pull the vtctld image.
 	// This field is only used when backupMethod is set to "vtctldclient".
 	ImagePullPolicy corev1.PullPolicy `json:"imagePullPolicy,omitempty"`
+
+	// ExtraLabels can optionally be used to attach custom labels to the pods created by VitessBackupSchedule.
+	// This is populated from ClusterBackupSpec.ExtraLabels when the schedule is created.
+	// +optional
+	ExtraLabels map[string]string `json:"extraLabels,omitempty"`
 }
 
 // VitessBackupScheduleTemplate contains all the user-specific fields that the user will be

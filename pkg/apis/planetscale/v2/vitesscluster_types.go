@@ -327,6 +327,12 @@ type ClusterBackupSpec struct {
 	// +patchMergeKey=name
 	// +patchStrategy=merge
 	Schedules []VitessBackupScheduleTemplate `json:"schedules,omitempty"`
+
+	// ExtraLabels can optionally be used to attach custom labels to pods created by backup schedules
+	// and the VitessBackupStorage subcontroller. These labels will be applied to both the backup
+	// schedule job pods and the subcontroller pod.
+	// +optional
+	ExtraLabels map[string]string `json:"extraLabels,omitempty"`
 }
 
 // VitessBackupEngine is the backup implementation to use.

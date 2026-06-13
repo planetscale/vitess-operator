@@ -69,6 +69,10 @@ func (r *ReconcileVitessBackupStorage) reconcileSubcontroller(ctx context.Contex
 		planetscalev2.ClusterLabel:   clusterName,
 		vitessbackup.LocationLabel:   vbs.Spec.Location.Name,
 	}
+	// Merge user-provided extra labels from ClusterBackupSpec.
+	if vbs.Spec.ExtraLabels != nil {
+		update.Labels(&labels, vbs.Spec.ExtraLabels)
+	}
 
 	spec, err := r.newSubcontrollerPodSpec(ctx, vbs)
 	if err != nil {
