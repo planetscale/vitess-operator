@@ -18,6 +18,7 @@ package vitessshard
 
 import (
 	"context"
+	"fmt"
 	"sort"
 	"strconv"
 	"time"
@@ -35,6 +36,7 @@ import (
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 	"planetscale.dev/vitess-operator/pkg/operator/drain"
+	"planetscale.dev/vitess-operator/pkg/operator/environment"
 	"planetscale.dev/vitess-operator/pkg/operator/k8s"
 	"planetscale.dev/vitess-operator/pkg/operator/reconciler"
 	"planetscale.dev/vitess-operator/pkg/operator/results"
@@ -80,7 +82,10 @@ func (r *ReconcileVitessShard) reconcileTablets(ctx context.Context, vts *planet
 	}()
 
 	// Compute the set of all desired tablets based on the config.
-	tablets := vttabletSpecs(vts, labels)
+	tablets, err := vttabletSpecs(vts, labels)
+	if err != nil {
+		resultBuilder.Error(err)
+	}
 
 	// Generate podKeys (object names) for all desired tablet pods and pvcKeys for desired PVCs.
 	//
@@ -111,7 +116,7 @@ func (r *ReconcileVitessShard) reconcileTablets(ctx context.Context, vts *planet
 	}
 
 	// Reconcile vttablet PVCs. Note that we use the same keys as the corresponding Pods.
-	err := r.reconciler.ReconcileObjectSet(ctx, vts, pvcKeys, labels, reconciler.Strategy{
+	err = r.reconciler.ReconcileObjectSet(ctx, vts, pvcKeys, labels, reconciler.Strategy{
 		Kind: &corev1.PersistentVolumeClaim{},
 
 		New: func(key client.ObjectKey) runtime.Object {
@@ -266,10 +271,11 @@ func (r *ReconcileVitessShard) reconcileTablets(ctx context.Context, vts *planet
 }
 
 // vttabletSpecs creates a list of vttablet Specs for a VitessShard.
-func vttabletSpecs(vts *planetscalev2.VitessShard, parentLabels map[string]string) []*vttablet.Spec {
+func vttabletSpecs(vts *planetscalev2.VitessShard, parentLabels map[string]string) ([]*vttablet.Spec, error) {
 	keyspaceName := vts.Labels[planetscalev2.KeyspaceLabel]
 
 	var tablets []*vttablet.Spec
+	seenUIDs := make(map[uint32]string)
 
 	for poolIndex := range vts.Spec.TabletPools {
 		pool := &vts.Spec.TabletPools[poolIndex]
@@ -285,9 +291,16 @@ func vttabletSpecs(vts *planetscalev2.VitessShard, parentLabels map[string]strin
 			}
 
 			// If TabletPools has multiple pools within the same (cell,type) pair, we need to add a pool name to the UID generator.
-			if pool.ExternalDatastore != nil && 0 < len(pool.Name) {
+			// The optional --default_pool_name flag treats the specified pool as unnamed for UID-generation purposes.
+			if !environment.IsDefaultPoolName(pool.Name) {
 				tabletAlias.Uid = vttablet.UIDWithPoolName(pool.Cell, keyspaceName, vts.Spec.KeyRange, pool.Type, uint32(tabletIndex), pool.Name)
 			}
+
+			// Additional guard against duplicate UIDs
+			if seenPool, seenUID := seenUIDs[tabletAlias.Uid]; seenUID {
+				return nil, fmt.Errorf("failed to generate tablet uid for cell %q: tablet uid %d was already generated for pool %q", pool.Cell, tabletAlias.Uid, seenPool)
+			}
+			seenUIDs[tabletAlias.Uid] = pool.Name
 
 			// Copy parent labels map and add tablet-specific labels.
 			labels := make(map[string]string, len(parentLabels)+4)
@@ -298,9 +311,7 @@ func vttabletSpecs(vts *planetscalev2.VitessShard, parentLabels map[string]strin
 			labels[planetscalev2.TabletUidLabel] = strconv.FormatUint(uint64(tabletAlias.Uid), 10)
 			labels[planetscalev2.TabletTypeLabel] = string(pool.Type)
 			labels[planetscalev2.TabletIndexLabel] = strconv.FormatUint(uint64(tabletIndex), 10)
-			if pool.ExternalDatastore != nil {
-				labels[planetscalev2.TabletPoolNameLabel] = pool.Name
-			}
+			labels[planetscalev2.TabletPoolNameLabel] = pool.Name
 
 			// Merge ExtraVitessFlags into the tablet spec ExtraFlags field.
 			extraFlags := make(map[string]string)
@@ -354,7 +365,7 @@ func vttabletSpecs(vts *planetscalev2.VitessShard, parentLabels map[string]strin
 		}
 	}
 
-	return tablets
+	return tablets, nil
 }
 
 func isTabletPrimary(ctx context.Context, vts *planetscalev2.VitessShard, tabletAlias topodatapb.TabletAlias) (bool, error) {
