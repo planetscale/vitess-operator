@@ -18,6 +18,7 @@ package vitessshard
 
 import (
 	"context"
+	"fmt"
 	"sort"
 	"strconv"
 	"time"
@@ -35,6 +36,7 @@ import (
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 	"planetscale.dev/vitess-operator/pkg/operator/drain"
+	"planetscale.dev/vitess-operator/pkg/operator/environment"
 	"planetscale.dev/vitess-operator/pkg/operator/k8s"
 	"planetscale.dev/vitess-operator/pkg/operator/reconciler"
 	"planetscale.dev/vitess-operator/pkg/operator/results"
@@ -274,12 +276,7 @@ func vttabletSpecs(vts *planetscalev2.VitessShard, parentLabels map[string]strin
 		for tabletIndex := int32(1); tabletIndex <= pool.Replicas; tabletIndex++ {
 			tabletAlias := topodatapb.TabletAlias{
 				Cell: pool.Cell,
-				Uid:  vttablet.UID(pool.Cell, keyspaceName, vts.Spec.KeyRange, pool.Type, uint32(tabletIndex)),
-			}
-
-			// If TabletPools has multiple pools within the same (cell,type) pair, we need to add a pool name to the UID generator.
-			if pool.ExternalDatastore != nil && 0 < len(pool.Name) {
-				tabletAlias.Uid = vttablet.UIDWithPoolName(pool.Cell, keyspaceName, vts.Spec.KeyRange, pool.Type, uint32(tabletIndex), pool.Name)
+				Uid:  tabletUID(pool, keyspaceName, vts.Spec.KeyRange, uint32(tabletIndex)),
 			}
 
 			// Copy parent labels map and add tablet-specific labels.
@@ -291,7 +288,7 @@ func vttabletSpecs(vts *planetscalev2.VitessShard, parentLabels map[string]strin
 			labels[planetscalev2.TabletUidLabel] = vttablet.UIDString(tabletAlias.Uid)
 			labels[planetscalev2.TabletTypeLabel] = string(pool.Type)
 			labels[planetscalev2.TabletIndexLabel] = strconv.FormatUint(uint64(tabletIndex), 10)
-			if pool.ExternalDatastore != nil {
+			if pool.ExternalDatastore != nil || pool.Name != "" {
 				labels[planetscalev2.TabletPoolNameLabel] = pool.Name
 			}
 
@@ -348,6 +345,47 @@ func vttabletSpecs(vts *planetscalev2.VitessShard, parentLabels map[string]strin
 	}
 
 	return tablets
+}
+
+// tabletUID returns the UID for a tablet in the given pool.
+//
+// Unnamed pools use UID() so existing tablets keep their identity. Named pools
+// use UIDWithPoolName() so that several pools can share a (cell,type) pair.
+// The exception is a named, operator-managed pool that matches --default_pool_name.
+// It keeps using UID() so that an unnamed pool can be given a name without
+// replacing its tablets.
+func tabletUID(pool *planetscalev2.VitessShardTabletPool, keyspaceName string, keyRange planetscalev2.VitessKeyRange, tabletIndex uint32) uint32 {
+	if pool.Name == "" || (pool.ExternalDatastore == nil && environment.IsDefaultPoolName(pool.Name)) {
+		return vttablet.UID(pool.Cell, keyspaceName, keyRange, pool.Type, tabletIndex)
+	}
+	return vttablet.UIDWithPoolName(pool.Cell, keyspaceName, keyRange, pool.Type, tabletIndex, pool.Name)
+}
+
+// validateTabletPools returns an error if two tablet pools would generate the
+// same tablet alias. Those tablets would share a Pod, PVC and topology record,
+// so the shard must not be reconciled until the pools are fixed.
+func validateTabletPools(vts *planetscalev2.VitessShard) error {
+	keyspaceName := vts.Labels[planetscalev2.KeyspaceLabel]
+	seen := make(map[string]string)
+
+	for poolIndex := range vts.Spec.TabletPools {
+		pool := &vts.Spec.TabletPools[poolIndex]
+		desc := fmt.Sprintf("%s pool %q in cell %q", pool.Type, pool.Name, pool.Cell)
+
+		for tabletIndex := int32(1); tabletIndex <= pool.Replicas; tabletIndex++ {
+			alias := topodatapb.TabletAlias{
+				Cell: pool.Cell,
+				Uid:  tabletUID(pool, keyspaceName, vts.Spec.KeyRange, uint32(tabletIndex)),
+			}
+			aliasStr := topoproto.TabletAliasString(&alias)
+			if seenPool, ok := seen[aliasStr]; ok {
+				return fmt.Errorf("%s and %s both generate tablet alias %s", seenPool, desc, aliasStr)
+			}
+			seen[aliasStr] = desc
+		}
+	}
+
+	return nil
 }
 
 func isTabletPrimary(ctx context.Context, vts *planetscalev2.VitessShard, tabletAlias topodatapb.TabletAlias) (bool, error) {

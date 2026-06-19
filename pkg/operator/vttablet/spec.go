@@ -85,6 +85,12 @@ func (spec *Spec) poolLabels() map[string]string {
 	labels := spec.shardLabels()
 	labels[planetscalev2.CellLabel] = spec.Labels[planetscalev2.CellLabel]
 	labels[planetscalev2.TabletTypeLabel] = spec.Labels[planetscalev2.TabletTypeLabel]
+	// Only add the pool name for named, operator-managed pools. Adding it for
+	// other pools would change the affinity of existing tablet Pods and force
+	// them all to be recreated
+	if poolName := spec.Labels[planetscalev2.TabletPoolNameLabel]; poolName != "" && spec.ExternalDatastore == nil {
+		labels[planetscalev2.TabletPoolNameLabel] = poolName
+	}
 	return labels
 }
 

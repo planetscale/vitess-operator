@@ -171,6 +171,14 @@ func (r *ReconcileVitessShard) Reconcile(cctx context.Context, request reconcile
 	}
 	planetscalev2.DefaultVitessShard(vts)
 
+	// Stop here if the tablet pools are invalid. Carrying on would reset the
+	// status and treat every existing tablet as unwanted, which would drain
+	// and delete Pods and PVCs and prune tablets from topology
+	if err := validateTabletPools(vts); err != nil {
+		r.recorder.Eventf(vts, corev1.EventTypeWarning, "InvalidTabletPools", "not reconciling shard: %v", err)
+		return resultBuilder.Error(err)
+	}
+
 	// Reset status, since that's all out of date info that we will recompute now.
 	oldStatus := vts.Status
 	vts.Status = planetscalev2.NewVitessShardStatus()
