@@ -37,6 +37,7 @@ import (
 const (
 	basicVitessCluster = `
 spec:
+  tabletAvailableSeconds: 90
   cells:
   - name: cell1
   - name: cell2
@@ -224,7 +225,13 @@ func verifyBasicVitessKeyspace(f *framework.Fixture, ns, cluster, keyspace strin
 }
 
 func verifyBasicVitessShard(f *framework.Fixture, ns, cluster, keyspace, shard string, expectedTabletCount []int) {
-	f.MustGet(ns, names.JoinWithConstraints(names.DefaultConstraints, cluster, keyspace, shard), &planetscalev2.VitessShard{})
+	var vts planetscalev2.VitessShard
+	f.MustGet(ns, names.JoinWithConstraints(names.DefaultConstraints, cluster, keyspace, shard), &vts)
+
+	// tabletAvailableSeconds set on the VitessCluster should propagate through
+	// the keyspace controller down to each VitessShard.
+	require.NotNil(f.T, vts.Spec.TabletAvailableSeconds, "VitessShard %s missing TabletAvailableSeconds", shard)
+	require.Equal(f.T, int32(90), *vts.Spec.TabletAvailableSeconds, "VitessShard %s TabletAvailableSeconds", shard)
 
 	// VitessShard creates vttablet Pods.
 	cell1Pods := f.ExpectPods(&client.ListOptions{
