@@ -83,6 +83,9 @@ type VitessKeyspaceSpec struct {
 
 	// UpdateStrategy is inherited from the parent's VitessClusterSpec.
 	UpdateStrategy *VitessClusterUpdateStrategy `json:"updateStrategy,omitempty"`
+
+	// TabletAvailableSeconds is inherited from the parent's VitessClusterSpec.
+	TabletAvailableSeconds *int32 `json:"tabletAvailableSeconds,omitempty"`
 }
 
 // VitessKeyspaceTemplate contains only the user-specified parts of a VitessKeyspace object.

@@ -449,6 +449,28 @@ TopoReconcileConfig
 </tr>
 <tr>
 <td>
+<code>tabletAvailableSeconds</code><br>
+<em>
+int32
+</em>
+</td>
+<td>
+<p>TabletAvailableSeconds is how long a tablet Pod must be consistently Ready
+before the operator considers it Available and proceeds to the next step
+of a rolling update (such as draining the next tablet). This creates a
+safety buffer that accounts for the time it takes for vtgates to discover
+that the tablet is Ready and update their routing tables. If a tablet is
+Ready but vtgates don&rsquo;t know it yet, then it isn&rsquo;t actually available for
+serving queries.</p>
+<p>This should be set to at least vtgate&rsquo;s &ndash;tablet_refresh_interval (default
+1m) plus a small buffer, otherwise the operator may drain the next tablet
+before vtgates have discovered the previously restarted one, causing
+&ldquo;no healthy tablet available&rdquo; errors during rolling restarts.</p>
+<p>Default: 30</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>updateStrategy</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessClusterUpdateStrategy">
@@ -4653,6 +4675,28 @@ TopoReconcileConfig
 </tr>
 <tr>
 <td>
+<code>tabletAvailableSeconds</code><br>
+<em>
+int32
+</em>
+</td>
+<td>
+<p>TabletAvailableSeconds is how long a tablet Pod must be consistently Ready
+before the operator considers it Available and proceeds to the next step
+of a rolling update (such as draining the next tablet). This creates a
+safety buffer that accounts for the time it takes for vtgates to discover
+that the tablet is Ready and update their routing tables. If a tablet is
+Ready but vtgates don&rsquo;t know it yet, then it isn&rsquo;t actually available for
+serving queries.</p>
+<p>This should be set to at least vtgate&rsquo;s &ndash;tablet_refresh_interval (default
+1m) plus a small buffer, otherwise the operator may drain the next tablet
+before vtgates have discovered the previously restarted one, causing
+&ldquo;no healthy tablet available&rdquo; errors during rolling restarts.</p>
+<p>Default: 30</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>updateStrategy</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessClusterUpdateStrategy">
@@ -5802,6 +5846,17 @@ VitessClusterUpdateStrategy
 <p>UpdateStrategy is inherited from the parent&rsquo;s VitessClusterSpec.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>tabletAvailableSeconds</code><br>
+<em>
+int32
+</em>
+</td>
+<td>
+<p>TabletAvailableSeconds is inherited from the parent&rsquo;s VitessClusterSpec.</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -6606,6 +6661,17 @@ VitessClusterUpdateStrategy
 </td>
 <td>
 <p>UpdateStrategy is inherited from the parent&rsquo;s VitessClusterSpec.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>tabletAvailableSeconds</code><br>
+<em>
+int32
+</em>
+</td>
+<td>
+<p>TabletAvailableSeconds is inherited from the parent&rsquo;s VitessClusterSpec.</p>
 </td>
 </tr>
 </tbody>
@@ -7599,6 +7665,17 @@ VitessClusterUpdateStrategy
 <p>UpdateStrategy is inherited from the parent&rsquo;s VitessClusterSpec.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>tabletAvailableSeconds</code><br>
+<em>
+int32
+</em>
+</td>
+<td>
+<p>TabletAvailableSeconds is inherited from the parent&rsquo;s VitessClusterSpec.</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -7906,6 +7983,17 @@ VitessClusterUpdateStrategy
 </td>
 <td>
 <p>UpdateStrategy is inherited from the parent&rsquo;s VitessClusterSpec.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>tabletAvailableSeconds</code><br>
+<em>
+int32
+</em>
+</td>
+<td>
+<p>TabletAvailableSeconds is inherited from the parent&rsquo;s VitessClusterSpec.</p>
 </td>
 </tr>
 </tbody>

@@ -2893,6 +2893,10 @@ spec:
                   - partitionings
                   type: object
                 type: array
+              tabletAvailableSeconds:
+                format: int32
+                minimum: 0
+                type: integer
               tabletService:
                 properties:
                   annotations:

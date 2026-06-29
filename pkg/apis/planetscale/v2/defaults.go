@@ -85,6 +85,12 @@ const (
 	defaultBackupMinRetentionCount = 1
 	defaultBackupEngine            = VitessBackupEngineBuiltIn
 
+	// DefaultTabletAvailableSeconds is how long a tablet Pod must be
+	// consistently Ready before it is considered Available. This accounts for
+	// the time it takes for vtgates to discover that the tablet is Ready and
+	// update their routing tables.
+	DefaultTabletAvailableSeconds int32 = 30
+
 	// DefaultWebPort is the port for debug status pages and dashboard UIs.
 	DefaultWebPort = 15000
 	// DefaultAPIPort is the port for API endpoint.

@@ -1174,6 +1174,9 @@ spec:
                 type: array
               sidecarDbName:
                 type: string
+              tabletAvailableSeconds:
+                format: int32
+                type: integer
               topologyReconciliation:
                 properties:
                   pruneCells:

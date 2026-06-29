@@ -252,6 +252,9 @@ spec:
                   recoverRestartedMaster:
                     type: boolean
                 type: object
+              tabletAvailableSeconds:
+                format: int32
+                type: integer
               tabletPools:
                 items:
                   properties:

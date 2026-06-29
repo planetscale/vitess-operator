@@ -185,6 +185,7 @@ func newVitessKeyspace(key client.ObjectKey, vt *planetscalev2.VitessCluster, pa
 			ExtraVitessFlags:       vt.Spec.ExtraVitessFlags,
 			TopologyReconciliation: vt.Spec.TopologyReconciliation,
 			UpdateStrategy:         vt.Spec.UpdateStrategy,
+			TabletAvailableSeconds: vt.Spec.TabletAvailableSeconds,
 		},
 	}
 }

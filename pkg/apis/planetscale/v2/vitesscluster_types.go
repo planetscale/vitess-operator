@@ -116,6 +116,23 @@ type VitessClusterSpec struct {
 	// TopologyReconciliation can be used to enable or disable registration or pruning of various vitess components to and from topo records.
 	TopologyReconciliation *TopoReconcileConfig `json:"topologyReconciliation,omitempty"`
 
+	// TabletAvailableSeconds is how long a tablet Pod must be consistently Ready
+	// before the operator considers it Available and proceeds to the next step
+	// of a rolling update (such as draining the next tablet). This creates a
+	// safety buffer that accounts for the time it takes for vtgates to discover
+	// that the tablet is Ready and update their routing tables. If a tablet is
+	// Ready but vtgates don't know it yet, then it isn't actually available for
+	// serving queries.
+	//
+	// This should be set to at least vtgate's --tablet_refresh_interval (default
+	// 1m) plus a small buffer, otherwise the operator may drain the next tablet
+	// before vtgates have discovered the previously restarted one, causing
+	// "no healthy tablet available" errors during rolling restarts.
+	//
+	// Default: 30
+	// +kubebuilder:validation:Minimum=0
+	TabletAvailableSeconds *int32 `json:"tabletAvailableSeconds,omitempty"`
+
 	// UpdateStrategy specifies how components in the Vitess cluster will be updated
 	// when a revision is made to the VitessCluster spec.
 	UpdateStrategy *VitessClusterUpdateStrategy `json:"updateStrategy,omitempty"`
