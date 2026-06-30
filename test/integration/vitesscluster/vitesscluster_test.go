@@ -20,6 +20,7 @@ import (
 	"context"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	appsv1 "k8s.io/api/apps/v1"
@@ -37,7 +38,7 @@ import (
 const (
 	basicVitessCluster = `
 spec:
-  tabletAvailableSeconds: 90
+  tabletRefreshInterval: 40s
   cells:
   - name: cell1
   - name: cell2
@@ -212,7 +213,21 @@ func verifyBasicVitessCell(f *framework.Fixture, ns, cluster, cell string) {
 
 	// VitessCell creates vtgate Service/Deployment.
 	f.MustGet(ns, names.JoinWithConstraints(names.ServiceConstraints, cluster, cell, "vtgate"), &corev1.Service{})
-	f.MustGet(ns, names.JoinWithConstraints(names.DefaultConstraints, cluster, cell, "vtgate"), &appsv1.Deployment{})
+	var dep appsv1.Deployment
+	f.MustGet(ns, names.JoinWithConstraints(names.DefaultConstraints, cluster, cell, "vtgate"), &dep)
+
+	// tabletRefreshInterval set on the VitessCluster should be applied to
+	// vtgate's --tablet_refresh_interval flag, keeping it consistent with the
+	// availability gate the VitessShard controller derives from the same value.
+	var vtgateArgs []string
+	for _, c := range dep.Spec.Template.Spec.Containers {
+		if c.Name == "vtgate" {
+			vtgateArgs = c.Args
+			break
+		}
+	}
+	require.Contains(f.T, strings.Join(vtgateArgs, " "), "--tablet_refresh_interval=40s",
+		"vtgate %s missing derived --tablet_refresh_interval. Args: %v", cell, vtgateArgs)
 }
 
 func verifyBasicVitessKeyspace(f *framework.Fixture, ns, cluster, keyspace string) {
@@ -228,10 +243,10 @@ func verifyBasicVitessShard(f *framework.Fixture, ns, cluster, keyspace, shard s
 	var vts planetscalev2.VitessShard
 	f.MustGet(ns, names.JoinWithConstraints(names.DefaultConstraints, cluster, keyspace, shard), &vts)
 
-	// tabletAvailableSeconds set on the VitessCluster should propagate through
+	// tabletRefreshInterval set on the VitessCluster should propagate through
 	// the keyspace controller down to each VitessShard.
-	require.NotNil(f.T, vts.Spec.TabletAvailableSeconds, "VitessShard %s missing TabletAvailableSeconds", shard)
-	require.Equal(f.T, int32(90), *vts.Spec.TabletAvailableSeconds, "VitessShard %s TabletAvailableSeconds", shard)
+	require.NotNil(f.T, vts.Spec.TabletRefreshInterval, "VitessShard %s missing TabletRefreshInterval", shard)
+	require.Equal(f.T, 40*time.Second, vts.Spec.TabletRefreshInterval.Duration, "VitessShard %s TabletRefreshInterval", shard)
 
 	// VitessShard creates vttablet Pods.
 	cell1Pods := f.ExpectPods(&client.ListOptions{

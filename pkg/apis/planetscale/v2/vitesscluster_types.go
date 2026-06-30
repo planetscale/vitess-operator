@@ -116,22 +116,23 @@ type VitessClusterSpec struct {
 	// TopologyReconciliation can be used to enable or disable registration or pruning of various vitess components to and from topo records.
 	TopologyReconciliation *TopoReconcileConfig `json:"topologyReconciliation,omitempty"`
 
-	// TabletAvailableSeconds is how long a tablet Pod must be consistently Ready
-	// before the operator considers it Available and proceeds to the next step
-	// of a rolling update (such as draining the next tablet). This creates a
-	// safety buffer that accounts for the time it takes for vtgates to discover
-	// that the tablet is Ready and update their routing tables. If a tablet is
-	// Ready but vtgates don't know it yet, then it isn't actually available for
-	// serving queries.
+	// TabletRefreshInterval is how often vtgate refreshes its view of tablets
+	// from the topology service. The operator both applies this value to
+	// vtgate's --tablet_refresh_interval flag and derives, from the same value,
+	// how long a restarted tablet must be Ready before it paces the next step
+	// of a rolling update (the refresh interval x 1.5). This keeps the two in
+	// sync so the operator never drains the next tablet before vtgates have had
+	// time to rediscover a previously restarted one, which would otherwise
+	// cause "no healthy tablet available" errors during rolling restarts.
 	//
-	// This should be set to at least vtgate's --tablet_refresh_interval (default
-	// 1m) plus a small buffer, otherwise the operator may drain the next tablet
-	// before vtgates have discovered the previously restarted one, causing
-	// "no healthy tablet available" errors during rolling restarts.
+	// You should not normally need to set this; the default is safe. It exists
+	// mainly so large clusters can trade a shorter refresh interval (lower
+	// rolling-restart latency) against more topology-server polling load. Do
+	// NOT set --tablet_refresh_interval directly via ExtraVitessFlags or the
+	// gateway ExtraFlags; that bypasses this coupling and reintroduces the bug.
 	//
-	// Default: 30
-	// +kubebuilder:validation:Minimum=0
-	TabletAvailableSeconds *int32 `json:"tabletAvailableSeconds,omitempty"`
+	// Default: 60s
+	TabletRefreshInterval *metav1.Duration `json:"tabletRefreshInterval,omitempty"`
 
 	// UpdateStrategy specifies how components in the Vitess cluster will be updated
 	// when a revision is made to the VitessCluster spec.

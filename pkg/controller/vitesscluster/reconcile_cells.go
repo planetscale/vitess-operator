@@ -141,6 +141,7 @@ func newVitessCell(key client.ObjectKey, vt *planetscalev2.VitessCluster, parent
 			ImagePullSecrets:       vt.Spec.ImagePullSecrets,
 			ExtraVitessFlags:       vt.Spec.ExtraVitessFlags,
 			TopologyReconciliation: vt.Spec.TopologyReconciliation,
+			TabletRefreshInterval:  vt.Spec.TabletRefreshInterval,
 		},
 	}
 }

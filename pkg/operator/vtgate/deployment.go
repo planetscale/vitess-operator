@@ -265,7 +265,7 @@ func (spec *Spec) baseFlags() vitess.Flags {
 		cellsToWatch = spec.Cell.AllCells
 	}
 
-	return vitess.Flags{
+	flags := vitess.Flags{
 		"cell":                 spec.Cell.Name,
 		"cells_to_watch":       strings.Join(cellsToWatch, ","),
 		"tablet_types_to_wait": tabletTypesToWait,
@@ -288,6 +288,16 @@ func (spec *Spec) baseFlags() vitess.Flags {
 		"port":        planetscalev2.DefaultWebPort,
 		"grpc_port":   planetscalev2.DefaultGrpcPort,
 	}
+
+	// The operator owns --tablet_refresh_interval so it stays consistent with
+	// the tablet-availability gate the VitessShard controller derives from the
+	// same value. It's normally defaulted by DefaultVitessCell; guard nil in
+	// case defaulting hasn't run.
+	if spec.Cell.TabletRefreshInterval != nil {
+		flags["tablet_refresh_interval"] = spec.Cell.TabletRefreshInterval.Duration.String()
+	}
+
+	return flags
 }
 
 func updateAuth(spec *Spec, flags vitess.Flags, container *corev1.Container, podSpec *corev1.PodSpec) {

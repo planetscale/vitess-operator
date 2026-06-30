@@ -16,6 +16,12 @@ limitations under the License.
 
 package v2
 
+import (
+	"time"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
+
 /*
 All hard-coded default values for configurable aspects of objects in our API should go here.
 However, hard-coded values that are not (yet) configurable in the API can live with the code.
@@ -85,11 +91,22 @@ const (
 	defaultBackupMinRetentionCount = 1
 	defaultBackupEngine            = VitessBackupEngineBuiltIn
 
-	// DefaultTabletAvailableSeconds is how long a tablet Pod must be
-	// consistently Ready before it is considered Available. This accounts for
-	// the time it takes for vtgates to discover that the tablet is Ready and
-	// update their routing tables.
-	DefaultTabletAvailableSeconds int32 = 30
+	// DefaultTabletRefreshInterval is how often vtgate refreshes its view of
+	// tablets from the topology service. It matches vtgate's own built-in
+	// default for --tablet_refresh_interval. The operator both applies this to
+	// vtgate and derives the tablet-availability gate from it (see
+	// TabletAvailableSeconds) so the two always stay consistent.
+	DefaultTabletRefreshInterval = time.Minute
+
+	// tabletAvailableRefreshMultiplierNum / tabletAvailableRefreshMultiplierDen
+	// express the safety factor (3/2 = 1.5x) applied to the tablet refresh
+	// interval to compute how long a tablet Pod must be consistently Ready
+	// before the operator considers it Available. The factor leaves headroom
+	// over a full refresh interval for poll jitter across many vtgates: a
+	// tablet that becomes Ready just after a poll isn't rediscovered until the
+	// next one, up to a full interval later.
+	tabletAvailableRefreshMultiplierNum = 3
+	tabletAvailableRefreshMultiplierDen = 2
 
 	// DefaultWebPort is the port for debug status pages and dashboard UIs.
 	DefaultWebPort = 15000
@@ -191,3 +208,22 @@ var (
 	// --default_etcd_image flag.
 	DefaultEtcdImage = "quay.io/coreos/etcd:v3.5.17"
 )
+
+// TabletAvailableSeconds returns how long a tablet Pod must be consistently
+// Ready before the operator treats it as Available, derived from the vtgate
+// tablet refresh interval (interval x 1.5, rounded up). The operator gates
+// rolling restarts on this so it doesn't drain the next tablet before vtgates
+// have rediscovered a previously restarted one. The result is never less than
+// 1 second.
+func TabletAvailableSeconds(refreshInterval metav1.Duration) int32 {
+	seconds := int64(refreshInterval.Duration / time.Second)
+	if seconds < 0 {
+		seconds = 0
+	}
+	// Round up so we never gate for less than the multiplier would suggest.
+	available := (seconds*tabletAvailableRefreshMultiplierNum + tabletAvailableRefreshMultiplierDen - 1) / tabletAvailableRefreshMultiplierDen
+	if available < 1 {
+		available = 1
+	}
+	return int32(available)
+}

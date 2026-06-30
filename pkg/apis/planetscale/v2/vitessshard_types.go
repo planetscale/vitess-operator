@@ -99,8 +99,9 @@ type VitessShardSpec struct {
 	// UpdateStrategy is inherited from the parent's VitessClusterSpec.
 	UpdateStrategy *VitessClusterUpdateStrategy `json:"updateStrategy,omitempty"`
 
-	// TabletAvailableSeconds is inherited from the parent's VitessClusterSpec.
-	TabletAvailableSeconds *int32 `json:"tabletAvailableSeconds,omitempty"`
+	// TabletRefreshInterval is inherited from the parent's VitessClusterSpec.
+	// The operator derives the tablet-availability gate from it.
+	TabletRefreshInterval *metav1.Duration `json:"tabletRefreshInterval,omitempty"`
 }
 
 // VitessShardTemplate contains only the user-specified parts of a VitessShard object.

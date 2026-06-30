@@ -1,5 +1,5 @@
 /*
-Copyright 2024 PlanetScale Inc.
+Copyright 2026 PlanetScale Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -26,11 +26,12 @@ import (
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 )
 
-// TestNewVitessKeyspaceTabletRefreshInterval verifies that the cluster-level
-// TabletRefreshInterval is propagated down to the VitessKeyspace it creates.
-func TestNewVitessKeyspaceTabletRefreshInterval(t *testing.T) {
-	key := client.ObjectKey{Namespace: "test", Name: "cluster1-keyspace1"}
-	keyspace := &planetscalev2.VitessKeyspaceTemplate{Name: "keyspace1"}
+// TestNewVitessCellTabletRefreshInterval verifies that the cluster-level
+// TabletRefreshInterval is propagated down to the VitessCell it creates. The
+// vtgate Deployment reads it from there to set --tablet_refresh_interval.
+func TestNewVitessCellTabletRefreshInterval(t *testing.T) {
+	key := client.ObjectKey{Namespace: "test", Name: "cluster1-cell1"}
+	cell := &planetscalev2.VitessCellTemplate{Name: "cell1"}
 
 	t.Run("propagates explicit value", func(t *testing.T) {
 		vt := &planetscalev2.VitessCluster{
@@ -40,12 +41,12 @@ func TestNewVitessKeyspaceTabletRefreshInterval(t *testing.T) {
 			},
 		}
 
-		vtk := newVitessKeyspace(key, vt, nil, keyspace)
+		vtc := newVitessCell(key, vt, nil, cell)
 
-		if vtk.Spec.TabletRefreshInterval == nil {
+		if vtc.Spec.TabletRefreshInterval == nil {
 			t.Fatal("TabletRefreshInterval = nil, want 40s")
 		}
-		if got := vtk.Spec.TabletRefreshInterval.Duration; got != 40*time.Second {
+		if got := vtc.Spec.TabletRefreshInterval.Duration; got != 40*time.Second {
 			t.Errorf("TabletRefreshInterval = %s, want 40s", got)
 		}
 	})
@@ -57,10 +58,10 @@ func TestNewVitessKeyspaceTabletRefreshInterval(t *testing.T) {
 			},
 		}
 
-		vtk := newVitessKeyspace(key, vt, nil, keyspace)
+		vtc := newVitessCell(key, vt, nil, cell)
 
-		if vtk.Spec.TabletRefreshInterval != nil {
-			t.Errorf("TabletRefreshInterval = %v, want nil", *vtk.Spec.TabletRefreshInterval)
+		if vtc.Spec.TabletRefreshInterval != nil {
+			t.Errorf("TabletRefreshInterval = %v, want nil", *vtc.Spec.TabletRefreshInterval)
 		}
 	})
 }

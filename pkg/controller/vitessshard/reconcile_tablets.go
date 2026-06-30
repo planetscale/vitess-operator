@@ -371,10 +371,10 @@ func isTabletPrimary(ctx context.Context, vts *planetscalev2.VitessShard, tablet
 
 // tabletAvailableStatus reports whether a tablet Pod should be considered
 // Available. A tablet is only Available once it has been consistently Ready for
-// at least vts.Spec.TabletAvailableSeconds. This accounts for the time it takes
-// for vtgates to discover that the tablet is Ready and update their routing
-// tables. If a tablet is Ready but vtgates don't know it yet, then it isn't
-// actually available for serving queries yet.
+// a window derived from the tablet refresh interval (interval x 1.5). This
+// accounts for the time it takes for vtgates to discover that the tablet is
+// Ready and update their routing tables. If a tablet is Ready but vtgates don't
+// know it yet, then it isn't actually available for serving queries yet.
 func tabletAvailableStatus(resultBuilder *results.Builder, vts *planetscalev2.VitessShard, pod *corev1.Pod) corev1.ConditionStatus {
 	// If the Pod is being deleted, we immediately mark it unavailable even
 	// though it might not have transitioned to Unready yet.
@@ -382,13 +382,14 @@ func tabletAvailableStatus(resultBuilder *results.Builder, vts *planetscalev2.Vi
 		return corev1.ConditionFalse
 	}
 
-	// TabletAvailableSeconds is a nillable field inherited from the parent
+	// TabletRefreshInterval is a nillable field inherited from the parent
 	// VitessCluster. It's normally filled in by DefaultVitessShard, but guard
 	// against a nil value to be safe.
-	availableSeconds := planetscalev2.DefaultTabletAvailableSeconds
-	if vts.Spec.TabletAvailableSeconds != nil {
-		availableSeconds = *vts.Spec.TabletAvailableSeconds
+	refreshInterval := metav1.Duration{Duration: planetscalev2.DefaultTabletRefreshInterval}
+	if vts.Spec.TabletRefreshInterval != nil {
+		refreshInterval = *vts.Spec.TabletRefreshInterval
 	}
+	availableSeconds := planetscalev2.TabletAvailableSeconds(refreshInterval)
 
 	// A tablet is Available if it's been consistently Ready for long enough.
 	// Note that this is sensitive to clock skew between us and the k8s primary,

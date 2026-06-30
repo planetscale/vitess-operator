@@ -447,24 +447,28 @@ TopoReconcileConfig
 </tr>
 <tr>
 <td>
-<code>tabletAvailableSeconds</code><br>
+<code>tabletRefreshInterval</code><br>
 <em>
-int32
+<a href="https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#Duration">
+Kubernetes meta/v1.Duration
+</a>
 </em>
 </td>
 <td>
-<p>TabletAvailableSeconds is how long a tablet Pod must be consistently Ready
-before the operator considers it Available and proceeds to the next step
-of a rolling update (such as draining the next tablet). This creates a
-safety buffer that accounts for the time it takes for vtgates to discover
-that the tablet is Ready and update their routing tables. If a tablet is
-Ready but vtgates don&rsquo;t know it yet, then it isn&rsquo;t actually available for
-serving queries.</p>
-<p>This should be set to at least vtgate&rsquo;s &ndash;tablet_refresh_interval (default
-1m) plus a small buffer, otherwise the operator may drain the next tablet
-before vtgates have discovered the previously restarted one, causing
-&ldquo;no healthy tablet available&rdquo; errors during rolling restarts.</p>
-<p>Default: 30</p>
+<p>TabletRefreshInterval is how often vtgate refreshes its view of tablets
+from the topology service. The operator both applies this value to
+vtgate&rsquo;s &ndash;tablet_refresh_interval flag and derives, from the same value,
+how long a restarted tablet must be Ready before it paces the next step
+of a rolling update (the refresh interval x 1.5). This keeps the two in
+sync so the operator never drains the next tablet before vtgates have had
+time to rediscover a previously restarted one, which would otherwise
+cause &ldquo;no healthy tablet available&rdquo; errors during rolling restarts.</p>
+<p>You should not normally need to set this; the default is safe. It exists
+mainly so large clusters can trade a shorter refresh interval (lower
+rolling-restart latency) against more topology-server polling load. Do
+NOT set &ndash;tablet_refresh_interval directly via ExtraVitessFlags or the
+gateway ExtraFlags; that bypasses this coupling and reintroduces the bug.</p>
+<p>Default: 60s</p>
 </td>
 </tr>
 <tr>
@@ -3594,6 +3598,20 @@ TopoReconcileConfig
 <p>TopologyReconciliation is inherited from the parent&rsquo;s VitessClusterSpec.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>tabletRefreshInterval</code><br>
+<em>
+<a href="https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#Duration">
+Kubernetes meta/v1.Duration
+</a>
+</em>
+</td>
+<td>
+<p>TabletRefreshInterval is inherited from the parent&rsquo;s VitessClusterSpec.
+The vtgate Deployment derives its &ndash;tablet_refresh_interval flag from it.</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -4137,6 +4155,20 @@ TopoReconcileConfig
 <p>TopologyReconciliation is inherited from the parent&rsquo;s VitessClusterSpec.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>tabletRefreshInterval</code><br>
+<em>
+<a href="https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#Duration">
+Kubernetes meta/v1.Duration
+</a>
+</em>
+</td>
+<td>
+<p>TabletRefreshInterval is inherited from the parent&rsquo;s VitessClusterSpec.
+The vtgate Deployment derives its &ndash;tablet_refresh_interval flag from it.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="planetscale.com/v2.VitessCellStatus">VitessCellStatus
@@ -4673,24 +4705,28 @@ TopoReconcileConfig
 </tr>
 <tr>
 <td>
-<code>tabletAvailableSeconds</code><br>
+<code>tabletRefreshInterval</code><br>
 <em>
-int32
+<a href="https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#Duration">
+Kubernetes meta/v1.Duration
+</a>
 </em>
 </td>
 <td>
-<p>TabletAvailableSeconds is how long a tablet Pod must be consistently Ready
-before the operator considers it Available and proceeds to the next step
-of a rolling update (such as draining the next tablet). This creates a
-safety buffer that accounts for the time it takes for vtgates to discover
-that the tablet is Ready and update their routing tables. If a tablet is
-Ready but vtgates don&rsquo;t know it yet, then it isn&rsquo;t actually available for
-serving queries.</p>
-<p>This should be set to at least vtgate&rsquo;s &ndash;tablet_refresh_interval (default
-1m) plus a small buffer, otherwise the operator may drain the next tablet
-before vtgates have discovered the previously restarted one, causing
-&ldquo;no healthy tablet available&rdquo; errors during rolling restarts.</p>
-<p>Default: 30</p>
+<p>TabletRefreshInterval is how often vtgate refreshes its view of tablets
+from the topology service. The operator both applies this value to
+vtgate&rsquo;s &ndash;tablet_refresh_interval flag and derives, from the same value,
+how long a restarted tablet must be Ready before it paces the next step
+of a rolling update (the refresh interval x 1.5). This keeps the two in
+sync so the operator never drains the next tablet before vtgates have had
+time to rediscover a previously restarted one, which would otherwise
+cause &ldquo;no healthy tablet available&rdquo; errors during rolling restarts.</p>
+<p>You should not normally need to set this; the default is safe. It exists
+mainly so large clusters can trade a shorter refresh interval (lower
+rolling-restart latency) against more topology-server polling load. Do
+NOT set &ndash;tablet_refresh_interval directly via ExtraVitessFlags or the
+gateway ExtraFlags; that bypasses this coupling and reintroduces the bug.</p>
+<p>Default: 60s</p>
 </td>
 </tr>
 <tr>
@@ -5846,13 +5882,15 @@ VitessClusterUpdateStrategy
 </tr>
 <tr>
 <td>
-<code>tabletAvailableSeconds</code><br>
+<code>tabletRefreshInterval</code><br>
 <em>
-int32
+<a href="https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#Duration">
+Kubernetes meta/v1.Duration
+</a>
 </em>
 </td>
 <td>
-<p>TabletAvailableSeconds is inherited from the parent&rsquo;s VitessClusterSpec.</p>
+<p>TabletRefreshInterval is inherited from the parent&rsquo;s VitessClusterSpec.</p>
 </td>
 </tr>
 </table>
@@ -6663,13 +6701,15 @@ VitessClusterUpdateStrategy
 </tr>
 <tr>
 <td>
-<code>tabletAvailableSeconds</code><br>
+<code>tabletRefreshInterval</code><br>
 <em>
-int32
+<a href="https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#Duration">
+Kubernetes meta/v1.Duration
+</a>
 </em>
 </td>
 <td>
-<p>TabletAvailableSeconds is inherited from the parent&rsquo;s VitessClusterSpec.</p>
+<p>TabletRefreshInterval is inherited from the parent&rsquo;s VitessClusterSpec.</p>
 </td>
 </tr>
 </tbody>
@@ -7665,13 +7705,16 @@ VitessClusterUpdateStrategy
 </tr>
 <tr>
 <td>
-<code>tabletAvailableSeconds</code><br>
+<code>tabletRefreshInterval</code><br>
 <em>
-int32
+<a href="https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#Duration">
+Kubernetes meta/v1.Duration
+</a>
 </em>
 </td>
 <td>
-<p>TabletAvailableSeconds is inherited from the parent&rsquo;s VitessClusterSpec.</p>
+<p>TabletRefreshInterval is inherited from the parent&rsquo;s VitessClusterSpec.
+The operator derives the tablet-availability gate from it.</p>
 </td>
 </tr>
 </table>
@@ -7985,13 +8028,16 @@ VitessClusterUpdateStrategy
 </tr>
 <tr>
 <td>
-<code>tabletAvailableSeconds</code><br>
+<code>tabletRefreshInterval</code><br>
 <em>
-int32
+<a href="https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#Duration">
+Kubernetes meta/v1.Duration
+</a>
 </em>
 </td>
 <td>
-<p>TabletAvailableSeconds is inherited from the parent&rsquo;s VitessClusterSpec.</p>
+<p>TabletRefreshInterval is inherited from the parent&rsquo;s VitessClusterSpec.
+The operator derives the tablet-availability gate from it.</p>
 </td>
 </tr>
 </tbody>

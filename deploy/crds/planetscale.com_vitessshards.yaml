@@ -252,9 +252,6 @@ spec:
                   recoverRestartedMaster:
                     type: boolean
                 type: object
-              tabletAvailableSeconds:
-                format: int32
-                type: integer
               tabletPools:
                 items:
                   properties:
@@ -678,6 +675,8 @@ spec:
                 - cell
                 - name
                 x-kubernetes-list-type: map
+              tabletRefreshInterval:
+                type: string
               topologyReconciliation:
                 properties:
                   pruneCells:

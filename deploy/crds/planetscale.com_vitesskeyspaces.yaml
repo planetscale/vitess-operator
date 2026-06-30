@@ -1174,9 +1174,8 @@ spec:
                 type: array
               sidecarDbName:
                 type: string
-              tabletAvailableSeconds:
-                format: int32
-                type: integer
+              tabletRefreshInterval:
+                type: string
               topologyReconciliation:
                 properties:
                   pruneCells:
