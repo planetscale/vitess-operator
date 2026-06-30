@@ -8202,6 +8202,24 @@ is set on the StorageClass specified in the storageClassName field here.</p>
 </tr>
 <tr>
 <td>
+<code>vtbackup</code><br>
+<em>
+<a href="#planetscale.com/v2.VitessShardTabletPoolVtbackup">
+VitessShardTabletPoolVtbackup
+</a>
+</em>
+</td>
+<td>
+<p>Vtbackup can optionally be used to override aspects of the vtbackup Pods
+the operator creates for this pool, so they don&rsquo;t have to match the
+tablet Pods they are derived from. This applies to both the initial
+backup taken at shard creation and any periodic/scheduled backups.</p>
+<p>When omitted, vtbackup Pods inherit the pool&rsquo;s settings (including
+DataVolumeClaimTemplate), which is the historical behavior.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>backupLocationName</code><br>
 <em>
 string
@@ -8411,6 +8429,50 @@ that run alongside the main containers.</p>
 <td>
 <p>TopologySpreadConstraint can optionally be used to
 specify how to spread vttablet pods among the given topology</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="planetscale.com/v2.VitessShardTabletPoolVtbackup">VitessShardTabletPoolVtbackup
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#planetscale.com/v2.VitessShardTabletPool">VitessShardTabletPool</a>)
+</p>
+<p>
+<p>VitessShardTabletPoolVtbackup configures overrides for the vtbackup Pods the
+operator creates for a tablet pool. vtbackup Pods are short-lived batch jobs
+that take and prune backups, so they often don&rsquo;t need the same persistent
+storage as the tablets they are derived from.</p>
+</p>
+<table class="table table-striped">
+<thead class="thead-dark">
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>dataVolumeClaimTemplate</code><br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#persistentvolumeclaimspec-v1-core">
+Kubernetes core/v1.PersistentVolumeClaimSpec
+</a>
+</em>
+</td>
+<td>
+<p>DataVolumeClaimTemplate overrides the PersistentVolumeClaim that vtbackup
+Pods use for scratch space while taking or restoring a backup.</p>
+<p>When the surrounding vtbackup block is present but this field is omitted,
+vtbackup Pods run with no PersistentVolumeClaim at all and use ephemeral
+(emptyDir) scratch space instead. This is useful for the initial,
+empty-database backup taken at shard creation, which does not need a large
+persistent disk; it lets large clusters avoid allocating a PVC (and the
+underlying disk) per shard just to bootstrap.</p>
+<p>When the whole vtbackup block is omitted, vtbackup Pods inherit the pool&rsquo;s
+DataVolumeClaimTemplate, which is the historical behavior.</p>
 </td>
 </tr>
 </tbody>

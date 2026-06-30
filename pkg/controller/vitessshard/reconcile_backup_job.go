@@ -214,6 +214,17 @@ func vtbackupSpec(key client.ObjectKey, vts *planetscalev2.VitessShard, parentLa
 	update.Annotations(&annotations, pool.Annotations)
 	update.Annotations(&annotations, backupLocation.Annotations)
 
+	// By default, vtbackup Pods inherit the pool's data volume. A pool-level
+	// vtbackup override can replace that template or remove it entirely: when
+	// the override block is present but its DataVolumeClaimTemplate is nil,
+	// vtbackup Pods run with no PVC and fall back to ephemeral (emptyDir)
+	// scratch space. A nil DataVolumePVCSpec downstream means "no PVC", so no
+	// PVC is reconciled for the Pod (see reconcile loop above).
+	dataVolumeClaimTemplate := pool.DataVolumeClaimTemplate
+	if pool.Vtbackup != nil {
+		dataVolumeClaimTemplate = pool.Vtbackup.DataVolumeClaimTemplate
+	}
+
 	// Fill in the parts of a vttablet spec that make sense for vtbackup.
 	tabletSpec := &vttablet.Spec{
 		GlobalLockserver:         vts.Spec.GlobalLockserver,
@@ -224,7 +235,7 @@ func vtbackupSpec(key client.ObjectKey, vts *planetscalev2.VitessShard, parentLa
 		Mysqld:                   pool.Mysqld,
 		MysqldExporter:           pool.MysqldExporter,
 		DataVolumePVCName:        key.Name,
-		DataVolumePVCSpec:        pool.DataVolumeClaimTemplate,
+		DataVolumePVCSpec:        dataVolumeClaimTemplate,
 		KeyspaceName:             keyspaceName,
 		DatabaseName:             vts.Spec.DatabaseName,
 		DatabaseInitScriptSecret: vts.Spec.DatabaseInitScriptSecret,

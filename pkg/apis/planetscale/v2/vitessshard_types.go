@@ -195,6 +195,15 @@ type VitessShardTabletPool struct {
 	// is set on the StorageClass specified in the storageClassName field here.
 	DataVolumeClaimTemplate *corev1.PersistentVolumeClaimSpec `json:"dataVolumeClaimTemplate,omitempty"`
 
+	// Vtbackup can optionally be used to override aspects of the vtbackup Pods
+	// the operator creates for this pool, so they don't have to match the
+	// tablet Pods they are derived from. This applies to both the initial
+	// backup taken at shard creation and any periodic/scheduled backups.
+	//
+	// When omitted, vtbackup Pods inherit the pool's settings (including
+	// DataVolumeClaimTemplate), which is the historical behavior.
+	Vtbackup *VitessShardTabletPoolVtbackup `json:"vtbackup,omitempty"`
+
 	// BackupLocationName is the name of the backup location to use for this
 	// tablet pool. It must match the name of one of the backup locations
 	// defined in the VitessCluster.
@@ -275,6 +284,26 @@ type VitessShardTabletPool struct {
 	// +kubebuilder:validation:Schemaless
 	// +kubebuilder:pruning:PreserveUnknownFields
 	TopologySpreadConstraints []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty"`
+}
+
+// VitessShardTabletPoolVtbackup configures overrides for the vtbackup Pods the
+// operator creates for a tablet pool. vtbackup Pods are short-lived batch jobs
+// that take and prune backups, so they often don't need the same persistent
+// storage as the tablets they are derived from.
+type VitessShardTabletPoolVtbackup struct {
+	// DataVolumeClaimTemplate overrides the PersistentVolumeClaim that vtbackup
+	// Pods use for scratch space while taking or restoring a backup.
+	//
+	// When the surrounding vtbackup block is present but this field is omitted,
+	// vtbackup Pods run with no PersistentVolumeClaim at all and use ephemeral
+	// (emptyDir) scratch space instead. This is useful for the initial,
+	// empty-database backup taken at shard creation, which does not need a large
+	// persistent disk; it lets large clusters avoid allocating a PVC (and the
+	// underlying disk) per shard just to bootstrap.
+	//
+	// When the whole vtbackup block is omitted, vtbackup Pods inherit the pool's
+	// DataVolumeClaimTemplate, which is the historical behavior.
+	DataVolumeClaimTemplate *corev1.PersistentVolumeClaimSpec `json:"dataVolumeClaimTemplate,omitempty"`
 }
 
 // VttabletSpec configures the vttablet server within a tablet.
