@@ -82,7 +82,7 @@ type VitessCellSpec struct {
 	TopologyReconciliation *TopoReconcileConfig `json:"topologyReconciliation,omitempty"`
 
 	// TabletRefreshInterval is inherited from the parent's VitessClusterSpec.
-	// The vtgate Deployment derives its --tablet_refresh_interval flag from it.
+	// The vtgate Deployment derives its --tablet-refresh-interval flag from it.
 	TabletRefreshInterval *metav1.Duration `json:"tabletRefreshInterval,omitempty"`
 }
 

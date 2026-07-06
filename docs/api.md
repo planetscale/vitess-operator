@@ -3609,7 +3609,7 @@ Kubernetes meta/v1.Duration
 </td>
 <td>
 <p>TabletRefreshInterval is inherited from the parent&rsquo;s VitessClusterSpec.
-The vtgate Deployment derives its &ndash;tablet_refresh_interval flag from it.</p>
+The vtgate Deployment derives its &ndash;tablet-refresh-interval flag from it.</p>
 </td>
 </tr>
 </table>
@@ -4166,7 +4166,7 @@ Kubernetes meta/v1.Duration
 </td>
 <td>
 <p>TabletRefreshInterval is inherited from the parent&rsquo;s VitessClusterSpec.
-The vtgate Deployment derives its &ndash;tablet_refresh_interval flag from it.</p>
+The vtgate Deployment derives its &ndash;tablet-refresh-interval flag from it.</p>
 </td>
 </tr>
 </tbody>
