@@ -385,7 +385,7 @@ func tabletAvailableStatus(resultBuilder *results.Builder, vts *planetscalev2.Vi
 	// TabletRefreshInterval is a nillable field inherited from the parent
 	// VitessCluster. It's normally filled in by DefaultVitessShard, but guard
 	// against a nil value to be safe.
-	refreshInterval := metav1.Duration{Duration: planetscalev2.DefaultTabletRefreshInterval}
+	refreshInterval := metav1.Duration{Duration: time.Minute}
 	if vts.Spec.TabletRefreshInterval != nil {
 		refreshInterval = *vts.Spec.TabletRefreshInterval
 	}
@@ -399,11 +399,21 @@ func tabletAvailableStatus(resultBuilder *results.Builder, vts *planetscalev2.Vi
 		return corev1.ConditionTrue
 	}
 
-	// The Pod is Ready now, but it hasn't been Ready for long enough to
-	// consider it Available. We need to request a manual requeue to check again
-	// later because we're just waiting for time to pass; we don't expect
-	// anything in the Pod status to change and trigger a watch event.
-	resultBuilder.RequeueAfter(time.Duration(availableSeconds) * time.Second)
+	// The Pod is Ready but hasn't been Ready long enough yet. Requeue for the
+	// remaining window (not the full window) so we don't add unnecessary delay
+	// when the pod is almost eligible. For example: if a pod has been Ready for
+	// 119s of a 120s window, requeue in 1s, not 120s.
+	window := time.Duration(availableSeconds) * time.Second
+	remaining := window
+	for _, c := range pod.Status.Conditions {
+		if c.Type == corev1.PodReady && c.Status == corev1.ConditionTrue && !c.LastTransitionTime.IsZero() {
+			if r := window - time.Since(c.LastTransitionTime.Time); r > 0 {
+				remaining = r
+			}
+			break
+		}
+	}
+	resultBuilder.RequeueAfter(remaining)
 	return corev1.ConditionFalse
 }
 

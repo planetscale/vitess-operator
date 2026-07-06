@@ -29,9 +29,9 @@ func TestTabletAvailableSeconds(t *testing.T) {
 		refresh time.Duration
 		want    int32
 	}{
-		{"vtgate default 60s -> 90", time.Minute, 90},
-		{"30s -> 45", 30 * time.Second, 45},
-		{"25s -> 38 (rounds up)", 25 * time.Second, 38},
+		{"vtgate default 60s -> 120", time.Minute, 120},
+		{"30s -> 60", 30 * time.Second, 60},
+		{"25s -> 50", 25 * time.Second, 50},
 		{"1s -> 2", time.Second, 2},
 		{"sub-second floors then clamps to 1", 500 * time.Millisecond, 1},
 		{"zero clamps to 1", 0, 1},
@@ -53,10 +53,10 @@ func TestDefaultTabletRefreshIntervalOnShard(t *testing.T) {
 		DefaultVitessShard(vts)
 
 		if vts.Spec.TabletRefreshInterval == nil {
-			t.Fatalf("TabletRefreshInterval = nil, want default %s", DefaultTabletRefreshInterval)
+			t.Fatalf("TabletRefreshInterval = nil, want default %s", defaultTabletRefreshInterval)
 		}
-		if got := vts.Spec.TabletRefreshInterval.Duration; got != DefaultTabletRefreshInterval {
-			t.Errorf("TabletRefreshInterval = %s, want %s", got, DefaultTabletRefreshInterval)
+		if got := vts.Spec.TabletRefreshInterval.Duration; got != defaultTabletRefreshInterval {
+			t.Errorf("TabletRefreshInterval = %s, want %s", got, defaultTabletRefreshInterval)
 		}
 	})
 
@@ -79,9 +79,9 @@ func TestDefaultTabletRefreshIntervalOnCell(t *testing.T) {
 	DefaultVitessCell(vtc)
 
 	if vtc.Spec.TabletRefreshInterval == nil {
-		t.Fatalf("TabletRefreshInterval = nil, want default %s", DefaultTabletRefreshInterval)
+		t.Fatalf("TabletRefreshInterval = nil, want default %s", defaultTabletRefreshInterval)
 	}
-	if got := vtc.Spec.TabletRefreshInterval.Duration; got != DefaultTabletRefreshInterval {
-		t.Errorf("TabletRefreshInterval = %s, want %s", got, DefaultTabletRefreshInterval)
+	if got := vtc.Spec.TabletRefreshInterval.Duration; got != defaultTabletRefreshInterval {
+		t.Errorf("TabletRefreshInterval = %s, want %s", got, defaultTabletRefreshInterval)
 	}
 }

@@ -18,7 +18,6 @@ package v2
 
 import (
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/utils/ptr"
 )
@@ -28,9 +27,7 @@ func DefaultVitessCell(vtc *VitessCell) {
 	DefaultLocalLockserver(&vtc.Spec.Lockserver)
 	DefaultVitessGateway(&vtc.Spec.Gateway)
 	DefaultTopoReconcileConfig(&vtc.Spec.TopologyReconciliation)
-	if vtc.Spec.TabletRefreshInterval == nil {
-		vtc.Spec.TabletRefreshInterval = &metav1.Duration{Duration: DefaultTabletRefreshInterval}
-	}
+	DefaultTabletRefreshInterval(&vtc.Spec.TabletRefreshInterval)
 }
 
 func DefaultLocalLockserver(ls *LockserverSpec) {

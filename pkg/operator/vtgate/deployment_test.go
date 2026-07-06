@@ -33,17 +33,17 @@ func TestBaseFlagsTabletRefreshInterval(t *testing.T) {
 			},
 		}
 
-		got := spec.baseFlags()["tablet_refresh_interval"]
+		got := spec.baseFlags()["tablet-refresh-interval"]
 		if got != "40s" {
-			t.Errorf("tablet_refresh_interval = %v, want 40s", got)
+			t.Errorf("tablet-refresh-interval = %v, want 40s", got)
 		}
 	})
 
 	t.Run("omits flag when cell value is nil", func(t *testing.T) {
 		spec := &Spec{Cell: &planetscalev2.VitessCellSpec{}}
 
-		if _, ok := spec.baseFlags()["tablet_refresh_interval"]; ok {
-			t.Error("tablet_refresh_interval should be absent when unset, letting vtgate use its own default")
+		if _, ok := spec.baseFlags()["tablet-refresh-interval"]; ok {
+			t.Error("tablet-refresh-interval should be absent when unset, letting vtgate use its own default")
 		}
 	})
 }

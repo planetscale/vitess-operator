@@ -17,7 +17,6 @@ limitations under the License.
 package v2
 
 import (
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/ptr"
 )
 
@@ -28,9 +27,7 @@ import (
 func DefaultVitessShard(dst *VitessShard) {
 	DefaultUpdateStrategy(&dst.Spec.UpdateStrategy)
 	DefaultTopoReconcileConfig(&dst.Spec.TopologyReconciliation)
-	if dst.Spec.TabletRefreshInterval == nil {
-		dst.Spec.TabletRefreshInterval = &metav1.Duration{Duration: DefaultTabletRefreshInterval}
-	}
+	DefaultTabletRefreshInterval(&dst.Spec.TabletRefreshInterval)
 	DefaultVitessShardTemplate(&dst.Spec.VitessShardTemplate)
 }
 

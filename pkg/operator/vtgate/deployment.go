@@ -289,12 +289,12 @@ func (spec *Spec) baseFlags() vitess.Flags {
 		"grpc_port":   planetscalev2.DefaultGrpcPort,
 	}
 
-	// The operator owns --tablet_refresh_interval so it stays consistent with
+	// The operator owns --tablet-refresh-interval so it stays consistent with
 	// the tablet-availability gate the VitessShard controller derives from the
 	// same value. It's normally defaulted by DefaultVitessCell; guard nil in
 	// case defaulting hasn't run.
 	if spec.Cell.TabletRefreshInterval != nil {
-		flags["tablet_refresh_interval"] = spec.Cell.TabletRefreshInterval.Duration.String()
+		flags["tablet-refresh-interval"] = spec.Cell.TabletRefreshInterval.Duration.String()
 	}
 
 	return flags

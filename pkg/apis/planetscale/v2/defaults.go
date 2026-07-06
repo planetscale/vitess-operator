@@ -91,22 +91,19 @@ const (
 	defaultBackupMinRetentionCount = 1
 	defaultBackupEngine            = VitessBackupEngineBuiltIn
 
-	// DefaultTabletRefreshInterval is how often vtgate refreshes its view of
+	// defaultTabletRefreshInterval is how often vtgate refreshes its view of
 	// tablets from the topology service. It matches vtgate's own built-in
-	// default for --tablet_refresh_interval. The operator both applies this to
+	// default for --tablet-refresh-interval. The operator both applies this to
 	// vtgate and derives the tablet-availability gate from it (see
 	// TabletAvailableSeconds) so the two always stay consistent.
-	DefaultTabletRefreshInterval = time.Minute
+	defaultTabletRefreshInterval = time.Minute
 
-	// tabletAvailableRefreshMultiplierNum / tabletAvailableRefreshMultiplierDen
-	// express the safety factor (3/2 = 1.5x) applied to the tablet refresh
-	// interval to compute how long a tablet Pod must be consistently Ready
-	// before the operator considers it Available. The factor leaves headroom
-	// over a full refresh interval for poll jitter across many vtgates: a
-	// tablet that becomes Ready just after a poll isn't rediscovered until the
-	// next one, up to a full interval later.
-	tabletAvailableRefreshMultiplierNum = 3
-	tabletAvailableRefreshMultiplierDen = 2
+	// tabletAvailableRefreshMultiplier is the safety factor (2x) applied to
+	// the tablet refresh interval to compute how long a tablet Pod must be
+	// consistently Ready before the operator considers it Available. A factor
+	// of 2 guarantees that every vtgate has had at least one full refresh cycle
+	// to rediscover the tablet after it becomes Ready.
+	tabletAvailableRefreshMultiplier = 2
 
 	// DefaultWebPort is the port for debug status pages and dashboard UIs.
 	DefaultWebPort = 15000
@@ -211,19 +208,26 @@ var (
 
 // TabletAvailableSeconds returns how long a tablet Pod must be consistently
 // Ready before the operator treats it as Available, derived from the vtgate
-// tablet refresh interval (interval x 1.5, rounded up). The operator gates
-// rolling restarts on this so it doesn't drain the next tablet before vtgates
-// have rediscovered a previously restarted one. The result is never less than
-// 1 second.
+// tablet refresh interval (interval x 2). The operator gates rolling restarts
+// on this so it doesn't drain the next tablet before vtgates have rediscovered
+// a previously restarted one. The result is never less than 1 second.
 func TabletAvailableSeconds(refreshInterval metav1.Duration) int32 {
 	seconds := int64(refreshInterval.Duration / time.Second)
 	if seconds < 0 {
 		seconds = 0
 	}
-	// Round up so we never gate for less than the multiplier would suggest.
-	available := (seconds*tabletAvailableRefreshMultiplierNum + tabletAvailableRefreshMultiplierDen - 1) / tabletAvailableRefreshMultiplierDen
+	available := seconds * tabletAvailableRefreshMultiplier
 	if available < 1 {
 		available = 1
 	}
 	return int32(available)
+}
+
+// DefaultTabletRefreshInterval sets the default tablet refresh interval on a
+// *metav1.Duration pointer if it is nil. It follows the same pattern as other
+// Default* functions in this package so callers can delegate nil-handling.
+func DefaultTabletRefreshInterval(intervalPtr **metav1.Duration) {
+	if *intervalPtr == nil {
+		*intervalPtr = &metav1.Duration{Duration: defaultTabletRefreshInterval}
+	}
 }

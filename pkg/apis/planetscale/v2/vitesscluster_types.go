@@ -118,9 +118,9 @@ type VitessClusterSpec struct {
 
 	// TabletRefreshInterval is how often vtgate refreshes its view of tablets
 	// from the topology service. The operator both applies this value to
-	// vtgate's --tablet_refresh_interval flag and derives, from the same value,
+	// vtgate's --tablet-refresh-interval flag and derives, from the same value,
 	// how long a restarted tablet must be Ready before it paces the next step
-	// of a rolling update (the refresh interval x 1.5). This keeps the two in
+	// of a rolling update (the refresh interval x 2). This keeps the two in
 	// sync so the operator never drains the next tablet before vtgates have had
 	// time to rediscover a previously restarted one, which would otherwise
 	// cause "no healthy tablet available" errors during rolling restarts.
@@ -128,7 +128,7 @@ type VitessClusterSpec struct {
 	// You should not normally need to set this; the default is safe. It exists
 	// mainly so large clusters can trade a shorter refresh interval (lower
 	// rolling-restart latency) against more topology-server polling load. Do
-	// NOT set --tablet_refresh_interval directly via ExtraVitessFlags or the
+	// NOT set --tablet-refresh-interval directly via ExtraVitessFlags or the
 	// gateway ExtraFlags; that bypasses this coupling and reintroduces the bug.
 	//
 	// Default: 60s
