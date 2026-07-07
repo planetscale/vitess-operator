@@ -127,9 +127,11 @@ type VitessClusterSpec struct {
 	//
 	// You should not normally need to set this; the default is safe. It exists
 	// mainly so large clusters can trade a shorter refresh interval (lower
-	// rolling-restart latency) against more topology-server polling load. Do
-	// NOT set --tablet-refresh-interval directly via ExtraVitessFlags or the
-	// gateway ExtraFlags; that bypasses this coupling and reintroduces the bug.
+	// rolling-restart latency) against more topology-server polling load.
+	// This field is the only supported way to change the interval: the
+	// operator ignores tablet-refresh-interval (in either flag spelling) in
+	// ExtraVitessFlags and the gateway ExtraFlags, since overriding it there
+	// would bypass this coupling and reintroduce the bug.
 	//
 	// Default: 60s
 	TabletRefreshInterval *metav1.Duration `json:"tabletRefreshInterval,omitempty"`

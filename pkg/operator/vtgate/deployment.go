@@ -232,12 +232,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec, mysqldImage string) {
 	update.Volumes(&obj.Spec.Template.Spec.Volumes, spec.ExtraVolumes)
 
 	// Apply user-provided overrides last so they take precedence.
-	for key, value := range spec.ExtraFlags {
-		// We told users in the CRD API field doc not to put any leading '-',
-		// but people may not read that so we are liberal in what we accept.
-		key = strings.TrimLeft(key, "-")
-		flags[key] = value
-	}
+	applyExtraFlags(flags, spec.ExtraFlags)
 	// Write out the final flags list.
 	vtgateContainer.Args = flags.FormatArgs()
 
@@ -298,6 +293,25 @@ func (spec *Spec) baseFlags() vitess.Flags {
 	}
 
 	return flags
+}
+
+// applyExtraFlags overlays user-provided flags on top of the operator-computed
+// ones, so user values normally take precedence.
+func applyExtraFlags(flags vitess.Flags, extraFlags map[string]string) {
+	for key, value := range extraFlags {
+		// We told users in the CRD API field doc not to put any leading '-',
+		// but people may not read that so we are liberal in what we accept.
+		key = strings.TrimLeft(key, "-")
+		// The operator owns tablet-refresh-interval to keep vtgate consistent
+		// with the tablet-availability gate the VitessShard controller derives
+		// from the same value (see baseFlags). Ignore user overrides in either
+		// flag spelling so the two can't drift apart; the supported knob is
+		// the VitessCluster tabletRefreshInterval field.
+		if key == "tablet-refresh-interval" || key == "tablet_refresh_interval" {
+			continue
+		}
+		flags[key] = value
+	}
 }
 
 func updateAuth(spec *Spec, flags vitess.Flags, container *corev1.Container, podSpec *corev1.PodSpec) {

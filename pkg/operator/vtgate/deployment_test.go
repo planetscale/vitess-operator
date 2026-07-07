@@ -47,3 +47,34 @@ func TestBaseFlagsTabletRefreshInterval(t *testing.T) {
 		}
 	})
 }
+
+func TestApplyExtraFlagsIgnoresTabletRefreshInterval(t *testing.T) {
+	// The operator owns tablet-refresh-interval to keep it coupled to the
+	// tablet-availability gate, so extra flags must not override it in
+	// either spelling.
+	for _, spelling := range []string{"tablet-refresh-interval", "tablet_refresh_interval", "--tablet-refresh-interval"} {
+		t.Run(spelling, func(t *testing.T) {
+			spec := &Spec{
+				Cell: &planetscalev2.VitessCellSpec{
+					TabletRefreshInterval: &metav1.Duration{Duration: 40 * time.Second},
+				},
+			}
+			flags := spec.baseFlags()
+
+			applyExtraFlags(flags, map[string]string{
+				spelling:     "5s",
+				"other-flag": "kept",
+			})
+
+			if got := flags["tablet-refresh-interval"]; got != "40s" {
+				t.Errorf("tablet-refresh-interval = %v, want 40s (extra flag %q must not override it)", got, spelling)
+			}
+			if _, ok := flags["tablet_refresh_interval"]; ok {
+				t.Errorf("extra flag %q must not introduce the underscore alias as a second flag", spelling)
+			}
+			if got := flags["other-flag"]; got != "kept" {
+				t.Errorf("other-flag = %v, want kept (unrelated extra flags must still apply)", got)
+			}
+		})
+	}
+}

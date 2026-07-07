@@ -217,7 +217,7 @@ func verifyBasicVitessCell(f *framework.Fixture, ns, cluster, cell string) {
 	f.MustGet(ns, names.JoinWithConstraints(names.DefaultConstraints, cluster, cell, "vtgate"), &dep)
 
 	// tabletRefreshInterval set on the VitessCluster should be applied to
-	// vtgate's --tablet_refresh_interval flag, keeping it consistent with the
+	// vtgate's --tablet-refresh-interval flag, keeping it consistent with the
 	// availability gate the VitessShard controller derives from the same value.
 	var vtgateArgs []string
 	for _, c := range dep.Spec.Template.Spec.Containers {
@@ -226,8 +226,8 @@ func verifyBasicVitessCell(f *framework.Fixture, ns, cluster, cell string) {
 			break
 		}
 	}
-	require.Contains(f.T, strings.Join(vtgateArgs, " "), "--tablet_refresh_interval=40s",
-		"vtgate %s missing derived --tablet_refresh_interval. Args: %v", cell, vtgateArgs)
+	require.Contains(f.T, strings.Join(vtgateArgs, " "), "--tablet-refresh-interval=40s",
+		"vtgate %s missing derived --tablet-refresh-interval. Args: %v", cell, vtgateArgs)
 }
 
 func verifyBasicVitessKeyspace(f *framework.Fixture, ns, cluster, keyspace string) {
