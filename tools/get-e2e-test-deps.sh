@@ -25,8 +25,8 @@ mkdir -p "${DIR}/_bin"
 cd "${DIR}/_bin"
 
 KIND_BINARY_VERSION="v0.30.0"
-VITESS_VERSION="21.0.0-rc1"
-VITESS_FILE="vitess-${VITESS_VERSION}-7908b43.tar.gz"
+VITESS_VERSION="24.0.0-rc1"
+VITESS_FILE="vitess-${VITESS_VERSION}-4d416bb.tar.gz"
 
 case "${PLATFORM}" in
     linux-amd64)
@@ -43,7 +43,7 @@ case "${PLATFORM}" in
         ;;
 esac
 # Vitess only publishes a linux-amd64 release tarball.
-VITESS_SHA256="fd235436a7cdb8388fed5efc480da559a12ce8e9a2223c6cbfc0ac219ba50574"
+VITESS_SHA256="b03ae826746190b4d36f678be00121144354f23ad8528f99c2ad91d5f4560ee7"
 
 # Download kubectl if needed.
 install_kubectl
