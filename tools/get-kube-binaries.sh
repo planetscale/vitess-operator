@@ -12,7 +12,7 @@ set -euo pipefail
 source "${BASH_SOURCE%/*}/install-kubectl.sh"
 
 # This is the kube-apiserver version to test against.
-KUBE_VERSION="${KUBE_VERSION:-v1.34.1}"
+KUBE_VERSION="${KUBECTL_VERSION}"
 
 # This should be the etcd version downloaded by kubernetes/hack/lib/etcd.sh
 # as of the above Kubernetes version.
