@@ -1,0 +1,76 @@
+name: end-to-end-test
+
+on:
+  push:
+    branches:
+      - main
+      - release-**
+
+  pull_request:
+    branches:
+      - main
+      - release-**
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: ${{ matrix.name }}
+    runs-on: vitess-operator-runner
+    timeout-minutes: ${{ matrix.timeout_minutes || 20 }}
+
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}-${{ matrix.make_target }}
+      cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+    strategy:
+      fail-fast: false
+
+      matrix:
+        include:
+          - name: Upgrade Test
+            make_target: upgrade-test
+            timeout_minutes: 30
+
+          - name: Backup Restore Test
+            make_target: backup-restore-test
+
+          - name: Backup Schedule Cluster/Keyspace Scope Test
+            make_target: backup-schedule-keyspace-test
+
+          - name: Backup Schedule Test
+            make_target: backup-schedule-test
+
+          - name: Backup Schedule vtctldclient Method Test
+            make_target: backup-schedule-vtctldclient-test
+
+          - name: VTOrc and VTAdmin Test
+            make_target: vtorc-vtadmin-test
+            extra_packages: chromium-browser
+
+          - name: Unmanaged Tablet Test
+            make_target: unmanaged-tablet-test
+
+          - name: HPA Test
+            make_target: hpa-test
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+
+      - name: Cache test binaries
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: tools/_bin
+          key: e2e-deps-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('tools/get-e2e-test-deps.sh', 'tools/install-kubectl.sh') }}
+
+      - name: Install test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends mysql-client ${{ matrix.extra_packages }}
+
+      - name: Run ${{ matrix.name }}
+        run: make ${{ matrix.make_target }}
