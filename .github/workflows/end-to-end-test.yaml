@@ -18,7 +18,10 @@ jobs:
   test:
     name: ${{ matrix.name }}
     runs-on: vitess-operator-runner
-    timeout-minutes: ${{ matrix.timeout_minutes || 20 }}
+    # Must exceed checkPodStatusWithTimeout's 20-minute wait in
+    # test/endtoend/utils.sh, so a stuck pod fails the test (with diagnostics)
+    # before GitHub kills the job.
+    timeout-minutes: ${{ matrix.timeout_minutes || 25 }}
 
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}-${{ matrix.make_target }}
@@ -31,7 +34,7 @@ jobs:
         include:
           - name: Upgrade Test
             make_target: upgrade-test
-            timeout_minutes: 30
+            timeout_minutes: 35
 
           - name: Backup Restore Test
             make_target: backup-restore-test
@@ -74,3 +77,13 @@ jobs:
 
       - name: Run ${{ matrix.name }}
         run: make ${{ matrix.make_target }}
+
+      - name: Dump cluster state on failure
+        if: failure()
+        run: |
+          export PATH="$PWD/tools/_bin:$PATH"
+          kubectl get pods -A -o wide || true
+          kubectl get events -A --sort-by=.lastTimestamp | tail -40 || true
+          kubectl describe pods -n example || true
+          kubectl logs -n example -l app=vitess-operator --tail=100 || true
+          docker ps -a || true
