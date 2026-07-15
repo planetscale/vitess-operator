@@ -107,5 +107,10 @@ jobs:
           kubectl get pods -A -o wide || true
           kubectl get events -A --sort-by=.lastTimestamp | tail -40 || true
           kubectl describe pods -n example || true
-          kubectl logs -n example -l app=vitess-operator --tail=100 || true
+          kubectl logs -n default -l app=vitess-operator --tail=100 || true
+          kubectl get pods -n example -o name | while read -r pod; do
+            echo "=== ${pod} logs ==="
+            kubectl logs -n example "${pod}" --all-containers --tail=50 || true
+            kubectl logs -n example "${pod}" --all-containers --tail=50 --previous 2>/dev/null || true
+          done
           docker ps -a || true
