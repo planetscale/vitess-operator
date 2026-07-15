@@ -6,7 +6,11 @@
 # set -x
 shopt -s expand_aliases
 alias vtctldclient="vtctldclient --server=localhost:15999"
-KIND_CLUSTER_NAME="${KIND_CLUSTER_NAME:-vitess-operator}"
+# The kind node (and thus the static kube-system pods) embed this name, so it
+# must not match any pod regex passed to checkPodStatusWithTimeout — e.g. a
+# cluster named "vitess-operator" makes kube-apiserver-vitess-operator-...
+# count as a match for the operator pod check.
+KIND_CLUSTER_NAME="${KIND_CLUSTER_NAME:-vtop-e2e}"
 
 # Suppress warnings when using MariaDB Client
 mysql_version="$(mysql --version 2>/dev/null)"
