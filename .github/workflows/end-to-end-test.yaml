@@ -59,6 +59,17 @@ jobs:
             make_target: hpa-test
 
     steps:
+      # Ubuntu 24.04 restricts unprivileged user namespaces and ships tight
+      # inotify limits, both of which break mysqld inside kind.
+      - name: Prepare runner for kind
+        run: |
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_unconfined=0 || true
+          sudo sysctl -w kernel.unprivileged_userns_clone=1 || true
+          sudo sysctl -w user.max_user_namespaces=65536 || true
+          sudo sysctl -w fs.inotify.max_user_watches=524288
+          sudo sysctl -w fs.inotify.max_user_instances=512
+
       - name: Check out code
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
@@ -74,6 +85,17 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends mysql-client ${{ matrix.extra_packages }}
+
+      # BuildKit can't start build containers once AppArmor is torn down, so
+      # build the image first; setupBuildContainerImage skips the rebuild.
+      - name: Build operator image
+        run: docker build --progress plain -f build/Dockerfile.release -t vitess-operator-pr:latest .
+
+      # AppArmor's docker-default profile kills mysqld inside vttablet pods.
+      - name: Disable AppArmor
+        run: |
+          sudo systemctl stop apparmor.service || true
+          sudo aa-teardown || true
 
       - name: Run ${{ matrix.name }}
         run: make ${{ matrix.make_target }}
