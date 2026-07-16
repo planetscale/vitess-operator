@@ -85,6 +85,7 @@ func (spec *Spec) poolLabels() map[string]string {
 	labels := spec.shardLabels()
 	labels[planetscalev2.CellLabel] = spec.Labels[planetscalev2.CellLabel]
 	labels[planetscalev2.TabletTypeLabel] = spec.Labels[planetscalev2.TabletTypeLabel]
+	labels[planetscalev2.TabletPoolNameLabel] = spec.Labels[planetscalev2.TabletPoolNameLabel]
 	return labels
 }
 

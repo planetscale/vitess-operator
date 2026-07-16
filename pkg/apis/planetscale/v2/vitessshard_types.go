@@ -172,10 +172,8 @@ type VitessShardTabletPool struct {
 	Type VitessTabletPoolType `json:"type"`
 
 	// Name is the pool's unique name within the (cell,type) pair.
-	// This field is optional, and defaults to an empty.
-	// Assigning different names to this field enables the existence of multiple pools with a specific tablet type in a given cell,
-	// which can be beneficial for unmanaged tablets.
-	// Hence, you must specify ExternalDatastore when assigning a name to this field.
+	// This field is optional, and defaults to an empty string.
+	// Assigning different names to this field enables the existence of multiple pools with a specific tablet type in a given cell.
 	// +kubebuilder:default=""
 	Name string `json:"name,omitempty"`
 

@@ -33,6 +33,7 @@ import (
 var (
 	reconcileTimeout   time.Duration
 	MySQLServerVersion = "8.0.40-Vitess"
+	defaultPoolName    string
 	// truncateUILen truncate queries in debug UIs to the given length. 0 means unlimited.
 	truncateUILen = 512
 	// truncateErrLen truncate queries in error logs to the given length. 0 means unlimited.
@@ -44,6 +45,7 @@ func FlagSet() *pflag.FlagSet {
 	operatorFlagSet := pflag.NewFlagSet("operator", pflag.ExitOnError)
 
 	operatorFlagSet.DurationVar(&reconcileTimeout, "reconcile_timeout", 10*time.Minute, "Maximum time that any controller will spend trying to reconcile a single object before giving up.")
+	operatorFlagSet.StringVar(&defaultPoolName, "default_pool_name", "", "Pool name to treat as unnamed (equivalent to \"\") for UID generation. Use this when migrating a named pool that previously had no name-aware UID generation.")
 
 	operatorFlagSet.StringVar(&planetscalev2.DefaultVitessPriorityClass, "default_vitess_priority_class", planetscalev2.DefaultVitessPriorityClass, "Default PriorityClass to use for Pods that run Vitess components. An empty value means don't use any PriorityClass.")
 	operatorFlagSet.StringVar(&planetscalev2.DefaultVitessServiceAccount, "default_vitess_service_account", planetscalev2.DefaultVitessServiceAccount, "Default ServiceAccount to use for Pods that run Vitess components. An empty value means let Kubernetes fill in a default.")
@@ -63,6 +65,17 @@ func FlagSet() *pflag.FlagSet {
 // ReconcileTimeout returns the global maximum reconcile timeout for all controllers.
 func ReconcileTimeout() time.Duration {
 	return reconcileTimeout
+}
+
+// IsDefaultPoolName returns true if the given pool name should be treated as unnamed
+// for UID generation, preserving backward compatibility with existing tablet UIDs.
+func IsDefaultPoolName(name string) bool {
+	return name == defaultPoolName
+}
+
+// SetDefaultPoolName sets the default pool name. Intended for use in tests.
+func SetDefaultPoolName(name string) {
+	defaultPoolName = name
 }
 
 // VtEnvironment gets the vitess environment to be used in the operator.
