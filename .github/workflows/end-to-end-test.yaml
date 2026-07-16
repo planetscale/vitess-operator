@@ -18,9 +18,6 @@ jobs:
   test:
     name: ${{ matrix.name }}
     runs-on: vitess-operator-runner
-    # Must exceed checkPodStatusWithTimeout's 20-minute wait in
-    # test/endtoend/utils.sh, so a stuck pod fails the test (with diagnostics)
-    # before GitHub kills the job.
     timeout-minutes: ${{ matrix.timeout_minutes || 25 }}
 
     concurrency:
