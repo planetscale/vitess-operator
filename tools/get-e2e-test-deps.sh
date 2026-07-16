@@ -70,8 +70,11 @@ function install_vtctldclient() {
         fi
     else
         echo "Downloading vtctldclient ${VITESS_VERSION}..."
-        wget -q "https://github.com/vitessio/vitess/releases/download/v${VITESS_VERSION}/${VITESS_FILE}"
-        verify_checksum "${VITESS_FILE}" "${VITESS_SHA256}"
+        curl --fail --location --silent --show-error \
+          --output "${VITESS_FILE}.tmp" \
+          "https://github.com/vitessio/vitess/releases/download/v${VITESS_VERSION}/${VITESS_FILE}"
+        verify_checksum "${VITESS_FILE}.tmp" "${VITESS_SHA256}"
+        mv "${VITESS_FILE}.tmp" "${VITESS_FILE}"
         # Extract only the required binary so tools/_bin does not shadow
         # other host binaries through PATH.
         tar -xzf "${VITESS_FILE}" --strip-components=2 "${VITESS_FILE%.tar.gz}/bin/vtctldclient"

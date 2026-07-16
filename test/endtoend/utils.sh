@@ -522,7 +522,7 @@ function assertSelect() {
 
 function setupBuildContainerImage() {
   # CI builds the image in a dedicated step before disabling AppArmor.
-  if docker image inspect vitess-operator-pr:latest >/dev/null 2>&1; then
+  if [[ -n "${CI:-}" ]] && docker image inspect vitess-operator-pr:latest >/dev/null 2>&1; then
     echo "vitess-operator-pr:latest already present, skipping build"
     return
   fi
