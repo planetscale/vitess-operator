@@ -47,7 +47,6 @@ jobs:
 
           - name: VTOrc and VTAdmin Test
             make_target: vtorc-vtadmin-test
-            extra_packages: chromium-browser
 
           - name: Unmanaged Tablet Test
             make_target: unmanaged-tablet-test
@@ -81,7 +80,16 @@ jobs:
       - name: Install test dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends mysql-client ${{ matrix.extra_packages }}
+          sudo apt-get install -y --no-install-recommends mysql-client
+
+      - name: Install Chromium
+        if: matrix.make_target == 'vtorc-vtadmin-test'
+        run: |
+          curl --fail --location --silent --show-error \
+            --output /tmp/google-chrome.deb \
+            https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+          sudo apt-get install -y --no-install-recommends /tmp/google-chrome.deb
+          sudo ln -sf /usr/bin/google-chrome-stable /usr/local/bin/chromium
 
       # BuildKit can't start build containers once AppArmor is torn down, so
       # build the image first; setupBuildContainerImage skips the rebuild.
