@@ -112,7 +112,8 @@ The `upgrade_test.sh`, `backup_restore_test.sh`, `vtorc_vtadmin_test.sh` and `un
 ##### CI Failures
 
 > **Note**
-> It is likely that the buildkite tests will fail on the release PR initially because of the unavailability of the latest vitess and vitess-operator docker images. This however doesn't block the release. The tests should be restarted after the said images are built and available.
+> The GitHub Actions end-to-end tests may fail on the release PR until the latest Vitess and vitess-operator
+> container images are available. This does not block the release. Rerun the tests after the images are built.
 
 -------------------
 
@@ -133,5 +134,4 @@ Once you have done the release on the release branch, there are several steps to
 - The `vitess/lite` image tag must be changed in [101_initial_cluster.yaml](..%2Ftest%2Fendtoend%2Foperator%2F101_initial_cluster.yaml). The latest Vitess release tag must be used.
 - We must copy the [operator-latest.yaml](..%2Ftest%2Fendtoend%2Foperator%2Foperator-latest.yaml) file we created during the release onto `main`'s [operator.yaml](..%2Ftest%2Fendtoend%2Foperator%2Foperator.yaml) file. Once copied, remove the change that adds `imagePullPolicy: Never` and update the `image: vitess-operator-pr:latest` to use the docker image of latest vitess-operator patch like `image: planetscale/vitess-operator:v2.10.0`.
 - The `upgrade_test.sh`, `backup_restore_test.sh` and `vtorc_vtadmin_test.sh` files must be updated with the proper release increment. Change the `verifyVtGateVersion` function calls to use the proper version (new snapshot Vitess version and current version being released (only used in `upgrade_test.sh`)).
-
 
