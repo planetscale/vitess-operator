@@ -569,6 +569,34 @@ type ServiceOverrides struct {
 	// initial creation of the Service will only be applied if you manually
 	// delete the Service.
 	ClusterIP string `json:"clusterIP,omitempty"`
+
+	// Type can optionally be used to override the Service's type.
+	// Defaults to ClusterIP if not specified. Setting this to NodePort or
+	// LoadBalancer exposes the Service outside the Kubernetes cluster.
+	// Changes to this field after the initial creation of the Service are
+	// applied in-place by the operator (Kubernetes supports transitions
+	// between Service types; some legacy fields like NodePorts assigned
+	// for the previous type may need to be cleared manually).
+	// +optional
+	Type corev1.ServiceType `json:"type,omitempty"`
+
+	// LoadBalancerIP, if set when Type is LoadBalancer, requests the cloud
+	// load balancer be assigned this specific IP. Only honored by clouds
+	// (and MetalLB) that support pre-assigned LB IPs. Ignored when Type is
+	// not LoadBalancer.
+	// This field is immutable on Service objects, so changes made after
+	// the initial creation of the Service will only be applied if you
+	// manually delete the Service.
+	// +optional
+	LoadBalancerIP string `json:"loadBalancerIP,omitempty"`
+
+	// ExternalTrafficPolicy, if set, controls how external traffic is
+	// routed for NodePort and LoadBalancer Services. "Cluster" (default)
+	// obscures the client source IP but balances across nodes; "Local"
+	// preserves the source IP at the cost of potentially uneven balancing.
+	// Ignored when Type is ClusterIP.
+	// +optional
+	ExternalTrafficPolicy corev1.ServiceExternalTrafficPolicy `json:"externalTrafficPolicy,omitempty"`
 }
 
 // VitessDashboardStatus is a summary of the status of the vtctld deployment.
