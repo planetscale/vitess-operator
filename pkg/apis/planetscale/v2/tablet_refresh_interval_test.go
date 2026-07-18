@@ -33,9 +33,11 @@ func TestTabletAvailableSeconds(t *testing.T) {
 		{"30s -> 60", 30 * time.Second, 60},
 		{"25s -> 50", 25 * time.Second, 50},
 		{"1s -> 2", time.Second, 2},
-		{"sub-second floors then clamps to 1", 500 * time.Millisecond, 1},
-		{"zero clamps to 1", 0, 1},
-		{"negative clamps to 1", -5 * time.Second, 1},
+		{"sub-second interval rounds to at least 1", 500 * time.Millisecond, 1},
+		{"fractional seconds rounds up after multiplying", 59900 * time.Millisecond, 120},
+		{"zero uses default", 0, 120},
+		{"negative uses default", -5 * time.Second, 120},
+		{"large values clamp to int32 max", time.Duration(1<<63 - 1), 1<<31 - 1},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -72,16 +74,44 @@ func TestDefaultTabletRefreshIntervalOnShard(t *testing.T) {
 			t.Errorf("TabletRefreshInterval = %s, want 25s", got)
 		}
 	})
+
+	t.Run("defaults non-positive values", func(t *testing.T) {
+		vts := &VitessShard{
+			Spec: VitessShardSpec{
+				TabletRefreshInterval: &metav1.Duration{Duration: 0},
+			},
+		}
+		DefaultVitessShard(vts)
+
+		if got := vts.Spec.TabletRefreshInterval.Duration; got != defaultTabletRefreshInterval {
+			t.Errorf("TabletRefreshInterval = %s, want %s", got, defaultTabletRefreshInterval)
+		}
+	})
 }
 
 func TestDefaultTabletRefreshIntervalOnCell(t *testing.T) {
-	vtc := &VitessCell{}
-	DefaultVitessCell(vtc)
+	t.Run("defaults when unset", func(t *testing.T) {
+		vtc := &VitessCell{}
+		DefaultVitessCell(vtc)
 
-	if vtc.Spec.TabletRefreshInterval == nil {
-		t.Fatalf("TabletRefreshInterval = nil, want default %s", defaultTabletRefreshInterval)
-	}
-	if got := vtc.Spec.TabletRefreshInterval.Duration; got != defaultTabletRefreshInterval {
-		t.Errorf("TabletRefreshInterval = %s, want %s", got, defaultTabletRefreshInterval)
-	}
+		if vtc.Spec.TabletRefreshInterval == nil {
+			t.Fatalf("TabletRefreshInterval = nil, want default %s", defaultTabletRefreshInterval)
+		}
+		if got := vtc.Spec.TabletRefreshInterval.Duration; got != defaultTabletRefreshInterval {
+			t.Errorf("TabletRefreshInterval = %s, want %s", got, defaultTabletRefreshInterval)
+		}
+	})
+
+	t.Run("defaults non-positive values", func(t *testing.T) {
+		vtc := &VitessCell{
+			Spec: VitessCellSpec{
+				TabletRefreshInterval: &metav1.Duration{Duration: -5 * time.Second},
+			},
+		}
+		DefaultVitessCell(vtc)
+
+		if got := vtc.Spec.TabletRefreshInterval.Duration; got != defaultTabletRefreshInterval {
+			t.Errorf("TabletRefreshInterval = %s, want %s", got, defaultTabletRefreshInterval)
+		}
+	})
 }

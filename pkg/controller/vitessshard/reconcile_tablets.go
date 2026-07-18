@@ -371,7 +371,7 @@ func isTabletPrimary(ctx context.Context, vts *planetscalev2.VitessShard, tablet
 
 // tabletAvailableStatus reports whether a tablet Pod should be considered
 // Available. A tablet is only Available once it has been consistently Ready for
-// a window derived from the tablet refresh interval (interval x 1.5). This
+// a window derived from the tablet refresh interval (interval x 2). This
 // accounts for the time it takes for vtgates to discover that the tablet is
 // Ready and update their routing tables. If a tablet is Ready but vtgates don't
 // know it yet, then it isn't actually available for serving queries yet.

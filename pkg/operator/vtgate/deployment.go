@@ -24,8 +24,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/ptr"
-	"planetscale.dev/vitess-operator/pkg/operator/mysql"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"planetscale.dev/vitess-operator/pkg/operator/mysql"
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 	"planetscale.dev/vitess-operator/pkg/operator/k8s"
@@ -286,11 +287,10 @@ func (spec *Spec) baseFlags() vitess.Flags {
 
 	// The operator owns --tablet-refresh-interval so it stays consistent with
 	// the tablet-availability gate the VitessShard controller derives from the
-	// same value. It's normally defaulted by DefaultVitessCell; guard nil in
-	// case defaulting hasn't run.
-	if spec.Cell.TabletRefreshInterval != nil {
-		flags["tablet-refresh-interval"] = spec.Cell.TabletRefreshInterval.Duration.String()
-	}
+	// same value. Use the shared default helper in case defaulting hasn't run.
+	tabletRefreshInterval := spec.Cell.TabletRefreshInterval
+	planetscalev2.DefaultTabletRefreshInterval(&tabletRefreshInterval)
+	flags["tablet-refresh-interval"] = tabletRefreshInterval.Duration.String()
 
 	return flags
 }

@@ -28,7 +28,7 @@ import (
 
 // TestNewVitessCellTabletRefreshInterval verifies that the cluster-level
 // TabletRefreshInterval is propagated down to the VitessCell it creates. The
-// vtgate Deployment reads it from there to set --tablet_refresh_interval.
+// vtgate Deployment reads it from there to set --tablet-refresh-interval.
 func TestNewVitessCellTabletRefreshInterval(t *testing.T) {
 	key := client.ObjectKey{Namespace: "test", Name: "cluster1-cell1"}
 	cell := &planetscalev2.VitessCellTemplate{Name: "cell1"}

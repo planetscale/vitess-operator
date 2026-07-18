@@ -466,6 +466,7 @@ cause &ldquo;no healthy tablet available&rdquo; errors during rolling restarts.<
 <p>You should not normally need to set this; the default is safe. It exists
 mainly so large clusters can trade a shorter refresh interval (lower
 rolling-restart latency) against more topology-server polling load.
+Non-positive values are treated as unset and default to 60s.
 This field is the only supported way to change the interval: the
 operator ignores tablet-refresh-interval (in either flag spelling) in
 ExtraVitessFlags and the gateway ExtraFlags, since overriding it there
@@ -4726,6 +4727,7 @@ cause &ldquo;no healthy tablet available&rdquo; errors during rolling restarts.<
 <p>You should not normally need to set this; the default is safe. It exists
 mainly so large clusters can trade a shorter refresh interval (lower
 rolling-restart latency) against more topology-server polling load.
+Non-positive values are treated as unset and default to 60s.
 This field is the only supported way to change the interval: the
 operator ignores tablet-refresh-interval (in either flag spelling) in
 ExtraVitessFlags and the gateway ExtraFlags, since overriding it there

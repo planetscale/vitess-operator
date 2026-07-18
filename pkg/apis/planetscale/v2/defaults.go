@@ -212,22 +212,39 @@ var (
 // on this so it doesn't drain the next tablet before vtgates have rediscovered
 // a previously restarted one. The result is never less than 1 second.
 func TabletAvailableSeconds(refreshInterval metav1.Duration) int32 {
-	seconds := int64(refreshInterval.Duration / time.Second)
-	if seconds < 0 {
-		seconds = 0
+	refreshInterval = tabletRefreshIntervalOrDefault(refreshInterval)
+	wholeSeconds := int64(refreshInterval.Duration / time.Second)
+	remainder := int64(refreshInterval.Duration % time.Second)
+
+	seconds := wholeSeconds * tabletAvailableRefreshMultiplier
+	remainderNanos := remainder * tabletAvailableRefreshMultiplier
+	seconds += remainderNanos / int64(time.Second)
+	if remainderNanos%int64(time.Second) != 0 {
+		seconds++
 	}
-	available := seconds * tabletAvailableRefreshMultiplier
-	if available < 1 {
-		available = 1
+	if seconds < 1 {
+		seconds = 1
 	}
-	return int32(available)
+	if seconds > 1<<31-1 {
+		seconds = 1<<31 - 1
+	}
+	return int32(seconds)
 }
 
 // DefaultTabletRefreshInterval sets the default tablet refresh interval on a
 // *metav1.Duration pointer if it is nil. It follows the same pattern as other
 // Default* functions in this package so callers can delegate nil-handling.
 func DefaultTabletRefreshInterval(intervalPtr **metav1.Duration) {
-	if *intervalPtr == nil {
+	if *intervalPtr == nil || (*intervalPtr).Duration <= 0 {
 		*intervalPtr = &metav1.Duration{Duration: defaultTabletRefreshInterval}
 	}
+}
+
+// tabletRefreshIntervalOrDefault protects both vtgate flags and shard gates
+// from unsafe non-positive refresh intervals.
+func tabletRefreshIntervalOrDefault(refreshInterval metav1.Duration) metav1.Duration {
+	if refreshInterval.Duration <= 0 {
+		return metav1.Duration{Duration: defaultTabletRefreshInterval}
+	}
+	return refreshInterval
 }
