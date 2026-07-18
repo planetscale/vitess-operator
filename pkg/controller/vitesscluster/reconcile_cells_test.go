@@ -51,7 +51,7 @@ func TestNewVitessCellTabletRefreshInterval(t *testing.T) {
 		}
 	})
 
-	t.Run("leaves nil unset for downstream defaulting", func(t *testing.T) {
+	t.Run("materializes the shared default", func(t *testing.T) {
 		vt := &planetscalev2.VitessCluster{
 			Spec: planetscalev2.VitessClusterSpec{
 				GlobalLockserver: planetscalev2.LockserverSpec{Etcd: &planetscalev2.EtcdLockserverTemplate{}},
@@ -60,8 +60,11 @@ func TestNewVitessCellTabletRefreshInterval(t *testing.T) {
 
 		vtc := newVitessCell(key, vt, nil, cell)
 
-		if vtc.Spec.TabletRefreshInterval != nil {
-			t.Errorf("TabletRefreshInterval = %v, want nil", *vtc.Spec.TabletRefreshInterval)
+		if vtc.Spec.TabletRefreshInterval == nil {
+			t.Fatal("TabletRefreshInterval = nil, want 1m0s")
+		}
+		if got := vtc.Spec.TabletRefreshInterval.Duration; got != time.Minute {
+			t.Errorf("TabletRefreshInterval = %v, want 1m0s", got)
 		}
 	})
 }

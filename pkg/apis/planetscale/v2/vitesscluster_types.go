@@ -128,13 +128,16 @@ type VitessClusterSpec struct {
 	// You should not normally need to set this; the default is safe. It exists
 	// mainly so large clusters can trade a shorter refresh interval (lower
 	// rolling-restart latency) against more topology-server polling load.
-	// Non-positive values are treated as unset and default to 60s.
+	// Values below 1s are rejected to avoid excessive topology-server polling.
 	// This field is the only supported way to change the interval: the
 	// operator ignores tablet-refresh-interval (in either flag spelling) in
 	// ExtraVitessFlags and the gateway ExtraFlags, since overriding it there
 	// would bypass this coupling and reintroduce the bug.
+	// Existing clusters using either extra flag must move that value here when
+	// upgrading; the legacy flag is retained only until the safe rollout is staged.
 	//
 	// Default: 60s
+	// +kubebuilder:validation:XValidation:rule="self.matches('^([0-9]+([.][0-9]+)?(ns|us|ms|s|m|h))+$') && duration(self) >= duration('1s')",message="tabletRefreshInterval must be a valid duration of at least 1s"
 	TabletRefreshInterval *metav1.Duration `json:"tabletRefreshInterval,omitempty"`
 
 	// UpdateStrategy specifies how components in the Vitess cluster will be updated
@@ -659,6 +662,9 @@ type VitessClusterCellStatus struct {
 	PendingChanges string `json:"pendingChanges,omitempty"`
 	// GatewayAvailable indicates whether the vtgate service is fully available.
 	GatewayAvailable corev1.ConditionStatus `json:"gatewayAvailable,omitempty"`
+	// TabletRefreshInterval records the completed vtgate rollout so shard gates
+	// are not lowered while older Pods still use a longer interval.
+	TabletRefreshInterval *metav1.Duration `json:"tabletRefreshInterval,omitempty"`
 }
 
 // NewVitessClusterCellStatus creates a new status object with default values.
@@ -703,6 +709,9 @@ type VitessClusterKeyspaceStatus struct {
 	// Cells is a list of cells in which any observed tablets for this keyspace
 	// are deployed.
 	Cells []string `json:"cells,omitempty"`
+	// TabletRefreshInterval records the gate observed by every shard so vtgate
+	// rollouts cannot outrun tablet availability.
+	TabletRefreshInterval *metav1.Duration `json:"tabletRefreshInterval,omitempty"`
 }
 
 // NewVitessClusterKeyspaceStatus creates a new status object with default values.

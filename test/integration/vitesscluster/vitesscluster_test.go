@@ -26,6 +26,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	autoscalingv2 "k8s.io/api/autoscaling/v2"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	apilabels "k8s.io/apimachinery/pkg/labels"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -142,6 +143,31 @@ func TestBasicVitessCluster(t *testing.T) {
 
 	f.CreateVitessClusterYAML(ns, cluster, basicVitessCluster)
 	verifyBasicVitessCluster(f, ns, cluster)
+}
+
+func TestTabletRefreshIntervalValidation(t *testing.T) {
+	for _, value := range []string{"500ms", "invalid", "1d"} {
+		t.Run(value, func(t *testing.T) {
+			f := framework.NewFixture(t.Context(), t)
+			cluster := &unstructured.Unstructured{
+				Object: map[string]interface{}{
+					"apiVersion": "planetscale.com/v2",
+					"kind":       "VitessCluster",
+					"metadata": map[string]interface{}{
+						"name":      "invalid-tablet-refresh-interval",
+						"namespace": "default",
+					},
+					"spec": map[string]interface{}{
+						"tabletRefreshInterval": value,
+					},
+				},
+			}
+
+			err := f.Client().Create(t.Context(), cluster)
+
+			require.ErrorContains(t, err, "tabletRefreshInterval must be a valid duration of at least 1s")
+		})
+	}
 }
 
 func verifyBasicVitessCluster(f *framework.Fixture, ns, cluster string) {
@@ -278,7 +304,7 @@ func verifyBasicVitessShard(f *framework.Fixture, ns, cluster, keyspace, shard s
 	var found bool
 	f.MustGet(ns, names.JoinWithConstraints(names.DefaultConstraints, cluster, keyspace, shard, "vtbackup", "init"), &pod)
 	f.MustGet(ns, names.JoinWithConstraints(names.DefaultConstraints, cluster, keyspace, shard, "vtbackup", "init"), &corev1.PersistentVolumeClaim{})
-        containerNames := make([]string, len(pod.Spec.Containers))
+	containerNames := make([]string, len(pod.Spec.Containers))
 	for i, c := range pod.Spec.Containers {
 		containerNames[i] = c.Name
 		if c.Name == "vtbackup" {

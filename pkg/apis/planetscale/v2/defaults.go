@@ -101,8 +101,8 @@ const (
 	// tabletAvailableRefreshMultiplier is the safety factor (2x) applied to
 	// the tablet refresh interval to compute how long a tablet Pod must be
 	// consistently Ready before the operator considers it Available. A factor
-	// of 2 guarantees that every vtgate has had at least one full refresh cycle
-	// to rediscover the tablet after it becomes Ready.
+	// of 2 provides a full refresh interval of margin for vtgates to rediscover
+	// the tablet after it becomes Ready.
 	tabletAvailableRefreshMultiplier = 2
 
 	// DefaultWebPort is the port for debug status pages and dashboard UIs.
@@ -231,13 +231,21 @@ func TabletAvailableSeconds(refreshInterval metav1.Duration) int32 {
 	return int32(seconds)
 }
 
-// DefaultTabletRefreshInterval sets the default tablet refresh interval on a
-// *metav1.Duration pointer if it is nil. It follows the same pattern as other
-// Default* functions in this package so callers can delegate nil-handling.
+// DefaultTabletRefreshInterval replaces missing or non-positive intervals so
+// internal child reconciliation always has a safe value.
 func DefaultTabletRefreshInterval(intervalPtr **metav1.Duration) {
 	if *intervalPtr == nil || (*intervalPtr).Duration <= 0 {
 		*intervalPtr = &metav1.Duration{Duration: defaultTabletRefreshInterval}
 	}
+}
+
+// EffectiveTabletRefreshInterval keeps rollout coordination on the same
+// default without mutating the source API object.
+func EffectiveTabletRefreshInterval(interval *metav1.Duration) metav1.Duration {
+	if interval == nil {
+		return metav1.Duration{Duration: defaultTabletRefreshInterval}
+	}
+	return tabletRefreshIntervalOrDefault(*interval)
 }
 
 // tabletRefreshIntervalOrDefault protects both vtgate flags and shard gates

@@ -233,7 +233,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec, mysqldImage string) {
 	update.Volumes(&obj.Spec.Template.Spec.Volumes, spec.ExtraVolumes)
 
 	// Apply user-provided overrides last so they take precedence.
-	applyExtraFlags(flags, spec.ExtraFlags)
+	applyExtraFlags(flags, spec.ExtraFlags, spec.Cell.TabletRefreshInterval != nil)
 	// Write out the final flags list.
 	vtgateContainer.Args = flags.FormatArgs()
 
@@ -285,29 +285,27 @@ func (spec *Spec) baseFlags() vitess.Flags {
 		"grpc_port":   planetscalev2.DefaultGrpcPort,
 	}
 
-	// The operator owns --tablet-refresh-interval so it stays consistent with
-	// the tablet-availability gate the VitessShard controller derives from the
-	// same value. Use the shared default helper in case defaulting hasn't run.
-	tabletRefreshInterval := spec.Cell.TabletRefreshInterval
-	planetscalev2.DefaultTabletRefreshInterval(&tabletRefreshInterval)
-	flags["tablet-refresh-interval"] = tabletRefreshInterval.Duration.String()
+	// A nil interval is preserved briefly while an existing cluster stages the
+	// shard gate ahead of taking ownership from legacy extra flags.
+	if tabletRefreshInterval := spec.Cell.TabletRefreshInterval; tabletRefreshInterval != nil {
+		planetscalev2.DefaultTabletRefreshInterval(&tabletRefreshInterval)
+		flags["tablet-refresh-interval"] = tabletRefreshInterval.Duration.String()
+	}
 
 	return flags
 }
 
 // applyExtraFlags overlays user-provided flags on top of the operator-computed
 // ones, so user values normally take precedence.
-func applyExtraFlags(flags vitess.Flags, extraFlags map[string]string) {
+func applyExtraFlags(flags vitess.Flags, extraFlags map[string]string, tabletRefreshIntervalManaged bool) {
 	for key, value := range extraFlags {
 		// We told users in the CRD API field doc not to put any leading '-',
 		// but people may not read that so we are liberal in what we accept.
 		key = strings.TrimLeft(key, "-")
-		// The operator owns tablet-refresh-interval to keep vtgate consistent
-		// with the tablet-availability gate the VitessShard controller derives
-		// from the same value (see baseFlags). Ignore user overrides in either
-		// flag spelling so the two can't drift apart; the supported knob is
-		// the VitessCluster tabletRefreshInterval field.
-		if key == "tablet-refresh-interval" || key == "tablet_refresh_interval" {
+		// Once rollout coordination is active, ignore both extra-flag spellings
+		// so they cannot drift from the shard gate. Before that point, retaining
+		// the legacy value avoids an unsafe interval change during upgrade.
+		if tabletRefreshIntervalManaged && (key == "tablet-refresh-interval" || key == "tablet_refresh_interval") {
 			continue
 		}
 		flags[key] = value

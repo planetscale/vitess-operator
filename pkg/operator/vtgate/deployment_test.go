@@ -39,12 +39,11 @@ func TestBaseFlagsTabletRefreshInterval(t *testing.T) {
 		}
 	})
 
-	t.Run("uses default when cell value is nil", func(t *testing.T) {
+	t.Run("preserves legacy configuration while the cell value is nil", func(t *testing.T) {
 		spec := &Spec{Cell: &planetscalev2.VitessCellSpec{}}
 
-		got := spec.baseFlags()["tablet-refresh-interval"]
-		if got != "1m0s" {
-			t.Errorf("tablet-refresh-interval = %v, want 1m0s", got)
+		if _, ok := spec.baseFlags()["tablet-refresh-interval"]; ok {
+			t.Error("tablet-refresh-interval was set before the managed rollout was staged")
 		}
 	})
 
@@ -78,7 +77,7 @@ func TestApplyExtraFlagsIgnoresTabletRefreshInterval(t *testing.T) {
 			applyExtraFlags(flags, map[string]string{
 				spelling:     "5s",
 				"other-flag": "kept",
-			})
+			}, true)
 
 			if got := flags["tablet-refresh-interval"]; got != "40s" {
 				t.Errorf("tablet-refresh-interval = %v, want 40s (extra flag %q must not override it)", got, spelling)
@@ -90,5 +89,17 @@ func TestApplyExtraFlagsIgnoresTabletRefreshInterval(t *testing.T) {
 				t.Errorf("other-flag = %v, want kept (unrelated extra flags must still apply)", got)
 			}
 		})
+	}
+}
+
+func TestApplyExtraFlagsPreservesTabletRefreshIntervalDuringMigration(t *testing.T) {
+	flags := (&Spec{Cell: &planetscalev2.VitessCellSpec{}}).baseFlags()
+
+	applyExtraFlags(flags, map[string]string{
+		"tablet_refresh_interval": "10s",
+	}, false)
+
+	if got := flags["tablet_refresh_interval"]; got != "10s" {
+		t.Errorf("tablet_refresh_interval = %v, want 10s", got)
 	}
 }

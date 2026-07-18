@@ -27,7 +27,6 @@ func DefaultVitessCell(vtc *VitessCell) {
 	DefaultLocalLockserver(&vtc.Spec.Lockserver)
 	DefaultVitessGateway(&vtc.Spec.Gateway)
 	DefaultTopoReconcileConfig(&vtc.Spec.TopologyReconciliation)
-	DefaultTabletRefreshInterval(&vtc.Spec.TabletRefreshInterval)
 }
 
 func DefaultLocalLockserver(ls *LockserverSpec) {

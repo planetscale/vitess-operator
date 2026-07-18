@@ -89,29 +89,12 @@ func TestDefaultTabletRefreshIntervalOnShard(t *testing.T) {
 	})
 }
 
-func TestDefaultTabletRefreshIntervalOnCell(t *testing.T) {
-	t.Run("defaults when unset", func(t *testing.T) {
-		vtc := &VitessCell{}
-		DefaultVitessCell(vtc)
+func TestDefaultVitessCellPreservesUnsetTabletRefreshInterval(t *testing.T) {
+	vtc := &VitessCell{}
 
-		if vtc.Spec.TabletRefreshInterval == nil {
-			t.Fatalf("TabletRefreshInterval = nil, want default %s", defaultTabletRefreshInterval)
-		}
-		if got := vtc.Spec.TabletRefreshInterval.Duration; got != defaultTabletRefreshInterval {
-			t.Errorf("TabletRefreshInterval = %s, want %s", got, defaultTabletRefreshInterval)
-		}
-	})
+	DefaultVitessCell(vtc)
 
-	t.Run("defaults non-positive values", func(t *testing.T) {
-		vtc := &VitessCell{
-			Spec: VitessCellSpec{
-				TabletRefreshInterval: &metav1.Duration{Duration: -5 * time.Second},
-			},
-		}
-		DefaultVitessCell(vtc)
-
-		if got := vtc.Spec.TabletRefreshInterval.Duration; got != defaultTabletRefreshInterval {
-			t.Errorf("TabletRefreshInterval = %s, want %s", got, defaultTabletRefreshInterval)
-		}
-	})
+	if vtc.Spec.TabletRefreshInterval != nil {
+		t.Errorf("TabletRefreshInterval = %v, want nil during legacy migration", vtc.Spec.TabletRefreshInterval)
+	}
 }
