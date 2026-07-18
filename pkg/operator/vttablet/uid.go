@@ -69,3 +69,10 @@ func UIDWithPoolName(cellName, keyspaceName string, shardKeyRange planetscalev2.
 	sum := h.Sum(nil)
 	return binary.BigEndian.Uint32(sum[:4])
 }
+
+/*
+* UIDString formats a UID into a string.
+*/
+func UIDString(uid uint32) string {
+	return fmt.Sprintf("%010d", uid)
+}

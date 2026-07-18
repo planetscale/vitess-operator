@@ -92,7 +92,7 @@ func (spec *Spec) poolLabels() map[string]string {
 // This path must match what Vitess generates:
 // https://github.com/vitessio/vitess/blob/3d3e63d0/go/vt/mysqlctl/mycnf_gen.go#L93
 func (spec *Spec) tabletDir() string {
-	return fmt.Sprintf("%s/vt_%010d", vtDataRootPath, spec.Alias.Uid)
+	return fmt.Sprintf("%s/vt_%s", vtDataRootPath, UIDString(spec.Alias.Uid))
 }
 
 // myCnfFilePath returns the path to the my.cnf file for vttablet.

@@ -40,6 +40,7 @@ import (
 	"planetscale.dev/vitess-operator/pkg/operator/reconciler"
 	"planetscale.dev/vitess-operator/pkg/operator/resync"
 	"planetscale.dev/vitess-operator/pkg/operator/vitessbackup"
+	"planetscale.dev/vitess-operator/pkg/operator/vttablet"
 )
 
 type fakeBackupStorage struct {
@@ -104,7 +105,7 @@ func newFakeBackupHandle(dir, name string) backupstorage.BackupHandle {
 
 func newFakeBackupName(t *testing.T, ts time.Time, uid uint32) string {
 	t.Helper()
-	alias := fmt.Sprintf("zone1-%010d", uid)
+	alias := fmt.Sprintf("zone1-%s", vttablet.UIDString(uid))
 	return fmt.Sprintf("%s.%s", ts.Format(vitessbackup.TimestampFormat), alias)
 }
 

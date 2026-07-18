@@ -173,7 +173,6 @@ function restoreBackup() {
 
   cell="${tabletAlias%-*}"
   uid="${tabletAlias##*-}"
-  uid=$((10#${uid}))
 
   for i in {1..600} ; do
     out=$(kubectl get pods -n example --no-headers -l "planetscale.com/cell=${cell},planetscale.com/tablet-uid=${uid}" | grep "Running" | wc -l)
