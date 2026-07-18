@@ -288,7 +288,7 @@ func vttabletSpecs(vts *planetscalev2.VitessShard, parentLabels map[string]strin
 				labels[k] = v
 			}
 			labels[planetscalev2.CellLabel] = tabletAlias.Cell
-			labels[planetscalev2.TabletUidLabel] = strconv.FormatUint(uint64(tabletAlias.Uid), 10)
+			labels[planetscalev2.TabletUidLabel] = vttablet.UIDString(tabletAlias.Uid)
 			labels[planetscalev2.TabletTypeLabel] = string(pool.Type)
 			labels[planetscalev2.TabletIndexLabel] = strconv.FormatUint(uint64(tabletIndex), 10)
 			if pool.ExternalDatastore != nil {
