@@ -8,9 +8,11 @@ set -euo pipefail
 #
 # The integration test framework expects these binaries to be found in the PATH.
 
+# Provides KUBERNETES_RELEASE_URL, verify_checksum and install_kubectl.
+source "${BASH_SOURCE%/*}/install-kubectl.sh"
+
 # This is the kube-apiserver version to test against.
-KUBE_VERSION="${KUBE_VERSION:-v1.34.1}"
-KUBERNETES_RELEASE_URL="${KUBERNETES_RELEASE_URL:-https://dl.k8s.io}"
+KUBE_VERSION="${KUBECTL_VERSION}"
 
 # This should be the etcd version downloaded by kubernetes/hack/lib/etcd.sh
 # as of the above Kubernetes version.
@@ -31,13 +33,7 @@ echo "Using kube-apiserver ${KUBE_VERSION}."
 ln -sf "kube-apiserver-${KUBE_VERSION}" kube-apiserver
 
 # Download kubectl if needed.
-if [ ! -f "kubectl-${KUBE_VERSION}" ]; then
-    echo "Downloading kubectl ${KUBE_VERSION}..."
-    curl -L "${KUBERNETES_RELEASE_URL}/${KUBE_VERSION}/bin/linux/amd64/kubectl" > "kubectl-${KUBE_VERSION}"
-    chmod +x "kubectl-${KUBE_VERSION}"
-fi
-echo "Using kubectl ${KUBE_VERSION}."
-ln -sf "kubectl-${KUBE_VERSION}" kubectl
+install_kubectl
 
 # Download etcd if needed.
 if [ ! -f "etcd-${ETCD_VERSION}" ]; then
