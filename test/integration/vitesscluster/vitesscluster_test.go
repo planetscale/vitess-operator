@@ -159,6 +159,7 @@ func TestTabletRefreshIntervalValidation(t *testing.T) {
 					},
 					"spec": map[string]interface{}{
 						"tabletRefreshInterval": value,
+						"cells":                 []interface{}{},
 					},
 				},
 			}
