@@ -28,7 +28,7 @@ import (
 	"planetscale.dev/vitess-operator/pkg/operator/vitessbackup"
 )
 
-// TestVtbackupSpecDataVolume covers how the pool-level vtbackup override drives
+// TestVtbackupSpecDataVolume covers how the shard-level vtbackup override drives
 // the data volume of vtbackup Pods: inherit by default, drop the PVC when the
 // override is present but empty, or use an explicit override template.
 func TestVtbackupSpecDataVolume(t *testing.T) {
@@ -48,7 +48,7 @@ func TestVtbackupSpecDataVolume(t *testing.T) {
 
 	cases := []struct {
 		name     string
-		vtbackup *planetscalev2.VitessShardTabletPoolVtbackup
+		vtbackup *planetscalev2.VitessShardVtbackup
 		want     *corev1.PersistentVolumeClaimSpec
 	}{
 		{
@@ -58,12 +58,12 @@ func TestVtbackupSpecDataVolume(t *testing.T) {
 		},
 		{
 			name:     "empty override drops the PVC (emptyDir)",
-			vtbackup: &planetscalev2.VitessShardTabletPoolVtbackup{},
+			vtbackup: &planetscalev2.VitessShardVtbackup{},
 			want:     nil,
 		},
 		{
 			name:     "override template is used",
-			vtbackup: &planetscalev2.VitessShardTabletPoolVtbackup{DataVolumeClaimTemplate: overridePVC},
+			vtbackup: &planetscalev2.VitessShardVtbackup{DataVolumeClaimTemplate: overridePVC},
 			want:     overridePVC,
 		},
 	}
@@ -73,12 +73,19 @@ func TestVtbackupSpecDataVolume(t *testing.T) {
 			vts := &planetscalev2.VitessShard{
 				Spec: planetscalev2.VitessShardSpec{
 					VitessShardTemplate: planetscalev2.VitessShardTemplate{
-						TabletPools: []planetscalev2.VitessShardTabletPool{{
-							Cell:                    "cell1",
-							Type:                    planetscalev2.ReplicaPoolType,
-							DataVolumeClaimTemplate: poolPVC,
-							Vtbackup:                tc.vtbackup,
-						}},
+						Vtbackup: tc.vtbackup,
+						TabletPools: []planetscalev2.VitessShardTabletPool{
+							{
+								Cell:                    "cell1",
+								Type:                    planetscalev2.ReplicaPoolType,
+								DataVolumeClaimTemplate: poolPVC,
+							},
+							{
+								Cell:                    "cell2",
+								Type:                    planetscalev2.RdonlyPoolType,
+								DataVolumeClaimTemplate: poolPVC,
+							},
+						},
 						Replication: planetscalev2.VitessReplicationSpec{
 							InitializeBackup: ptr.To(true),
 						},

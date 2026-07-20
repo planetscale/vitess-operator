@@ -23,10 +23,9 @@ import (
 	"fmt"
 	"maps"
 	"math/rand/v2"
+	"sort"
 	"strconv"
 	"strings"
-
-	"sort"
 	"time"
 
 	"github.com/robfig/cron"
@@ -38,6 +37,12 @@ import (
 	apilabels "k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/tools/record"
 	"k8s.io/utils/ptr"
+	"sigs.k8s.io/controller-runtime/pkg/controller"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	"sigs.k8s.io/controller-runtime/pkg/source"
+
 	"planetscale.dev/vitess-operator/pkg/controller/vitessshard"
 	"planetscale.dev/vitess-operator/pkg/operator/metrics"
 	"planetscale.dev/vitess-operator/pkg/operator/names"
@@ -46,18 +51,14 @@ import (
 	"planetscale.dev/vitess-operator/pkg/operator/resync"
 	"planetscale.dev/vitess-operator/pkg/operator/vitessbackup"
 	"planetscale.dev/vitess-operator/pkg/operator/vttablet"
-	"sigs.k8s.io/controller-runtime/pkg/controller"
-	"sigs.k8s.io/controller-runtime/pkg/handler"
-	"sigs.k8s.io/controller-runtime/pkg/manager"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"sigs.k8s.io/controller-runtime/pkg/source"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
-	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 )
 
 const (
@@ -683,7 +684,11 @@ func (r *ReconcileVitessBackupsSchedule) createVtbackupJob(
 		return nil, err
 	}
 
-	// Create the corresponding PVC for the new vtbackup pod
+	if vtbackupSpec.TabletSpec.DataVolumePVCSpec == nil {
+		return job, nil
+	}
+
+	// Create the corresponding PVC for the new vtbackup pod.
 	pvc := &corev1.PersistentVolumeClaim{}
 	key := client.ObjectKey{
 		Namespace: job.Namespace,
