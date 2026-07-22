@@ -214,6 +214,11 @@ func vtbackupSpec(key client.ObjectKey, vts *planetscalev2.VitessShard, parentLa
 	update.Annotations(&annotations, pool.Annotations)
 	update.Annotations(&annotations, backupLocation.Annotations)
 
+	dataVolumeClaimTemplate := pool.DataVolumeClaimTemplate
+	if vts.Spec.Vtbackup != nil {
+		dataVolumeClaimTemplate = vts.Spec.Vtbackup.DataVolumeClaimTemplate
+	}
+
 	// Fill in the parts of a vttablet spec that make sense for vtbackup.
 	tabletSpec := &vttablet.Spec{
 		GlobalLockserver:         vts.Spec.GlobalLockserver,
@@ -224,7 +229,7 @@ func vtbackupSpec(key client.ObjectKey, vts *planetscalev2.VitessShard, parentLa
 		Mysqld:                   pool.Mysqld,
 		MysqldExporter:           pool.MysqldExporter,
 		DataVolumePVCName:        key.Name,
-		DataVolumePVCSpec:        pool.DataVolumeClaimTemplate,
+		DataVolumePVCSpec:        dataVolumeClaimTemplate,
 		KeyspaceName:             keyspaceName,
 		DatabaseName:             vts.Spec.DatabaseName,
 		DatabaseInitScriptSecret: vts.Spec.DatabaseInitScriptSecret,

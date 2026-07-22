@@ -8455,6 +8455,21 @@ in order to be able to serve.</p>
 </tr>
 <tr>
 <td>
+<code>vtbackup</code><br>
+<em>
+<a href="#planetscale.com/v2.VitessShardVtbackup">
+VitessShardVtbackup
+</a>
+</em>
+</td>
+<td>
+<p>Vtbackup can optionally override the data volume used by the initial and
+scheduled vtbackup Pods for this shard. When omitted, vtbackup Pods inherit
+the first tablet pool&rsquo;s DataVolumeClaimTemplate.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>databaseInitScriptSecret</code><br>
 <em>
 <a href="#planetscale.com/v2.SecretSource">
@@ -8490,6 +8505,47 @@ map[string]string
 </td>
 <td>
 <p>Annotations can optionally be used to attach custom annotations to the VitessShard object.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="planetscale.com/v2.VitessShardVtbackup">VitessShardVtbackup
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#planetscale.com/v2.VitessShardTemplate">VitessShardTemplate</a>)
+</p>
+<p>
+<p>VitessShardVtbackup configures storage used by vtbackup Pods for a shard.</p>
+</p>
+<table class="table table-striped">
+<thead class="thead-dark">
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>dataVolumeClaimTemplate</code><br>
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#persistentvolumeclaimspec-v1-core">
+Kubernetes core/v1.PersistentVolumeClaimSpec
+</a>
+</em>
+</td>
+<td>
+<p>DataVolumeClaimTemplate overrides the PersistentVolumeClaim that vtbackup
+Pods use for scratch space while taking or restoring a backup.</p>
+<p>When the surrounding vtbackup block is present but this field is omitted,
+vtbackup Pods run with no PersistentVolumeClaim at all and use ephemeral
+(emptyDir) scratch space instead. This is useful for the initial,
+empty-database backup taken at shard creation, which does not need a large
+persistent disk; it lets large clusters avoid allocating a PVC (and the
+underlying disk) per shard just to bootstrap.</p>
+<p>When the whole vtbackup block is omitted, vtbackup Pods inherit the first
+tablet pool&rsquo;s DataVolumeClaimTemplate, which is the historical behavior.</p>
 </td>
 </tr>
 </tbody>

@@ -116,6 +116,11 @@ type VitessShardTemplate struct {
 	// +listMapKey=name
 	TabletPools []VitessShardTabletPool `json:"tabletPools,omitempty" patchStrategy:"merge" patchMergeKey:"type"`
 
+	// Vtbackup can optionally override the data volume used by the initial and
+	// scheduled vtbackup Pods for this shard. When omitted, vtbackup Pods inherit
+	// the first tablet pool's DataVolumeClaimTemplate.
+	Vtbackup *VitessShardVtbackup `json:"vtbackup,omitempty"`
+
 	// DatabaseInitScriptSecret specifies the init_db.sql script file to use for this shard.
 	// This SQL script file is executed immediately after bootstrapping an empty database
 	// to set up initial tables and other MySQL-level entities needed by Vitess.
@@ -275,6 +280,23 @@ type VitessShardTabletPool struct {
 	// +kubebuilder:validation:Schemaless
 	// +kubebuilder:pruning:PreserveUnknownFields
 	TopologySpreadConstraints []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty"`
+}
+
+// VitessShardVtbackup configures storage used by vtbackup Pods for a shard.
+type VitessShardVtbackup struct {
+	// DataVolumeClaimTemplate overrides the PersistentVolumeClaim that vtbackup
+	// Pods use for scratch space while taking or restoring a backup.
+	//
+	// When the surrounding vtbackup block is present but this field is omitted,
+	// vtbackup Pods run with no PersistentVolumeClaim at all and use ephemeral
+	// (emptyDir) scratch space instead. This is useful for the initial,
+	// empty-database backup taken at shard creation, which does not need a large
+	// persistent disk; it lets large clusters avoid allocating a PVC (and the
+	// underlying disk) per shard just to bootstrap.
+	//
+	// When the whole vtbackup block is omitted, vtbackup Pods inherit the first
+	// tablet pool's DataVolumeClaimTemplate, which is the historical behavior.
+	DataVolumeClaimTemplate *corev1.PersistentVolumeClaimSpec `json:"dataVolumeClaimTemplate,omitempty"`
 }
 
 // VttabletSpec configures the vttablet server within a tablet.
