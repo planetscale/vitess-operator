@@ -385,10 +385,14 @@ func TestCreateJob_VtbackupMethodCreatesPVC(t *testing.T) {
 	assert.Len(t, pvcList.Items, 1)
 }
 
-// TestCreateJob_VtbackupMethodWithoutPVC verifies scheduled backups can use ephemeral storage.
-func TestCreateJob_VtbackupMethodWithoutPVC(t *testing.T) {
+func TestCreateJob_VtbackupMethodEmptyOverrideInheritsPVC(t *testing.T) {
 	vts := readyShardWithTabletPoolTolerations(nil)
-	vts.Spec.TabletPools[0].DataVolumeClaimTemplate = &corev1.PersistentVolumeClaimSpec{}
+	vts.Spec.TabletPools[0].DataVolumeClaimTemplate = &corev1.PersistentVolumeClaimSpec{
+		AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
+		Resources: corev1.VolumeResourceRequirements{
+			Requests: corev1.ResourceList{corev1.ResourceStorage: resource.MustParse("10Gi")},
+		},
+	}
 	vts.Spec.Vtbackup = &planetscalev2.VitessShardVtbackup{}
 
 	scheme := newScheme()
@@ -404,6 +408,29 @@ func TestCreateJob_VtbackupMethodWithoutPVC(t *testing.T) {
 	job, err := r.createJob(t.Context(), vbsc, strategy, time.Now(), planetscalev2.VitessKeyRange{})
 	require.NoError(t, err)
 	require.NotNil(t, job)
+
+	pvcList := &corev1.PersistentVolumeClaimList{}
+	require.NoError(t, r.client.List(t.Context(), pvcList, client.InNamespace("default")))
+	require.Len(t, pvcList.Items, 1)
+}
+
+func TestCreateJob_VtbackupMethodWithoutPVCFails(t *testing.T) {
+	vts := readyShardWithTabletPoolTolerations(nil)
+	vts.Spec.TabletPools[0].DataVolumeClaimTemplate = nil
+
+	scheme := newScheme()
+	r := &ReconcileVitessBackupsSchedule{
+		client: fake.NewClientBuilder().WithScheme(scheme).WithObjects(vts).Build(),
+		scheme: scheme,
+	}
+
+	vbsc := vtctldclientVBSC()
+	vbsc.Spec.BackupMethod = planetscalev2.BackupMethodVtbackup
+	strategy := vbsc.Spec.Strategy[0]
+
+	job, err := r.createJob(t.Context(), vbsc, strategy, time.Now(), planetscalev2.VitessKeyRange{})
+	require.ErrorContains(t, err, "dataVolumeClaimTemplate")
+	require.Nil(t, job)
 
 	pvcList := &corev1.PersistentVolumeClaimList{}
 	require.NoError(t, r.client.List(t.Context(), pvcList, client.InNamespace("default")))

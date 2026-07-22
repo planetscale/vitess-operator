@@ -19,6 +19,8 @@ package vitessshard
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/utils/ptr"
@@ -28,9 +30,6 @@ import (
 	"planetscale.dev/vitess-operator/pkg/operator/vitessbackup"
 )
 
-// TestVtbackupSpecDataVolume covers how the shard-level vtbackup override drives
-// the data volume of vtbackup Pods: inherit by default, drop the PVC when the
-// override is present but empty, or use an explicit override template.
 func TestVtbackupSpecDataVolume(t *testing.T) {
 	poolPVC := &corev1.PersistentVolumeClaimSpec{
 		AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
@@ -57,9 +56,9 @@ func TestVtbackupSpecDataVolume(t *testing.T) {
 			want:     poolPVC,
 		},
 		{
-			name:     "empty override drops the PVC (emptyDir)",
+			name:     "empty override inherits pool data volume",
 			vtbackup: &planetscalev2.VitessShardVtbackup{},
-			want:     nil,
+			want:     poolPVC,
 		},
 		{
 			name:     "override template is used",
@@ -97,12 +96,8 @@ func TestVtbackupSpecDataVolume(t *testing.T) {
 
 			key := client.ObjectKey{Namespace: "default", Name: "init-pod"}
 			spec := MakeVtbackupSpec(key, vts, nil, vitessbackup.TypeInit)
-			if spec == nil {
-				t.Fatal("MakeVtbackupSpec returned nil")
-			}
-			if got := spec.TabletSpec.DataVolumePVCSpec; got != tc.want {
-				t.Errorf("DataVolumePVCSpec = %v, want %v", got, tc.want)
-			}
+			require.NotNil(t, spec)
+			assert.Same(t, tc.want, spec.TabletSpec.DataVolumePVCSpec)
 		})
 	}
 }

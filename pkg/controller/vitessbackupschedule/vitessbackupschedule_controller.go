@@ -685,7 +685,7 @@ func (r *ReconcileVitessBackupsSchedule) createVtbackupJob(
 	}
 
 	if vtbackupSpec.TabletSpec.DataVolumePVCSpec == nil {
-		return job, nil
+		return nil, fmt.Errorf("cannot create vtbackup job %s: dataVolumeClaimTemplate is required", job.Name)
 	}
 
 	// Create the corresponding PVC for the new vtbackup pod.
