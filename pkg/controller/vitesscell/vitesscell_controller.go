@@ -38,6 +38,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
 	autoscalingv2 "k8s.io/api/autoscaling/v2"
+
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 	"planetscale.dev/vitess-operator/pkg/operator/environment"
 	"planetscale.dev/vitess-operator/pkg/operator/metrics"
@@ -187,6 +188,9 @@ func (r *ReconcileVitessCell) Reconcile(cctx context.Context, request reconcile.
 	// Reset status so it's all based on the latest observed state.
 	oldStatus := vtc.Status
 	vtc.Status = planetscalev2.NewVitessCellStatus()
+	if oldStatus.Gateway.TabletRefreshInterval != nil {
+		vtc.Status.Gateway.TabletRefreshInterval = oldStatus.Gateway.TabletRefreshInterval.DeepCopy()
+	}
 
 	// Materialize all hard-coded default values into the object.
 	// TODO(enisoc): Use versioned defaults when operator-sdk supports mutating webhooks.

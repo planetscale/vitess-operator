@@ -1133,6 +1133,13 @@ spec:
                 minLength: 1
                 pattern: ^[A-Za-z0-9]([_.A-Za-z0-9]*[A-Za-z0-9])?$
                 type: string
+              tabletRefreshInterval:
+                type: string
+                x-kubernetes-validations:
+                - message: tabletRefreshInterval must be a valid duration of at least
+                    1s using s, m, or h units
+                  rule: self.matches('^([0-9]+([.][0-9]+)?(s|m|h))+$') && duration(self)
+                    >= duration('1s')
               topologyReconciliation:
                 properties:
                   pruneCells:
@@ -1172,6 +1179,8 @@ spec:
                     minimum: 0
                     type: integer
                   serviceName:
+                    type: string
+                  tabletRefreshInterval:
                     type: string
                 type: object
               idle:

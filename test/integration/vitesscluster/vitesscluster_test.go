@@ -20,11 +20,13 @@ import (
 	"context"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	appsv1 "k8s.io/api/apps/v1"
 	autoscalingv2 "k8s.io/api/autoscaling/v2"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	apilabels "k8s.io/apimachinery/pkg/labels"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -37,6 +39,7 @@ import (
 const (
 	basicVitessCluster = `
 spec:
+  tabletRefreshInterval: 40s
   cells:
   - name: cell1
   - name: cell2
@@ -142,6 +145,32 @@ func TestBasicVitessCluster(t *testing.T) {
 	verifyBasicVitessCluster(f, ns, cluster)
 }
 
+func TestTabletRefreshIntervalValidation(t *testing.T) {
+	for _, value := range []string{"500ms", "1000ms", "invalid", "1d"} {
+		t.Run(value, func(t *testing.T) {
+			f := framework.NewFixture(t.Context(), t)
+			cluster := &unstructured.Unstructured{
+				Object: map[string]interface{}{
+					"apiVersion": "planetscale.com/v2",
+					"kind":       "VitessCluster",
+					"metadata": map[string]interface{}{
+						"name":      "invalid-tablet-refresh-interval",
+						"namespace": "default",
+					},
+					"spec": map[string]interface{}{
+						"tabletRefreshInterval": value,
+						"cells":                 []interface{}{},
+					},
+				},
+			}
+
+			err := f.Client().Create(t.Context(), cluster)
+
+			require.ErrorContains(t, err, "tabletRefreshInterval must be a valid duration of at least 1s")
+		})
+	}
+}
+
 func verifyBasicVitessCluster(f *framework.Fixture, ns, cluster string) {
 	// Check that each controller creates its children.
 	// This at least verifies that the generated objects are accepted by the
@@ -211,7 +240,21 @@ func verifyBasicVitessCell(f *framework.Fixture, ns, cluster, cell string) {
 
 	// VitessCell creates vtgate Service/Deployment.
 	f.MustGet(ns, names.JoinWithConstraints(names.ServiceConstraints, cluster, cell, "vtgate"), &corev1.Service{})
-	f.MustGet(ns, names.JoinWithConstraints(names.DefaultConstraints, cluster, cell, "vtgate"), &appsv1.Deployment{})
+	var dep appsv1.Deployment
+	f.MustGet(ns, names.JoinWithConstraints(names.DefaultConstraints, cluster, cell, "vtgate"), &dep)
+
+	// tabletRefreshInterval set on the VitessCluster should be applied to
+	// vtgate's --tablet-refresh-interval flag, keeping it consistent with the
+	// availability gate the VitessShard controller derives from the same value.
+	var vtgateArgs []string
+	for _, c := range dep.Spec.Template.Spec.Containers {
+		if c.Name == "vtgate" {
+			vtgateArgs = c.Args
+			break
+		}
+	}
+	require.Contains(f.T, strings.Join(vtgateArgs, " "), "--tablet-refresh-interval=40s",
+		"vtgate %s missing derived --tablet-refresh-interval. Args: %v", cell, vtgateArgs)
 }
 
 func verifyBasicVitessKeyspace(f *framework.Fixture, ns, cluster, keyspace string) {
@@ -224,7 +267,13 @@ func verifyBasicVitessKeyspace(f *framework.Fixture, ns, cluster, keyspace strin
 }
 
 func verifyBasicVitessShard(f *framework.Fixture, ns, cluster, keyspace, shard string, expectedTabletCount []int) {
-	f.MustGet(ns, names.JoinWithConstraints(names.DefaultConstraints, cluster, keyspace, shard), &planetscalev2.VitessShard{})
+	var vts planetscalev2.VitessShard
+	f.MustGet(ns, names.JoinWithConstraints(names.DefaultConstraints, cluster, keyspace, shard), &vts)
+
+	// tabletRefreshInterval set on the VitessCluster should propagate through
+	// the keyspace controller down to each VitessShard.
+	require.NotNil(f.T, vts.Spec.TabletRefreshInterval, "VitessShard %s missing TabletRefreshInterval", shard)
+	require.Equal(f.T, 40*time.Second, vts.Spec.TabletRefreshInterval.Duration, "VitessShard %s TabletRefreshInterval", shard)
 
 	// VitessShard creates vttablet Pods.
 	cell1Pods := f.ExpectPods(&client.ListOptions{
@@ -256,7 +305,7 @@ func verifyBasicVitessShard(f *framework.Fixture, ns, cluster, keyspace, shard s
 	var found bool
 	f.MustGet(ns, names.JoinWithConstraints(names.DefaultConstraints, cluster, keyspace, shard, "vtbackup", "init"), &pod)
 	f.MustGet(ns, names.JoinWithConstraints(names.DefaultConstraints, cluster, keyspace, shard, "vtbackup", "init"), &corev1.PersistentVolumeClaim{})
-        containerNames := make([]string, len(pod.Spec.Containers))
+	containerNames := make([]string, len(pod.Spec.Containers))
 	for i, c := range pod.Spec.Containers {
 		containerNames[i] = c.Name
 		if c.Name == "vtbackup" {

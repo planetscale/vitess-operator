@@ -4,6 +4,7 @@ metadata:
   name: example
   namespace: example
 spec:
+  tabletRefreshInterval: 10s
   backup:
     engine: xtrabackup
     locations:
@@ -27,8 +28,6 @@ spec:
           secret:
             name: example-cluster-config
             key: users.json
-      extraFlags:
-        tablet-refresh-interval: 10s
       replicas: 1
       resources:
         requests:

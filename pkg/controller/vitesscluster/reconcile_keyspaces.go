@@ -33,7 +33,7 @@ import (
 	"planetscale.dev/vitess-operator/pkg/operator/vitesskeyspace"
 )
 
-func (r *ReconcileVitessCluster) reconcileKeyspaces(ctx context.Context, vt *planetscalev2.VitessCluster) error {
+func (r *ReconcileVitessCluster) reconcileKeyspaces(ctx context.Context, vt *planetscalev2.VitessCluster, oldStatus *planetscalev2.VitessClusterStatus) error {
 	labels := map[string]string{
 		planetscalev2.ClusterLabel: vt.Name,
 	}
@@ -54,16 +54,32 @@ func (r *ReconcileVitessCluster) reconcileKeyspaces(ctx context.Context, vt *pla
 		vt.Status.Keyspaces[keyspace.Name] = planetscalev2.NewVitessClusterKeyspaceStatus(keyspace)
 	}
 
+	desiredInterval := planetscalev2.EffectiveTabletRefreshInterval(vt.Spec.TabletRefreshInterval)
+	requiredInterval := requiredTabletRefreshInterval(desiredInterval, vt.Status.Cells)
+	cellsReported := tabletRefreshIntervalsReportedByCells(vt.Spec.Cells, vt.Status.Cells)
+	targetInterval := requiredInterval
+	if tabletRefreshIntervalObservedByCells(desiredInterval, vt.Spec.Cells, vt.Status.Cells) {
+		targetInterval = desiredInterval
+	}
+	if oldStatus.ObservedGeneration != 0 && !cellsReported {
+		defaultInterval := planetscalev2.EffectiveTabletRefreshInterval(nil)
+		if defaultInterval.Duration > targetInterval.Duration {
+			targetInterval = defaultInterval
+		}
+	}
+
 	return r.reconciler.ReconcileObjectSet(ctx, vt, keys, labels, reconciler.Strategy{
 		Kind: &planetscalev2.VitessKeyspace{},
 
 		New: func(key client.ObjectKey) runtime.Object {
-			return newVitessKeyspace(key, vt, labels, keyspaceMap[key])
+			newObj := newVitessKeyspace(key, vt, labels, keyspaceMap[key])
+			newObj.Spec.TabletRefreshInterval = targetInterval.DeepCopy()
+			return newObj
 		},
 		UpdateInPlace: func(key client.ObjectKey, obj runtime.Object) {
 			newObj := obj.(*planetscalev2.VitessKeyspace)
 			if *vt.Spec.UpdateStrategy.Type == planetscalev2.ImmediateVitessClusterUpdateStrategyType {
-				updateVitessKeyspace(key, newObj, vt, labels, keyspaceMap[key])
+				updateVitessKeyspace(key, newObj, vt, labels, keyspaceMap[key], targetInterval, cellsReported)
 				return
 			}
 			updateVitessKeyspaceInPlace(key, newObj, vt, labels, keyspaceMap[key])
@@ -74,7 +90,7 @@ func (r *ReconcileVitessCluster) reconcileKeyspaces(ctx context.Context, vt *pla
 				// In this case we should use UpdateInPlace for all updates.
 				return
 			}
-			updateVitessKeyspace(key, newObj, vt, labels, keyspaceMap[key])
+			updateVitessKeyspace(key, newObj, vt, labels, keyspaceMap[key], targetInterval, cellsReported)
 		},
 		Status: func(key client.ObjectKey, obj runtime.Object) {
 			curObj := obj.(*planetscalev2.VitessKeyspace)
@@ -82,6 +98,11 @@ func (r *ReconcileVitessCluster) reconcileKeyspaces(ctx context.Context, vt *pla
 			status := vt.Status.Keyspaces[curObj.Spec.Name]
 			status.PendingChanges = curObj.Annotations[rollout.ScheduledAnnotation]
 			status.Shards = int32(len(curObj.Status.Shards))
+			status.TabletRefreshInterval = observedKeyspaceTabletRefreshInterval(
+				curObj.Spec.TabletRefreshInterval,
+				curObj.Status.TabletRefreshInterval,
+				targetInterval,
+			)
 
 			status.ReadyShards = 0
 			status.UpdatedShards = 0
@@ -166,6 +187,8 @@ func newVitessKeyspace(key client.ObjectKey, vt *planetscalev2.VitessCluster, pa
 		backupEngine = vt.Spec.Backup.Engine
 	}
 
+	tabletRefreshInterval := planetscalev2.EffectiveTabletRefreshInterval(vt.Spec.TabletRefreshInterval)
+
 	return &planetscalev2.VitessKeyspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace:   key.Namespace,
@@ -185,12 +208,15 @@ func newVitessKeyspace(key client.ObjectKey, vt *planetscalev2.VitessCluster, pa
 			ExtraVitessFlags:       vt.Spec.ExtraVitessFlags,
 			TopologyReconciliation: vt.Spec.TopologyReconciliation,
 			UpdateStrategy:         vt.Spec.UpdateStrategy,
+			TabletRefreshInterval:  &tabletRefreshInterval,
 		},
 	}
 }
 
-func updateVitessKeyspace(key client.ObjectKey, vtk *planetscalev2.VitessKeyspace, vt *planetscalev2.VitessCluster, parentLabels map[string]string, keyspace *planetscalev2.VitessKeyspaceTemplate) {
+func updateVitessKeyspace(key client.ObjectKey, vtk *planetscalev2.VitessKeyspace, vt *planetscalev2.VitessCluster, parentLabels map[string]string, keyspace *planetscalev2.VitessKeyspaceTemplate, tabletRefreshInterval metav1.Duration, cellsReported bool) {
+	currentInterval := vtk.Spec.TabletRefreshInterval
 	newKeyspace := newVitessKeyspace(key, vt, parentLabels, keyspace)
+	newKeyspace.Spec.TabletRefreshInterval = stagedTabletRefreshGateInterval(currentInterval, tabletRefreshInterval, cellsReported)
 
 	// Update labels, but ignore existing ones we don't set.
 	update.Labels(&vtk.Labels, newKeyspace.Labels)

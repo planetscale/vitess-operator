@@ -98,6 +98,11 @@ type VitessShardSpec struct {
 
 	// UpdateStrategy is inherited from the parent's VitessClusterSpec.
 	UpdateStrategy *VitessClusterUpdateStrategy `json:"updateStrategy,omitempty"`
+
+	// TabletRefreshInterval is inherited from the parent's VitessClusterSpec.
+	// The operator derives the tablet-availability gate from it.
+	// +kubebuilder:validation:XValidation:rule="self.matches('^([0-9]+([.][0-9]+)?(s|m|h))+$') && duration(self) >= duration('1s')",message="tabletRefreshInterval must be a valid duration of at least 1s using s, m, or h units"
+	TabletRefreshInterval *metav1.Duration `json:"tabletRefreshInterval,omitempty"`
 }
 
 // VitessShardTemplate contains only the user-specified parts of a VitessShard object.
@@ -402,6 +407,9 @@ type ExternalDatastore struct {
 type VitessShardStatus struct {
 	// The generation observed by the controller.
 	ObservedGeneration int64 `json:"observedGeneration,omitempty"`
+	// TabletRefreshInterval records successful tablet reconciliation so a
+	// parent never reports a shard gate that was not actually evaluated.
+	TabletRefreshInterval *metav1.Duration `json:"tabletRefreshInterval,omitempty"`
 
 	// Tablets is a summary of the status of all desired tablets in the shard.
 	Tablets map[string]VitessTabletStatus `json:"tablets,omitempty"`

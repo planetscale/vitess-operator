@@ -447,6 +447,37 @@ TopoReconcileConfig
 </tr>
 <tr>
 <td>
+<code>tabletRefreshInterval</code><br>
+<em>
+<a href="https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#Duration">
+Kubernetes meta/v1.Duration
+</a>
+</em>
+</td>
+<td>
+<p>TabletRefreshInterval is how often vtgate refreshes its view of tablets
+from the topology service. The operator both applies this value to
+vtgate&rsquo;s &ndash;tablet-refresh-interval flag and derives, from the same value,
+how long a restarted tablet must be Ready before it paces the next step
+of a rolling update (the refresh interval x 2). This keeps the two in
+sync so the operator never drains the next tablet before vtgates have had
+time to rediscover a previously restarted one, which would otherwise
+cause &ldquo;no healthy tablet available&rdquo; errors during rolling restarts.</p>
+<p>You should not normally need to set this; the default is safe. It exists
+mainly so large clusters can trade a shorter refresh interval (lower
+rolling-restart latency) against more topology-server polling load.
+Values below 1s are rejected to avoid excessive topology-server polling.
+This field is the only supported way to change the interval: the
+operator ignores tablet-refresh-interval (in either flag spelling) in
+ExtraVitessFlags and the gateway ExtraFlags, since overriding it there
+would bypass this coupling and reintroduce the bug.
+Existing clusters using either extra flag must move that value here when
+upgrading; the legacy flag is retained only until the safe rollout is staged.</p>
+<p>Default: 60s</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>updateStrategy</code><br>
 <em>
 <a href="#planetscale.com/v2.VitessClusterUpdateStrategy">
@@ -3572,6 +3603,20 @@ TopoReconcileConfig
 <p>TopologyReconciliation is inherited from the parent&rsquo;s VitessClusterSpec.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>tabletRefreshInterval</code><br>
+<em>
+<a href="https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#Duration">
+Kubernetes meta/v1.Duration
+</a>
+</em>
+</td>
+<td>
+<p>TabletRefreshInterval is inherited from the parent&rsquo;s VitessClusterSpec.
+The vtgate Deployment derives its &ndash;tablet-refresh-interval flag from it.</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -3949,6 +3994,20 @@ int32
 HorizontalPodAutoscaler to determine the current number of replicas.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>tabletRefreshInterval</code><br>
+<em>
+<a href="https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#Duration">
+Kubernetes meta/v1.Duration
+</a>
+</em>
+</td>
+<td>
+<p>TabletRefreshInterval reports the interval observed after the vtgate
+Deployment rollout completes so the parent can safely stage shard gates.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="planetscale.com/v2.VitessCellImages">VitessCellImages
@@ -4113,6 +4172,20 @@ TopoReconcileConfig
 </td>
 <td>
 <p>TopologyReconciliation is inherited from the parent&rsquo;s VitessClusterSpec.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>tabletRefreshInterval</code><br>
+<em>
+<a href="https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#Duration">
+Kubernetes meta/v1.Duration
+</a>
+</em>
+</td>
+<td>
+<p>TabletRefreshInterval is inherited from the parent&rsquo;s VitessClusterSpec.
+The vtgate Deployment derives its &ndash;tablet-refresh-interval flag from it.</p>
 </td>
 </tr>
 </tbody>
@@ -4322,6 +4395,20 @@ Kubernetes core/v1.ConditionStatus
 <p>GatewayAvailable indicates whether the vtgate service is fully available.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>tabletRefreshInterval</code><br>
+<em>
+<a href="https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#Duration">
+Kubernetes meta/v1.Duration
+</a>
+</em>
+</td>
+<td>
+<p>TabletRefreshInterval records the interval observed after the cell&rsquo;s vtgate
+rollout completes, preventing shard gates from shrinking prematurely.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="planetscale.com/v2.VitessClusterKeyspaceStatus">VitessClusterKeyspaceStatus
@@ -4462,6 +4549,20 @@ int32
 <td>
 <p>Cells is a list of cells in which any observed tablets for this keyspace
 are deployed.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>tabletRefreshInterval</code><br>
+<em>
+<a href="https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#Duration">
+Kubernetes meta/v1.Duration
+</a>
+</em>
+</td>
+<td>
+<p>TabletRefreshInterval records the gate observed by every shard so vtgate
+rollouts cannot outrun tablet availability.</p>
 </td>
 </tr>
 </tbody>
@@ -4647,6 +4748,37 @@ TopoReconcileConfig
 </td>
 <td>
 <p>TopologyReconciliation can be used to enable or disable registration or pruning of various vitess components to and from topo records.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>tabletRefreshInterval</code><br>
+<em>
+<a href="https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#Duration">
+Kubernetes meta/v1.Duration
+</a>
+</em>
+</td>
+<td>
+<p>TabletRefreshInterval is how often vtgate refreshes its view of tablets
+from the topology service. The operator both applies this value to
+vtgate&rsquo;s &ndash;tablet-refresh-interval flag and derives, from the same value,
+how long a restarted tablet must be Ready before it paces the next step
+of a rolling update (the refresh interval x 2). This keeps the two in
+sync so the operator never drains the next tablet before vtgates have had
+time to rediscover a previously restarted one, which would otherwise
+cause &ldquo;no healthy tablet available&rdquo; errors during rolling restarts.</p>
+<p>You should not normally need to set this; the default is safe. It exists
+mainly so large clusters can trade a shorter refresh interval (lower
+rolling-restart latency) against more topology-server polling load.
+Values below 1s are rejected to avoid excessive topology-server polling.
+This field is the only supported way to change the interval: the
+operator ignores tablet-refresh-interval (in either flag spelling) in
+ExtraVitessFlags and the gateway ExtraFlags, since overriding it there
+would bypass this coupling and reintroduce the bug.
+Existing clusters using either extra flag must move that value here when
+upgrading; the legacy flag is retained only until the safe rollout is staged.</p>
+<p>Default: 60s</p>
 </td>
 </tr>
 <tr>
@@ -5800,6 +5932,19 @@ VitessClusterUpdateStrategy
 <p>UpdateStrategy is inherited from the parent&rsquo;s VitessClusterSpec.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>tabletRefreshInterval</code><br>
+<em>
+<a href="https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#Duration">
+Kubernetes meta/v1.Duration
+</a>
+</em>
+</td>
+<td>
+<p>TabletRefreshInterval is inherited from the parent&rsquo;s VitessClusterSpec.</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -6437,6 +6582,20 @@ the next time a rolling update allows.</p>
 <p>Cells is a list of cells in which any tablets for this shard are deployed.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>tabletRefreshInterval</code><br>
+<em>
+<a href="https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#Duration">
+Kubernetes meta/v1.Duration
+</a>
+</em>
+</td>
+<td>
+<p>TabletRefreshInterval records when this shard controller has observed the
+interval that drives tablet availability.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="planetscale.com/v2.VitessKeyspaceSpec">VitessKeyspaceSpec
@@ -6606,6 +6765,19 @@ VitessClusterUpdateStrategy
 <p>UpdateStrategy is inherited from the parent&rsquo;s VitessClusterSpec.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>tabletRefreshInterval</code><br>
+<em>
+<a href="https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#Duration">
+Kubernetes meta/v1.Duration
+</a>
+</em>
+</td>
+<td>
+<p>TabletRefreshInterval is inherited from the parent&rsquo;s VitessClusterSpec.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="planetscale.com/v2.VitessKeyspaceStatus">VitessKeyspaceStatus
@@ -6717,6 +6889,20 @@ it means the operator was unable to query resharding status from Vitess.</p>
 <td>
 <p>Conditions is a list of all VitessKeyspace specific conditions we want to set and monitor.
 It&rsquo;s ok for multiple controllers to add conditions here, and those conditions will be preserved.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>tabletRefreshInterval</code><br>
+<em>
+<a href="https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#Duration">
+Kubernetes meta/v1.Duration
+</a>
+</em>
+</td>
+<td>
+<p>TabletRefreshInterval records the gate observed by every shard so the
+parent can safely stage vtgate rollouts.</p>
 </td>
 </tr>
 </tbody>
@@ -7597,6 +7783,20 @@ VitessClusterUpdateStrategy
 <p>UpdateStrategy is inherited from the parent&rsquo;s VitessClusterSpec.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>tabletRefreshInterval</code><br>
+<em>
+<a href="https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#Duration">
+Kubernetes meta/v1.Duration
+</a>
+</em>
+</td>
+<td>
+<p>TabletRefreshInterval is inherited from the parent&rsquo;s VitessClusterSpec.
+The operator derives the tablet-availability gate from it.</p>
+</td>
+</tr>
 </table>
 </td>
 </tr>
@@ -7906,6 +8106,20 @@ VitessClusterUpdateStrategy
 <p>UpdateStrategy is inherited from the parent&rsquo;s VitessClusterSpec.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>tabletRefreshInterval</code><br>
+<em>
+<a href="https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#Duration">
+Kubernetes meta/v1.Duration
+</a>
+</em>
+</td>
+<td>
+<p>TabletRefreshInterval is inherited from the parent&rsquo;s VitessClusterSpec.
+The operator derives the tablet-availability gate from it.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="planetscale.com/v2.VitessShardStatus">VitessShardStatus
@@ -7934,6 +8148,20 @@ int64
 </td>
 <td>
 <p>The generation observed by the controller.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>tabletRefreshInterval</code><br>
+<em>
+<a href="https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#Duration">
+Kubernetes meta/v1.Duration
+</a>
+</em>
+</td>
+<td>
+<p>TabletRefreshInterval records successful tablet reconciliation so a
+parent never reports a shard gate that was not actually evaluated.</p>
 </td>
 </tr>
 <tr>

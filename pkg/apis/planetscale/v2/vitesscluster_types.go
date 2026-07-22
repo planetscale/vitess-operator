@@ -116,6 +116,30 @@ type VitessClusterSpec struct {
 	// TopologyReconciliation can be used to enable or disable registration or pruning of various vitess components to and from topo records.
 	TopologyReconciliation *TopoReconcileConfig `json:"topologyReconciliation,omitempty"`
 
+	// TabletRefreshInterval is how often vtgate refreshes its view of tablets
+	// from the topology service. The operator both applies this value to
+	// vtgate's --tablet-refresh-interval flag and derives, from the same value,
+	// how long a restarted tablet must be Ready before it paces the next step
+	// of a rolling update (the refresh interval x 2). This keeps the two in
+	// sync so the operator never drains the next tablet before vtgates have had
+	// time to rediscover a previously restarted one, which would otherwise
+	// cause "no healthy tablet available" errors during rolling restarts.
+	//
+	// You should not normally need to set this; the default is safe. It exists
+	// mainly so large clusters can trade a shorter refresh interval (lower
+	// rolling-restart latency) against more topology-server polling load.
+	// Values below 1s are rejected to avoid excessive topology-server polling.
+	// This field is the only supported way to change the interval: the
+	// operator ignores tablet-refresh-interval (in either flag spelling) in
+	// ExtraVitessFlags and the gateway ExtraFlags, since overriding it there
+	// would bypass this coupling and reintroduce the bug.
+	// Existing clusters using either extra flag must move that value here when
+	// upgrading; the legacy flag is retained only until the safe rollout is staged.
+	//
+	// Default: 60s
+	// +kubebuilder:validation:XValidation:rule="self.matches('^([0-9]+([.][0-9]+)?(s|m|h))+$') && duration(self) >= duration('1s')",message="tabletRefreshInterval must be a valid duration of at least 1s using s, m, or h units"
+	TabletRefreshInterval *metav1.Duration `json:"tabletRefreshInterval,omitempty"`
+
 	// UpdateStrategy specifies how components in the Vitess cluster will be updated
 	// when a revision is made to the VitessCluster spec.
 	UpdateStrategy *VitessClusterUpdateStrategy `json:"updateStrategy,omitempty"`
@@ -638,6 +662,9 @@ type VitessClusterCellStatus struct {
 	PendingChanges string `json:"pendingChanges,omitempty"`
 	// GatewayAvailable indicates whether the vtgate service is fully available.
 	GatewayAvailable corev1.ConditionStatus `json:"gatewayAvailable,omitempty"`
+	// TabletRefreshInterval records the interval observed after the cell's vtgate
+	// rollout completes, preventing shard gates from shrinking prematurely.
+	TabletRefreshInterval *metav1.Duration `json:"tabletRefreshInterval,omitempty"`
 }
 
 // NewVitessClusterCellStatus creates a new status object with default values.
@@ -682,6 +709,9 @@ type VitessClusterKeyspaceStatus struct {
 	// Cells is a list of cells in which any observed tablets for this keyspace
 	// are deployed.
 	Cells []string `json:"cells,omitempty"`
+	// TabletRefreshInterval records the gate observed by every shard so vtgate
+	// rollouts cannot outrun tablet availability.
+	TabletRefreshInterval *metav1.Duration `json:"tabletRefreshInterval,omitempty"`
 }
 
 // NewVitessClusterKeyspaceStatus creates a new status object with default values.

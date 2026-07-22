@@ -83,6 +83,10 @@ type VitessKeyspaceSpec struct {
 
 	// UpdateStrategy is inherited from the parent's VitessClusterSpec.
 	UpdateStrategy *VitessClusterUpdateStrategy `json:"updateStrategy,omitempty"`
+
+	// TabletRefreshInterval is inherited from the parent's VitessClusterSpec.
+	// +kubebuilder:validation:XValidation:rule="self.matches('^([0-9]+([.][0-9]+)?(s|m|h))+$') && duration(self) >= duration('1s')",message="tabletRefreshInterval must be a valid duration of at least 1s using s, m, or h units"
+	TabletRefreshInterval *metav1.Duration `json:"tabletRefreshInterval,omitempty"`
 }
 
 // VitessKeyspaceTemplate contains only the user-specified parts of a VitessKeyspace object.
@@ -437,6 +441,9 @@ type VitessKeyspaceStatus struct {
 	// Conditions is a list of all VitessKeyspace specific conditions we want to set and monitor.
 	// It's ok for multiple controllers to add conditions here, and those conditions will be preserved.
 	Conditions []VitessKeyspaceCondition `json:"conditions,omitempty"`
+	// TabletRefreshInterval records the gate observed by every shard so the
+	// parent can safely stage vtgate rollouts.
+	TabletRefreshInterval *metav1.Duration `json:"tabletRefreshInterval,omitempty"`
 }
 
 // ReshardingStatus defines some of the workflow related status information.
@@ -508,6 +515,9 @@ type VitessKeyspaceShardStatus struct {
 	PendingChanges string `json:"pendingChanges,omitempty"`
 	// Cells is a list of cells in which any tablets for this shard are deployed.
 	Cells []string `json:"cells,omitempty"`
+	// TabletRefreshInterval records when this shard controller has observed the
+	// interval that drives tablet availability.
+	TabletRefreshInterval *metav1.Duration `json:"tabletRefreshInterval,omitempty"`
 }
 
 // NewVitessKeyspaceShardStatus creates a new status object with default values.
