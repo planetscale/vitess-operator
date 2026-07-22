@@ -56,9 +56,9 @@ func TestVtbackupSpecDataVolume(t *testing.T) {
 			want:     poolPVC,
 		},
 		{
-			name:     "empty override inherits pool data volume",
+			name:     "empty override drops the PVC (emptyDir)",
 			vtbackup: &planetscalev2.VitessShardVtbackup{},
-			want:     poolPVC,
+			want:     nil,
 		},
 		{
 			name:     "override template is used",

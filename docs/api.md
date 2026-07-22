@@ -8462,8 +8462,8 @@ VitessShardVtbackup
 </td>
 <td>
 <p>Vtbackup can optionally override the data volume used by the initial and
-scheduled vtbackup Pods for this shard. When omitted or empty, vtbackup Pods
-inherit the first tablet pool&rsquo;s DataVolumeClaimTemplate.</p>
+scheduled vtbackup Pods for this shard. When omitted, vtbackup Pods inherit
+the first tablet pool&rsquo;s DataVolumeClaimTemplate.</p>
 </td>
 </tr>
 <tr>
@@ -8536,8 +8536,14 @@ Kubernetes core/v1.PersistentVolumeClaimSpec
 <td>
 <p>DataVolumeClaimTemplate overrides the PersistentVolumeClaim that vtbackup
 Pods use for scratch space while taking or restoring a backup.</p>
-<p>When omitted, vtbackup Pods inherit the first tablet pool&rsquo;s
-DataVolumeClaimTemplate, which is the historical behavior.</p>
+<p>When the surrounding vtbackup block is present but this field is omitted,
+vtbackup Pods run with no PersistentVolumeClaim at all and use ephemeral
+(emptyDir) scratch space instead. This is useful for the initial,
+empty-database backup taken at shard creation, which does not need a large
+persistent disk; it lets large clusters avoid allocating a PVC (and the
+underlying disk) per shard just to bootstrap.</p>
+<p>When the whole vtbackup block is omitted, vtbackup Pods inherit the first
+tablet pool&rsquo;s DataVolumeClaimTemplate, which is the historical behavior.</p>
 </td>
 </tr>
 </tbody>

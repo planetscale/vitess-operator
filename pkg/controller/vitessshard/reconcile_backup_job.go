@@ -215,7 +215,7 @@ func vtbackupSpec(key client.ObjectKey, vts *planetscalev2.VitessShard, parentLa
 	update.Annotations(&annotations, backupLocation.Annotations)
 
 	dataVolumeClaimTemplate := pool.DataVolumeClaimTemplate
-	if vts.Spec.Vtbackup != nil && vts.Spec.Vtbackup.DataVolumeClaimTemplate != nil {
+	if vts.Spec.Vtbackup != nil {
 		dataVolumeClaimTemplate = vts.Spec.Vtbackup.DataVolumeClaimTemplate
 	}
 

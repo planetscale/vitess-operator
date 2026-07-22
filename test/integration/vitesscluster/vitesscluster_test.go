@@ -61,12 +61,9 @@ spec:
           databaseInitScriptSecret:
             key: init_db.sql
             name: init-script-secret
-          vtbackup:
-            dataVolumeClaimTemplate:
-              accessModes: [ReadWriteOnce]
-              resources:
-                requests:
-                  storage: 512Mi
+          # Present but empty: vtbackup Pods for this shard should run with no
+          # PVC (ephemeral scratch space) even though the tablets below use one.
+          vtbackup: {}
           tabletPools:
           - cell: cell1
             type: replica
@@ -256,16 +253,18 @@ func verifyBasicVitessShard(f *framework.Fixture, ns, cluster, keyspace, shard s
 		}
 	}
 
-	// VitessShard creates the vtbackup-init Pod and its overridden PVC.
+	// VitessShard creates the vtbackup-init Pod. The shard sets an empty vtbackup
+	// override, so unlike the tablet Pods above it must run with no PVC and use
+	// ephemeral scratch space instead.
 	var pod corev1.Pod
-	var pvc corev1.PersistentVolumeClaim
 	var args []string
 	var found bool
 	vtbackupName := names.JoinWithConstraints(names.DefaultConstraints, cluster, keyspace, shard, "vtbackup", "init")
 	f.MustGet(ns, vtbackupName, &pod)
-	f.MustGet(ns, vtbackupName, &pvc)
-	storage := pvc.Spec.Resources.Requests[corev1.ResourceStorage]
-	require.Equal(f.T, "512Mi", storage.String())
+	for _, volume := range pod.Spec.Volumes {
+		require.Nil(f.T, volume.PersistentVolumeClaim,
+			"vtbackup-init Pod should have no PVC-backed volume, but volume %q is PVC-backed", volume.Name)
+	}
 	containerNames := make([]string, len(pod.Spec.Containers))
 	for i, c := range pod.Spec.Containers {
 		containerNames[i] = c.Name
