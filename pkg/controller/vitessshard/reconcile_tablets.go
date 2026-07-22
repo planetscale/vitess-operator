@@ -382,13 +382,7 @@ func tabletAvailableStatus(resultBuilder *results.Builder, vts *planetscalev2.Vi
 		return corev1.ConditionFalse
 	}
 
-	// TabletRefreshInterval is a nillable field inherited from the parent
-	// VitessCluster. It's normally filled in by DefaultVitessShard, but guard
-	// against a nil value to be safe.
-	refreshInterval := metav1.Duration{Duration: time.Minute}
-	if vts.Spec.TabletRefreshInterval != nil {
-		refreshInterval = *vts.Spec.TabletRefreshInterval
-	}
+	refreshInterval := planetscalev2.EffectiveTabletRefreshInterval(vts.Spec.TabletRefreshInterval)
 	availableSeconds := planetscalev2.TabletAvailableSeconds(refreshInterval)
 
 	// A tablet is Available if it's been consistently Ready for long enough.

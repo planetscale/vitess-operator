@@ -146,7 +146,7 @@ func TestBasicVitessCluster(t *testing.T) {
 }
 
 func TestTabletRefreshIntervalValidation(t *testing.T) {
-	for _, value := range []string{"500ms", "invalid", "1d"} {
+	for _, value := range []string{"500ms", "1000ms", "invalid", "1d"} {
 		t.Run(value, func(t *testing.T) {
 			f := framework.NewFixture(t.Context(), t)
 			cluster := &unstructured.Unstructured{

@@ -85,7 +85,7 @@ type VitessKeyspaceSpec struct {
 	UpdateStrategy *VitessClusterUpdateStrategy `json:"updateStrategy,omitempty"`
 
 	// TabletRefreshInterval is inherited from the parent's VitessClusterSpec.
-	// +kubebuilder:validation:XValidation:rule="self.matches('^([0-9]+([.][0-9]+)?(ns|us|ms|s|m|h))+$') && duration(self) >= duration('1s')",message="tabletRefreshInterval must be a valid duration of at least 1s"
+	// +kubebuilder:validation:XValidation:rule="self.matches('^([0-9]+([.][0-9]+)?(s|m|h))+$') && duration(self) >= duration('1s')",message="tabletRefreshInterval must be a valid duration of at least 1s using s, m, or h units"
 	TabletRefreshInterval *metav1.Duration `json:"tabletRefreshInterval,omitempty"`
 }
 

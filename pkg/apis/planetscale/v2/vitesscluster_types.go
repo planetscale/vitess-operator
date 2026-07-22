@@ -137,7 +137,7 @@ type VitessClusterSpec struct {
 	// upgrading; the legacy flag is retained only until the safe rollout is staged.
 	//
 	// Default: 60s
-	// +kubebuilder:validation:XValidation:rule="self.matches('^([0-9]+([.][0-9]+)?(ns|us|ms|s|m|h))+$') && duration(self) >= duration('1s')",message="tabletRefreshInterval must be a valid duration of at least 1s"
+	// +kubebuilder:validation:XValidation:rule="self.matches('^([0-9]+([.][0-9]+)?(s|m|h))+$') && duration(self) >= duration('1s')",message="tabletRefreshInterval must be a valid duration of at least 1s using s, m, or h units"
 	TabletRefreshInterval *metav1.Duration `json:"tabletRefreshInterval,omitempty"`
 
 	// UpdateStrategy specifies how components in the Vitess cluster will be updated
@@ -662,8 +662,8 @@ type VitessClusterCellStatus struct {
 	PendingChanges string `json:"pendingChanges,omitempty"`
 	// GatewayAvailable indicates whether the vtgate service is fully available.
 	GatewayAvailable corev1.ConditionStatus `json:"gatewayAvailable,omitempty"`
-	// TabletRefreshInterval records the completed vtgate rollout so shard gates
-	// are not lowered while older Pods still use a longer interval.
+	// TabletRefreshInterval records the interval observed after the cell's vtgate
+	// rollout completes, preventing shard gates from shrinking prematurely.
 	TabletRefreshInterval *metav1.Duration `json:"tabletRefreshInterval,omitempty"`
 }
 

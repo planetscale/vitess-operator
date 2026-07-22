@@ -4004,8 +4004,8 @@ Kubernetes meta/v1.Duration
 </em>
 </td>
 <td>
-<p>TabletRefreshInterval records the interval running across the completed
-Deployment so the parent can safely stage shard gates.</p>
+<p>TabletRefreshInterval reports the interval observed after the vtgate
+Deployment rollout completes so the parent can safely stage shard gates.</p>
 </td>
 </tr>
 </tbody>
@@ -4405,8 +4405,8 @@ Kubernetes meta/v1.Duration
 </em>
 </td>
 <td>
-<p>TabletRefreshInterval records the completed vtgate rollout so shard gates
-are not lowered while older Pods still use a longer interval.</p>
+<p>TabletRefreshInterval records the interval observed after the cell&rsquo;s vtgate
+rollout completes, preventing shard gates from shrinking prematurely.</p>
 </td>
 </tr>
 </tbody>

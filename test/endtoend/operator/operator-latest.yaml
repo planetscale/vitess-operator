@@ -1903,9 +1903,9 @@ spec:
                 type: string
                 x-kubernetes-validations:
                 - message: tabletRefreshInterval must be a valid duration of at least
-                    1s
-                  rule: self.matches('^([0-9]+([.][0-9]+)?(ns|us|ms|s|m|h))+$') &&
-                    duration(self) >= duration('1s')
+                    1s using s, m, or h units
+                  rule: self.matches('^([0-9]+([.][0-9]+)?(s|m|h))+$') && duration(self)
+                    >= duration('1s')
               topologyReconciliation:
                 properties:
                   pruneCells:
@@ -4881,9 +4881,9 @@ spec:
                 type: string
                 x-kubernetes-validations:
                 - message: tabletRefreshInterval must be a valid duration of at least
-                    1s
-                  rule: self.matches('^([0-9]+([.][0-9]+)?(ns|us|ms|s|m|h))+$') &&
-                    duration(self) >= duration('1s')
+                    1s using s, m, or h units
+                  rule: self.matches('^([0-9]+([.][0-9]+)?(s|m|h))+$') && duration(self)
+                    >= duration('1s')
               tabletService:
                 properties:
                   annotations:
@@ -6635,9 +6635,9 @@ spec:
                 type: string
                 x-kubernetes-validations:
                 - message: tabletRefreshInterval must be a valid duration of at least
-                    1s
-                  rule: self.matches('^([0-9]+([.][0-9]+)?(ns|us|ms|s|m|h))+$') &&
-                    duration(self) >= duration('1s')
+                    1s using s, m, or h units
+                  rule: self.matches('^([0-9]+([.][0-9]+)?(s|m|h))+$') && duration(self)
+                    >= duration('1s')
               topologyReconciliation:
                 properties:
                   pruneCells:
@@ -7669,9 +7669,9 @@ spec:
                 type: string
                 x-kubernetes-validations:
                 - message: tabletRefreshInterval must be a valid duration of at least
-                    1s
-                  rule: self.matches('^([0-9]+([.][0-9]+)?(ns|us|ms|s|m|h))+$') &&
-                    duration(self) >= duration('1s')
+                    1s using s, m, or h units
+                  rule: self.matches('^([0-9]+([.][0-9]+)?(s|m|h))+$') && duration(self)
+                    >= duration('1s')
               topologyReconciliation:
                 properties:
                   pruneCells:

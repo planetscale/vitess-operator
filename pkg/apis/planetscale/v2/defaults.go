@@ -17,6 +17,7 @@ limitations under the License.
 package v2
 
 import (
+	"math"
 	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -213,20 +214,12 @@ var (
 // a previously restarted one. The result is never less than 1 second.
 func TabletAvailableSeconds(refreshInterval metav1.Duration) int32 {
 	refreshInterval = tabletRefreshIntervalOrDefault(refreshInterval)
-	wholeSeconds := int64(refreshInterval.Duration / time.Second)
-	remainder := int64(refreshInterval.Duration % time.Second)
-
-	seconds := wholeSeconds * tabletAvailableRefreshMultiplier
-	remainderNanos := remainder * tabletAvailableRefreshMultiplier
-	seconds += remainderNanos / int64(time.Second)
-	if remainderNanos%int64(time.Second) != 0 {
-		seconds++
-	}
+	seconds := math.Ceil(refreshInterval.Seconds() * tabletAvailableRefreshMultiplier)
 	if seconds < 1 {
 		seconds = 1
 	}
-	if seconds > 1<<31-1 {
-		seconds = 1<<31 - 1
+	if seconds > math.MaxInt32 {
+		seconds = math.MaxInt32
 	}
 	return int32(seconds)
 }
