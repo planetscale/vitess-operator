@@ -384,12 +384,13 @@ func tabletAvailableStatus(resultBuilder *results.Builder, vts *planetscalev2.Vi
 
 	refreshInterval := planetscalev2.EffectiveTabletRefreshInterval(vts.Spec.TabletRefreshInterval)
 	availableSeconds := planetscalev2.TabletAvailableSeconds(refreshInterval)
+	now := metav1.Now()
 
 	// A tablet is Available if it's been consistently Ready for long enough.
 	// Note that this is sensitive to clock skew between us and the k8s primary,
 	// but it's the same trade-off that k8s controllers make to determine Pod
 	// availability.
-	if podutils.IsPodAvailable(pod, availableSeconds, metav1.Now()) {
+	if podutils.IsPodAvailable(pod, availableSeconds, now) {
 		return corev1.ConditionTrue
 	}
 
@@ -401,14 +402,22 @@ func tabletAvailableStatus(resultBuilder *results.Builder, vts *planetscalev2.Vi
 	remaining := window
 	for _, c := range pod.Status.Conditions {
 		if c.Type == corev1.PodReady && c.Status == corev1.ConditionTrue && !c.LastTransitionTime.IsZero() {
-			if r := window - time.Since(c.LastTransitionTime.Time); r > 0 {
-				remaining = r
-			}
+			remaining = tabletAvailableRequeueAfter(c.LastTransitionTime.Time, window, now.Time)
 			break
 		}
 	}
 	resultBuilder.RequeueAfter(remaining)
 	return corev1.ConditionFalse
+}
+
+// tabletAvailableRequeueAfter prevents the strict availability boundary from
+// stalling a tablet rollout for another full gate window.
+func tabletAvailableRequeueAfter(readySince time.Time, window time.Duration, now time.Time) time.Duration {
+	remaining := readySince.Add(window).Sub(now)
+	if remaining <= 0 {
+		return time.Millisecond
+	}
+	return remaining
 }
 
 func (r *ReconcileVitessShard) updatePVCFilesystemResizeAnnotation(ctx context.Context, tabletSpec *vttablet.Spec, pod *corev1.Pod) {
