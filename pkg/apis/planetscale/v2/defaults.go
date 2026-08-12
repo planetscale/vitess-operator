@@ -16,6 +16,13 @@ limitations under the License.
 
 package v2
 
+import (
+	"math"
+	"time"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
+
 /*
 All hard-coded default values for configurable aspects of objects in our API should go here.
 However, hard-coded values that are not (yet) configurable in the API can live with the code.
@@ -84,6 +91,20 @@ const (
 	defaultBackupMinRetentionHours = 72
 	defaultBackupMinRetentionCount = 1
 	defaultBackupEngine            = VitessBackupEngineBuiltIn
+
+	// defaultTabletRefreshInterval is how often vtgate refreshes its view of
+	// tablets from the topology service. It matches vtgate's own built-in
+	// default for --tablet-refresh-interval. The operator both applies this to
+	// vtgate and derives the tablet-availability gate from it (see
+	// TabletAvailableSeconds) so the two always stay consistent.
+	defaultTabletRefreshInterval = time.Minute
+
+	// tabletAvailableRefreshMultiplier is the safety factor (2x) applied to
+	// the tablet refresh interval to compute how long a tablet Pod must be
+	// consistently Ready before the operator considers it Available. A factor
+	// of 2 provides a full refresh interval of margin for vtgates to rediscover
+	// the tablet after it becomes Ready.
+	tabletAvailableRefreshMultiplier = 2
 
 	// DefaultWebPort is the port for debug status pages and dashboard UIs.
 	DefaultWebPort = 15000
@@ -185,3 +206,46 @@ var (
 	// --default_etcd_image flag.
 	DefaultEtcdImage = "quay.io/coreos/etcd:v3.5.17"
 )
+
+// TabletAvailableSeconds returns how long a tablet Pod must be consistently
+// Ready before the operator treats it as Available, derived from the vtgate
+// tablet refresh interval (interval x 2). The operator gates rolling restarts
+// on this so it doesn't drain the next tablet before vtgates have rediscovered
+// a previously restarted one. The result is never less than 1 second.
+func TabletAvailableSeconds(refreshInterval metav1.Duration) int32 {
+	refreshInterval = tabletRefreshIntervalOrDefault(refreshInterval)
+	seconds := math.Ceil(refreshInterval.Seconds() * tabletAvailableRefreshMultiplier)
+	if seconds < 1 {
+		seconds = 1
+	}
+	if seconds > math.MaxInt32 {
+		seconds = math.MaxInt32
+	}
+	return int32(seconds)
+}
+
+// DefaultTabletRefreshInterval replaces missing or non-positive intervals so
+// internal child reconciliation always has a safe value.
+func DefaultTabletRefreshInterval(intervalPtr **metav1.Duration) {
+	if *intervalPtr == nil || (*intervalPtr).Duration <= 0 {
+		*intervalPtr = &metav1.Duration{Duration: defaultTabletRefreshInterval}
+	}
+}
+
+// EffectiveTabletRefreshInterval keeps rollout coordination on the same
+// default without mutating the source API object.
+func EffectiveTabletRefreshInterval(interval *metav1.Duration) metav1.Duration {
+	if interval == nil {
+		return metav1.Duration{Duration: defaultTabletRefreshInterval}
+	}
+	return tabletRefreshIntervalOrDefault(*interval)
+}
+
+// tabletRefreshIntervalOrDefault protects both vtgate flags and shard gates
+// from unsafe non-positive refresh intervals.
+func tabletRefreshIntervalOrDefault(refreshInterval metav1.Duration) metav1.Duration {
+	if refreshInterval.Duration <= 0 {
+		return metav1.Duration{Duration: defaultTabletRefreshInterval}
+	}
+	return refreshInterval
+}

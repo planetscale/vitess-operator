@@ -192,12 +192,12 @@ func (r *ReconcileVitessCluster) Reconcile(cctx context.Context, request reconci
 	}
 
 	// Create/update desired VitessCells.
-	if err := r.reconcileCells(ctx, vt); err != nil {
+	if err := r.reconcileCells(ctx, vt, &oldStatus); err != nil {
 		resultBuilder.Error(err)
 	}
 
 	// Create/update desired VitessKeyspaces.
-	if err := r.reconcileKeyspaces(ctx, vt); err != nil {
+	if err := r.reconcileKeyspaces(ctx, vt, &oldStatus); err != nil {
 		resultBuilder.Error(err)
 	}
 

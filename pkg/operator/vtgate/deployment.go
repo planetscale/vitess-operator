@@ -24,8 +24,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/utils/ptr"
-	"planetscale.dev/vitess-operator/pkg/operator/mysql"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"planetscale.dev/vitess-operator/pkg/operator/mysql"
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 	"planetscale.dev/vitess-operator/pkg/operator/k8s"
@@ -232,12 +233,7 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec, mysqldImage string) {
 	update.Volumes(&obj.Spec.Template.Spec.Volumes, spec.ExtraVolumes)
 
 	// Apply user-provided overrides last so they take precedence.
-	for key, value := range spec.ExtraFlags {
-		// We told users in the CRD API field doc not to put any leading '-',
-		// but people may not read that so we are liberal in what we accept.
-		key = strings.TrimLeft(key, "-")
-		flags[key] = value
-	}
+	applyExtraFlags(flags, spec.ExtraFlags, spec.Cell.TabletRefreshInterval != nil)
 	// Write out the final flags list.
 	vtgateContainer.Args = flags.FormatArgs()
 
@@ -265,7 +261,7 @@ func (spec *Spec) baseFlags() vitess.Flags {
 		cellsToWatch = spec.Cell.AllCells
 	}
 
-	return vitess.Flags{
+	flags := vitess.Flags{
 		"cell":                 spec.Cell.Name,
 		"cells_to_watch":       strings.Join(cellsToWatch, ","),
 		"tablet_types_to_wait": tabletTypesToWait,
@@ -287,6 +283,32 @@ func (spec *Spec) baseFlags() vitess.Flags {
 		"service_map": serviceMap,
 		"port":        planetscalev2.DefaultWebPort,
 		"grpc_port":   planetscalev2.DefaultGrpcPort,
+	}
+
+	// A nil interval is preserved briefly while an existing cluster stages the
+	// shard gate ahead of taking ownership from legacy extra flags.
+	if tabletRefreshInterval := spec.Cell.TabletRefreshInterval; tabletRefreshInterval != nil {
+		planetscalev2.DefaultTabletRefreshInterval(&tabletRefreshInterval)
+		flags["tablet-refresh-interval"] = tabletRefreshInterval.Duration.String()
+	}
+
+	return flags
+}
+
+// applyExtraFlags overlays user-provided flags on top of the operator-computed
+// ones, so user values normally take precedence.
+func applyExtraFlags(flags vitess.Flags, extraFlags map[string]string, tabletRefreshIntervalManaged bool) {
+	for key, value := range extraFlags {
+		// We told users in the CRD API field doc not to put any leading '-',
+		// but people may not read that so we are liberal in what we accept.
+		key = strings.TrimLeft(key, "-")
+		// Once rollout coordination is active, ignore both extra-flag spellings
+		// so they cannot drift from the shard gate. Before that point, retaining
+		// the legacy value avoids an unsafe interval change during upgrade.
+		if tabletRefreshIntervalManaged && (key == "tablet-refresh-interval" || key == "tablet_refresh_interval") {
+			continue
+		}
+		flags[key] = value
 	}
 }
 

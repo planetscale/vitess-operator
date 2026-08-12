@@ -32,7 +32,7 @@ import (
 	"planetscale.dev/vitess-operator/pkg/operator/vitesscell"
 )
 
-func (r *ReconcileVitessCluster) reconcileCells(ctx context.Context, vt *planetscalev2.VitessCluster) error {
+func (r *ReconcileVitessCluster) reconcileCells(ctx context.Context, vt *planetscalev2.VitessCluster, oldStatus *planetscalev2.VitessClusterStatus) error {
 	labels := map[string]string{
 		planetscalev2.ClusterLabel: vt.Name,
 	}
@@ -52,16 +52,25 @@ func (r *ReconcileVitessCluster) reconcileCells(ctx context.Context, vt *planets
 		vt.Status.Cells[cell.Name] = planetscalev2.NewVitessClusterCellStatus()
 	}
 
+	desiredInterval := planetscalev2.EffectiveTabletRefreshInterval(vt.Spec.TabletRefreshInterval)
+	requiredInterval := requiredTabletRefreshInterval(desiredInterval, oldStatus.Cells)
+	intervalReady := tabletRefreshIntervalsReportedByCells(vt.Spec.Cells, oldStatus.Cells) &&
+		tabletRefreshIntervalObservedByKeyspaces(requiredInterval, vt.Spec.Keyspaces, oldStatus.Keyspaces)
+
 	return r.reconciler.ReconcileObjectSet(ctx, vt, keys, labels, reconciler.Strategy{
 		Kind: &planetscalev2.VitessCell{},
 
 		New: func(key client.ObjectKey) runtime.Object {
-			return newVitessCell(key, vt, labels, cellMap[key])
+			newObj := newVitessCell(key, vt, labels, cellMap[key])
+			if oldStatus.ObservedGeneration != 0 && !intervalReady {
+				newObj.Spec.TabletRefreshInterval = observedTabletRefreshInterval(oldStatus.Cells)
+			}
+			return newObj
 		},
 		UpdateInPlace: func(key client.ObjectKey, obj runtime.Object) {
 			newObj := obj.(*planetscalev2.VitessCell)
 			if *vt.Spec.UpdateStrategy.Type == planetscalev2.ImmediateVitessClusterUpdateStrategyType {
-				updateVitessCell(key, newObj, vt, labels, cellMap[key])
+				updateVitessCell(key, newObj, vt, labels, cellMap[key], intervalReady)
 				return
 			}
 			updateVitessCellInPlace(key, newObj, vt, labels, cellMap[key])
@@ -72,7 +81,7 @@ func (r *ReconcileVitessCluster) reconcileCells(ctx context.Context, vt *planets
 				// In this case we should use UpdateInPlace for all updates.
 				return
 			}
-			updateVitessCell(key, newObj, vt, labels, cellMap[key])
+			updateVitessCell(key, newObj, vt, labels, cellMap[key], intervalReady)
 		},
 		Status: func(key client.ObjectKey, obj runtime.Object) {
 			curObj := obj.(*planetscalev2.VitessCell)
@@ -80,6 +89,7 @@ func (r *ReconcileVitessCluster) reconcileCells(ctx context.Context, vt *planets
 			status := vt.Status.Cells[curObj.Spec.Name]
 			status.PendingChanges = curObj.Annotations[rollout.ScheduledAnnotation]
 			status.GatewayAvailable = curObj.Status.Gateway.Available
+			status.TabletRefreshInterval = curObj.Status.Gateway.TabletRefreshInterval
 			vt.Status.Cells[curObj.Spec.Name] = status
 		},
 		OrphanStatus: func(key client.ObjectKey, obj runtime.Object, orphanStatus *planetscalev2.OrphanStatus) {
@@ -126,6 +136,8 @@ func newVitessCell(key client.ObjectKey, vt *planetscalev2.VitessCluster, parent
 	}
 	labels[planetscalev2.CellLabel] = cell.Name
 
+	tabletRefreshInterval := planetscalev2.EffectiveTabletRefreshInterval(vt.Spec.TabletRefreshInterval)
+
 	return &planetscalev2.VitessCell{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: key.Namespace,
@@ -141,6 +153,7 @@ func newVitessCell(key client.ObjectKey, vt *planetscalev2.VitessCluster, parent
 			ImagePullSecrets:       vt.Spec.ImagePullSecrets,
 			ExtraVitessFlags:       vt.Spec.ExtraVitessFlags,
 			TopologyReconciliation: vt.Spec.TopologyReconciliation,
+			TabletRefreshInterval:  &tabletRefreshInterval,
 		},
 	}
 }
@@ -160,8 +173,11 @@ func updateVitessCellInPlace(key client.ObjectKey, vtc *planetscalev2.VitessCell
 	}
 }
 
-func updateVitessCell(key client.ObjectKey, vtc *planetscalev2.VitessCell, vt *planetscalev2.VitessCluster, parentLabels map[string]string, cell *planetscalev2.VitessCellTemplate) {
+func updateVitessCell(key client.ObjectKey, vtc *planetscalev2.VitessCell, vt *planetscalev2.VitessCluster, parentLabels map[string]string, cell *planetscalev2.VitessCellTemplate, intervalReady bool) {
+	currentInterval := vtc.Spec.TabletRefreshInterval
 	newCell := newVitessCell(key, vt, parentLabels, cell)
+	desiredInterval := planetscalev2.EffectiveTabletRefreshInterval(newCell.Spec.TabletRefreshInterval)
+	newCell.Spec.TabletRefreshInterval = stagedTabletRefreshInterval(currentInterval, desiredInterval, intervalReady)
 
 	// Update labels, but ignore existing ones we don't set.
 	update.Labels(&vtc.Labels, newCell.Labels)

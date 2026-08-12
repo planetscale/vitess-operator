@@ -18,11 +18,14 @@ package vitesscell
 
 import (
 	"context"
+	"fmt"
 	"strings"
+	"time"
 
 	appsv1 "k8s.io/api/apps/v1"
 	autoscalingv2 "k8s.io/api/autoscaling/v2"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	apitypes "k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -175,6 +178,14 @@ func (r *ReconcileVitessCell) reconcileVtgate(ctx context.Context, vtc *planetsc
 			if available := conditions.Deployment(curObj.Status.Conditions, appsv1.DeploymentAvailable); available != nil {
 				status.Available = available.Status
 			}
+			if deploymentRolloutComplete(curObj) {
+				interval, err := deploymentTabletRefreshInterval(curObj)
+				if err != nil {
+					resultBuilder.Error(err)
+				} else {
+					status.TabletRefreshInterval = interval.DeepCopy()
+				}
+			}
 		},
 	})
 	if err != nil {
@@ -182,7 +193,7 @@ func (r *ReconcileVitessCell) reconcileVtgate(ctx context.Context, vtc *planetsc
 	}
 
 	key = client.ObjectKey{Namespace: vtc.Namespace, Name: vitesscell.Name(clusterName, vtc.Spec.Name)}
-	var wantHpa = vtc.Spec.Gateway.Autoscaler != nil
+	wantHpa := vtc.Spec.Gateway.Autoscaler != nil
 	var hpaSpec *vtgate.HpaSpec
 
 	if vtc.Spec.Gateway.Autoscaler != nil {
@@ -212,4 +223,46 @@ func (r *ReconcileVitessCell) reconcileVtgate(ctx context.Context, vtc *planetsc
 	}
 
 	return resultBuilder.Result()
+}
+
+// deploymentRolloutComplete prevents a new interval from being reported until
+// every desired vtgate replica is running the current Pod template.
+func deploymentRolloutComplete(deployment *appsv1.Deployment) bool {
+	if deployment.Status.ObservedGeneration < deployment.Generation || deployment.Spec.Replicas == nil {
+		return false
+	}
+	replicas := *deployment.Spec.Replicas
+	return deployment.Status.Replicas == replicas &&
+		deployment.Status.UpdatedReplicas == replicas &&
+		deployment.Status.AvailableReplicas == replicas
+}
+
+// deploymentTabletRefreshInterval reports what the completed vtgate template
+// actually runs so parent reconciliation can safely stage shard gates.
+func deploymentTabletRefreshInterval(deployment *appsv1.Deployment) (metav1.Duration, error) {
+	interval := planetscalev2.EffectiveTabletRefreshInterval(nil)
+	foundVtgate := false
+	for i := range deployment.Spec.Template.Spec.Containers {
+		container := &deployment.Spec.Template.Spec.Containers[i]
+		if container.Name != planetscalev2.VtgateComponentName {
+			continue
+		}
+		foundVtgate = true
+		for _, arg := range container.Args {
+			key, value, ok := strings.Cut(strings.TrimLeft(arg, "-"), "=")
+			if !ok || (key != "tablet-refresh-interval" && key != "tablet_refresh_interval") {
+				continue
+			}
+			duration, err := time.ParseDuration(value)
+			if err != nil {
+				return metav1.Duration{}, fmt.Errorf("invalid tablet refresh interval %q in vtgate Deployment: %w", value, err)
+			}
+			interval.Duration = duration
+		}
+		break
+	}
+	if !foundVtgate {
+		return metav1.Duration{}, fmt.Errorf("vtgate container not found in Deployment %s", deployment.Name)
+	}
+	return interval, nil
 }

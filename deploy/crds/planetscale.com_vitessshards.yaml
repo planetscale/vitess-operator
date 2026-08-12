@@ -675,6 +675,13 @@ spec:
                 - cell
                 - name
                 x-kubernetes-list-type: map
+              tabletRefreshInterval:
+                type: string
+                x-kubernetes-validations:
+                - message: tabletRefreshInterval must be a valid duration of at least
+                    1s using s, m, or h units
+                  rule: self.matches('^([0-9]+([.][0-9]+)?(s|m|h))+$') && duration(self)
+                    >= duration('1s')
               topologyReconciliation:
                 properties:
                   pruneCells:
@@ -965,6 +972,8 @@ spec:
                   type: object
                 type: object
               servingWrites:
+                type: string
+              tabletRefreshInterval:
                 type: string
               tablets:
                 additionalProperties:

@@ -114,6 +114,13 @@ func (r *reconcileHandler) reconcileShards(ctx context.Context) error {
 			}
 			status.Tablets = int32(len(curObj.Status.Tablets))
 			status.PendingChanges = curObj.Annotations[rollout.ScheduledAnnotation]
+			currentInterval := planetscalev2.EffectiveTabletRefreshInterval(curObj.Spec.TabletRefreshInterval)
+			desiredInterval := planetscalev2.EffectiveTabletRefreshInterval(r.vtk.Spec.TabletRefreshInterval)
+			if curObj.Status.TabletRefreshInterval != nil &&
+				curObj.Status.TabletRefreshInterval.Duration == currentInterval.Duration &&
+				currentInterval.Duration == desiredInterval.Duration {
+				status.TabletRefreshInterval = curObj.Status.TabletRefreshInterval.DeepCopy()
+			}
 
 			status.ReadyTablets = 0
 			status.UpdatedTablets = 0
@@ -146,6 +153,19 @@ func (r *reconcileHandler) reconcileShards(ctx context.Context) error {
 	})
 	if err != nil {
 		return err
+	}
+
+	desiredInterval := planetscalev2.EffectiveTabletRefreshInterval(r.vtk.Spec.TabletRefreshInterval)
+	allShardsObserved := true
+	for _, shard := range shards {
+		status := r.vtk.Status.Shards[shard.KeyRange.String()]
+		if status.TabletRefreshInterval == nil || status.TabletRefreshInterval.Duration != desiredInterval.Duration {
+			allShardsObserved = false
+			break
+		}
+	}
+	if allShardsObserved {
+		r.vtk.Status.TabletRefreshInterval = desiredInterval.DeepCopy()
 	}
 
 	// Aggregate per-shard status, grouped by partitioning.
@@ -282,6 +302,7 @@ func newVitessShard(key client.ObjectKey, vtk *planetscalev2.VitessKeyspace, par
 			ExtraVitessFlags:       vtk.Spec.ExtraVitessFlags,
 			TopologyReconciliation: vtk.Spec.TopologyReconciliation,
 			UpdateStrategy:         vtk.Spec.UpdateStrategy,
+			TabletRefreshInterval:  vtk.Spec.TabletRefreshInterval,
 		},
 	}
 }
