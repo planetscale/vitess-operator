@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.20.1
+    controller-gen.kubebuilder.io/version: v0.21.0
   name: vitessclusters.planetscale.com
 spec:
   group: planetscale.com
@@ -3075,6 +3075,13 @@ spec:
                   - partitionings
                   type: object
                 type: array
+              tabletRefreshInterval:
+                type: string
+                x-kubernetes-validations:
+                - message: tabletRefreshInterval must be a valid duration of at least
+                    1s using s, m, or h units
+                  rule: self.matches('^([0-9]+([.][0-9]+)?(s|m|h))+$') && duration(self)
+                    >= duration('1s')
               tabletService:
                 properties:
                   annotations:
@@ -3542,6 +3549,8 @@ spec:
                       type: string
                     pendingChanges:
                       type: string
+                    tabletRefreshInterval:
+                      type: string
                   type: object
                 type: object
               gatewayServiceName:
@@ -3583,6 +3592,8 @@ spec:
                     shards:
                       format: int32
                       type: integer
+                    tabletRefreshInterval:
+                      type: string
                     tablets:
                       format: int32
                       type: integer

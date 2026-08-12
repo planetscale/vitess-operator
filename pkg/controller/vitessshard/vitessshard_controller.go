@@ -174,6 +174,9 @@ func (r *ReconcileVitessShard) Reconcile(cctx context.Context, request reconcile
 	// Reset status, since that's all out of date info that we will recompute now.
 	oldStatus := vts.Status
 	vts.Status = planetscalev2.NewVitessShardStatus()
+	if oldStatus.TabletRefreshInterval != nil {
+		vts.Status.TabletRefreshInterval = oldStatus.TabletRefreshInterval.DeepCopy()
+	}
 	// Make sure we don't rinse old conditions - these states need to persist. They may have been added by some other controller.
 	// Only persist if old condition is not nil, otherwise use the map allocated above when `NewVitessShardStatus()` was called.
 	if oldStatus.Conditions != nil {
@@ -187,6 +190,10 @@ func (r *ReconcileVitessShard) Reconcile(cctx context.Context, request reconcile
 	// Create/update desired tablets.
 	tabletResult, err := r.reconcileTablets(ctx, vts)
 	resultBuilder.Merge(tabletResult, err)
+	if err == nil {
+		interval := planetscalev2.EffectiveTabletRefreshInterval(vts.Spec.TabletRefreshInterval)
+		vts.Status.TabletRefreshInterval = interval.DeepCopy()
+	}
 
 	// Mark tablet pods for disk size updates if needed.
 	// NOTE: This must always be done after reconcileTablets, so Status.Tablets is populated

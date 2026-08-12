@@ -27,6 +27,7 @@ import (
 func DefaultVitessShard(dst *VitessShard) {
 	DefaultUpdateStrategy(&dst.Spec.UpdateStrategy)
 	DefaultTopoReconcileConfig(&dst.Spec.TopologyReconciliation)
+	DefaultTabletRefreshInterval(&dst.Spec.TabletRefreshInterval)
 	DefaultVitessShardTemplate(&dst.Spec.VitessShardTemplate)
 }
 

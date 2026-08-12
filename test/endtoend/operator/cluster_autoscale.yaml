@@ -8,6 +8,7 @@ metadata:
   name: example
   namespace: example
 spec:
+  tabletRefreshInterval: 10s
   images:
     vtctld: vitess/lite:mysql80
     vtgate: vitess/lite:mysql80
@@ -35,8 +36,6 @@ spec:
           secret:
             name: example-cluster-config
             key: users.json
-      extraFlags:
-        tablet-refresh-interval: 10s
       replicas: 1
       resources:
         requests:

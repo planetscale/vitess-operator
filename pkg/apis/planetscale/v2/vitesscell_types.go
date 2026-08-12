@@ -80,6 +80,11 @@ type VitessCellSpec struct {
 
 	// TopologyReconciliation is inherited from the parent's VitessClusterSpec.
 	TopologyReconciliation *TopoReconcileConfig `json:"topologyReconciliation,omitempty"`
+
+	// TabletRefreshInterval is inherited from the parent's VitessClusterSpec.
+	// The vtgate Deployment derives its --tablet-refresh-interval flag from it.
+	// +kubebuilder:validation:XValidation:rule="self.matches('^([0-9]+([.][0-9]+)?(s|m|h))+$') && duration(self) >= duration('1s')",message="tabletRefreshInterval must be a valid duration of at least 1s using s, m, or h units"
+	TabletRefreshInterval *metav1.Duration `json:"tabletRefreshInterval,omitempty"`
 }
 
 // VitessCellTemplate contains only the user-specified parts of a VitessCell object.
@@ -296,6 +301,9 @@ type VitessCellGatewayStatus struct {
 	// HorizontalPodAutoscaler to determine the current number of replicas.
 	// +kubebuilder:validation:Minimum=0
 	Replicas int32 `json:"replicas,omitempty"`
+	// TabletRefreshInterval reports the interval observed after the vtgate
+	// Deployment rollout completes so the parent can safely stage shard gates.
+	TabletRefreshInterval *metav1.Duration `json:"tabletRefreshInterval,omitempty"`
 }
 
 // VitessCellStatus defines the observed state of VitessCell
@@ -330,8 +338,7 @@ func NewVitessCellStatus() VitessCellStatus {
 }
 
 // VitessCellKeyspaceStatus summarizes the status of a keyspace deployed in this cell.
-type VitessCellKeyspaceStatus struct {
-}
+type VitessCellKeyspaceStatus struct{}
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 

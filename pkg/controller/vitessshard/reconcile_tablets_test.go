@@ -18,12 +18,22 @@ package vitessshard
 
 import (
 	"testing"
+	"time"
 
+	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 	"planetscale.dev/vitess-operator/pkg/operator/vttablet"
 )
+
+func TestTabletAvailableRequeueAfterAtBoundary(t *testing.T) {
+	window := 2 * time.Minute
+	now := time.Date(2026, time.August, 3, 12, 0, 0, 0, time.UTC)
+	readySince := now.Add(-window)
+
+	assert.Equal(t, time.Millisecond, tabletAvailableRequeueAfter(readySince, window, now))
+}
 
 func newVitessShard(keyspace string, pools []planetscalev2.VitessShardTabletPool) *planetscalev2.VitessShard {
 	return &planetscalev2.VitessShard{
