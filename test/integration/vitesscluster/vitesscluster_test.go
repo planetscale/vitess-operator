@@ -64,8 +64,9 @@ spec:
           databaseInitScriptSecret:
             key: init_db.sql
             name: init-script-secret
-          # Present but empty: vtbackup Pods for this shard should run with no
-          # PVC (ephemeral scratch space) even though the tablets below use one.
+          # Present but empty: the initial vtbackup Pod for this shard should
+          # use ephemeral scratch space even though the tablets below use PVCs.
+          # Scheduled vtbackup Pods still inherit the first pool's PVC template.
           vtbackup: {}
           tabletPools:
           - cell: cell1

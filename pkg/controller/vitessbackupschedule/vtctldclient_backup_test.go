@@ -385,7 +385,7 @@ func TestCreateJob_VtbackupMethodCreatesPVC(t *testing.T) {
 	assert.Len(t, pvcList.Items, 1)
 }
 
-func TestCreateJob_VtbackupMethodWithoutPVC(t *testing.T) {
+func TestCreateJob_VtbackupMethodUsesPVCForScheduledBackup(t *testing.T) {
 	vts := readyShardWithTabletPoolTolerations(nil)
 	vts.Spec.TabletPools[0].DataVolumeClaimTemplate = &corev1.PersistentVolumeClaimSpec{
 		AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
@@ -409,13 +409,19 @@ func TestCreateJob_VtbackupMethodWithoutPVC(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, job)
 
+	foundDataVolume := false
 	for _, volume := range job.Spec.Template.Spec.Volumes {
-		assert.Nil(t, volume.PersistentVolumeClaim, "scheduled vtbackup Job references PVC %q", volume.Name)
+		if volume.PersistentVolumeClaim != nil {
+			foundDataVolume = true
+			assert.Equal(t, job.Name, volume.PersistentVolumeClaim.ClaimName)
+		}
 	}
+	assert.True(t, foundDataVolume, "scheduled vtbackup Job should use persistent scratch space")
 
 	pvcList := &corev1.PersistentVolumeClaimList{}
 	require.NoError(t, r.client.List(t.Context(), pvcList, client.InNamespace("default")))
-	require.Empty(t, pvcList.Items)
+	require.Len(t, pvcList.Items, 1)
+	assert.Equal(t, job.Name, pvcList.Items[0].Name)
 }
 
 func TestCreateJob_DefaultMethodIsVtbackup(t *testing.T) {

@@ -23,16 +23,20 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/utils/dump"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
+	"planetscale.dev/vitess-operator/pkg/operator/desiredstatehash"
 	"planetscale.dev/vitess-operator/pkg/operator/reconciler"
 	"planetscale.dev/vitess-operator/pkg/operator/results"
 	"planetscale.dev/vitess-operator/pkg/operator/update"
 	"planetscale.dev/vitess-operator/pkg/operator/vitessbackup"
 	"planetscale.dev/vitess-operator/pkg/operator/vttablet"
 )
+
+const vtbackupDataVolumeHashAnnotation = "planetscale.com/vtbackup-data-volume-hash"
 
 func (r *ReconcileVitessShard) reconcileBackupJob(ctx context.Context, vts *planetscalev2.VitessShard) (reconcile.Result, error) {
 	resultBuilder := &results.Builder{}
@@ -103,7 +107,20 @@ func (r *ReconcileVitessShard) reconcileBackupJob(ctx context.Context, vts *plan
 		Kind: &corev1.PersistentVolumeClaim{},
 
 		New: func(key client.ObjectKey) runtime.Object {
-			return vttablet.NewPVC(key, specMap[key].TabletSpec)
+			pvc := vttablet.NewPVC(key, specMap[key].TabletSpec)
+			updateVtbackupDataVolumeHash(&pvc.Annotations, specMap[key])
+			return pvc
+		},
+		UpdateRecreate: func(key client.ObjectKey, obj runtime.Object) {
+			// Delete the Pod first so it cannot keep using a PVC while the PVC
+			// is being replaced.
+			pod := &corev1.Pod{}
+			if getErr := r.client.Get(ctx, key, pod); getErr == nil || !apierrors.IsNotFound(getErr) {
+				return
+			}
+
+			pvc := obj.(*corev1.PersistentVolumeClaim)
+			updateVtbackupDataVolumeHash(&pvc.Annotations, specMap[key])
 		},
 		PrepareForTurndown: func(key client.ObjectKey, obj runtime.Object) *planetscalev2.OrphanStatus {
 			// Same as reconcileTablets, keep PVCs of Pods in any Phase
@@ -129,6 +146,13 @@ func (r *ReconcileVitessShard) reconcileBackupJob(ctx context.Context, vts *plan
 
 		New: func(key client.ObjectKey) runtime.Object {
 			return vttablet.NewBackupPod(key, specMap[key], vts.Spec.Images.Mysqld.Image())
+		},
+		UpdateRecreate: func(key client.ObjectKey, obj runtime.Object) {
+			pod := obj.(*corev1.Pod)
+			if pod.Status.Phase == corev1.PodRunning {
+				return
+			}
+			updateVtbackupDataVolumeHash(&pod.Annotations, specMap[key])
 		},
 		Status: func(key client.ObjectKey, obj runtime.Object) {
 			pod := obj.(*corev1.Pod)
@@ -215,9 +239,15 @@ func vtbackupSpec(key client.ObjectKey, vts *planetscalev2.VitessShard, parentLa
 	update.Annotations(&annotations, backupLocation.Annotations)
 
 	dataVolumeClaimTemplate := pool.DataVolumeClaimTemplate
-	if vts.Spec.Vtbackup != nil {
+	if vts.Spec.Vtbackup != nil &&
+		(backupType == vitessbackup.TypeInit || vts.Spec.Vtbackup.DataVolumeClaimTemplate != nil) {
 		dataVolumeClaimTemplate = vts.Spec.Vtbackup.DataVolumeClaimTemplate
 	}
+	dataVolumeHash := desiredstatehash.NewBuilder()
+	dataVolumeHash.AddString("pvc-spec", dump.ForHash(dataVolumeClaimTemplate))
+	update.Annotations(&annotations, map[string]string{
+		vtbackupDataVolumeHashAnnotation: dataVolumeHash.String(),
+	})
 
 	// Fill in the parts of a vttablet spec that make sense for vtbackup.
 	tabletSpec := &vttablet.Spec{
@@ -254,6 +284,12 @@ func vtbackupSpec(key client.ObjectKey, vts *planetscalev2.VitessShard, parentLa
 
 		TabletSpec: tabletSpec,
 	}
+}
+
+func updateVtbackupDataVolumeHash(annotations *map[string]string, spec *vttablet.BackupSpec) {
+	update.Annotations(annotations, map[string]string{
+		vtbackupDataVolumeHashAnnotation: spec.TabletSpec.Annotations[vtbackupDataVolumeHashAnnotation],
+	})
 }
 
 func updateBackupStatus(vts *planetscalev2.VitessShard, allBackups []planetscalev2.VitessBackup) {
