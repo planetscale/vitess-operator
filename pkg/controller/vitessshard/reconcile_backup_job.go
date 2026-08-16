@@ -110,6 +110,7 @@ func (r *ReconcileVitessShard) reconcileBackupJob(ctx context.Context, vts *plan
 
 	// Reconcile vtbackup PVCs. Use the same key as the corresponding Pod,
 	// but only if the Pod expects a PVC.
+	pvcReplacementPodLookupFailed := false
 	err = r.reconciler.ReconcileObjectSet(ctx, vts, pvcKeys, labels, reconciler.Strategy{
 		Kind: &corev1.PersistentVolumeClaim{},
 
@@ -127,18 +128,33 @@ func (r *ReconcileVitessShard) reconcileBackupJob(ctx context.Context, vts *plan
 			updateVtbackupDataVolumePVCHash(&pvc.Annotations, specMap[key])
 		},
 		UpdateRecreate: func(key client.ObjectKey, obj runtime.Object) {
-			// Delete the Pod first so it cannot keep using a PVC while the PVC
-			// is being replaced.
-			pod := &corev1.Pod{}
-			if getErr := r.client.Get(ctx, key, pod); getErr == nil || !apierrors.IsNotFound(getErr) {
+			pvc := obj.(*corev1.PersistentVolumeClaim)
+			if pvc.Annotations[vtbackupDataVolumeHashAnnotation] ==
+				specMap[key].TabletSpec.Annotations[vtbackupDataVolumeHashAnnotation] {
 				return
 			}
 
-			pvc := obj.(*corev1.PersistentVolumeClaim)
+			// Delete the Pod first so it cannot keep using a PVC while the PVC
+			// is being replaced.
+			pod := &corev1.Pod{}
+			getErr := r.client.Get(ctx, key, pod)
+			if getErr == nil {
+				return
+			}
+			if !apierrors.IsNotFound(getErr) {
+				pvcReplacementPodLookupFailed = true
+				_, _ = resultBuilder.Error(fmt.Errorf("verify Pod absence before replacing vtbackup PVC %s: %w", key, getErr))
+				return
+			}
+
 			updateVtbackupDataVolumePVCHash(&pvc.Annotations, specMap[key])
 		},
 		PrepareForTurndown: func(key client.ObjectKey, obj runtime.Object) *planetscalev2.OrphanStatus {
-			// Same as reconcileTablets, keep PVCs of Pods in any Phase
+			// Same as reconcileTablets, keep PVCs of Pods in any Phase. This
+			// intentionally checks for any same-name Pod rather than inspecting
+			// whether that Pod still mounts the PVC. A replacement that uses
+			// emptyDir may delay cleanup, but the conservative check avoids
+			// deleting storage while Pod and PVC observations are in transition.
 			pod := &corev1.Pod{}
 			if getErr := r.client.Get(ctx, key, pod); getErr == nil || !apierrors.IsNotFound(getErr) {
 				// If the get was successful, the Pod exists and we shouldn't delete the PVC.
@@ -153,6 +169,9 @@ func (r *ReconcileVitessShard) reconcileBackupJob(ctx context.Context, vts *plan
 	})
 	if err != nil {
 		resultBuilder.Error(err)
+	}
+	if pvcReplacementPodLookupFailed {
+		return resultBuilder.Result()
 	}
 
 	// Reconcile vtbackup Pods.
@@ -279,9 +298,13 @@ func vtbackupSpec(key client.ObjectKey, vts *planetscalev2.VitessShard, parentLa
 	update.Annotations(&annotations, backupLocation.Annotations)
 
 	dataVolumeClaimTemplate := pool.DataVolumeClaimTemplate
-	if vts.Spec.Vtbackup != nil &&
-		(backupType == vitessbackup.TypeInit || vts.Spec.Vtbackup.DataVolumeClaimTemplate != nil) {
-		dataVolumeClaimTemplate = vts.Spec.Vtbackup.DataVolumeClaimTemplate
+	if vts.Spec.Vtbackup != nil {
+		switch {
+		case vts.Spec.Vtbackup.DataVolumeClaimTemplate != nil:
+			dataVolumeClaimTemplate = vts.Spec.Vtbackup.DataVolumeClaimTemplate
+		case backupType == vitessbackup.TypeInit && vts.Spec.Vtbackup.UseEmptyDirForInitialBackup:
+			dataVolumeClaimTemplate = nil
+		}
 	}
 	dataVolumeHash := desiredstatehash.NewBuilder()
 	dataVolumeHash.AddString("pvc-spec", dump.ForHash(dataVolumeClaimTemplate))
@@ -355,7 +378,12 @@ func hasVtbackupDataVolumePodHashes(annotations map[string]string) bool {
 }
 
 func vtbackupPodDataVolumeHash(spec *vttablet.BackupSpec) string {
-	dataMount, dataSource, _ := vttablet.BackupPodDataVolume(spec.TabletSpec)
+	dataMount, dataSource, ok := vttablet.BackupPodDataVolume(spec.TabletSpec)
+	if !ok {
+		// A missing or ambiguous data-volume mount is an intentional, stable
+		// hashable state. If a later spec identifies one, the hash will change.
+		dataMount, dataSource = nil, nil
+	}
 	hash := desiredstatehash.NewBuilder()
 	hash.AddString("mount", dump.ForHash(dataMount))
 	hash.AddString("source", dump.ForHash(dataSource))

@@ -393,7 +393,7 @@ func TestCreateJob_VtbackupMethodUsesPVCForScheduledBackup(t *testing.T) {
 			Requests: corev1.ResourceList{corev1.ResourceStorage: resource.MustParse("10Gi")},
 		},
 	}
-	vts.Spec.Vtbackup = &planetscalev2.VitessShardVtbackup{}
+	vts.Spec.Vtbackup = &planetscalev2.VitessShardVtbackup{UseEmptyDirForInitialBackup: true}
 
 	scheme := newScheme()
 	r := &ReconcileVitessBackupsSchedule{

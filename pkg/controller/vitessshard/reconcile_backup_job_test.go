@@ -69,10 +69,18 @@ func TestVtbackupSpecDataVolume(t *testing.T) {
 			want:       poolPVC,
 		},
 		{
-			name:       "initial backup with empty override drops the PVC (emptyDir)",
+			name:       "initial backup with empty config inherits pool data volume",
 			backupType: vitessbackup.TypeInit,
 			vtbackup:   &planetscalev2.VitessShardVtbackup{},
-			want:       nil,
+			want:       poolPVC,
+		},
+		{
+			name:       "initial backup with explicit emptyDir drops the PVC",
+			backupType: vitessbackup.TypeInit,
+			vtbackup: &planetscalev2.VitessShardVtbackup{
+				UseEmptyDirForInitialBackup: true,
+			},
+			want: nil,
 		},
 		{
 			name:       "initial backup uses override template",
@@ -87,10 +95,18 @@ func TestVtbackupSpecDataVolume(t *testing.T) {
 			want:       poolPVC,
 		},
 		{
-			name:       "scheduled backup with empty override inherits pool data volume",
+			name:       "scheduled backup with empty config inherits pool data volume",
 			backupType: vitessbackup.TypeUpdate,
 			vtbackup:   &planetscalev2.VitessShardVtbackup{},
 			want:       poolPVC,
+		},
+		{
+			name:       "scheduled backup ignores initial-backup emptyDir setting",
+			backupType: vitessbackup.TypeUpdate,
+			vtbackup: &planetscalev2.VitessShardVtbackup{
+				UseEmptyDirForInitialBackup: true,
+			},
+			want: poolPVC,
 		},
 		{
 			name:       "scheduled backup uses override template",
@@ -149,12 +165,12 @@ func TestReconcileBackupJobConvergesDataVolumeChanges(t *testing.T) {
 		{
 			name:        "PVC to emptyDir",
 			oldVtbackup: nil,
-			newVtbackup: &planetscalev2.VitessShardVtbackup{},
+			newVtbackup: &planetscalev2.VitessShardVtbackup{UseEmptyDirForInitialBackup: true},
 			wantPVC:     nil,
 		},
 		{
 			name:        "emptyDir to inherited PVC",
-			oldVtbackup: &planetscalev2.VitessShardVtbackup{},
+			oldVtbackup: &planetscalev2.VitessShardVtbackup{UseEmptyDirForInitialBackup: true},
 			newVtbackup: nil,
 			wantPVC:     poolPVC,
 		},
@@ -467,6 +483,58 @@ func TestReconcileBackupJobPreservesLegacyPodWhenPVCReadFails(t *testing.T) {
 	assert.NotContains(t, pod.Annotations, vtbackupDataVolumePodHashAnnotation)
 }
 
+func TestReconcileBackupJobDoesNotCreatePodWhenPVCReplacementPodReadFails(t *testing.T) {
+	oldPVCSpec := backupPVCSpec("100Gi", "slow-disk")
+	vts := backupTestShard(nil, oldPVCSpec)
+	key := initialBackupKey(vts)
+	oldSpec := MakeVtbackupSpec(key, vts, initialBackupLabels(vts), vitessbackup.TypeInit)
+	require.NotNil(t, oldSpec)
+
+	oldPVC := vttablet.NewPVC(key, oldSpec.TabletSpec)
+	updateVtbackupDataVolumePVCHash(&oldPVC.Annotations, oldSpec)
+	oldPVC.UID = types.UID("old-pvc")
+
+	newPVCSpec := backupPVCSpec("200Gi", "fast-disk")
+	vts.Spec.TabletPools[0].DataVolumeClaimTemplate = newPVCSpec
+
+	podGets := 0
+	scheme := backupTestScheme(t)
+	k8sClient := fake.NewClientBuilder().
+		WithScheme(scheme).
+		WithObjects(vts.DeepCopy(), oldPVC).
+		WithInterceptorFuncs(interceptor.Funcs{
+			Get: func(ctx context.Context, c client.WithWatch, key client.ObjectKey, obj client.Object, opts ...client.GetOption) error {
+				if _, ok := obj.(*corev1.Pod); ok {
+					podGets++
+					if podGets == 1 {
+						return apierrors.NewServiceUnavailable("Pod cache is unavailable")
+					}
+				}
+				return c.Get(ctx, key, obj, opts...)
+			},
+		}).
+		Build()
+	recorder := record.NewFakeRecorder(100)
+	r := &ReconcileVitessShard{
+		client:     k8sClient,
+		scheme:     scheme,
+		recorder:   recorder,
+		reconciler: reconciler.New(k8sClient, scheme, recorder),
+	}
+
+	_, err := r.reconcileBackupJob(t.Context(), vts)
+	assert.ErrorContains(t, err, "Pod cache is unavailable")
+
+	pod := &corev1.Pod{}
+	err = k8sClient.Get(t.Context(), key, pod)
+	assert.True(t, apierrors.IsNotFound(err), "replacement Pod should not be created, got: %v", err)
+
+	pvc := &corev1.PersistentVolumeClaim{}
+	require.NoError(t, k8sClient.Get(t.Context(), key, pvc))
+	assert.Equal(t, types.UID("old-pvc"), pvc.UID)
+	assert.Equal(t, oldPVCSpec.StorageClassName, pvc.Spec.StorageClassName)
+}
+
 func TestReconcileBackupJobRecreatesLegacyDataVolumeWhenSpecChanged(t *testing.T) {
 	oldPVCSpec := backupPVCSpec("100Gi", "")
 	vts := backupTestShard(nil, oldPVCSpec)
@@ -607,7 +675,7 @@ func TestReconcileBackupJobPreservesRunningPodWhenDataVolumeChanges(t *testing.T
 		reconciler: reconciler.New(k8sClient, scheme, recorder),
 	}
 
-	vts.Spec.Vtbackup = &planetscalev2.VitessShardVtbackup{}
+	vts.Spec.Vtbackup = &planetscalev2.VitessShardVtbackup{UseEmptyDirForInitialBackup: true}
 	for range 4 {
 		_, err := r.reconcileBackupJob(t.Context(), vts)
 		require.NoError(t, err)

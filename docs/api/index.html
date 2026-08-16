@@ -8756,6 +8756,20 @@ map[string]string
 <tbody>
 <tr>
 <td>
+<code>useEmptyDirForInitialBackup</code><br>
+<em>
+bool
+</em>
+</td>
+<td>
+<p>UseEmptyDirForInitialBackup makes the initial, empty-database backup use
+ephemeral scratch space instead of inheriting the first tablet pool&rsquo;s
+DataVolumeClaimTemplate. Scheduled backups still inherit the first tablet
+pool&rsquo;s template because they restore a full database before taking a backup.</p>
+</td>
+</tr>
+<tr>
+<td>
 <code>dataVolumeClaimTemplate</code><br>
 <em>
 <a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.32/#persistentvolumeclaimspec-v1-core">
@@ -8766,13 +8780,9 @@ Kubernetes core/v1.PersistentVolumeClaimSpec
 <td>
 <p>DataVolumeClaimTemplate overrides the PersistentVolumeClaim that vtbackup
 Pods use for scratch space while taking or restoring a backup.</p>
-<p>When the surrounding vtbackup block is present but this field is omitted,
-the initial, empty-database backup uses ephemeral (emptyDir) scratch space.
-Scheduled backups still inherit the first tablet pool&rsquo;s
-DataVolumeClaimTemplate because they restore a full database before taking
-a backup.</p>
-<p>When the whole vtbackup block is omitted, vtbackup Pods inherit the first
-tablet pool&rsquo;s DataVolumeClaimTemplate, which is the historical behavior.</p>
+<p>When omitted, vtbackup Pods inherit the first tablet pool&rsquo;s
+DataVolumeClaimTemplate unless UseEmptyDirForInitialBackup applies. This is
+the historical behavior.</p>
 </td>
 </tr>
 </tbody>

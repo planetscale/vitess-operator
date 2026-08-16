@@ -2319,7 +2319,14 @@ spec:
                                             volumeName:
                                               type: string
                                           type: object
+                                        useEmptyDirForInitialBackup:
+                                          type: boolean
                                       type: object
+                                      x-kubernetes-validations:
+                                      - message: useEmptyDirForInitialBackup and dataVolumeClaimTemplate
+                                          are mutually exclusive
+                                        rule: '!(has(self.useEmptyDirForInitialBackup)
+                                          && self.useEmptyDirForInitialBackup && has(self.dataVolumeClaimTemplate))'
                                   required:
                                   - databaseInitScriptSecret
                                   - keyRange
@@ -2880,7 +2887,14 @@ spec:
                                           volumeName:
                                             type: string
                                         type: object
+                                      useEmptyDirForInitialBackup:
+                                        type: boolean
                                     type: object
+                                    x-kubernetes-validations:
+                                    - message: useEmptyDirForInitialBackup and dataVolumeClaimTemplate
+                                        are mutually exclusive
+                                      rule: '!(has(self.useEmptyDirForInitialBackup)
+                                        && self.useEmptyDirForInitialBackup && has(self.dataVolumeClaimTemplate))'
                                 required:
                                 - databaseInitScriptSecret
                                 type: object

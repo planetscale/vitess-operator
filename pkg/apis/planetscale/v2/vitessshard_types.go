@@ -288,18 +288,20 @@ type VitessShardTabletPool struct {
 }
 
 // VitessShardVtbackup configures scratch storage for vtbackup Pods in a shard.
+// +kubebuilder:validation:XValidation:rule="!(has(self.useEmptyDirForInitialBackup) && self.useEmptyDirForInitialBackup && has(self.dataVolumeClaimTemplate))",message="useEmptyDirForInitialBackup and dataVolumeClaimTemplate are mutually exclusive"
 type VitessShardVtbackup struct {
+	// UseEmptyDirForInitialBackup makes the initial, empty-database backup use
+	// ephemeral scratch space instead of inheriting the first tablet pool's
+	// DataVolumeClaimTemplate. Scheduled backups still inherit the first tablet
+	// pool's template because they restore a full database before taking a backup.
+	UseEmptyDirForInitialBackup bool `json:"useEmptyDirForInitialBackup,omitempty"`
+
 	// DataVolumeClaimTemplate overrides the PersistentVolumeClaim that vtbackup
 	// Pods use for scratch space while taking or restoring a backup.
 	//
-	// When the surrounding vtbackup block is present but this field is omitted,
-	// the initial, empty-database backup uses ephemeral (emptyDir) scratch space.
-	// Scheduled backups still inherit the first tablet pool's
-	// DataVolumeClaimTemplate because they restore a full database before taking
-	// a backup.
-	//
-	// When the whole vtbackup block is omitted, vtbackup Pods inherit the first
-	// tablet pool's DataVolumeClaimTemplate, which is the historical behavior.
+	// When omitted, vtbackup Pods inherit the first tablet pool's
+	// DataVolumeClaimTemplate unless UseEmptyDirForInitialBackup applies. This is
+	// the historical behavior.
 	DataVolumeClaimTemplate *corev1.PersistentVolumeClaimSpec `json:"dataVolumeClaimTemplate,omitempty"`
 }
 

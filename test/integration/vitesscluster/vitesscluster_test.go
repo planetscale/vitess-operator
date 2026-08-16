@@ -64,10 +64,11 @@ spec:
           databaseInitScriptSecret:
             key: init_db.sql
             name: init-script-secret
-          # Present but empty: the initial vtbackup Pod for this shard should
-          # use ephemeral scratch space even though the tablets below use PVCs.
+          # The initial vtbackup Pod for this shard should use ephemeral
+          # scratch space even though the tablets below use PVCs.
           # Scheduled vtbackup Pods still inherit the first pool's PVC template.
-          vtbackup: {}
+          vtbackup:
+            useEmptyDirForInitialBackup: true
           tabletPools:
           - cell: cell1
             type: replica
@@ -303,9 +304,9 @@ func verifyBasicVitessShard(f *framework.Fixture, ns, cluster, keyspace, shard s
 		}
 	}
 
-	// VitessShard creates the vtbackup-init Pod. The shard sets an empty vtbackup
-	// override, so unlike the tablet Pods above it must run with no PVC and use
-	// ephemeral scratch space instead.
+	// VitessShard creates the vtbackup-init Pod. The shard explicitly requests
+	// emptyDir scratch space, so unlike the tablet Pods above it must run with no
+	// PVC.
 	var pod corev1.Pod
 	var args []string
 	var found bool
