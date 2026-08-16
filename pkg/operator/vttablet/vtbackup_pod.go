@@ -91,21 +91,36 @@ func InitialBackupPodName(clusterName, keyspaceName string, keyRange planetscale
 	return names.JoinWithConstraints(names.DefaultConstraints, clusterName, keyspaceName, keyRange.SafeName(), planetscalev2.VtbackupComponentName, "init")
 }
 
-// NewBackupPod creates a new vtbackup Pod, which is like a special kind of
-// minimal tablet used to run backups as a batch process.
-func NewBackupPod(key client.ObjectKey, backupSpec *BackupSpec, mysqldImage string) *corev1.Pod {
-	tabletSpec := backupSpec.TabletSpec
+// BackupPodDataVolume returns the effective vtbackup data-volume mount and
+// source after applying user-provided volume and mount overrides.
+func BackupPodDataVolume(tabletSpec *Spec) (*corev1.VolumeMount, *corev1.VolumeSource, bool) {
+	volumeMounts, volumes := backupPodVolumes(tabletSpec)
 
-	// Include vttablet env vars, since we run some vttablet code like backups.
-	env := append(vttabletEnvVars.Get(tabletSpec), tabletEnvVars.Get(tabletSpec)...)
-	// Add vtbackup-specific env vars.
-	env = append(env, corev1.EnvVar{
-		Name:  "HOME",
-		Value: homeDir,
-	})
-	// Then apply user-provided overrides last so they take precedence.
-	update.Env(&env, tabletSpec.ExtraEnv)
+	var dataMount *corev1.VolumeMount
+	for i := range volumeMounts {
+		mount := &volumeMounts[i]
+		if mount.MountPath != vtDataRootPath {
+			continue
+		}
+		if dataMount != nil {
+			return nil, nil, false
+		}
+		dataMount = mount
+	}
+	if dataMount == nil {
+		return nil, nil, false
+	}
 
+	for i := range volumes {
+		volume := &volumes[i]
+		if volume.Name == dataMount.Name {
+			return dataMount, &volume.VolumeSource, true
+		}
+	}
+	return nil, nil, false
+}
+
+func backupPodVolumes(tabletSpec *Spec) ([]corev1.VolumeMount, []corev1.Volume) {
 	// Mount everything for both vttablet and mysqld, since vtbackup does both
 	// jobs. We also need an additional mount to get SSL certs.
 	volumeMounts := []corev1.VolumeMount{
@@ -123,6 +138,25 @@ func NewBackupPod(key client.ObjectKey, backupSpec *BackupSpec, mysqldImage stri
 
 	volumes := tabletVolumes.Get(tabletSpec)
 	update.Volumes(&volumes, tabletSpec.ExtraVolumes)
+	return volumeMounts, volumes
+}
+
+// NewBackupPod creates a new vtbackup Pod, which is like a special kind of
+// minimal tablet used to run backups as a batch process.
+func NewBackupPod(key client.ObjectKey, backupSpec *BackupSpec, mysqldImage string) *corev1.Pod {
+	tabletSpec := backupSpec.TabletSpec
+
+	// Include vttablet env vars, since we run some vttablet code like backups.
+	env := append(vttabletEnvVars.Get(tabletSpec), tabletEnvVars.Get(tabletSpec)...)
+	// Add vtbackup-specific env vars.
+	env = append(env, corev1.EnvVar{
+		Name:  "HOME",
+		Value: homeDir,
+	})
+	// Then apply user-provided overrides last so they take precedence.
+	update.Env(&env, tabletSpec.ExtraEnv)
+
+	volumeMounts, volumes := backupPodVolumes(tabletSpec)
 
 	podSecurityContext := &corev1.PodSecurityContext{}
 	if planetscalev2.DefaultVitessFSGroup >= 0 {
