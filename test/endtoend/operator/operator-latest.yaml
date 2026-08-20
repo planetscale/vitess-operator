@@ -8011,6 +8011,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: vitess-operator
+  namespace: default
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -8168,6 +8169,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: vitess-operator
+  namespace: default
 spec:
   replicas: 1
   selector:
