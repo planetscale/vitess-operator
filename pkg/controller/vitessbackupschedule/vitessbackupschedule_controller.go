@@ -310,16 +310,42 @@ func (r *ReconcileVitessBackupsSchedule) reconcileStrategy(
 		Start: start,
 		End:   end,
 	}
-	jobs, mostRecentTime, err := r.getJobsList(ctx, req, vbsc, strategy.Keyspace, vkr.SafeName())
-	if err != nil {
-		// We had an error reading the jobs, we can requeue.
-		return resultBuilder.Error(err)
+	method := vbsc.Spec.BackupMethod
+	if method == "" {
+		method = planetscalev2.BackupMethodVtbackup
 	}
+	// List the objects created by previous runs of this strategy. The volumeSnapshot
+	// method creates VolumeSnapshot objects directly instead of Jobs, so history and
+	// concurrency accounting is done on those objects.
+	var (
+		jobs           jobsList
+		snaps          snapshotsList
+		mostRecentTime *time.Time
+		activeCount    int
+	)
+	if method == planetscalev2.BackupMethodVolumeSnapshot {
+		var err error
+		snaps, mostRecentTime, err = r.getSnapshotsList(ctx, req, vbsc, strategy.Keyspace, vkr.SafeName())
+		if err != nil {
+			// We had an error reading the snapshots, we can requeue.
+			return resultBuilder.Error(err)
+		}
+		activeCount = len(snaps.pending)
+	} else {
+		var err error
+		jobs, mostRecentTime, err = r.getJobsList(ctx, req, vbsc, strategy.Keyspace, vkr.SafeName())
+		if err != nil {
+			// We had an error reading the jobs, we can requeue.
+			return resultBuilder.Error(err)
+		}
+		activeCount = len(jobs.active)
+	}
+
 	lastScheduledTime := vbsc.Status.LastScheduledTimes[strategy.Name]
 	repairedLastScheduledTime := false
 	if mostRecentTime != nil && (lastScheduledTime == nil || lastScheduledTime.Time.Before(*mostRecentTime)) {
-		// Repair status from the Job annotation if Job creation succeeded but the
-		// status update did not.
+		// Repair status from the scheduled object's annotation if creation succeeded
+		// but the status update did not.
 		lastScheduledTime = &metav1.Time{Time: *mostRecentTime}
 		vbsc.Status.LastScheduledTimes[strategy.Name] = lastScheduledTime
 		repairedLastScheduledTime = true
@@ -331,19 +357,25 @@ func (r *ReconcileVitessBackupsSchedule) reconcileStrategy(
 		mostRecentTime = &statusTime
 	}
 
-	// We must clean up old jobs to not overcrowd the number of Pods and Jobs in the cluster.
+	// We must clean up old runs to not overcrowd the number of Pods and Jobs in the cluster.
 	// This will be done according to both failedJobsHistoryLimit and successfulJobsHistoryLimit fields.
-	// Keep the Jobs for one more reconcile when an annotation repaired the status, so a
+	// Keep them for one more reconcile when an annotation repaired the status, so a
 	// conflicting status update cannot remove the only durable record of the scheduled run.
 	if !repairedLastScheduledTime {
-		r.cleanupJobsWithLimit(ctx, jobs.failed, vbsc.GetFailedJobsLimit())
-		r.cleanupJobsWithLimit(ctx, jobs.successful, vbsc.GetSuccessfulJobsLimit())
+		if method == planetscalev2.BackupMethodVolumeSnapshot {
+			r.cleanupSnapshotsWithLimit(ctx, snaps.failed, vbsc.GetFailedJobsLimit())
+			r.cleanupSnapshotsWithLimit(ctx, snaps.ready, vbsc.GetSuccessfulJobsLimit())
+		} else {
+			r.cleanupJobsWithLimit(ctx, jobs.failed, vbsc.GetFailedJobsLimit())
+			r.cleanupJobsWithLimit(ctx, jobs.successful, vbsc.GetSuccessfulJobsLimit())
+		}
 	}
 
-	err = r.removeTimeoutJobs(ctx, jobs.active, vbsc.Name, vbsc.Spec.JobTimeoutMinutes, now)
-	if err != nil {
-		// We had an error while removing timed out jobs, we can requeue
-		return resultBuilder.Error(err)
+	if method != planetscalev2.BackupMethodVolumeSnapshot {
+		if err := r.removeTimeoutJobs(ctx, jobs.active, vbsc.Name, vbsc.Spec.JobTimeoutMinutes, now); err != nil {
+			// We had an error while removing timed out jobs, we can requeue
+			return resultBuilder.Error(err)
+		}
 	}
 
 	// Determine the effective cron schedule string.
@@ -392,9 +424,32 @@ func (r *ReconcileVitessBackupsSchedule) reconcileStrategy(
 		return resultBuilder.Result()
 	}
 
-	// Check concurrency policy and skip this job if we have ForbidConcurrent set plus an active job
-	if vbsc.Spec.ConcurrencyPolicy == planetscalev2.ForbidConcurrent && len(jobs.active) > 0 {
-		log.Infof("concurrency policy blocks concurrent runs: skipping, number of active jobs: %d", len(jobs.active))
+	// Check concurrency policy and skip this run if we have ForbidConcurrent set plus an active run
+	if vbsc.Spec.ConcurrencyPolicy == planetscalev2.ForbidConcurrent && activeCount > 0 {
+		log.Infof("concurrency policy blocks concurrent runs: skipping, number of active runs: %d", activeCount)
+		vbsc.Status.NextScheduledTimes[strategy.Name] = &metav1.Time{Time: nextRun}
+		return resultBuilder.Result()
+	}
+
+	if method == planetscalev2.BackupMethodVolumeSnapshot {
+		meta, _ := scheduledObjectMeta(vbsc, strategy, missedRun, vkr, method)
+		snap, err := r.createVolumeSnapshot(ctx, vbsc, strategy, meta)
+		if err != nil {
+			// Target selection can fail transiently (e.g. no non-primary tablet
+			// available right now); skip this run and try again at the next one.
+			log.WithError(err).Info("skipping scheduled volume snapshot")
+			vbsc.Status.NextScheduledTimes[strategy.Name] = &metav1.Time{Time: nextRun}
+			return resultBuilder.Result()
+		}
+		if err = r.client.Create(ctx, snap); err != nil {
+			if apierrors.IsAlreadyExists(err) {
+				log.Infof("VolumeSnapshot %s already exists, will retry in %s", snap.GetName(), requeueAfter.String())
+				return resultBuilder.Result()
+			}
+			return resultBuilder.Error(err)
+		}
+		log.Infof("created new VolumeSnapshot: %s, next run scheduled in %s", snap.GetName(), requeueAfter.String())
+		vbsc.Status.LastScheduledTimes[strategy.Name] = &metav1.Time{Time: missedRun}
 		vbsc.Status.NextScheduledTimes[strategy.Name] = &metav1.Time{Time: nextRun}
 		return resultBuilder.Result()
 	}
@@ -647,6 +702,27 @@ func (r *ReconcileVitessBackupsSchedule) createJob(
 		method = planetscalev2.BackupMethodVtbackup
 	}
 
+	meta, labels := scheduledObjectMeta(vbsc, strategy, scheduledTime, vkr, method)
+
+	switch method {
+	case planetscalev2.BackupMethodVtctldclient:
+		return r.createVtctldclientJob(ctx, vbsc, strategy, meta)
+	default:
+		return r.createVtbackupJob(ctx, vbsc, strategy, meta.Name, meta, vkr, labels)
+	}
+}
+
+// scheduledObjectMeta builds the ObjectMeta shared by all objects created for
+// one scheduled run of a strategy (Jobs or VolumeSnapshots). It also returns
+// the base labels (without the schedule's own labels merged in) for callers
+// that need to propagate them to child objects.
+func scheduledObjectMeta(
+	vbsc planetscalev2.VitessBackupSchedule,
+	strategy planetscalev2.VitessBackupScheduleStrategy,
+	scheduledTime time.Time,
+	vkr planetscalev2.VitessKeyRange,
+	method planetscalev2.BackupMethod,
+) (metav1.ObjectMeta, map[string]string) {
 	name := names.JoinWithConstraints(names.ServiceConstraints, vbsc.Name, strategy.Keyspace, vkr.SafeName(), strconv.Itoa(int(scheduledTime.Unix())))
 
 	labels := map[string]string{
@@ -671,12 +747,7 @@ func (r *ReconcileVitessBackupsSchedule) createJob(
 	maps.Copy(meta.Labels, vbsc.Labels)
 	maps.Copy(meta.Labels, labels)
 
-	switch method {
-	case planetscalev2.BackupMethodVtctldclient:
-		return r.createVtctldclientJob(ctx, vbsc, strategy, meta)
-	default:
-		return r.createVtbackupJob(ctx, vbsc, strategy, name, meta, vkr, labels)
-	}
+	return meta, labels
 }
 
 func (r *ReconcileVitessBackupsSchedule) createVtbackupJob(

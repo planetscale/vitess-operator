@@ -2778,7 +2778,8 @@ This is populated for both cron-based and frequency-based schedules.</p>
 <p>
 <p>VitessBackupScheduleStrategy defines how we are going to take a backup.
 The VitessBackupSchedule controller uses this data to build either a vtbackup
-pod or a vtctldclient command, depending on the configured BackupMethod.</p>
+pod, a vtctldclient command, or a VolumeSnapshot, depending on the configured
+BackupMethod.</p>
 </p>
 <table class="table table-striped">
 <thead class="thead-dark">
@@ -2851,6 +2852,20 @@ map[string]string
 <em>(Optional)</em>
 <p>ExtraFlags is a map of additional flags passed to vtctldclient&rsquo;s BackupShard command.
 This field is only used when backupMethod is &ldquo;vtctldclient&rdquo;; it is ignored for &ldquo;vtbackup&rdquo;.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>volumeSnapshotClassName</code><br>
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>VolumeSnapshotClassName is the name of the VolumeSnapshotClass to use when
+taking snapshots. If empty, the cluster&rsquo;s default snapshot class is used.
+This field is only used when backupMethod is &ldquo;volumeSnapshot&rdquo;.</p>
 </td>
 </tr>
 </tbody>
