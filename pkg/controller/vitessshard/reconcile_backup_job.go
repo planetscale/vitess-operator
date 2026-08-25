@@ -18,20 +18,31 @@ package vitessshard
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
+	apiequality "k8s.io/apimachinery/pkg/api/equality"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/utils/dump"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
+	"planetscale.dev/vitess-operator/pkg/operator/desiredstatehash"
 	"planetscale.dev/vitess-operator/pkg/operator/reconciler"
 	"planetscale.dev/vitess-operator/pkg/operator/results"
 	"planetscale.dev/vitess-operator/pkg/operator/update"
 	"planetscale.dev/vitess-operator/pkg/operator/vitessbackup"
 	"planetscale.dev/vitess-operator/pkg/operator/vttablet"
+)
+
+const (
+	vtbackupDataVolumeHashAnnotation    = "planetscale.com/vtbackup-data-volume-hash"
+	vtbackupDataVolumePodHashAnnotation = "planetscale.com/vtbackup-data-volume-pod-hash"
+	vtbackupDataVolumeMountPath         = "/vt/vtdataroot"
+	pvcBoundByControllerAnnotation      = "pv.kubernetes.io/bound-by-controller"
 )
 
 func (r *ReconcileVitessShard) reconcileBackupJob(ctx context.Context, vts *planetscalev2.VitessShard) (reconcile.Result, error) {
@@ -99,14 +110,51 @@ func (r *ReconcileVitessShard) reconcileBackupJob(ctx context.Context, vts *plan
 
 	// Reconcile vtbackup PVCs. Use the same key as the corresponding Pod,
 	// but only if the Pod expects a PVC.
+	pvcReplacementPodLookupFailed := false
 	err = r.reconciler.ReconcileObjectSet(ctx, vts, pvcKeys, labels, reconciler.Strategy{
 		Kind: &corev1.PersistentVolumeClaim{},
 
 		New: func(key client.ObjectKey) runtime.Object {
-			return vttablet.NewPVC(key, specMap[key].TabletSpec)
+			pvc := vttablet.NewPVC(key, specMap[key].TabletSpec)
+			updateVtbackupDataVolumePVCHash(&pvc.Annotations, specMap[key])
+			return pvc
+		},
+		UpdateInPlace: func(key client.ObjectKey, obj runtime.Object) {
+			pvc := obj.(*corev1.PersistentVolumeClaim)
+			if hasVtbackupDataVolumePVCHash(pvc.Annotations) ||
+				!vtbackupPVCDataVolumeMatches(pvc, specMap[key]) {
+				return
+			}
+			updateVtbackupDataVolumePVCHash(&pvc.Annotations, specMap[key])
+		},
+		UpdateRecreate: func(key client.ObjectKey, obj runtime.Object) {
+			pvc := obj.(*corev1.PersistentVolumeClaim)
+			if pvc.Annotations[vtbackupDataVolumeHashAnnotation] ==
+				specMap[key].TabletSpec.Annotations[vtbackupDataVolumeHashAnnotation] {
+				return
+			}
+
+			// Delete the Pod first so it cannot keep using a PVC while the PVC
+			// is being replaced.
+			pod := &corev1.Pod{}
+			getErr := r.client.Get(ctx, key, pod)
+			if getErr == nil {
+				return
+			}
+			if !apierrors.IsNotFound(getErr) {
+				pvcReplacementPodLookupFailed = true
+				_, _ = resultBuilder.Error(fmt.Errorf("verify Pod absence before replacing vtbackup PVC %s: %w", key, getErr))
+				return
+			}
+
+			updateVtbackupDataVolumePVCHash(&pvc.Annotations, specMap[key])
 		},
 		PrepareForTurndown: func(key client.ObjectKey, obj runtime.Object) *planetscalev2.OrphanStatus {
-			// Same as reconcileTablets, keep PVCs of Pods in any Phase
+			// Same as reconcileTablets, keep PVCs of Pods in any Phase. This
+			// intentionally checks for any same-name Pod rather than inspecting
+			// whether that Pod still mounts the PVC. A replacement that uses
+			// emptyDir may delay cleanup, but the conservative check avoids
+			// deleting storage while Pod and PVC observations are in transition.
 			pod := &corev1.Pod{}
 			if getErr := r.client.Get(ctx, key, pod); getErr == nil || !apierrors.IsNotFound(getErr) {
 				// If the get was successful, the Pod exists and we shouldn't delete the PVC.
@@ -122,13 +170,48 @@ func (r *ReconcileVitessShard) reconcileBackupJob(ctx context.Context, vts *plan
 	if err != nil {
 		resultBuilder.Error(err)
 	}
+	if pvcReplacementPodLookupFailed {
+		return resultBuilder.Result()
+	}
 
 	// Reconcile vtbackup Pods.
+	legacyDataVolumeLookupFailed := map[client.ObjectKey]struct{}{}
 	err = r.reconciler.ReconcileObjectSet(ctx, vts, podKeys, labels, reconciler.Strategy{
 		Kind: &corev1.Pod{},
 
 		New: func(key client.ObjectKey) runtime.Object {
 			return vttablet.NewBackupPod(key, specMap[key], vts.Spec.Images.Mysqld.Image())
+		},
+		UpdateInPlace: func(key client.ObjectKey, obj runtime.Object) {
+			pod := obj.(*corev1.Pod)
+			if hasVtbackupDataVolumePodHashes(pod.Annotations) ||
+				!r.vtbackupPodDataVolumeMatches(pod, specMap[key]) {
+				return
+			}
+
+			if specMap[key].TabletSpec.DataVolumePVCSpec != nil {
+				pvc := &corev1.PersistentVolumeClaim{}
+				if getErr := r.client.Get(ctx, key, pvc); getErr != nil {
+					legacyDataVolumeLookupFailed[key] = struct{}{}
+					_, _ = resultBuilder.Error(fmt.Errorf("verify legacy vtbackup data volume for Pod %s: %w", key, getErr))
+					return
+				}
+				if !vtbackupPVCDataVolumeMatches(pvc, specMap[key]) {
+					return
+				}
+			}
+
+			updateVtbackupDataVolumePodHashes(&pod.Annotations, specMap[key])
+		},
+		UpdateRecreate: func(key client.ObjectKey, obj runtime.Object) {
+			pod := obj.(*corev1.Pod)
+			if pod.Status.Phase == corev1.PodRunning {
+				return
+			}
+			if _, failed := legacyDataVolumeLookupFailed[key]; failed {
+				return
+			}
+			updateVtbackupDataVolumePodHashes(&pod.Annotations, specMap[key])
 		},
 		Status: func(key client.ObjectKey, obj runtime.Object) {
 			pod := obj.(*corev1.Pod)
@@ -214,6 +297,21 @@ func vtbackupSpec(key client.ObjectKey, vts *planetscalev2.VitessShard, parentLa
 	update.Annotations(&annotations, pool.Annotations)
 	update.Annotations(&annotations, backupLocation.Annotations)
 
+	dataVolumeClaimTemplate := pool.DataVolumeClaimTemplate
+	if vts.Spec.Vtbackup != nil {
+		switch {
+		case vts.Spec.Vtbackup.DataVolumeClaimTemplate != nil:
+			dataVolumeClaimTemplate = vts.Spec.Vtbackup.DataVolumeClaimTemplate
+		case backupType == vitessbackup.TypeInit && vts.Spec.Vtbackup.UseEmptyDirForInitialBackup:
+			dataVolumeClaimTemplate = nil
+		}
+	}
+	dataVolumeHash := desiredstatehash.NewBuilder()
+	dataVolumeHash.AddString("pvc-spec", dump.ForHash(dataVolumeClaimTemplate))
+	update.Annotations(&annotations, map[string]string{
+		vtbackupDataVolumeHashAnnotation: dataVolumeHash.String(),
+	})
+
 	// Fill in the parts of a vttablet spec that make sense for vtbackup.
 	tabletSpec := &vttablet.Spec{
 		GlobalLockserver:         vts.Spec.GlobalLockserver,
@@ -224,7 +322,7 @@ func vtbackupSpec(key client.ObjectKey, vts *planetscalev2.VitessShard, parentLa
 		Mysqld:                   pool.Mysqld,
 		MysqldExporter:           pool.MysqldExporter,
 		DataVolumePVCName:        key.Name,
-		DataVolumePVCSpec:        pool.DataVolumeClaimTemplate,
+		DataVolumePVCSpec:        dataVolumeClaimTemplate,
 		KeyspaceName:             keyspaceName,
 		DatabaseName:             vts.Spec.DatabaseName,
 		DatabaseInitScriptSecret: vts.Spec.DatabaseInitScriptSecret,
@@ -241,7 +339,7 @@ func vtbackupSpec(key client.ObjectKey, vts *planetscalev2.VitessShard, parentLa
 		ImagePullSecrets:         vts.Spec.ImagePullSecrets,
 	}
 
-	return &vttablet.BackupSpec{
+	backupSpec := &vttablet.BackupSpec{
 		InitialBackup:     backupType == vitessbackup.TypeInit,
 		MinBackupInterval: minBackupInterval,
 		MinRetentionTime:  minRetentionTime,
@@ -249,6 +347,173 @@ func vtbackupSpec(key client.ObjectKey, vts *planetscalev2.VitessShard, parentLa
 
 		TabletSpec: tabletSpec,
 	}
+	update.Annotations(&backupSpec.TabletSpec.Annotations, map[string]string{
+		vtbackupDataVolumePodHashAnnotation: vtbackupPodDataVolumeHash(backupSpec),
+	})
+	return backupSpec
+}
+
+func updateVtbackupDataVolumePVCHash(annotations *map[string]string, spec *vttablet.BackupSpec) {
+	update.Annotations(annotations, map[string]string{
+		vtbackupDataVolumeHashAnnotation: spec.TabletSpec.Annotations[vtbackupDataVolumeHashAnnotation],
+	})
+}
+
+func updateVtbackupDataVolumePodHashes(annotations *map[string]string, spec *vttablet.BackupSpec) {
+	update.Annotations(annotations, map[string]string{
+		vtbackupDataVolumeHashAnnotation:    spec.TabletSpec.Annotations[vtbackupDataVolumeHashAnnotation],
+		vtbackupDataVolumePodHashAnnotation: spec.TabletSpec.Annotations[vtbackupDataVolumePodHashAnnotation],
+	})
+}
+
+func hasVtbackupDataVolumePVCHash(annotations map[string]string) bool {
+	_, ok := annotations[vtbackupDataVolumeHashAnnotation]
+	return ok
+}
+
+func hasVtbackupDataVolumePodHashes(annotations map[string]string) bool {
+	_, hasPVCHash := annotations[vtbackupDataVolumeHashAnnotation]
+	_, hasPodHash := annotations[vtbackupDataVolumePodHashAnnotation]
+	return hasPVCHash && hasPodHash
+}
+
+func vtbackupPodDataVolumeHash(spec *vttablet.BackupSpec) string {
+	dataMount, dataSource, ok := vttablet.BackupPodDataVolume(spec.TabletSpec)
+	if !ok {
+		// A missing or ambiguous data-volume mount is an intentional, stable
+		// hashable state. If a later spec identifies one, the hash will change.
+		dataMount, dataSource = nil, nil
+	}
+	hash := desiredstatehash.NewBuilder()
+	hash.AddString("mount", dump.ForHash(dataMount))
+	hash.AddString("source", dump.ForHash(dataSource))
+	return hash.String()
+}
+
+func vtbackupPVCDataVolumeMatches(pvc *corev1.PersistentVolumeClaim, spec *vttablet.BackupSpec) bool {
+	desired := spec.TabletSpec.DataVolumePVCSpec
+	if desired == nil {
+		return false
+	}
+
+	currentSpec := pvc.Spec.DeepCopy()
+	desiredSpec := desired.DeepCopy()
+
+	// When Kubernetes selects a PV, it assigns VolumeName and marks the PVC as
+	// bound by the controller. A nil StorageClassName asks admission to select
+	// the default class, which then appears in the stored PVC. VolumeMode defaults
+	// to Filesystem, and the API server mirrors local DataSource and DataSourceRef
+	// values on create.
+	_, boundByController := pvc.Annotations[pvcBoundByControllerAnnotation]
+	if desiredSpec.VolumeName == "" && boundByController {
+		currentSpec.VolumeName = ""
+	}
+	if desiredSpec.StorageClassName == nil &&
+		currentSpec.StorageClassName != nil && *currentSpec.StorageClassName != "" {
+		currentSpec.StorageClassName = nil
+	}
+	defaultVtbackupPVCVolumeMode(currentSpec)
+	defaultVtbackupPVCVolumeMode(desiredSpec)
+	normalizeVtbackupPVCDataSources(currentSpec)
+	normalizeVtbackupPVCDataSources(desiredSpec)
+
+	return apiequality.Semantic.DeepEqual(currentSpec, desiredSpec)
+}
+
+func defaultVtbackupPVCVolumeMode(spec *corev1.PersistentVolumeClaimSpec) {
+	if spec.VolumeMode != nil {
+		return
+	}
+	mode := corev1.PersistentVolumeFilesystem
+	spec.VolumeMode = &mode
+}
+
+func normalizeVtbackupPVCDataSources(spec *corev1.PersistentVolumeClaimSpec) {
+	if spec.DataSourceRef != nil && spec.DataSourceRef.Namespace != nil && *spec.DataSourceRef.Namespace == "" {
+		spec.DataSourceRef.Namespace = nil
+	}
+
+	if spec.DataSource != nil && spec.DataSourceRef == nil {
+		spec.DataSourceRef = &corev1.TypedObjectReference{
+			Kind: spec.DataSource.Kind,
+			Name: spec.DataSource.Name,
+		}
+		if spec.DataSource.APIGroup != nil {
+			apiGroup := *spec.DataSource.APIGroup
+			spec.DataSourceRef.APIGroup = &apiGroup
+		}
+		return
+	}
+
+	if spec.DataSourceRef != nil && spec.DataSource == nil && spec.DataSourceRef.Namespace == nil {
+		spec.DataSource = &corev1.TypedLocalObjectReference{
+			Kind: spec.DataSourceRef.Kind,
+			Name: spec.DataSourceRef.Name,
+		}
+		if spec.DataSourceRef.APIGroup != nil {
+			apiGroup := *spec.DataSourceRef.APIGroup
+			spec.DataSource.APIGroup = &apiGroup
+		}
+	}
+}
+
+func (r *ReconcileVitessShard) vtbackupPodDataVolumeMatches(pod *corev1.Pod, spec *vttablet.BackupSpec) bool {
+	desiredPod := vttablet.NewBackupPod(
+		client.ObjectKey{Namespace: pod.Namespace, Name: pod.Name},
+		spec,
+		spec.TabletSpec.Images.Mysqld.Image(),
+	)
+	if len(desiredPod.Spec.Containers) == 0 {
+		return false
+	}
+	currentPod := pod.DeepCopy()
+	r.scheme.Default(currentPod)
+	r.scheme.Default(desiredPod)
+
+	containerName := desiredPod.Spec.Containers[0].Name
+	desiredMount, desiredSource, ok := vtbackupPodDataVolume(desiredPod, containerName)
+	if !ok {
+		return false
+	}
+	currentMount, currentSource, ok := vtbackupPodDataVolume(currentPod, containerName)
+	if !ok {
+		return false
+	}
+
+	return apiequality.Semantic.DeepEqual(currentMount, desiredMount) &&
+		apiequality.Semantic.DeepEqual(currentSource, desiredSource)
+}
+
+func vtbackupPodDataVolume(pod *corev1.Pod, containerName string) (*corev1.VolumeMount, *corev1.VolumeSource, bool) {
+	var dataMount *corev1.VolumeMount
+	for i := range pod.Spec.Containers {
+		container := &pod.Spec.Containers[i]
+		if container.Name != containerName {
+			continue
+		}
+		for j := range container.VolumeMounts {
+			mount := &container.VolumeMounts[j]
+			if mount.MountPath != vtbackupDataVolumeMountPath {
+				continue
+			}
+			if dataMount != nil {
+				return nil, nil, false
+			}
+			dataMount = mount
+		}
+		break
+	}
+	if dataMount == nil {
+		return nil, nil, false
+	}
+
+	for i := range pod.Spec.Volumes {
+		volume := &pod.Spec.Volumes[i]
+		if volume.Name == dataMount.Name {
+			return dataMount, &volume.VolumeSource, true
+		}
+	}
+	return nil, nil, false
 }
 
 func updateBackupStatus(vts *planetscalev2.VitessShard, allBackups []planetscalev2.VitessBackup) {

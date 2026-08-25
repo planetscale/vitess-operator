@@ -121,6 +121,11 @@ type VitessShardTemplate struct {
 	// +listMapKey=name
 	TabletPools []VitessShardTabletPool `json:"tabletPools,omitempty" patchStrategy:"merge" patchMergeKey:"type"`
 
+	// Vtbackup configures the scratch data volume for vtbackup Pods in this
+	// shard. When omitted, initial and scheduled vtbackup Pods inherit the first
+	// tablet pool's DataVolumeClaimTemplate.
+	Vtbackup *VitessShardVtbackup `json:"vtbackup,omitempty"`
+
 	// DatabaseInitScriptSecret specifies the init_db.sql script file to use for this shard.
 	// This SQL script file is executed immediately after bootstrapping an empty database
 	// to set up initial tables and other MySQL-level entities needed by Vitess.
@@ -280,6 +285,24 @@ type VitessShardTabletPool struct {
 	// +kubebuilder:validation:Schemaless
 	// +kubebuilder:pruning:PreserveUnknownFields
 	TopologySpreadConstraints []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty"`
+}
+
+// VitessShardVtbackup configures scratch storage for vtbackup Pods in a shard.
+// +kubebuilder:validation:XValidation:rule="!(has(self.useEmptyDirForInitialBackup) && self.useEmptyDirForInitialBackup && has(self.dataVolumeClaimTemplate))",message="useEmptyDirForInitialBackup and dataVolumeClaimTemplate are mutually exclusive"
+type VitessShardVtbackup struct {
+	// UseEmptyDirForInitialBackup makes the initial, empty-database backup use
+	// ephemeral scratch space instead of inheriting the first tablet pool's
+	// DataVolumeClaimTemplate. Scheduled backups still inherit the first tablet
+	// pool's template because they restore a full database before taking a backup.
+	UseEmptyDirForInitialBackup bool `json:"useEmptyDirForInitialBackup,omitempty"`
+
+	// DataVolumeClaimTemplate overrides the PersistentVolumeClaim that vtbackup
+	// Pods use for scratch space while taking or restoring a backup.
+	//
+	// When omitted, vtbackup Pods inherit the first tablet pool's
+	// DataVolumeClaimTemplate unless UseEmptyDirForInitialBackup applies. This is
+	// the historical behavior.
+	DataVolumeClaimTemplate *corev1.PersistentVolumeClaimSpec `json:"dataVolumeClaimTemplate,omitempty"`
 }
 
 // VttabletSpec configures the vttablet server within a tablet.

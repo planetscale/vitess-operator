@@ -683,7 +683,11 @@ func (r *ReconcileVitessBackupsSchedule) createVtbackupJob(
 		return nil, err
 	}
 
-	// Create the corresponding PVC for the new vtbackup pod
+	if vtbackupSpec.TabletSpec.DataVolumePVCSpec == nil {
+		return job, nil
+	}
+
+	// Create the corresponding PVC for the new vtbackup pod.
 	pvc := &corev1.PersistentVolumeClaim{}
 	key := client.ObjectKey{
 		Namespace: job.Namespace,
