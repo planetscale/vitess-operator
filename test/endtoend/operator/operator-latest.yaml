@@ -1,9 +1,8 @@
----
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.20.1
+    controller-gen.kubebuilder.io/version: v0.21.0
   name: etcdlockservers.planetscale.com
 spec:
   group: planetscale.com
@@ -343,12 +342,63 @@ spec:
     subresources:
       status: {}
 ---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.21.0
+  name: vitessbackups.planetscale.com
+spec:
+  group: planetscale.com
+  names:
+    kind: VitessBackup
+    listKind: VitessBackupList
+    plural: vitessbackups
+    shortNames:
+    - vtb
+    singular: vitessbackup
+  scope: Namespaced
+  versions:
+  - name: v2
+    schema:
+      openAPIV3Schema:
+        properties:
+          apiVersion:
+            type: string
+          kind:
+            type: string
+          metadata:
+            type: object
+          spec:
+            type: object
+          status:
+            properties:
+              complete:
+                type: boolean
+              engine:
+                type: string
+              finishedTime:
+                format: date-time
+                type: string
+              position:
+                type: string
+              startTime:
+                format: date-time
+                type: string
+              storageDirectory:
+                type: string
+              storageName:
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: true
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.20.1
+    controller-gen.kubebuilder.io/version: v0.21.0
   name: vitessbackupschedules.planetscale.com
 spec:
   group: planetscale.com
@@ -542,65 +592,11 @@ spec:
     subresources:
       status: {}
 ---
----
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.20.1
-  name: vitessbackups.planetscale.com
-spec:
-  group: planetscale.com
-  names:
-    kind: VitessBackup
-    listKind: VitessBackupList
-    plural: vitessbackups
-    shortNames:
-    - vtb
-    singular: vitessbackup
-  scope: Namespaced
-  versions:
-  - name: v2
-    schema:
-      openAPIV3Schema:
-        properties:
-          apiVersion:
-            type: string
-          kind:
-            type: string
-          metadata:
-            type: object
-          spec:
-            type: object
-          status:
-            properties:
-              complete:
-                type: boolean
-              engine:
-                type: string
-              finishedTime:
-                format: date-time
-                type: string
-              position:
-                type: string
-              startTime:
-                format: date-time
-                type: string
-              storageDirectory:
-                type: string
-              storageName:
-                type: string
-            type: object
-        type: object
-    served: true
-    storage: true
----
----
-apiVersion: apiextensions.k8s.io/v1
-kind: CustomResourceDefinition
-metadata:
-  annotations:
-    controller-gen.kubebuilder.io/version: v0.20.1
+    controller-gen.kubebuilder.io/version: v0.21.0
   name: vitessbackupstorages.planetscale.com
 spec:
   group: planetscale.com
@@ -764,12 +760,11 @@ spec:
     subresources:
       status: {}
 ---
----
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.20.1
+    controller-gen.kubebuilder.io/version: v0.21.0
   name: vitesscells.planetscale.com
 spec:
   group: planetscale.com
@@ -1982,12 +1977,11 @@ spec:
         statusReplicasPath: .status.gateway.replicas
       status: {}
 ---
----
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.20.1
+    controller-gen.kubebuilder.io/version: v0.21.0
   name: vitessclusters.planetscale.com
 spec:
   group: planetscale.com
@@ -4231,8 +4225,8 @@ spec:
                                                 name:
                                                   type: string
                                               required:
-                                                - kind
-                                                - name
+                                              - kind
+                                              - name
                                               type: object
                                               x-kubernetes-map-type: atomic
                                             dataSourceRef:
@@ -4246,24 +4240,24 @@ spec:
                                                 namespace:
                                                   type: string
                                               required:
-                                                - kind
-                                                - name
+                                              - kind
+                                              - name
                                               type: object
                                             resources:
                                               properties:
                                                 limits:
                                                   additionalProperties:
                                                     anyOf:
-                                                      - type: integer
-                                                      - type: string
+                                                    - type: integer
+                                                    - type: string
                                                     pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                                                     x-kubernetes-int-or-string: true
                                                   type: object
                                                 requests:
                                                   additionalProperties:
                                                     anyOf:
-                                                      - type: integer
-                                                      - type: string
+                                                    - type: integer
+                                                    - type: string
                                                     pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                                                     x-kubernetes-int-or-string: true
                                                   type: object
@@ -4283,8 +4277,8 @@ spec:
                                                         type: array
                                                         x-kubernetes-list-type: atomic
                                                     required:
-                                                      - key
-                                                      - operator
+                                                    - key
+                                                    - operator
                                                     type: object
                                                   type: array
                                                   x-kubernetes-list-type: atomic
@@ -4799,8 +4793,8 @@ spec:
                                               name:
                                                 type: string
                                             required:
-                                              - kind
-                                              - name
+                                            - kind
+                                            - name
                                             type: object
                                             x-kubernetes-map-type: atomic
                                           dataSourceRef:
@@ -4814,24 +4808,24 @@ spec:
                                               namespace:
                                                 type: string
                                             required:
-                                              - kind
-                                              - name
+                                            - kind
+                                            - name
                                             type: object
                                           resources:
                                             properties:
                                               limits:
                                                 additionalProperties:
                                                   anyOf:
-                                                    - type: integer
-                                                    - type: string
+                                                  - type: integer
+                                                  - type: string
                                                   pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                                                   x-kubernetes-int-or-string: true
                                                 type: object
                                               requests:
                                                 additionalProperties:
                                                   anyOf:
-                                                    - type: integer
-                                                    - type: string
+                                                  - type: integer
+                                                  - type: string
                                                   pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                                                   x-kubernetes-int-or-string: true
                                                 type: object
@@ -4851,8 +4845,8 @@ spec:
                                                       type: array
                                                       x-kubernetes-list-type: atomic
                                                   required:
-                                                    - key
-                                                    - operator
+                                                  - key
+                                                  - operator
                                                   type: object
                                                 type: array
                                                 x-kubernetes-list-type: atomic
@@ -5651,12 +5645,11 @@ spec:
     subresources:
       status: {}
 ---
----
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.20.1
+    controller-gen.kubebuilder.io/version: v0.21.0
   name: vitesskeyspaces.planetscale.com
 spec:
   group: planetscale.com
@@ -7380,12 +7373,11 @@ spec:
     subresources:
       status: {}
 ---
----
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.20.1
+    controller-gen.kubebuilder.io/version: v0.21.0
   name: vitessshards.planetscale.com
 spec:
   group: planetscale.com
@@ -8669,41 +8661,38 @@ spec:
         app: vitess-operator
     spec:
       containers:
-        - args:
-            - --logtostderr
-            - -v=4
-          command:
-            - vitess-operator
-          env:
-            - name: WATCH_NAMESPACE
-              value: "default,example"
-            - name: POD_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.name
-            - name: PS_OPERATOR_POD_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
-            - name: PS_OPERATOR_POD_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.name
-            - name: OPERATOR_NAME
-              value: vitess-operator
-          image: vitess-operator-pr:latest
-          imagePullPolicy: Never
-          name: vitess-operator
-          resources:
-            limits:
-              memory: 512Mi
-            requests:
-              cpu: 100m
-              memory: 128Mi
+      - args:
+        - --logtostderr
+        - -v=4
+        command:
+        - vitess-operator
+        env:
+        - name: WATCH_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: PS_OPERATOR_POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: PS_OPERATOR_POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: OPERATOR_NAME
+          value: vitess-operator
+        image: vitess-operator-pr:latest
+        imagePullPolicy: Never
+        name: vitess-operator
+        resources:
+          limits:
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
       priorityClassName: vitess-operator-control-plane
-      securityContext:
-        # The fsGroup needs to be set to the default fsGroup of Vitess.
-        # It is inherited by the backup subcontroller and allows it to access
-        # the files created by Vitess on the shared persistent volume.
-        fsGroup: 999 # Default fsGroup of Vitess
       serviceAccountName: vitess-operator
