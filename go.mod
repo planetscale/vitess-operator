@@ -8,7 +8,7 @@ require (
 	github.com/planetscale/operator-sdk-libs v0.0.0-20220216002626-1af183733234
 	github.com/prometheus/client_golang v1.24.1
 	github.com/robfig/cron v1.2.0
-	github.com/sirupsen/logrus v1.9.4
+	github.com/sirupsen/logrus v1.10.0
 	github.com/spf13/pflag v1.0.10
 	github.com/stretchr/testify v1.12.0
 	gopkg.in/yaml.v2 v2.4.0
