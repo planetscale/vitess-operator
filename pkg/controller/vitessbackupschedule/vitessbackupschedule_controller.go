@@ -201,7 +201,7 @@ func (r *ReconcileVitessBackupsSchedule) Reconcile(ctx context.Context, req ctrl
 		return ctrl.Result{}, nil
 	}
 
-	oldStatus := vbsc.DeepCopy()
+	oldStatus := vbsc.Status.DeepCopy()
 	vbsc.Status = planetscalev2.NewVitessBackupScheduleStatus(vbsc.Status)
 
 	// Register this reconciling attempt no matter if we fail or succeed.
@@ -212,7 +212,7 @@ func (r *ReconcileVitessBackupsSchedule) Reconcile(ctx context.Context, req ctrl
 	resultBuilder := &results.Builder{}
 	_, _ = resultBuilder.Merge(r.reconcileStrategies(ctx, req, vbsc))
 
-	if !apiequality.Semantic.DeepEqual(&vbsc.Status, &oldStatus) {
+	if !apiequality.Semantic.DeepEqual(&vbsc.Status, oldStatus) {
 		if err := r.client.Status().Update(ctx, &vbsc); err != nil {
 			if !apierrors.IsConflict(err) {
 				log.WithError(err).Error("unable to update VitessBackupSchedule status")
@@ -300,6 +300,7 @@ func (r *ReconcileVitessBackupsSchedule) reconcileStrategy(
 	vbsc planetscalev2.VitessBackupSchedule,
 ) (reconcile.Result, error) {
 	resultBuilder := &results.Builder{}
+	now := time.Now()
 
 	start, end, ok := strings.Cut(strategy.Shard, "-")
 	if !ok {
@@ -314,13 +315,32 @@ func (r *ReconcileVitessBackupsSchedule) reconcileStrategy(
 		// We had an error reading the jobs, we can requeue.
 		return resultBuilder.Error(err)
 	}
+	lastScheduledTime := vbsc.Status.LastScheduledTimes[strategy.Name]
+	repairedLastScheduledTime := false
+	if mostRecentTime != nil && (lastScheduledTime == nil || lastScheduledTime.Time.Before(*mostRecentTime)) {
+		// Repair status from the Job annotation if Job creation succeeded but the
+		// status update did not.
+		lastScheduledTime = &metav1.Time{Time: *mostRecentTime}
+		vbsc.Status.LastScheduledTimes[strategy.Name] = lastScheduledTime
+		repairedLastScheduledTime = true
+	}
+	if lastScheduledTime != nil && (mostRecentTime == nil || mostRecentTime.Before(lastScheduledTime.Time)) {
+		// Keep a copy so getNextSchedule can clamp the value to StartingDeadlineSeconds
+		// without mutating the persisted status entry.
+		statusTime := lastScheduledTime.Time
+		mostRecentTime = &statusTime
+	}
 
 	// We must clean up old jobs to not overcrowd the number of Pods and Jobs in the cluster.
 	// This will be done according to both failedJobsHistoryLimit and successfulJobsHistoryLimit fields.
-	r.cleanupJobsWithLimit(ctx, jobs.failed, vbsc.GetFailedJobsLimit())
-	r.cleanupJobsWithLimit(ctx, jobs.successful, vbsc.GetSuccessfulJobsLimit())
+	// Keep the Jobs for one more reconcile when an annotation repaired the status, so a
+	// conflicting status update cannot remove the only durable record of the scheduled run.
+	if !repairedLastScheduledTime {
+		r.cleanupJobsWithLimit(ctx, jobs.failed, vbsc.GetFailedJobsLimit())
+		r.cleanupJobsWithLimit(ctx, jobs.successful, vbsc.GetSuccessfulJobsLimit())
+	}
 
-	err = r.removeTimeoutJobs(ctx, jobs.active, vbsc.Name, vbsc.Spec.JobTimeoutMinutes)
+	err = r.removeTimeoutJobs(ctx, jobs.active, vbsc.Name, vbsc.Spec.JobTimeoutMinutes, now)
 	if err != nil {
 		// We had an error while removing timed out jobs, we can requeue
 		return resultBuilder.Error(err)
@@ -343,7 +363,7 @@ func (r *ReconcileVitessBackupsSchedule) reconcileStrategy(
 		delete(vbsc.Status.GeneratedSchedules, strategy.Name)
 	}
 
-	missedRun, nextRun, err := getNextSchedule(effectiveSchedule, vbsc, time.Now(), mostRecentTime)
+	missedRun, nextRun, err := getNextSchedule(effectiveSchedule, vbsc, now, mostRecentTime)
 	if err != nil {
 		log.Error(err, "unable to figure out VitessBackupSchedule schedule")
 		// Re-queuing here does not make sense as we have an error with the schedule and the user needs to fix it first.
@@ -357,14 +377,14 @@ func (r *ReconcileVitessBackupsSchedule) reconcileStrategy(
 	}
 
 	// Keep track of when we need to requeue this job
-	requeueAfter := nextRun.Sub(time.Now())
+	requeueAfter := nextRun.Sub(now)
 	_, _ = resultBuilder.RequeueAfter(requeueAfter)
 
 	// Check whether we are too late to create this Job or not. The startingDeadlineSeconds field will help us
 	// schedule Jobs that are late.
 	tooLate := false
 	if vbsc.Spec.StartingDeadlineSeconds != nil {
-		tooLate = missedRun.Add(time.Duration(*vbsc.Spec.StartingDeadlineSeconds) * time.Second).Before(time.Now())
+		tooLate = missedRun.Add(time.Duration(*vbsc.Spec.StartingDeadlineSeconds) * time.Second).Before(now)
 	}
 	if tooLate {
 		log.Infof("missed starting deadline for latest run; skipping; next run is scheduled for: %s", nextRun.Format(time.RFC3339))
@@ -548,42 +568,45 @@ func (r *ReconcileVitessBackupsSchedule) cleanupJobsWithLimit(ctx context.Contex
 	}
 }
 
-func (r *ReconcileVitessBackupsSchedule) removeTimeoutJobs(ctx context.Context, jobs []*kbatch.Job, vbscName string, timeout int32) error {
+func (r *ReconcileVitessBackupsSchedule) removeTimeoutJobs(ctx context.Context, jobs []*kbatch.Job, vbscName string, timeout int32, now time.Time) error {
 	if timeout == -1 {
 		return nil
 	}
 	for _, job := range jobs {
-		jobStartTime, err := getScheduledTimeForJob(job)
-		if err != nil {
-			return err
+		if job.DeletionTimestamp != nil {
+			continue
 		}
-		if jobStartTime.Add(time.Minute * time.Duration(timeout)).Before(time.Now()) {
-			if err = r.client.Delete(ctx, job, client.PropagationPolicy(metav1.DeletePropagationBackground)); (err) != nil {
-				log.WithError(err).Errorf("unable to delete timed out job: %s", job.Name)
-			} else {
-				log.Infof("deleted timed out job: %s", job.Name)
-			}
-			timeoutJobsCount.WithLabelValues(vbscName, metrics.Result(err)).Inc()
+		if job.Status.StartTime == nil {
+			continue
+		}
+		if !job.Status.StartTime.Add(time.Minute * time.Duration(timeout)).Before(now) {
+			continue
+		}
 
-			// vtctldclient jobs don't have PVCs, so skip PVC cleanup for them.
-			if job.Labels[planetscalev2.BackupMethodLabel] == string(planetscalev2.BackupMethodVtctldclient) {
+		err := r.client.Delete(ctx, job, client.PropagationPolicy(metav1.DeletePropagationForeground))
+		timeoutJobsCount.WithLabelValues(vbscName, metrics.Result(err)).Inc()
+		if err != nil {
+			return fmt.Errorf("unable to delete timed out job %s: %w", job.Name, err)
+		}
+		log.Infof("deleted timed out job: %s", job.Name)
+
+		// vtctldclient jobs don't have PVCs, so skip PVC cleanup for them.
+		if job.Labels[planetscalev2.BackupMethodLabel] == string(planetscalev2.BackupMethodVtctldclient) {
+			continue
+		}
+
+		pvc := &corev1.PersistentVolumeClaim{}
+		err = r.client.Get(ctx, client.ObjectKey{Namespace: job.Namespace, Name: job.Name}, pvc)
+		if err != nil {
+			if apierrors.IsNotFound(err) {
 				continue
 			}
-
-			pvc := &corev1.PersistentVolumeClaim{}
-			err := r.client.Get(ctx, client.ObjectKey{Namespace: job.Namespace, Name: job.Name}, pvc)
-			if err != nil {
-				log.WithError(err).Errorf("unable to get PVC for timed out job: %s", job.Name)
-				if apierrors.IsNotFound(err) {
-					continue
-				}
-			}
-			if err := r.client.Delete(ctx, pvc, client.PropagationPolicy(metav1.DeletePropagationBackground)); (err) != nil {
-				log.WithError(err).Errorf("unable to delete old PVC for timed out job: %s", job.Name)
-			} else {
-				log.Infof("deleted old PVC for timed out job: %s", job.Name)
-			}
+			return fmt.Errorf("unable to get PVC for timed out job %s: %w", job.Name, err)
 		}
+		if err := r.client.Delete(ctx, pvc, client.PropagationPolicy(metav1.DeletePropagationBackground)); err != nil {
+			return fmt.Errorf("unable to delete PVC for timed out job %s: %w", job.Name, err)
+		}
+		log.Infof("deleted PVC for timed out job: %s", job.Name)
 	}
 	return nil
 }
