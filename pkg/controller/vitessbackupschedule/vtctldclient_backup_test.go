@@ -612,6 +612,9 @@ func TestRemoveTimeoutJobs_SkipsPVCForVtctldclientJobs(t *testing.T) {
 				scheduledTimeAnnotation: scheduledAt.Format(time.RFC3339),
 			},
 		},
+		Status: kbatch.JobStatus{
+			StartTime: &metav1.Time{Time: scheduledAt},
+		},
 	}
 
 	scheme := newScheme()
@@ -619,8 +622,8 @@ func TestRemoveTimeoutJobs_SkipsPVCForVtctldclientJobs(t *testing.T) {
 		client: fake.NewClientBuilder().WithScheme(scheme).WithObjects(vtctldJob).Build(),
 	}
 
-	// Timeout of 10 minutes — the job scheduled 30min ago should be timed out
-	err := r.removeTimeoutJobs(t.Context(), []*kbatch.Job{vtctldJob}, "test-vbsc", 10)
+	// A 10-minute timeout removes the Job 30 minutes after it started.
+	err := r.removeTimeoutJobs(t.Context(), []*kbatch.Job{vtctldJob}, "test-vbsc", 10, time.Now())
 	require.NoError(t, err)
 
 	// The job should be deleted
