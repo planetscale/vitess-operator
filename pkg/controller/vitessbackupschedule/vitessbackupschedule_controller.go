@@ -201,7 +201,7 @@ func (r *ReconcileVitessBackupsSchedule) Reconcile(ctx context.Context, req ctrl
 		return ctrl.Result{}, nil
 	}
 
-	oldStatus := vbsc.DeepCopy()
+	oldStatus := vbsc.Status.DeepCopy()
 	vbsc.Status = planetscalev2.NewVitessBackupScheduleStatus(vbsc.Status)
 
 	// Register this reconciling attempt no matter if we fail or succeed.
@@ -212,7 +212,7 @@ func (r *ReconcileVitessBackupsSchedule) Reconcile(ctx context.Context, req ctrl
 	resultBuilder := &results.Builder{}
 	_, _ = resultBuilder.Merge(r.reconcileStrategies(ctx, req, vbsc))
 
-	if !apiequality.Semantic.DeepEqual(&vbsc.Status, &oldStatus) {
+	if !apiequality.Semantic.DeepEqual(&vbsc.Status, oldStatus) {
 		if err := r.client.Status().Update(ctx, &vbsc); err != nil {
 			if !apierrors.IsConflict(err) {
 				log.WithError(err).Error("unable to update VitessBackupSchedule status")
@@ -573,6 +573,9 @@ func (r *ReconcileVitessBackupsSchedule) removeTimeoutJobs(ctx context.Context, 
 		return nil
 	}
 	for _, job := range jobs {
+		if job.DeletionTimestamp != nil {
+			continue
+		}
 		if job.Status.StartTime == nil {
 			continue
 		}

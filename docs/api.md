@@ -3065,7 +3065,7 @@ int32
 <td>
 <em>(Optional)</em>
 <p>JobTimeoutMinutes specifies how many minutes a Job may run before the operator stops and removes it.
-The timeout begins when Kubernetes sets the Job&rsquo;s status startTime.
+The timeout begins when Kubernetes sets the Job&rsquo;s status startTime. Set this field to -1 to disable the timeout.
 Default value is 10 minutes.</p>
 </td>
 </tr>

@@ -34,7 +34,37 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
+	"planetscale.dev/vitess-operator/pkg/operator/resync"
 )
+
+func TestReconcileSkipsStatusUpdateWhenStatusIsUnchanged(t *testing.T) {
+	vbsc := vtctldclientVBSC()
+	vbsc.Spec.Strategy = nil
+
+	statusUpdates := 0
+	scheme := newScheme()
+	k8sClient := fake.NewClientBuilder().
+		WithScheme(scheme).
+		WithStatusSubresource(&planetscalev2.VitessBackupSchedule{}).
+		WithObjects(&vbsc).
+		WithInterceptorFuncs(interceptor.Funcs{
+			SubResourceUpdate: func(ctx context.Context, c client.Client, subResourceName string, obj client.Object, opts ...client.SubResourceUpdateOption) error {
+				if subResourceName == "status" {
+					statusUpdates++
+				}
+				return c.SubResource(subResourceName).Update(ctx, obj, opts...)
+			},
+		}).
+		Build()
+	r := &ReconcileVitessBackupsSchedule{
+		client: k8sClient,
+		resync: resync.NewPeriodic("test-vbsc-status", time.Hour),
+	}
+
+	_, err := r.Reconcile(t.Context(), ctrl.Request{NamespacedName: client.ObjectKeyFromObject(&vbsc)})
+	require.NoError(t, err)
+	assert.Zero(t, statusUpdates)
+}
 
 func TestReconcileStrategyUsesStatusAfterSuccessfulJobHistoryIsRemoved(t *testing.T) {
 	now := time.Now().UTC()
@@ -179,6 +209,58 @@ func TestRemoveTimeoutJobsWaitsForJobStartTime(t *testing.T) {
 	}
 
 	require.NoError(t, r.removeTimeoutJobs(t.Context(), []*kbatch.Job{job}, "test-vbsc", 10, now))
+
+	remaining := &kbatch.Job{}
+	require.NoError(t, r.client.Get(t.Context(), client.ObjectKeyFromObject(job), remaining))
+}
+
+func TestRemoveTimeoutJobsSkipsJobAlreadyBeingDeleted(t *testing.T) {
+	now := time.Date(2026, time.August, 28, 12, 0, 0, 0, time.UTC)
+	job := timeoutTestJob(
+		"already-deleting",
+		now.Add(-30*time.Minute),
+		metav1.NewTime(now.Add(-30*time.Minute)),
+		planetscalev2.BackupMethodVtctldclient,
+	)
+	deletionTime := metav1.NewTime(now.Add(-time.Minute))
+	job.DeletionTimestamp = &deletionTime
+	job.Finalizers = []string{"test.planetscale.com/keep-job"}
+
+	jobDeletes := 0
+	scheme := newScheme()
+	k8sClient := fake.NewClientBuilder().
+		WithScheme(scheme).
+		WithObjects(job).
+		WithInterceptorFuncs(interceptor.Funcs{
+			Delete: func(ctx context.Context, c client.WithWatch, obj client.Object, opts ...client.DeleteOption) error {
+				if _, ok := obj.(*kbatch.Job); ok {
+					jobDeletes++
+				}
+				return c.Delete(ctx, obj, opts...)
+			},
+		}).
+		Build()
+	r := &ReconcileVitessBackupsSchedule{client: k8sClient}
+
+	require.NoError(t, r.removeTimeoutJobs(t.Context(), []*kbatch.Job{job}, "test-vbsc", 10, now))
+	assert.Zero(t, jobDeletes)
+}
+
+func TestRemoveTimeoutJobsAllowsDisabledTimeout(t *testing.T) {
+	now := time.Date(2026, time.August, 28, 12, 0, 0, 0, time.UTC)
+	job := timeoutTestJob(
+		"timeout-disabled",
+		now.Add(-24*time.Hour),
+		metav1.NewTime(now.Add(-24*time.Hour)),
+		planetscalev2.BackupMethodVtctldclient,
+	)
+
+	scheme := newScheme()
+	r := &ReconcileVitessBackupsSchedule{
+		client: fake.NewClientBuilder().WithScheme(scheme).WithObjects(job).Build(),
+	}
+
+	require.NoError(t, r.removeTimeoutJobs(t.Context(), []*kbatch.Job{job}, "test-vbsc", -1, now))
 
 	remaining := &kbatch.Job{}
 	require.NoError(t, r.client.Get(t.Context(), client.ObjectKeyFromObject(job), remaining))
