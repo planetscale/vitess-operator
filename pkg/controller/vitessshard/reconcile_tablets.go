@@ -284,8 +284,10 @@ func vttabletSpecs(vts *planetscalev2.VitessShard, parentLabels map[string]strin
 				Uid:  vttablet.UID(pool.Cell, keyspaceName, vts.Spec.KeyRange, pool.Type, uint32(tabletIndex)),
 			}
 
-			// If TabletPools has multiple pools within the same (cell,type) pair, we need to add a pool name to the UID generator.
-			if pool.ExternalDatastore != nil && 0 < len(pool.Name) {
+			// A pool's name is part of its identity, with or without an ExternalDatastore.
+			// So add the name to the UID generator whenever the pool has one.
+			// An empty name is left out, because UIDWithPoolName hashes it differently from UID.
+			if 0 < len(pool.Name) {
 				tabletAlias.Uid = vttablet.UIDWithPoolName(pool.Cell, keyspaceName, vts.Spec.KeyRange, pool.Type, uint32(tabletIndex), pool.Name)
 			}
 
@@ -298,7 +300,7 @@ func vttabletSpecs(vts *planetscalev2.VitessShard, parentLabels map[string]strin
 			labels[planetscalev2.TabletUidLabel] = vttablet.UIDString(tabletAlias.Uid)
 			labels[planetscalev2.TabletTypeLabel] = string(pool.Type)
 			labels[planetscalev2.TabletIndexLabel] = strconv.FormatUint(uint64(tabletIndex), 10)
-			if pool.ExternalDatastore != nil {
+			if pool.ExternalDatastore != nil || 0 < len(pool.Name) {
 				labels[planetscalev2.TabletPoolNameLabel] = pool.Name
 			}
 
