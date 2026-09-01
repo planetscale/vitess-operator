@@ -48,6 +48,12 @@ spec:
                     type: object
                   clusterIP:
                     type: string
+                  externalTrafficPolicy:
+                    type: string
+                  loadBalancerIP:
+                    type: string
+                  type:
+                    type: string
                 type: object
               createClientService:
                 type: boolean
@@ -285,6 +291,12 @@ spec:
                       type: string
                     type: object
                   clusterIP:
+                    type: string
+                  externalTrafficPolicy:
+                    type: string
+                  loadBalancerIP:
+                    type: string
+                  type:
                     type: string
                 type: object
               resources:

@@ -988,6 +988,12 @@ spec:
                               type: object
                             clusterIP:
                               type: string
+                            externalTrafficPolicy:
+                              type: string
+                            loadBalancerIP:
+                              type: string
+                            type:
+                              type: string
                           type: object
                         sidecarContainers:
                           x-kubernetes-preserve-unknown-fields: true
@@ -1042,6 +1048,12 @@ spec:
                                     type: string
                                   type: object
                                 clusterIP:
+                                  type: string
+                                externalTrafficPolicy:
+                                  type: string
+                                loadBalancerIP:
+                                  type: string
+                                type:
                                   type: string
                               type: object
                             createClientService:
@@ -1281,6 +1293,12 @@ spec:
                                   type: object
                                 clusterIP:
                                   type: string
+                                externalTrafficPolicy:
+                                  type: string
+                                loadBalancerIP:
+                                  type: string
+                                type:
+                                  type: string
                               type: object
                             resources:
                               properties:
@@ -1357,6 +1375,12 @@ spec:
                     type: object
                   clusterIP:
                     type: string
+                  externalTrafficPolicy:
+                    type: string
+                  loadBalancerIP:
+                    type: string
+                  type:
+                    type: string
                 type: object
               globalLockserver:
                 properties:
@@ -1383,6 +1407,12 @@ spec:
                               type: string
                             type: object
                           clusterIP:
+                            type: string
+                          externalTrafficPolicy:
+                            type: string
+                          loadBalancerIP:
+                            type: string
+                          type:
                             type: string
                         type: object
                       createClientService:
@@ -1621,6 +1651,12 @@ spec:
                               type: string
                             type: object
                           clusterIP:
+                            type: string
+                          externalTrafficPolicy:
+                            type: string
+                          loadBalancerIP:
+                            type: string
+                          type:
                             type: string
                         type: object
                       resources:
@@ -3078,6 +3114,12 @@ spec:
                               type: object
                             clusterIP:
                               type: string
+                            externalTrafficPolicy:
+                              type: string
+                            loadBalancerIP:
+                              type: string
+                            type:
+                              type: string
                           type: object
                         sidecarContainers:
                           x-kubernetes-preserve-unknown-fields: true
@@ -3103,6 +3145,12 @@ spec:
                       type: string
                     type: object
                   clusterIP:
+                    type: string
+                  externalTrafficPolicy:
+                    type: string
+                  loadBalancerIP:
+                    type: string
+                  type:
                     type: string
                 type: object
               topologyReconciliation:
@@ -3312,6 +3360,12 @@ spec:
                         type: object
                       clusterIP:
                         type: string
+                      externalTrafficPolicy:
+                        type: string
+                      loadBalancerIP:
+                        type: string
+                      type:
+                        type: string
                     type: object
                   sidecarContainers:
                     x-kubernetes-preserve-unknown-fields: true
@@ -3509,6 +3563,12 @@ spec:
                           type: string
                         type: object
                       clusterIP:
+                        type: string
+                      externalTrafficPolicy:
+                        type: string
+                      loadBalancerIP:
+                        type: string
+                      type:
                         type: string
                     type: object
                   sidecarContainers:
