@@ -441,7 +441,7 @@ spec:
               jobTimeoutMinute:
                 default: 10
                 format: int32
-                minimum: 0
+                minimum: -1
                 type: integer
               name:
                 example: every-day
@@ -2091,7 +2091,7 @@ spec:
                         jobTimeoutMinute:
                           default: 10
                           format: int32
-                          minimum: 0
+                          minimum: -1
                           type: integer
                         name:
                           example: every-day

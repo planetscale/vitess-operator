@@ -199,10 +199,11 @@ type VitessBackupScheduleTemplate struct {
 	// +kubebuilder:validation:Minimum=0
 	AllowedMissedRuns *int `json:"allowedMissedRun,omitempty"`
 
-	// JobTimeoutMinutes defines after how many minutes a job that has not yet finished should be stopped and removed.
+	// JobTimeoutMinutes specifies how many minutes a Job may run before the operator stops and removes it.
+	// The timeout begins when Kubernetes sets the Job's status startTime. Set this field to -1 to disable the timeout.
 	// Default value is 10 minutes.
 	// +optional
-	// +kubebuilder:validation:Minimum=0
+	// +kubebuilder:validation:Minimum=-1
 	// +kubebuilder:default=10
 	JobTimeoutMinutes int32 `json:"jobTimeoutMinute,omitempty"`
 
