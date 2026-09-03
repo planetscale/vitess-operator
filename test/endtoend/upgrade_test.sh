@@ -228,7 +228,7 @@ function verifyVtgateDeploymentStrategy() {
 function upgradeToLatest() {
   echo "Upgrade Vitess Operator"
   kubectl apply -f operator-latest.yaml
-  checkPodSpecBySelectorWithTimeout default "app=vitess-operator" 1 "image: vitess-operator-pr:latest"
+  checkPodSpecBySelectorWithTimeout default "app=vitess-operator" 1 '"image":"vitess-operator-pr:latest"'
   checkPodStatusWithTimeout "vitess-operator(.*)1/1(.*)Running(.*)"
 
   echo "Upgrade Vitess binaries"
@@ -240,11 +240,17 @@ function upgradeToLatest() {
   checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 3
 
   # Wait for the cluster spec changes to take effect
-  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vtctld" 1 "image: vitess/lite:mysql80"
-  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vtgate" 1 "image: vitess/lite:mysql80"
-  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vtgate" 1 "--tablet-refresh-interval=10s"
-  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vtorc" 1 "image: vitess/lite:mysql80"
-  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vttablet" 12 "image: vitess/lite:mysql80"
+  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vtctld" 1 '"image":"vitess/lite:mysql80"'
+  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vtgate" 1 '"image":"vitess/lite:mysql80"'
+  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vtgate" 1 '"--tablet-refresh-interval=10s"'
+  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vtorc" 1 '"image":"vitess/lite:mysql80"'
+  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vttablet" 12 '"image":"vitess/lite:mysql80"'
+
+  # The vttablet image change is applied through a scheduled rollout that
+  # recreates the pods one at a time. Wait for it to finish before going on,
+  # otherwise the following steps race against pods being recreated.
+  waitForScheduledRolloutsToFinish example "planetscale.com/cluster=example"
+  checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 3
 
   verifyVtgateDeploymentStrategy
 
@@ -257,9 +263,9 @@ function verifyResourceSpec() {
   echo "Verifying resource spec"
 
   echo "mysqld_exporter flags:"
-  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vttablet" 3 "--no-collect.info_schema.innodb_cmpmem$"
-  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vttablet" 3 "--collect.info_schema.tables$"
-  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vttablet" 3 "--collect.info_schema.tables.databases=\*$"
+  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vttablet" 3 '"--no-collect.info_schema.innodb_cmpmem"'
+  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vttablet" 3 '"--collect.info_schema.tables"'
+  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vttablet" 3 '"--collect.info_schema.tables.databases=\*"'
 }
 
 # Test setup
