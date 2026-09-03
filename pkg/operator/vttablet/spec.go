@@ -85,6 +85,11 @@ func (spec *Spec) poolLabels() map[string]string {
 	labels := spec.shardLabels()
 	labels[planetscalev2.CellLabel] = spec.Labels[planetscalev2.CellLabel]
 	labels[planetscalev2.TabletTypeLabel] = spec.Labels[planetscalev2.TabletTypeLabel]
+	// Pools that differ only by name are still different pools.
+	// An empty name is left out, so the selector for a pool without one does not change.
+	if poolName := spec.Labels[planetscalev2.TabletPoolNameLabel]; poolName != "" {
+		labels[planetscalev2.TabletPoolNameLabel] = poolName
+	}
 	return labels
 }
 

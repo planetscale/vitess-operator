@@ -8393,10 +8393,13 @@ string
 </td>
 <td>
 <p>Name is the pool&rsquo;s unique name within the (cell,type) pair.
-This field is optional, and defaults to an empty.
-Assigning different names to this field enables the existence of multiple pools with a specific tablet type in a given cell,
-which can be beneficial for unmanaged tablets.
-Hence, you must specify ExternalDatastore when assigning a name to this field.</p>
+This field is optional, and defaults to an empty string.
+Different names allow multiple pools of the same tablet type in one cell.
+That is useful for unmanaged tablets, and for tablets that must stay on the machine holding their data.
+The name is part of the tablet UID.
+Pools within one (cell,type) therefore get distinct UIDs, Pod names and PVC names.
+Pools with no name keep the UID they have always had.
+The name is also used as a label value on the pool&rsquo;s Pods and PVCs, so it has to be a valid one.</p>
 </td>
 </tr>
 <tr>

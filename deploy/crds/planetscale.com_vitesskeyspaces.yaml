@@ -610,6 +610,8 @@ spec:
                                       type: object
                                     name:
                                       default: ""
+                                      maxLength: 63
+                                      pattern: ^([A-Za-z0-9]([A-Za-z0-9-_.]*[A-Za-z0-9])?)?$
                                       type: string
                                     replicas:
                                       format: int32
@@ -1178,6 +1180,8 @@ spec:
                                     type: object
                                   name:
                                     default: ""
+                                    maxLength: 63
+                                    pattern: ^([A-Za-z0-9]([A-Za-z0-9-_.]*[A-Za-z0-9])?)?$
                                     type: string
                                   replicas:
                                     format: int32
