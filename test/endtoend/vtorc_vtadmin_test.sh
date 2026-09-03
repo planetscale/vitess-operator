@@ -173,7 +173,7 @@ setupKindCluster
 cd test/endtoend/operator || exit 1
 
 get_started_vtorc_vtadmin
-verifyVtGateVersion "24.0.0"
+verifyVtGateVersion "24.0.3"
 checkSemiSyncSetup
 
 # Check Vtadmin is setup
