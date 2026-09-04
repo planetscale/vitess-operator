@@ -65,6 +65,9 @@ func TestNewBackupPodContainerPorts(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			tabletSpec := &Spec{
+				Labels: map[string]string{
+					planetscalev2.ClusterLabel: "example",
+				},
 				Images: planetscalev2.VitessKeyspaceImages{
 					Mysqld: &planetscalev2.MysqldImage{
 						Mysql80Compatible: "mysql:8.0.40",
