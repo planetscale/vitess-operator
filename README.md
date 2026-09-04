@@ -5,6 +5,7 @@
 - [Overview](docs/)
 - [Getting Started on AWS](docs/aws-quickstart.md)
 - [Getting Started on GCP](docs/gcp-quickstart.md)
+- [Scheduled vtbackup metrics](docs/vtbackup-metrics.md)
 - [VitessCluster CRD API Reference](docs/api.md)
 
 ## Compatibility
@@ -68,4 +69,3 @@ make build IMAGE_NAME=your.registry/vitess/operator
 
 If you would like to contribute to this project, please refer to the
 [contributing readme](CONTRIBUTING.md)
-
