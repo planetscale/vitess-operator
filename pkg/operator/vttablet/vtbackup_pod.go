@@ -17,6 +17,7 @@ limitations under the License.
 package vttablet
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 
@@ -24,6 +25,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/ptr"
 	"planetscale.dev/vitess-operator/pkg/operator/mysql"
+	"planetscale.dev/vitess-operator/pkg/operator/vitess"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
@@ -89,6 +91,26 @@ func BackupPodName(clusterName, keyspaceName string, keyRange planetscalev2.Vite
 // InitialBackupPodName returns the name of the Pod for an initial vtbackup job.
 func InitialBackupPodName(clusterName, keyspaceName string, keyRange planetscalev2.VitessKeyRange) string {
 	return names.JoinWithConstraints(names.DefaultConstraints, clusterName, keyspaceName, keyRange.SafeName(), planetscalev2.VtbackupComponentName, "init")
+}
+
+func vtbackupContainerPorts(flags vitess.Flags) []corev1.ContainerPort {
+	rawPort, ok := flags["port"]
+	if !ok {
+		return nil
+	}
+
+	port, err := strconv.ParseInt(fmt.Sprint(rawPort), 10, 32)
+	if err != nil || port < 1 || port > 65535 {
+		return nil
+	}
+
+	return []corev1.ContainerPort{
+		{
+			Name:          planetscalev2.DefaultWebPortName,
+			Protocol:      corev1.ProtocolTCP,
+			ContainerPort: int32(port),
+		},
+	}
 }
 
 // BackupPodDataVolume returns the effective vtbackup data-volume mount and
@@ -178,6 +200,7 @@ func NewBackupPod(key client.ObjectKey, backupSpec *BackupSpec, mysqldImage stri
 		vtbackupAllFlags["builtinbackup-incremental-restore-path"] = vtDataRootPath
 	}
 	mysql.UpdateMySQLServerVersion(vtbackupAllFlags, mysqldImage)
+	containerPorts := vtbackupContainerPorts(vtbackupAllFlags)
 	pod := &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace:   key.Namespace,
@@ -218,6 +241,7 @@ func NewBackupPod(key client.ObjectKey, backupSpec *BackupSpec, mysqldImage stri
 					ImagePullPolicy: tabletSpec.ImagePullPolicies.Mysqld,
 					Command:         []string{vtbackupCommand},
 					Args:            vtbackupAllFlags.FormatArgs(),
+					Ports:           containerPorts,
 					Resources:       containerResources,
 					SecurityContext: securityContext,
 					Env:             env,
