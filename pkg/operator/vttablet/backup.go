@@ -96,6 +96,7 @@ func init() {
 		}
 		flags := vitess.Flags{
 			"backup_engine_implementation": string(spec.BackupEngine),
+			"port":                         planetscalev2.DefaultWebPort,
 		}
 		if spec.BackupEngine == planetscalev2.VitessBackupEngineXtraBackup {
 			// A vtbackup Pod is given the same resources as the mysqld

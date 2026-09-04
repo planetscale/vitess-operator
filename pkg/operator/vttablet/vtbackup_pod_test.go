@@ -29,17 +29,14 @@ import (
 
 func TestNewBackupPodContainerPorts(t *testing.T) {
 	tests := []struct {
-		name       string
-		extraFlags map[string]string
-		want       []corev1.ContainerPort
+		name        string
+		extraFlags  map[string]string
+		wantPortArg string
+		want        []corev1.ContainerPort
 	}{
 		{
-			name: "port not specified",
-			want: nil,
-		},
-		{
-			name:       "port specified",
-			extraFlags: map[string]string{"port": "15000"},
+			name:        "port defaults to web port",
+			wantPortArg: "--port=15000",
 			want: []corev1.ContainerPort{{
 				Name:          planetscalev2.DefaultWebPortName,
 				Protocol:      corev1.ProtocolTCP,
@@ -47,8 +44,19 @@ func TestNewBackupPodContainerPorts(t *testing.T) {
 			}},
 		},
 		{
-			name:       "custom port specified",
-			extraFlags: map[string]string{"port": "18080"},
+			name:        "port specified",
+			extraFlags:  map[string]string{"port": "15000"},
+			wantPortArg: "--port=15000",
+			want: []corev1.ContainerPort{{
+				Name:          planetscalev2.DefaultWebPortName,
+				Protocol:      corev1.ProtocolTCP,
+				ContainerPort: 15000,
+			}},
+		},
+		{
+			name:        "custom port specified",
+			extraFlags:  map[string]string{"port": "18080"},
+			wantPortArg: "--port=18080",
 			want: []corev1.ContainerPort{{
 				Name:          planetscalev2.DefaultWebPortName,
 				Protocol:      corev1.ProtocolTCP,
@@ -56,9 +64,10 @@ func TestNewBackupPodContainerPorts(t *testing.T) {
 			}},
 		},
 		{
-			name:       "invalid port",
-			extraFlags: map[string]string{"port": "0"},
-			want:       nil,
+			name:        "port zero disables the declared port",
+			extraFlags:  map[string]string{"port": "0"},
+			wantPortArg: "--port=0",
+			want:        nil,
 		},
 	}
 
@@ -90,6 +99,7 @@ func TestNewBackupPodContainerPorts(t *testing.T) {
 			)
 
 			require.Len(t, pod.Spec.Containers, 1)
+			assert.Contains(t, pod.Spec.Containers[0].Args, test.wantPortArg)
 			assert.Equal(t, test.want, pod.Spec.Containers[0].Ports)
 		})
 	}
