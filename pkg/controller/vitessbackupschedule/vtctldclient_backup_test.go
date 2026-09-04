@@ -286,6 +286,8 @@ func TestCreateJob_VtctldclientMethodNoPVC(t *testing.T) {
 
 	// Verify the backup-method label is set
 	assert.Equal(t, string(planetscalev2.BackupMethodVtctldclient), job.Labels[planetscalev2.BackupMethodLabel])
+	assert.NotContains(t, job.Labels, planetscalev2.ComponentLabel)
+	assert.NotContains(t, job.Spec.Template.Labels, planetscalev2.ComponentLabel)
 
 	// Verify no PVC was created
 	pvcList := &corev1.PersistentVolumeClaimList{}
@@ -353,6 +355,9 @@ func TestCreateJob_VtbackupMethodCreatesPVC(t *testing.T) {
 			CreationTimestamp: metav1.NewTime(time.Now().Add(-2 * time.Hour)),
 			UID:               types.UID("test-uid"),
 			ResourceVersion:   "1",
+			Labels: map[string]string{
+				planetscalev2.ComponentLabel: "user-value",
+			},
 		},
 		Spec: planetscalev2.VitessBackupScheduleSpec{
 			Cluster: "example",
@@ -377,6 +382,8 @@ func TestCreateJob_VtbackupMethodCreatesPVC(t *testing.T) {
 
 	// Verify the backup-method label is set
 	assert.Equal(t, string(planetscalev2.BackupMethodVtbackup), job.Labels[planetscalev2.BackupMethodLabel])
+	assert.Equal(t, planetscalev2.VtbackupComponentName, job.Labels[planetscalev2.ComponentLabel])
+	assert.Equal(t, planetscalev2.VtbackupComponentName, job.Spec.Template.Labels[planetscalev2.ComponentLabel])
 
 	// Verify a PVC was created
 	pvcList := &corev1.PersistentVolumeClaimList{}
@@ -508,6 +515,8 @@ func TestCreateJob_DefaultMethodIsVtbackup(t *testing.T) {
 
 	// Should have defaulted to vtbackup
 	assert.Equal(t, string(planetscalev2.BackupMethodVtbackup), job.Labels[planetscalev2.BackupMethodLabel])
+	assert.Equal(t, planetscalev2.VtbackupComponentName, job.Labels[planetscalev2.ComponentLabel])
+	assert.Equal(t, planetscalev2.VtbackupComponentName, job.Spec.Template.Labels[planetscalev2.ComponentLabel])
 
 	// Verify a PVC was created (vtbackup behavior)
 	pvcList := &corev1.PersistentVolumeClaimList{}

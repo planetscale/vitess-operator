@@ -18,6 +18,11 @@ The configuration for your Vitess cluster is recorded in a single configuration 
 
 The operator implements applied changes in the configuration file for your Vitess cluster.
 
+## Scrape metrics from scheduled vtbackup Jobs.
+
+See [Scraping scheduled vtbackup metrics](vtbackup-metrics.md) for the
+configuration and Prometheus Operator example.
+
 ## The Vitess Operator is open source.
 
 The Vitess Operator is on [GitHub](https://github.com/planetscale/vitess-operator). See the repository for information on licensing and contribution.
