@@ -57,6 +57,11 @@ The annotation port must match the `port` value passed to vtbackup.
 
 ## Prometheus Operator `PodMonitor`
 
+The operator does not create a Service or `PodMonitor`; configure discovery
+for the Prometheus installation that runs in your cluster. Any applicable
+NetworkPolicy must also allow Prometheus to reach the backup Pod on the
+declared web port.
+
 The controller labels scheduled vtbackup Jobs and their Pod templates with
 `planetscale.com/component: vtbackup` and
 `planetscale.com/backup-method: vtbackup`. A `PodMonitor` can select those
@@ -81,6 +86,11 @@ spec:
       path: /metrics
       interval: 30s
 ```
+
+The example includes `backup-method: vtbackup` so it does not select initial
+backup Pods, which also use the `vtbackup` component label. If you select only
+the component label, add
+`planetscale.com/backup-schedule: daily` to select one scheduled backup.
 
 Because backup Pods normally exit after the backup completes, a short-lived
 Pod may finish before a scrape occurs. Set `keep-alive-timeout` through the
@@ -111,7 +121,15 @@ spec:
 Choose a keep-alive duration of at least twice the Prometheus scrape interval
 when possible. The duration counts toward `jobTimeoutMinute`, and
 `keep-alive-timeout` only runs after a successful backup; failed backups exit
-without waiting for the keep-alive period.
+without waiting for the keep-alive period. Set `jobTimeoutMinute` high enough
+to cover the backup and keep-alive period, or set it to `-1` to disable the
+timeout when appropriate.
+
+These metrics are short-lived, per-Pod series. Recording rules such as
+`last_over_time` can preserve final backup values more reliably than querying
+the raw series after the Pod exits. Phase gauges return to zero before the
+successful keep-alive period begins, so counters and duration metrics are
+better suited for post-backup recording.
 
 Do not set `stats_backend: prometheus` for vtbackup. That setting selects a
 push-style backend and can cause vtbackup to wait for a backend that is not
