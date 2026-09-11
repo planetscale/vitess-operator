@@ -656,6 +656,9 @@ func (r *ReconcileVitessBackupsSchedule) createJob(
 		planetscalev2.ShardLabel:          vkr.SafeName(),
 		planetscalev2.BackupMethodLabel:   string(method),
 	}
+	if method == planetscalev2.BackupMethodVtbackup {
+		labels[planetscalev2.ComponentLabel] = planetscalev2.VtbackupComponentName
+	}
 
 	meta := metav1.ObjectMeta{
 		Labels:      maps.Clone(labels),
