@@ -109,7 +109,6 @@ spec:
                   type: replica
                   vttablet:
                     vtbackupExtraFlags:
-                      port: "15000"
                       keep-alive-timeout: "60s"
   backup:
     schedules:
@@ -131,6 +130,6 @@ the raw series after the Pod exits. Phase gauges return to zero before the
 successful keep-alive period begins, so counters and duration metrics are
 better suited for post-backup recording.
 
-Do not set `stats_backend: prometheus` for vtbackup. That setting selects a
+Do not set `--stats-backend=prometheus` for vtbackup. That setting selects a
 push-style backend and can cause vtbackup to wait for a backend that is not
 registered. The HTTP endpoint and `/metrics` path work without it.

@@ -69,6 +69,24 @@ func TestNewBackupPodContainerPorts(t *testing.T) {
 			wantPortArg: "--port=0",
 			want:        nil,
 		},
+		{
+			name:        "negative port is not declared",
+			extraFlags:  map[string]string{"port": "-1"},
+			wantPortArg: "--port=-1",
+			want:        nil,
+		},
+		{
+			name:        "port above maximum is not declared",
+			extraFlags:  map[string]string{"port": "65536"},
+			wantPortArg: "--port=65536",
+			want:        nil,
+		},
+		{
+			name:        "non-numeric port is not declared",
+			extraFlags:  map[string]string{"port": "not-a-port"},
+			wantPortArg: "--port=not-a-port",
+			want:        nil,
+		},
 	}
 
 	for _, test := range tests {
