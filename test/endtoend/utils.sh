@@ -202,6 +202,16 @@ function verifyListBackupsOutput() {
   exit 1
 }
 
+# checkPodSpecBySelectorWithTimeout:
+# $1: namespace
+# $2: pod selector
+# $3: number of matches expected
+# $4: regex matched against the pod specs, rendered as JSON (one pod per line)
+#
+# Only the pod spec is inspected, never the whole pod object. Pod spec changes
+# that the operator has scheduled but not yet applied are stored, as YAML, in
+# the rollout.planetscale.com/scheduled annotation. Grepping the whole object
+# would count those pending changes as if they were already live.
 function checkPodSpecBySelectorWithTimeout() {
   local namespace="$1"
   local pod_selector="$2"
@@ -211,9 +221,8 @@ function checkPodSpecBySelectorWithTimeout() {
   local out pods_matched
 
   for i in {1..1200}; do
-    # YAML output is convenient to grep
-    out="$(kubectl get pods --namespace="${namespace}" --selector="${pod_selector}" --output=yaml)"
-    pods_matched="$(echo "${out}" | grep -cE -- "${spec_matcher}")"
+    out="$(kubectl get pods --namespace="${namespace}" --selector="${pod_selector}" --output=jsonpath='{range .items[*]}{.spec}{"\n"}{end}')"
+    pods_matched="$(echo "${out}" | grep -oE -- "${spec_matcher}" | wc -l)"
 
     if [[ "${pods_matched}" -eq "${matches_expected}" ]]; then
       echo "${spec_matcher} found"
@@ -226,6 +235,36 @@ function checkPodSpecBySelectorWithTimeout() {
   if echo "${pod_selector}" | grep -q "vttablet"; then
     printMysqlErrorFiles
   fi
+  exit 1
+}
+
+# waitForScheduledRolloutsToFinish:
+# $1: namespace
+# $2: pod selector
+#
+# Disruptive pod spec changes (for example a new vttablet image) are not applied
+# in place. The operator stores the desired spec in the
+# rollout.planetscale.com/scheduled annotation and recreates the pods one at a
+# time, after draining each of them. This waits until no selected pod carries
+# that annotation anymore, i.e. until the rollout is complete.
+function waitForScheduledRolloutsToFinish() {
+  local namespace="$1"
+  local pod_selector="$2"
+
+  local pending
+
+  for i in {1..1200}; do
+    pending="$(kubectl get pods --namespace="${namespace}" --selector="${pod_selector}" --output=jsonpath='{.items[*].metadata.annotations}' | grep -o '"rollout.planetscale.com/scheduled"' | wc -l)"
+
+    if [[ "${pending}" -eq 0 ]]; then
+      echo "No scheduled rollouts pending for: ${pod_selector}"
+      return
+    fi
+    sleep 1
+  done
+
+  echo "ERROR: waitForScheduledRolloutsToFinish timeout, ${pending} pod(s) still have a scheduled rollout for: ${pod_selector}"
+  kubectl get pods --namespace="${namespace}" --selector="${pod_selector}" --output=yaml
   exit 1
 }
 
