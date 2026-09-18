@@ -3,7 +3,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.21.0
+    controller-gen.kubebuilder.io/version: v0.22.0
   name: vitesskeyspaces.planetscale.com
 spec:
   group: planetscale.com
@@ -505,6 +505,11 @@ spec:
                                     extraVolumeMounts:
                                       items:
                                         properties:
+                                          bindMountOptions:
+                                            items:
+                                              type: string
+                                            type: array
+                                            x-kubernetes-list-type: set
                                           mountPath:
                                             type: string
                                           mountPropagation:
@@ -1073,6 +1078,11 @@ spec:
                                   extraVolumeMounts:
                                     items:
                                       properties:
+                                        bindMountOptions:
+                                          items:
+                                            type: string
+                                          type: array
+                                          x-kubernetes-list-type: set
                                         mountPath:
                                           type: string
                                         mountPropagation:
@@ -1518,6 +1528,11 @@ spec:
                   extraVolumeMounts:
                     items:
                       properties:
+                        bindMountOptions:
+                          items:
+                            type: string
+                          type: array
+                          x-kubernetes-list-type: set
                         mountPath:
                           type: string
                         mountPropagation:
