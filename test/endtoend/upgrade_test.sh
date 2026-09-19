@@ -263,9 +263,9 @@ function verifyResourceSpec() {
   echo "Verifying resource spec"
 
   echo "mysqld_exporter flags:"
-  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vttablet" 3 '"--no-collect.info_schema.innodb_cmpmem"'
-  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vttablet" 3 '"--collect.info_schema.tables"'
-  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vttablet" 3 '"--collect.info_schema.tables.databases=\*"'
+  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vttablet" 3 '"--no-collect\.info_schema\.innodb_cmpmem"'
+  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vttablet" 3 '"--collect\.info_schema\.tables"'
+  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vttablet" 3 '"--collect\.info_schema\.tables\.databases=\*"'
 }
 
 # Test setup

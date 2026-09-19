@@ -218,13 +218,13 @@ function checkPodSpecBySelectorWithTimeout() {
   local matches_expected="$3"
   local spec_matcher="$4"
 
-  local out pods_matched
+  local out matches_found
 
   for i in {1..1200}; do
     out="$(kubectl get pods --namespace="${namespace}" --selector="${pod_selector}" --output=jsonpath='{range .items[*]}{.spec}{"\n"}{end}')"
-    pods_matched="$(echo "${out}" | grep -oE -- "${spec_matcher}" | wc -l)"
+    matches_found="$(echo "${out}" | grep -oE -- "${spec_matcher}" | wc -l)"
 
-    if [[ "${pods_matched}" -eq "${matches_expected}" ]]; then
+    if [[ "${matches_found}" -eq "${matches_expected}" ]]; then
       echo "${spec_matcher} found"
       return
     fi
@@ -251,14 +251,21 @@ function waitForScheduledRolloutsToFinish() {
   local namespace="$1"
   local pod_selector="$2"
 
-  local pending
+  local annotations
+  local pending="unknown"
 
   for i in {1..1200}; do
-    pending="$(kubectl get pods --namespace="${namespace}" --selector="${pod_selector}" --output=jsonpath='{.items[*].metadata.annotations}' | grep -o '"rollout.planetscale.com/scheduled"' | wc -l)"
-
-    if [[ "${pending}" -eq 0 ]]; then
-      echo "No scheduled rollouts pending for: ${pod_selector}"
-      return
+    # Only a successful query can tell us that nothing is pending. A failed
+    # kubectl call produces no output, which must not be mistaken for "no
+    # scheduled rollouts", so retry it instead.
+    if annotations="$(kubectl get pods --namespace="${namespace}" --selector="${pod_selector}" --output=jsonpath='{.items[*].metadata.annotations}')"; then
+      pending="$(echo "${annotations}" | grep -o '"rollout.planetscale.com/scheduled"' | wc -l)"
+      if [[ "${pending}" -eq 0 ]]; then
+        echo "No scheduled rollouts pending for: ${pod_selector}"
+        return
+      fi
+    else
+      echo "kubectl get pods failed while waiting for scheduled rollouts, retrying (attempt #${i}) ..."
     fi
     sleep 1
   done
