@@ -2,7 +2,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.21.0
+    controller-gen.kubebuilder.io/version: v0.22.0
   name: etcdlockservers.planetscale.com
 spec:
   group: planetscale.com
@@ -236,6 +236,11 @@ spec:
               extraVolumeMounts:
                 items:
                   properties:
+                    bindMountOptions:
+                      items:
+                        type: string
+                      type: array
+                      x-kubernetes-list-type: set
                     mountPath:
                       type: string
                     mountPropagation:
@@ -346,7 +351,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.21.0
+    controller-gen.kubebuilder.io/version: v0.22.0
   name: vitessbackups.planetscale.com
 spec:
   group: planetscale.com
@@ -398,7 +403,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.21.0
+    controller-gen.kubebuilder.io/version: v0.22.0
   name: vitessbackupschedules.planetscale.com
 spec:
   group: planetscale.com
@@ -596,7 +601,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.21.0
+    controller-gen.kubebuilder.io/version: v0.22.0
   name: vitessbackupstorages.planetscale.com
 spec:
   group: planetscale.com
@@ -764,7 +769,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.21.0
+    controller-gen.kubebuilder.io/version: v0.22.0
   name: vitesscells.planetscale.com
 spec:
   group: planetscale.com
@@ -1263,6 +1268,11 @@ spec:
                   extraVolumeMounts:
                     items:
                       properties:
+                        bindMountOptions:
+                          items:
+                            type: string
+                          type: array
+                          x-kubernetes-list-type: set
                         mountPath:
                           type: string
                         mountPropagation:
@@ -1322,6 +1332,8 @@ spec:
                                 - type: integer
                                 - type: string
                                 x-kubernetes-int-or-string: true
+                              protocol:
+                                type: string
                               scheme:
                                 type: string
                             required:
@@ -1382,6 +1394,8 @@ spec:
                                 - type: integer
                                 - type: string
                                 x-kubernetes-int-or-string: true
+                              protocol:
+                                type: string
                               scheme:
                                 type: string
                             required:
@@ -1787,6 +1801,11 @@ spec:
                       extraVolumeMounts:
                         items:
                           properties:
+                            bindMountOptions:
+                              items:
+                                type: string
+                              type: array
+                              x-kubernetes-list-type: set
                             mountPath:
                               type: string
                             mountPropagation:
@@ -1981,7 +2000,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.21.0
+    controller-gen.kubebuilder.io/version: v0.22.0
   name: vitessclusters.planetscale.com
 spec:
   group: planetscale.com
@@ -2732,6 +2751,11 @@ spec:
                         extraVolumeMounts:
                           items:
                             properties:
+                              bindMountOptions:
+                                items:
+                                  type: string
+                                type: array
+                                x-kubernetes-list-type: set
                               mountPath:
                                 type: string
                               mountPropagation:
@@ -2791,6 +2815,8 @@ spec:
                                       - type: integer
                                       - type: string
                                       x-kubernetes-int-or-string: true
+                                    protocol:
+                                      type: string
                                     scheme:
                                       type: string
                                   required:
@@ -2851,6 +2877,8 @@ spec:
                                       - type: integer
                                       - type: string
                                       x-kubernetes-int-or-string: true
+                                    protocol:
+                                      type: string
                                     scheme:
                                       type: string
                                   required:
@@ -3210,6 +3238,11 @@ spec:
                             extraVolumeMounts:
                               items:
                                 properties:
+                                  bindMountOptions:
+                                    items:
+                                      type: string
+                                    type: array
+                                    x-kubernetes-list-type: set
                                   mountPath:
                                     type: string
                                   mountPropagation:
@@ -3551,6 +3584,11 @@ spec:
                       extraVolumeMounts:
                         items:
                           properties:
+                            bindMountOptions:
+                              items:
+                                type: string
+                              type: array
+                              x-kubernetes-list-type: set
                             mountPath:
                               type: string
                             mountPropagation:
@@ -4020,6 +4058,11 @@ spec:
                                           extraVolumeMounts:
                                             items:
                                               properties:
+                                                bindMountOptions:
+                                                  items:
+                                                    type: string
+                                                  type: array
+                                                  x-kubernetes-list-type: set
                                                 mountPath:
                                                   type: string
                                                 mountPropagation:
@@ -4588,6 +4631,11 @@ spec:
                                         extraVolumeMounts:
                                           items:
                                             properties:
+                                              bindMountOptions:
+                                                items:
+                                                  type: string
+                                                type: array
+                                                x-kubernetes-list-type: set
                                               mountPath:
                                                 type: string
                                               mountPropagation:
@@ -4992,6 +5040,11 @@ spec:
                         extraVolumeMounts:
                           items:
                             properties:
+                              bindMountOptions:
+                                items:
+                                  type: string
+                                type: array
+                                x-kubernetes-list-type: set
                               mountPath:
                                 type: string
                               mountPropagation:
@@ -5223,6 +5276,11 @@ spec:
                   extraVolumeMounts:
                     items:
                       properties:
+                        bindMountOptions:
+                          items:
+                            type: string
+                          type: array
+                          x-kubernetes-list-type: set
                         mountPath:
                           type: string
                         mountPropagation:
@@ -5439,6 +5497,11 @@ spec:
                   extraVolumeMounts:
                     items:
                       properties:
+                        bindMountOptions:
+                          items:
+                            type: string
+                          type: array
+                          x-kubernetes-list-type: set
                         mountPath:
                           type: string
                         mountPropagation:
@@ -5649,7 +5712,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.21.0
+    controller-gen.kubebuilder.io/version: v0.22.0
   name: vitesskeyspaces.planetscale.com
 spec:
   group: planetscale.com
@@ -6151,6 +6214,11 @@ spec:
                                     extraVolumeMounts:
                                       items:
                                         properties:
+                                          bindMountOptions:
+                                            items:
+                                              type: string
+                                            type: array
+                                            x-kubernetes-list-type: set
                                           mountPath:
                                             type: string
                                           mountPropagation:
@@ -6719,6 +6787,11 @@ spec:
                                   extraVolumeMounts:
                                     items:
                                       properties:
+                                        bindMountOptions:
+                                          items:
+                                            type: string
+                                          type: array
+                                          x-kubernetes-list-type: set
                                         mountPath:
                                           type: string
                                         mountPropagation:
@@ -7164,6 +7237,11 @@ spec:
                   extraVolumeMounts:
                     items:
                       properties:
+                        bindMountOptions:
+                          items:
+                            type: string
+                          type: array
+                          x-kubernetes-list-type: set
                         mountPath:
                           type: string
                         mountPropagation:
@@ -7377,7 +7455,7 @@ apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   annotations:
-    controller-gen.kubebuilder.io/version: v0.21.0
+    controller-gen.kubebuilder.io/version: v0.22.0
   name: vitessshards.planetscale.com
 spec:
   group: planetscale.com
@@ -7862,6 +7940,11 @@ spec:
                     extraVolumeMounts:
                       items:
                         properties:
+                          bindMountOptions:
+                            items:
+                              type: string
+                            type: array
+                            x-kubernetes-list-type: set
                           mountPath:
                             type: string
                           mountPropagation:
@@ -8192,6 +8275,11 @@ spec:
                   extraVolumeMounts:
                     items:
                       properties:
+                        bindMountOptions:
+                          items:
+                            type: string
+                          type: array
+                          x-kubernetes-list-type: set
                         mountPath:
                           type: string
                         mountPropagation:
