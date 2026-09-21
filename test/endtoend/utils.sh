@@ -275,6 +275,35 @@ function waitForScheduledRolloutsToFinish() {
   exit 1
 }
 
+# waitForVitessShardStatusField:
+# $1: namespace
+# $2: VitessShard selector
+# $3: status field name (for example hasMaster)
+# $4: expected value
+#
+# Waits until every selected VitessShard reports the expected value for the
+# given status field.
+function waitForVitessShardStatusField() {
+  local namespace="$1"
+  local selector="$2"
+  local field="$3"
+  local expected="$4"
+
+  local out
+  for i in {1..1200}; do
+    out="$(kubectl get vitessshard --namespace="${namespace}" --selector="${selector}" --output=jsonpath="{range .items[*]}{.status.${field}}{\"\n\"}{end}" 2>/dev/null)"
+    if [[ -n "${out}" ]] && [[ "$(echo "${out}" | grep -cvx -- "${expected}")" -eq 0 ]]; then
+      echo "VitessShard ${selector}: status.${field}=${expected}"
+      return
+    fi
+    sleep 1
+  done
+
+  echo "ERROR: waitForVitessShardStatusField timeout, status.${field} is not ${expected} for: ${selector}"
+  kubectl get vitessshard --namespace="${namespace}" --selector="${selector}" --output=yaml
+  exit 1
+}
+
 # checkPodStatusWithTimeout:
 # $1: regex used to match pod names
 # $2: number of pods to match (default: 1)

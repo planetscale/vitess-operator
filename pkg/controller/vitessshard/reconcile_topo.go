@@ -105,14 +105,18 @@ func (r *ReconcileVitessShard) reconcileTopologyWithServer(ctx context.Context, 
 	} else if topo.IsErrType(err, topo.NoNode) {
 		// The global shard record is gone. This happens legitimately when
 		// `Reshard complete` deletes the source shards before the old
-		// partitioning is removed from the VitessKeyspace spec. Without a
-		// record there is no primary and nothing serving writes, but the
-		// shard may still be referenced from a cell's SrvKeyspace, so we
-		// still have to compute Idle from the serving partitions. That check
-		// only needs the keyspace and shard name, not the record itself.
+		// partitioning is removed from the VitessKeyspace spec. The shard may
+		// still be referenced from a cell's SrvKeyspace, so Idle still has to
+		// be computed from the serving partitions. That check only needs the
+		// keyspace and shard name, not the record itself.
+		//
+		// HasMaster and ServingWrites are deliberately left Unknown: the
+		// vitessshardreplication controller treats HasMaster=False as "no
+		// primary yet, go initialize one", which must not happen for a shard
+		// whose record has just been deleted, nor for a new shard whose first
+		// tablet hasn't created the record yet. Idle is all the keyspace
+		// controller needs to decide on a turndown.
 		shardRecordExists = false
-		vts.Status.HasMaster = corev1.ConditionFalse
-		vts.Status.ServingWrites = corev1.ConditionFalse
 		shard := topo.NewShardInfo(keyspaceName, vts.Spec.Name, &topodatapb.Shard{}, nil)
 		if servingCells, err := ts.GetShardServingCells(ctx, shard); err == nil {
 			vts.Status.Idle = k8s.ConditionStatus(len(servingCells) == 0)

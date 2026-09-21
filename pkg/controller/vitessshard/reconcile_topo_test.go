@@ -124,8 +124,10 @@ func TestReconcileTopologyIdleWithoutShardRecord(t *testing.T) {
 			if vts.Status.Idle != corev1.ConditionTrue {
 				t.Fatalf("pass %d: Idle = %q, want True", i, vts.Status.Idle)
 			}
-			if vts.Status.HasMaster != corev1.ConditionFalse || vts.Status.ServingWrites != corev1.ConditionFalse {
-				t.Fatalf("pass %d: HasMaster = %q, ServingWrites = %q, want False/False", i, vts.Status.HasMaster, vts.Status.ServingWrites)
+			// HasMaster must stay Unknown, not False: the replication
+			// controller reads False as "initialize a primary now".
+			if vts.Status.HasMaster != corev1.ConditionUnknown || vts.Status.ServingWrites != corev1.ConditionUnknown {
+				t.Fatalf("pass %d: HasMaster = %q, ServingWrites = %q, want Unknown/Unknown", i, vts.Status.HasMaster, vts.Status.ServingWrites)
 			}
 			for _, e := range events {
 				if strings.Contains(e, "TopoGetFailed") {
