@@ -11,15 +11,15 @@ source ./test/endtoend/utils.sh
 # mysqld_exporter settings or in their resource limits. The operator applies
 # such a change through a scheduled rollout that drains and recreates the
 # tablets one at a time, and a vtctldclient operation that talks to a tablet
-# while it is being recreated fails. Wait for the rollout to finish, then make
-# sure every tablet is back.
+# while it is being recreated fails.
 #
-# Call this after a check that already gave the operator time to process the
-# new spec, such as waiting for newly added pods, because a rollout that has not
-# been scheduled yet cannot be waited for.
+# First wait for the operator to have processed the new spec down to the tablet
+# pods, because a rollout it has not scheduled yet cannot be waited for. Then
+# wait for the scheduled rollouts to finish, and make sure every tablet is back.
 function waitForTabletRollout() {
   local nb_tablets="$1"
 
+  waitForOperatorToObserveSpec example
   waitForScheduledRolloutsToFinish example "planetscale.com/cluster=example"
   checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" "${nb_tablets}"
 }
