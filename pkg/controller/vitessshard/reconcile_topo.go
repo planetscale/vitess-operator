@@ -117,14 +117,29 @@ func (r *ReconcileVitessShard) reconcileTopologyWithServer(ctx context.Context, 
 		// tablet hasn't created the record yet. Idle is all the keyspace
 		// controller needs to decide on a turndown.
 		shardRecordExists = false
-		shard := topo.NewShardInfo(keyspaceName, vts.Spec.Name, &topodatapb.Shard{}, nil)
-		if servingCells, err := ts.GetShardServingCells(ctx, shard); err == nil {
-			vts.Status.Idle = k8s.ConditionStatus(len(servingCells) == 0)
-		} else {
-			// Leave Idle as Unknown: an incomplete view of the cells must
-			// never be treated as permission to turn the shard down.
-			r.recorder.Eventf(vts, corev1.EventTypeWarning, "TopoGetFailed", "shard record does not exist and failed to get shard serving cells: %v", err)
+
+		// Only trust a missing shard record if the keyspace record is there.
+		// On the success path a readable shard record is implicit proof that
+		// we're looking at a populated topo for this keyspace. Without that
+		// check, an empty or wrong topo (lost etcd data, a changed rootPath)
+		// would yield "no serving cells" and turn a still-serving orphaned
+		// shard into a deletion candidate. `Reshard complete` leaves the
+		// keyspace record in place, so this doesn't get in the way of the
+		// cleanup case.
+		if _, err := ts.GetKeyspace(ctx, keyspaceName); err != nil {
+			// Leave Idle as Unknown.
+			r.recorder.Eventf(vts, corev1.EventTypeWarning, "TopoGetFailed", "shard record does not exist and failed to get keyspace record: %v", err)
 			resultBuilder.RequeueAfter(topoRequeueDelay)
+		} else {
+			shard := topo.NewShardInfo(keyspaceName, vts.Spec.Name, &topodatapb.Shard{}, nil)
+			if servingCells, err := ts.GetShardServingCells(ctx, shard); err == nil {
+				vts.Status.Idle = k8s.ConditionStatus(len(servingCells) == 0)
+			} else {
+				// Leave Idle as Unknown: an incomplete view of the cells must
+				// never be treated as permission to turn the shard down.
+				r.recorder.Eventf(vts, corev1.EventTypeWarning, "TopoGetFailed", "shard record does not exist and failed to get shard serving cells: %v", err)
+				resultBuilder.RequeueAfter(topoRequeueDelay)
+			}
 		}
 	} else {
 		r.recorder.Eventf(vts, corev1.EventTypeWarning, "TopoGetFailed", "failed to get shard info: %v", err)

@@ -19,6 +19,7 @@ package vitessshard
 import (
 	"context"
 	"errors"
+	"path"
 	"strings"
 	"testing"
 
@@ -27,6 +28,7 @@ import (
 	"k8s.io/client-go/tools/record"
 	"k8s.io/utils/ptr"
 
+	"vitess.io/vitess/go/vt/topo"
 	"vitess.io/vitess/go/vt/topo/memorytopo"
 	// The wrangler needs a registered tablet manager client.
 	_ "vitess.io/vitess/go/vt/vttablet/grpctmclient"
@@ -153,22 +155,54 @@ func TestReconcileTopologyIdleWithoutShardRecord(t *testing.T) {
 		}
 	})
 
-	t.Run("record missing and topo unreadable", func(t *testing.T) {
-		factory.SetError(errors.New("topo unavailable"))
-		defer factory.SetError(nil)
-		events := reconcile(t)
+	expectUnknown := func(t *testing.T, events []string) {
+		t.Helper()
 		if vts.Status.Idle != corev1.ConditionUnknown {
 			t.Fatalf("Idle = %q, want Unknown", vts.Status.Idle)
 		}
-		found := false
 		for _, e := range events {
 			if strings.Contains(e, "TopoGetFailed") {
-				found = true
+				return
 			}
 		}
-		if !found {
-			t.Fatalf("expected a TopoGetFailed event, got %v", events)
+		t.Fatalf("expected a TopoGetFailed event, got %v", events)
+	}
+
+	t.Run("record missing and one cell unreadable", func(t *testing.T) {
+		// Corrupt zone2's SrvKeyspace so that GetShard still returns NoNode
+		// but GetShardServingCells fails with PartialResult. This is the
+		// fail-closed branch of the missing-record path: an incomplete view
+		// of the cells must never count as "not serving anywhere".
+		conn, err := ts.ConnForCell(ctx, cellB)
+		if err != nil {
+			t.Fatalf("ConnForCell: %v", err)
 		}
+		srvKeyspacePath := path.Join(topo.KeyspacesPath, keyspace, topo.SrvKeyspaceFile)
+		if _, err := conn.Update(ctx, srvKeyspacePath, []byte("garbage"), nil); err != nil {
+			t.Fatalf("corrupt SrvKeyspace: %v", err)
+		}
+		expectUnknown(t, reconcile(t))
+		if err := ts.UpdateSrvKeyspace(ctx, cellB, keyspace, srvKeyspaceServing(newA, newB)); err != nil {
+			t.Fatalf("UpdateSrvKeyspace: %v", err)
+		}
+	})
+
+	t.Run("record missing and topo unreachable", func(t *testing.T) {
+		// Every read fails, including GetShard itself, so this exercises the
+		// generic error path rather than the missing-record fallback.
+		factory.SetError(errors.New("topo unavailable"))
+		defer factory.SetError(nil)
+		expectUnknown(t, reconcile(t))
+	})
+
+	t.Run("record missing and keyspace record missing", func(t *testing.T) {
+		// An empty or foreign topo also answers NoNode for the shard, and has
+		// no SrvKeyspace anywhere to contradict "not serving". The keyspace
+		// record is what proves we're looking at the right, populated topo.
+		if err := ts.DeleteKeyspace(ctx, keyspace); err != nil {
+			t.Fatalf("DeleteKeyspace: %v", err)
+		}
+		expectUnknown(t, reconcile(t))
 	})
 }
 
