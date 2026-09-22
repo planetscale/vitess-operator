@@ -275,6 +275,56 @@ function waitForScheduledRolloutsToFinish() {
   exit 1
 }
 
+# waitForOperatorToObserveSpec:
+# $1: namespace
+#
+# Waits until the operator has processed the latest spec of every VitessCluster
+# in the namespace all the way down to the tablet pods. Use it before treating
+# the absence of something the operator would add, such as a scheduled rollout,
+# as meaningful.
+#
+# Every controller updates its children before it records the generation it
+# observed. Checking top-down that each VitessCluster, then each VitessKeyspace,
+# then each VitessShard reports status.observedGeneration equal to
+# metadata.generation therefore means the spec has reached the VitessShards.
+# A VitessShard's status.lowestPodGeneration catching up with its generation
+# then means the shard controller has looked at every tablet pod with that
+# spec, which is when it marks the pods that need a rollout. The operator waits
+# for that same condition before it releases a rollout.
+function waitForOperatorToObserveSpec() {
+  local namespace="$1"
+
+  local kind objects pending
+  # One line per object: kind|name|generation|observedGeneration|lowestPodGeneration
+  local template='{range .items[*]}{.kind}{"|"}{.metadata.name}{"|"}{.metadata.generation}{"|"}{.status.observedGeneration}{"|"}{.status.lowestPodGeneration}{"\n"}{end}'
+
+  for i in {1..1200}; do
+    pending=""
+    # The order matters: a level only counts once the levels above it are done.
+    for kind in vitessclusters vitesskeyspaces vitessshards; do
+      if ! objects="$(kubectl get "${kind}" --namespace="${namespace}" --output=jsonpath="${template}")"; then
+        # A failed query tells us nothing, so it must not count as done.
+        pending="kubectl get ${kind} failed"
+        break
+      fi
+      # lowestPodGeneration is only set on a VitessShard that has tablet pods.
+      pending="$(echo "${objects}" | awk -F'|' 'NF && ($3 != $4 || ($5 != "" && $5 != $3))')"
+      if [[ -n "${pending}" ]]; then
+        break
+      fi
+    done
+
+    if [[ -z "${pending}" ]]; then
+      echo "The operator has observed the latest spec in namespace ${namespace}"
+      return
+    fi
+    sleep 1
+  done
+
+  echo -e "ERROR: waitForOperatorToObserveSpec timeout, still pending (kind|name|generation|observedGeneration|lowestPodGeneration):\n${pending}"
+  exit 1
+}
+
 # checkPodStatusWithTimeout:
 # $1: regex used to match pod names
 # $2: number of pods to match (default: 1)
