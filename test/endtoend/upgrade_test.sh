@@ -3,13 +3,40 @@
 source ./tools/test.env
 source ./test/endtoend/utils.sh
 
+# waitForTabletRollout:
+# $1: number of vttablet pods expected once the rollout is done
+#
+# Applying a new cluster spec can change the pod spec of tablets that already
+# exist, for example when two manifests differ in their mysqld or
+# mysqld_exporter settings or in their resource limits. The operator applies
+# such a change through a scheduled rollout that drains and recreates the
+# tablets one at a time, and a vtctldclient operation that talks to a tablet
+# while it is being recreated fails.
+#
+# First wait for the operator to have processed the new spec down to the tablet
+# pods, because a rollout it has not scheduled yet cannot be waited for. Then
+# wait for the scheduled rollouts to finish, and make sure every tablet is back.
+function waitForTabletRollout() {
+  local nb_tablets="$1"
+
+  waitForOperatorToObserveSpec example
+  waitForScheduledRolloutsToFinish example "planetscale.com/cluster=example"
+  checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" "${nb_tablets}"
+}
+
 function move_tables() {
   echo "Apply 201_customer_tablets.yaml"
   kubectl apply -f 201_customer_tablets.yaml > /dev/null
   checkPodStatusWithTimeout "example-customer-x-x-zone1-vtorc(.*)1/1(.*)Running(.*)"
   checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 6
 
+  # 201_customer_tablets.yaml does not carry the mysqld and mysqld_exporter
+  # settings that cluster_upgrade.yaml added to the commerce tablets, so the
+  # operator rolls them again. MoveTables reads from commerce, so wait for that.
+  waitForTabletRollout 6
+
   setupPortForwarding
+  waitForKeyspaceToBeServing commerce - 2
   waitForKeyspaceToBeServing customer - 2
 
   echo "Execute MoveTables"
@@ -83,6 +110,7 @@ function resharding() {
   checkPodStatusWithTimeout "example-customer-8000-x-zone1-vtorc(.*)1/1(.*)Running(.*)"
   checkPodStatusWithTimeout "example-customer-x-8000-zone1-vtorc(.*)1/1(.*)Running(.*)"
   checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 12
+  waitForTabletRollout 12
 
   setupPortForwarding
   waitForKeyspaceToBeServing customer -8000 2
@@ -175,6 +203,12 @@ EOF
 
   kubectl apply -f 306_down_shard_0.yaml
   checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 9
+
+  # 306_down_shard_0.yaml drops the memory limits from every remaining tablet
+  # pool, so the operator rolls all nine tablets. Wait for that to finish
+  # before the rest of the test relies on them.
+  waitForTabletRollout 9
+
   waitForKeyspaceToBeServing customer -8000 2
   waitForKeyspaceToBeServing customer 8000- 2
 }
@@ -256,8 +290,7 @@ function upgradeToLatest() {
   # The vttablet image change is applied through a scheduled rollout that
   # recreates the pods one at a time. Wait for it to finish before going on,
   # otherwise the following steps race against pods being recreated.
-  waitForScheduledRolloutsToFinish example "planetscale.com/cluster=example"
-  checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 3
+  waitForTabletRollout 3
 
   verifyVtgateDeploymentStrategy
 

@@ -44,7 +44,8 @@ generate-and-diff: generate
 	git diff HEAD --quiet --exit-code
 
 generate-operator-yaml:
-	go run github.com/kubernetes-sigs/kustomize build ./deploy > build/_output/operator.yaml
+	@mkdir -p build/_output
+	go run sigs.k8s.io/kustomize/kustomize/v5 build ./deploy > build/_output/operator.yaml
 
 push-only: DATE=$(shell date -I)
 push-only: GITHASH=$(shell git rev-parse HEAD)

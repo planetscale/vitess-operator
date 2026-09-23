@@ -25,6 +25,7 @@ package toposerver
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
 
@@ -56,6 +57,12 @@ const (
 	// background and hopefully the connection will be ready the next time the
 	// controller reconciles that particular object.
 	connectTimeout = 1 * time.Second
+
+	// connectProbeTimeout is how long to wait for the reachability probe that
+	// runs right after topo.OpenServer succeeds. Topo clients such as etcd
+	// client v3.7+ connect lazily, so OpenServer alone no longer tells us
+	// whether the lockserver can be reached.
+	connectProbeTimeout = 5 * time.Second
 
 	// livenessCheckPeriod is how long to wait between connection liveness checks
 	// on cached connections.
@@ -322,9 +329,18 @@ func newConn(params planetscalev2.VitessLockserverParams) *Conn {
 			connectLatency.Observe(time.Since(startTime).Seconds())
 		}()
 
-		// OpenServer has a built-in timeout that's not configurable.
-		// TODO(enisoc): Upstream a change to make the timeout configurable.
 		c.Server, c.connectErr = topo.OpenServer(params.Implementation, params.Address, params.RootPath)
+		if c.connectErr == nil {
+			// OpenServer may return before any connection is established, so an
+			// unreachable lockserver would otherwise be cached as a good
+			// connection and every topo call on it would hang until its
+			// deadline. Verify reachability with a bounded read instead.
+			if err := probeConn(c.Server); err != nil {
+				c.Server.Close()
+				c.Server = nil
+				c.connectErr = err
+			}
+		}
 		if c.connectErr == nil {
 			connLog.Info("successfully connected to Vitess topology server")
 			connectSuccesses.Inc()
@@ -336,6 +352,19 @@ func newConn(params planetscalev2.VitessLockserverParams) *Conn {
 	}()
 
 	return c
+}
+
+// probeConn performs a bounded read against the global topo to confirm the
+// lockserver is reachable. An empty topo (NoNode) counts as reachable.
+func probeConn(ts *topo.Server) error {
+	ctx, cancel := context.WithTimeout(context.Background(), connectProbeTimeout)
+	defer cancel()
+
+	_, err := ts.GetCellInfoNames(ctx)
+	if err != nil && !topo.IsErrType(err, topo.NoNode) {
+		return fmt.Errorf("unable to reach Vitess topology server: %w", err)
+	}
+	return nil
 }
 
 // open waits for the connection attempt to succeed or fail.
