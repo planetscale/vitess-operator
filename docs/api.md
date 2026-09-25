@@ -8392,7 +8392,8 @@ string
 <td>
 <p>Name is the pool&rsquo;s unique name within the (cell,type) pair.
 This field is optional, and defaults to an empty string.
-Assigning different names to this field enables the existence of multiple pools with a specific tablet type in a given cell.</p>
+Assigning different names to this field enables the existence of multiple pools with a specific tablet type in a given cell.
+The name is used as a label value on tablet Pods, so it must be a valid Kubernetes label value.</p>
 </td>
 </tr>
 <tr>

@@ -184,7 +184,10 @@ type VitessShardTabletPool struct {
 	// Name is the pool's unique name within the (cell,type) pair.
 	// This field is optional, and defaults to an empty string.
 	// Assigning different names to this field enables the existence of multiple pools with a specific tablet type in a given cell.
+	// The name is used as a label value on tablet Pods, so it must be a valid Kubernetes label value.
 	// +kubebuilder:default=""
+	// +kubebuilder:validation:MaxLength=63
+	// +kubebuilder:validation:Pattern=`^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$`
 	Name string `json:"name,omitempty"`
 
 	// Replicas is the number of tablets to deploy in this pool.
