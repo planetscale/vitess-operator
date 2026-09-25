@@ -194,6 +194,13 @@ EOF
     exit 1
   fi
 
+  # Reshard Complete deletes the source shard record from topology. Wait until
+  # the shard controller has observed that (hasMaster goes from True to Unknown)
+  # before dropping the old partitioning. Applying the new spec sooner would let
+  # the turndown succeed on a stale idle=True from before the record was
+  # deleted, instead of exercising the idle computation without a shard record.
+  waitForVitessShardStatusField example "planetscale.com/keyspace=customer,planetscale.com/shard=x-x" hasMaster Unknown
+
   kubectl apply -f 306_down_shard_0.yaml
   checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 9
 
