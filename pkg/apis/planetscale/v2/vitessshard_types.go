@@ -346,7 +346,10 @@ type MysqldSpec struct {
 
 	// ConfigOverrides can optionally be used to provide a my.cnf snippet
 	// to override default my.cnf values (included with Vitess) for this
-	// particular MySQL instance.
+	// particular MySQL instance. These overrides are also applied to any
+	// vtbackup Pods spawned for this tablet pool's shard, so this field
+	// can be used to customize settings like innodb_redo_log_capacity
+	// for backup jobs, without needing separate vtbackup-specific config.
 	ConfigOverrides string `json:"configOverrides,omitempty"`
 }
 
