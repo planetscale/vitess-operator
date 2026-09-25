@@ -18,6 +18,7 @@ package vitessshard
 
 import (
 	"context"
+	"fmt"
 	"strings"
 	"time"
 
@@ -130,16 +131,13 @@ func (r *ReconcileVitessShard) reconcileTopologyWithServer(ctx context.Context, 
 			// Leave Idle as Unknown.
 			r.recorder.Eventf(vts, corev1.EventTypeWarning, "TopoGetFailed", "shard record does not exist and failed to get keyspace record: %v", err)
 			resultBuilder.RequeueAfter(topoRequeueDelay)
+		} else if servingCells, err := shardServingCells(ctx, ts, keyspaceName, vts.Spec.Name); err == nil {
+			vts.Status.Idle = k8s.ConditionStatus(len(servingCells) == 0)
 		} else {
-			shard := topo.NewShardInfo(keyspaceName, vts.Spec.Name, &topodatapb.Shard{}, nil)
-			if servingCells, err := ts.GetShardServingCells(ctx, shard); err == nil {
-				vts.Status.Idle = k8s.ConditionStatus(len(servingCells) == 0)
-			} else {
-				// Leave Idle as Unknown: an incomplete view of the cells must
-				// never be treated as permission to turn the shard down.
-				r.recorder.Eventf(vts, corev1.EventTypeWarning, "TopoGetFailed", "shard record does not exist and failed to get shard serving cells: %v", err)
-				resultBuilder.RequeueAfter(topoRequeueDelay)
-			}
+			// Leave Idle as Unknown: an incomplete view of the cells must
+			// never be treated as permission to turn the shard down.
+			r.recorder.Eventf(vts, corev1.EventTypeWarning, "TopoGetFailed", "shard record does not exist and failed to get shard serving cells: %v", err)
+			resultBuilder.RequeueAfter(topoRequeueDelay)
 		}
 	} else {
 		r.recorder.Eventf(vts, corev1.EventTypeWarning, "TopoGetFailed", "failed to get shard info: %v", err)
@@ -173,6 +171,57 @@ func (r *ReconcileVitessShard) reconcileTopologyWithServer(ctx context.Context, 
 	}
 
 	return resultBuilder.Result()
+}
+
+// shardServingCells returns the cells whose SrvKeyspace references the shard
+// in any serving partition.
+//
+// It is used when the shard record is missing and Idle can only be derived
+// from the serving partitions, so unlike topo.Server.GetShardServingCells it
+// insists on observing every cell: a cell listed under cells/ whose CellInfo
+// can't be read, any other read failure, and an empty cell list are errors
+// rather than "not serving". GetSrvKeyspace folds a missing CellInfo into the
+// same NoNode as a missing SrvKeyspace, so the CellInfo is checked separately
+// first. Only a cell that exists but has no SrvKeyspace for this keyspace
+// counts as not serving.
+func shardServingCells(ctx context.Context, ts *topo.Server, keyspace, shard string) ([]string, error) {
+	cells, err := ts.GetCellInfoNames(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if len(cells) == 0 {
+		return nil, fmt.Errorf("no cells found in topology")
+	}
+
+	var servingCells []string
+	for _, cell := range cells {
+		if _, err := ts.GetCellInfo(ctx, cell, false /*strongRead*/); err != nil {
+			return nil, fmt.Errorf("cell %s: %w", cell, err)
+		}
+		srvKeyspace, err := ts.GetSrvKeyspace(ctx, cell, keyspace)
+		switch {
+		case err == nil:
+			if srvKeyspaceReferencesShard(srvKeyspace, shard) {
+				servingCells = append(servingCells, cell)
+			}
+		case topo.IsErrType(err, topo.NoNode):
+			// The cell exists but serves nothing for this keyspace.
+		default:
+			return nil, fmt.Errorf("cell %s: %w", cell, err)
+		}
+	}
+	return servingCells, nil
+}
+
+func srvKeyspaceReferencesShard(srvKeyspace *topodatapb.SrvKeyspace, shard string) bool {
+	for _, partition := range srvKeyspace.GetPartitions() {
+		for _, ref := range partition.GetShardReferences() {
+			if ref.GetName() == shard {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func (r *ReconcileVitessShard) pruneTablets(ctx context.Context, vts *planetscalev2.VitessShard, tablets map[string]*topo.TabletInfo, wr *wrangler.Wrangler) (reconcile.Result, error) {

@@ -187,6 +187,39 @@ func TestReconcileTopologyIdleWithoutShardRecord(t *testing.T) {
 		}
 	})
 
+	t.Run("record missing and one cell's CellInfo missing", func(t *testing.T) {
+		// zone2 is still listed under cells/ (another entry keeps the
+		// directory alive) but its CellInfo record is gone. GetSrvKeyspace
+		// then fails with NoNode from ConnForCell, which is indistinguishable
+		// from "no SrvKeyspace in this cell" unless the cell is checked first.
+		// The cell was never observed, so Idle must not become True.
+		ci, err := ts.GetCellInfo(ctx, cellB, true)
+		if err != nil {
+			t.Fatalf("GetCellInfo: %v", err)
+		}
+		gconn, err := ts.ConnForCell(ctx, topo.GlobalCell)
+		if err != nil {
+			t.Fatalf("ConnForCell(global): %v", err)
+		}
+		keepPath := path.Join(topo.CellsPath, cellB, "keep")
+		if _, err := gconn.Create(ctx, keepPath, []byte("x")); err != nil {
+			t.Fatalf("Create %s: %v", keepPath, err)
+		}
+		if err := gconn.Delete(ctx, path.Join(topo.CellsPath, cellB, topo.CellInfoFile), nil); err != nil {
+			t.Fatalf("Delete CellInfo: %v", err)
+		}
+		if names, err := ts.GetCellInfoNames(ctx); err != nil || len(names) != 2 {
+			t.Fatalf("GetCellInfoNames = %v, %v; want both cells still listed", names, err)
+		}
+		expectUnknown(t, reconcile(t))
+		if err := ts.CreateCellInfo(ctx, cellB, ci); err != nil {
+			t.Fatalf("CreateCellInfo: %v", err)
+		}
+		if err := gconn.Delete(ctx, keepPath, nil); err != nil {
+			t.Fatalf("Delete %s: %v", keepPath, err)
+		}
+	})
+
 	t.Run("record missing and topo unreachable", func(t *testing.T) {
 		// Every read fails, including GetShard itself, so this exercises the
 		// generic error path rather than the missing-record fallback.
