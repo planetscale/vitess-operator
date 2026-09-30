@@ -19,7 +19,9 @@ package vitesscluster
 import (
 	"context"
 	"fmt"
+	"net"
 	"path/filepath"
+	"strconv"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -289,19 +291,21 @@ func (r *ReconcileVitessCluster) createDiscoverySecret(ctx context.Context, vt *
     "vtctlds": [
         {
             "host": {
-                "fqdn": "%s:%d",
-                "hostname": "%s:%d"
+                "fqdn": "%s",
+                "hostname": "%s"
             }
         }
     ],
     "vtgates": [
         {
             "host": {
-                "hostname": "%s:%d"
+                "hostname": "%s"
             }
         }
     ]
-}`, vtctldServiceIP, vtctldServiceWebPort, vtctldServiceIP, vtctldServiceGrpcPort, vtgateServiceIP, vtgateServiceGrpcPort)
+}`, net.JoinHostPort(vtctldServiceIP, strconv.Itoa(int(vtctldServiceWebPort))),
+		net.JoinHostPort(vtctldServiceIP, strconv.Itoa(int(vtctldServiceGrpcPort))),
+		net.JoinHostPort(vtgateServiceIP, strconv.Itoa(int(vtgateServiceGrpcPort))))
 	discoverySecretName := vtadmin.DiscoverySecretName(vt.Name, cell.Name)
 
 	// Create or update the secret
