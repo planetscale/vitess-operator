@@ -298,9 +298,6 @@ func (spec *Spec) apiFlags() vitess.Flags {
 		"tracer":       "opentracing-jaeger",
 		"grpc-tracing": true,
 		"http-tracing": true,
-
-		"logtostderr":     true,
-		"alsologtostderr": true,
 	}
 }
 
