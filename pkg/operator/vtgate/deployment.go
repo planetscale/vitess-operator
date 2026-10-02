@@ -275,7 +275,6 @@ func (spec *Spec) baseFlags() vitess.Flags {
 
 		"mysql_server_port": planetscalev2.DefaultMysqlPort,
 
-		"logtostderr":                true,
 		"topo_implementation":        spec.Cell.GlobalLockserver.Implementation,
 		"topo_global_server_address": spec.Cell.GlobalLockserver.Address,
 		"topo_global_root":           spec.Cell.GlobalLockserver.RootPath,
