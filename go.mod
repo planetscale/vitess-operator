@@ -19,7 +19,7 @@ require (
 	k8s.io/kubectl v0.34.1
 	k8s.io/kubernetes v1.37.0
 	k8s.io/utils v0.0.0-20260626114624-be93311217bd
-	sigs.k8s.io/controller-runtime v0.25.0
+	sigs.k8s.io/controller-runtime v0.25.1
 	sigs.k8s.io/controller-tools v0.22.0
 	sigs.k8s.io/kustomize/kustomize/v5 v5.8.1
 	vitess.io/vitess v0.10.3-0.20260410130242-010741df5f07
