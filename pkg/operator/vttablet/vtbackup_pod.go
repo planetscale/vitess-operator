@@ -167,6 +167,8 @@ func backupPodVolumes(tabletSpec *Spec) ([]corev1.VolumeMount, []corev1.Volume) 
 // minimal tablet used to run backups as a batch process.
 func NewBackupPod(key client.ObjectKey, backupSpec *BackupSpec, mysqldImage string) *corev1.Pod {
 	tabletSpec := backupSpec.TabletSpec
+	// Apply mysqld.vtbackupConfigOverrides only for vtbackup Pods.
+	tabletSpec.forBackup = true
 
 	// Include vttablet env vars, since we run some vttablet code like backups.
 	env := append(vttabletEnvVars.Get(tabletSpec), tabletEnvVars.Get(tabletSpec)...)

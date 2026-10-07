@@ -570,6 +570,8 @@ spec:
                                                 x-kubernetes-int-or-string: true
                                               type: object
                                           type: object
+                                        vtbackupConfigOverrides:
+                                          type: string
                                       required:
                                       - resources
                                       type: object
@@ -1143,6 +1145,8 @@ spec:
                                               x-kubernetes-int-or-string: true
                                             type: object
                                         type: object
+                                      vtbackupConfigOverrides:
+                                        type: string
                                     required:
                                     - resources
                                     type: object
