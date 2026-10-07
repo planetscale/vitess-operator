@@ -346,12 +346,28 @@ type MysqldSpec struct {
 
 	// ConfigOverrides can optionally be used to provide a my.cnf snippet
 	// to override default my.cnf values (included with Vitess) for this
-	// particular MySQL instance. vtbackup Pods for this shard, both
-	// initial and scheduled backups, use the mysqld settings of the
-	// first tablet pool in the shard spec, including these overrides,
-	// except for sync_binlog and innodb_flush_log_at_trx_commit, which
-	// vtbackup always sets itself.
+	// particular MySQL instance. These overrides apply to serving vttablet
+	// Pods in this tablet pool. vtbackup Pods for this shard, both initial
+	// and scheduled backups, also use the mysqld settings of the first
+	// tablet pool in the shard spec, including these overrides, except for
+	// sync_binlog and innodb_flush_log_at_trx_commit, which vtbackup always
+	// sets itself.
+	//
+	// To set my.cnf values only for vtbackup without changing serving
+	// tablets, use VtbackupConfigOverrides.
 	ConfigOverrides string `json:"configOverrides,omitempty"`
+
+	// VtbackupConfigOverrides can optionally be used to provide a my.cnf
+	// snippet that is applied only to vtbackup Pods (initial and scheduled
+	// backups) for this shard. Like ConfigOverrides, vtbackup uses the
+	// mysqld settings of the first tablet pool in the shard spec.
+	//
+	// These overrides are appended after ConfigOverrides so they can
+	// override shared settings. They still lose to sync_binlog and
+	// innodb_flush_log_at_trx_commit, which vtbackup always sets itself.
+	//
+	// This field is ignored for serving vttablet Pods.
+	VtbackupConfigOverrides string `json:"vtbackupConfigOverrides,omitempty"`
 }
 
 // MysqlctldSpec configures the local mysqlctld gRPC server within a tablet.
