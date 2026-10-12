@@ -173,41 +173,67 @@ func PodTemplateContainer(dst, src *corev1.Container) {
 }
 
 // SecurityContext updates entries in 'dst' based on the values in 'src'.
-// It leaves extra entries (found in 'dst' but not in 'src') untouched
-// for certain fields of SecurityContext, since those might be set by mutating
-// admission webhooks, other controllers, or the API server.
+// It leaves fields that 'src' doesn't set untouched, since those might be set
+// by mutating admission webhooks or other controllers. For example, OpenShift's
+// SecurityContextConstraints inject runAsUser, runAsNonRoot and seLinuxOptions,
+// and the Pod Security admission plugin injects seccompProfile.
+//
+// Removing a field from 'src' therefore doesn't clear it here; callers that
+// manage Pods directly record the desired state in a hash so that such a
+// removal recreates the Pod instead.
 func SecurityContext(dst **corev1.SecurityContext, src *corev1.SecurityContext) {
-	if *dst == nil || src == nil {
-		// Only one side is set, so we don't need to merge anything.
+	if src == nil {
+		// We have no opinion, so leave whatever is already there.
+		return
+	}
+	if *dst == nil {
+		// Nothing to preserve.
 		*dst = src
 		return
 	}
 
-	// Save some original values.
-	dstProcMount := (*dst).ProcMount
-	dstAllowPrivilegeEscalation := (*dst).AllowPrivilegeEscalation
-	dstCapabilities := (*dst).Capabilities
-	dstReadOnlyRootFilesystem := (*dst).ReadOnlyRootFilesystem
-	dstRunAsGroup := (*dst).RunAsGroup
+	// Save the original values.
+	saved := **dst
 
-	// Copy everything else.
+	// Copy everything.
 	**dst = *src
 
 	// Restore saved values if the src didn't set them.
 	if (*dst).ProcMount == nil {
-		(*dst).ProcMount = dstProcMount
+		(*dst).ProcMount = saved.ProcMount
 	}
 	if (*dst).AllowPrivilegeEscalation == nil {
-		(*dst).AllowPrivilegeEscalation = dstAllowPrivilegeEscalation
+		(*dst).AllowPrivilegeEscalation = saved.AllowPrivilegeEscalation
 	}
 	if (*dst).Capabilities == nil {
-		(*dst).Capabilities = dstCapabilities
+		(*dst).Capabilities = saved.Capabilities
 	}
 	if (*dst).ReadOnlyRootFilesystem == nil {
-		(*dst).ReadOnlyRootFilesystem = dstReadOnlyRootFilesystem
+		(*dst).ReadOnlyRootFilesystem = saved.ReadOnlyRootFilesystem
 	}
 	if (*dst).RunAsGroup == nil {
-		(*dst).RunAsGroup = dstRunAsGroup
+		(*dst).RunAsGroup = saved.RunAsGroup
+	}
+	if (*dst).RunAsUser == nil {
+		(*dst).RunAsUser = saved.RunAsUser
+	}
+	if (*dst).RunAsNonRoot == nil {
+		(*dst).RunAsNonRoot = saved.RunAsNonRoot
+	}
+	if (*dst).Privileged == nil {
+		(*dst).Privileged = saved.Privileged
+	}
+	if (*dst).SELinuxOptions == nil {
+		(*dst).SELinuxOptions = saved.SELinuxOptions
+	}
+	if (*dst).SeccompProfile == nil {
+		(*dst).SeccompProfile = saved.SeccompProfile
+	}
+	if (*dst).AppArmorProfile == nil {
+		(*dst).AppArmorProfile = saved.AppArmorProfile
+	}
+	if (*dst).WindowsOptions == nil {
+		(*dst).WindowsOptions = saved.WindowsOptions
 	}
 }
 

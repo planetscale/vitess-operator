@@ -76,6 +76,22 @@ func (b *Builder) AddStringList(itemName string, value []string) {
 	b.state[itemName] = contenthash.StringList(value)
 }
 
+// AddLocalObjectReferenceNames adds an item of state based on the names in a
+// list of local object references, such as imagePullSecrets.
+func (b *Builder) AddLocalObjectReferenceNames(itemName string, value []corev1.LocalObjectReference) {
+	// Skip if the value is empty, so that defining new items doesn't cause any
+	// Pods to be updated until someone actually sets a value for the new field.
+	if len(value) == 0 {
+		return
+	}
+
+	names := make([]string, 0, len(value))
+	for i := range value {
+		names = append(names, value[i].Name)
+	}
+	b.state[itemName] = contenthash.StringList(names)
+}
+
 // AddContainersUpdates adds an item of state based on a list of containers.
 func (b *Builder) AddContainersUpdates(itemName string, value []corev1.Container) {
 	// Skip if the value is empty, so that defining new items doesn't cause any
