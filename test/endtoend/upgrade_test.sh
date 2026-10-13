@@ -281,11 +281,11 @@ function upgradeToLatest() {
   checkPodStatusWithTimeout "example-vttablet-zone1(.*)3/3(.*)Running(.*)" 3
 
   # Wait for the cluster spec changes to take effect
-  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vtctld" 1 '"image":"vitess/lite:mysql80"'
-  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vtgate" 1 '"image":"vitess/lite:mysql80"'
+  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vtctld" 1 '"image":"vitess/lite:mysql80@sha256:3b9fe8685170c1e03c0ce8d65cd357e34a09545e976ea9562897b9dcbd065d8c"'
+  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vtgate" 1 '"image":"vitess/lite:mysql80@sha256:3b9fe8685170c1e03c0ce8d65cd357e34a09545e976ea9562897b9dcbd065d8c"'
   checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vtgate" 1 '"--tablet-refresh-interval=10s"'
-  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vtorc" 1 '"image":"vitess/lite:mysql80"'
-  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vttablet" 12 '"image":"vitess/lite:mysql80"'
+  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vtorc" 1 '"image":"vitess/lite:mysql80@sha256:3b9fe8685170c1e03c0ce8d65cd357e34a09545e976ea9562897b9dcbd065d8c"'
+  checkPodSpecBySelectorWithTimeout example "planetscale.com/component=vttablet" 12 '"image":"vitess/lite:mysql80@sha256:3b9fe8685170c1e03c0ce8d65cd357e34a09545e976ea9562897b9dcbd065d8c"'
 
   # The vttablet image change is applied through a scheduled rollout that
   # recreates the pods one at a time. Wait for it to finish before going on,
