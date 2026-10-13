@@ -50,13 +50,13 @@ spec:
             scope: Keyspace
             keyspace: "customer"
   images:
-    vtctld: vitess/lite:mysql84@sha256:57d8ac6a677819e7ff33ba1476cb438fbcf33a27aeee6325215655a931afe1ad
-    vtgate: vitess/lite:mysql84@sha256:57d8ac6a677819e7ff33ba1476cb438fbcf33a27aeee6325215655a931afe1ad
-    vttablet: vitess/lite:mysql84@sha256:57d8ac6a677819e7ff33ba1476cb438fbcf33a27aeee6325215655a931afe1ad
-    vtorc: vitess/lite:mysql84@sha256:57d8ac6a677819e7ff33ba1476cb438fbcf33a27aeee6325215655a931afe1ad
-    vtbackup: vitess/lite:mysql84@sha256:57d8ac6a677819e7ff33ba1476cb438fbcf33a27aeee6325215655a931afe1ad
+    vtctld: vitess/lite:mysql84
+    vtgate: vitess/lite:mysql84
+    vttablet: vitess/lite:mysql84
+    vtorc: vitess/lite:mysql84
+    vtbackup: vitess/lite:mysql84
     mysqld:
-      mysql80Compatible: vitess/lite:mysql84@sha256:57d8ac6a677819e7ff33ba1476cb438fbcf33a27aeee6325215655a931afe1ad
+      mysql80Compatible: vitess/lite:mysql84
     mysqldExporter: prom/mysqld-exporter:v0.18.0
   cells:
   - name: zone1

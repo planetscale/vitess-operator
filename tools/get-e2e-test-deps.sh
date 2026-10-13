@@ -5,9 +5,7 @@ set -euo pipefail
 
 # This script downloads the kubectl, kind and vtctldclient binaries that are
 # used as part of the end-to-end test environment, and places them in
-# tools/_bin/. kubectl and kind downloads are verified against pinned SHA-256
-# checksums. vtctldclient is copied out of the same digest-pinned vitess/lite
-# image that the end-to-end manifests run, so the client matches the server.
+# tools/_bin/. Downloads are verified against pinned SHA-256 checksums.
 #
 # The test framework expects these binaries to be found in the PATH.
 
@@ -19,11 +17,11 @@ mkdir -p "${DIR}/_bin"
 cd "${DIR}/_bin"
 
 KIND_BINARY_VERSION="v0.30.0"
+VITESS_VERSION="24.0.0-rc1"
+VITESS_FILE="vitess-${VITESS_VERSION}-4d416bb.tar.gz"
 
-# The Vitess build the end-to-end tests run. Keep this in sync with the
-# vitess/lite images in test/endtoend and with vitess.io/vitess in go.mod.
-VITESS_LITE_IMAGE="vitess/lite:mysql80@sha256:3b9fe8685170c1e03c0ce8d65cd357e34a09545e976ea9562897b9dcbd065d8c"
-VTCTLDCLIENT_BINARY="vtctldclient-${VITESS_LITE_IMAGE##*@sha256:}"
+# Vitess only publishes a linux-amd64 release tarball.
+VITESS_SHA256="b03ae826746190b4d36f678be00121144354f23ad8528f99c2ad91d5f4560ee7"
 
 function install_kind() {
     local sha256
@@ -58,27 +56,31 @@ function install_kind() {
 }
 
 function install_vtctldclient() {
-    if [[ -f "${VTCTLDCLIENT_BINARY}" ]]; then
+    if [[ -f "vtctldclient-${VITESS_VERSION}" ]]; then
         echo "Pinned vtctldclient already installed"
-        ln -sf "${VTCTLDCLIENT_BINARY}" vtctldclient
+        ln -sf "vtctldclient-${VITESS_VERSION}" vtctldclient
     elif [[ "${PLATFORM}" != "linux-amd64" ]]; then
-        # The vitess/lite image is only published for linux/amd64.
+        # Vitess does not publish release binaries for this platform.
         # Fall back to a host-installed vtctldclient further down PATH.
         if command -v vtctldclient &> /dev/null; then
-            echo "No vitess/lite vtctldclient for ${PLATFORM}. Using host vtctldclient."
+            echo "No Vitess release binaries for ${PLATFORM}. Using host vtctldclient."
         else
-            echo "No vitess/lite vtctldclient for ${PLATFORM}. Install vtctldclient manually." >&2
+            echo "No Vitess release binaries for ${PLATFORM}. Install vtctldclient manually." >&2
             exit 1
         fi
     else
-        echo "Copying vtctldclient from ${VITESS_LITE_IMAGE}..."
-        local container
-        container="$(docker create "${VITESS_LITE_IMAGE}")"
-        docker cp "${container}:/vt/bin/vtctldclient" vtctldclient.tmp
-        docker rm "${container}" > /dev/null
-        chmod +x vtctldclient.tmp
-        mv vtctldclient.tmp "${VTCTLDCLIENT_BINARY}"
-        ln -sf "${VTCTLDCLIENT_BINARY}" vtctldclient
+        echo "Downloading vtctldclient ${VITESS_VERSION}..."
+        curl --fail --location --silent --show-error \
+          --output "${VITESS_FILE}.tmp" \
+          "https://github.com/vitessio/vitess/releases/download/v${VITESS_VERSION}/${VITESS_FILE}"
+        verify_checksum "${VITESS_FILE}.tmp" "${VITESS_SHA256}"
+        mv "${VITESS_FILE}.tmp" "${VITESS_FILE}"
+        # Extract only the required binary so tools/_bin does not shadow
+        # other host binaries through PATH.
+        tar -xzf "${VITESS_FILE}" --strip-components=2 "${VITESS_FILE%.tar.gz}/bin/vtctldclient"
+        mv vtctldclient "vtctldclient-${VITESS_VERSION}"
+        ln -sf "vtctldclient-${VITESS_VERSION}" vtctldclient
+        rm "${VITESS_FILE}"
         echo "vtctldclient installed"
     fi
 }

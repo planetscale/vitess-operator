@@ -10,11 +10,11 @@ metadata:
 spec:
   tabletRefreshInterval: 10s
   images:
-    vtctld: vitess/lite:mysql80@sha256:3b9fe8685170c1e03c0ce8d65cd357e34a09545e976ea9562897b9dcbd065d8c
-    vtgate: vitess/lite:mysql80@sha256:3b9fe8685170c1e03c0ce8d65cd357e34a09545e976ea9562897b9dcbd065d8c
-    vttablet: vitess/lite:mysql80@sha256:3b9fe8685170c1e03c0ce8d65cd357e34a09545e976ea9562897b9dcbd065d8c
-    vtorc: vitess/lite:mysql80@sha256:3b9fe8685170c1e03c0ce8d65cd357e34a09545e976ea9562897b9dcbd065d8c
-    vtbackup: vitess/lite:mysql80@sha256:3b9fe8685170c1e03c0ce8d65cd357e34a09545e976ea9562897b9dcbd065d8c
+    vtctld: vitess/lite:mysql80
+    vtgate: vitess/lite:mysql80
+    vttablet: vitess/lite:mysql80
+    vtorc: vitess/lite:mysql80
+    vtbackup: vitess/lite:mysql80
     mysqld:
       mysql80Compatible: mysql:8.0.40
     mysqldExporter: prom/mysqld-exporter:v0.18.0
