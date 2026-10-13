@@ -21,6 +21,7 @@ import (
 	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
 )
@@ -101,5 +102,34 @@ func TestApplyExtraFlagsPreservesTabletRefreshIntervalDuringMigration(t *testing
 
 	if got := flags["tablet_refresh_interval"]; got != "10s" {
 		t.Errorf("tablet_refresh_interval = %v, want 10s", got)
+	}
+}
+
+// TestUpdateDeploymentClearsDroppedRunAsUser checks that a Deployment's Pod
+// template, which only the operator writes, drops the default UID when the
+// operator stops setting it (--default_vitess_run_as_user=-1), unlike a
+// directly managed Pod where injected fields are tolerated.
+func TestUpdateDeploymentClearsDroppedRunAsUser(t *testing.T) {
+	defer func(uid int64) { planetscalev2.DefaultVitessRunAsUser = uid }(planetscalev2.DefaultVitessRunAsUser)
+
+	key := client.ObjectKey{Namespace: "vitess", Name: "example-zone1-vtgate"}
+	spec := &Spec{
+		Cell:            &planetscalev2.VitessCellSpec{},
+		Authentication:  &planetscalev2.VitessGatewayAuthentication{},
+		SecureTransport: &planetscalev2.VitessGatewaySecureTransport{},
+	}
+
+	planetscalev2.DefaultVitessRunAsUser = 999
+	obj := NewDeployment(key, spec, "vitess/lite")
+	containers := obj.Spec.Template.Spec.Containers
+	if len(containers) == 0 || containers[0].SecurityContext == nil || containers[0].SecurityContext.RunAsUser == nil {
+		t.Fatalf("expected the vtgate container to run as the default UID, got %#v", containers)
+	}
+
+	planetscalev2.DefaultVitessRunAsUser = -1
+	UpdateDeployment(obj, spec, "vitess/lite")
+	sc := obj.Spec.Template.Spec.Containers[0].SecurityContext
+	if sc != nil && sc.RunAsUser != nil {
+		t.Errorf("runAsUser = %d; want it cleared after the operator stopped setting it", *sc.RunAsUser)
 	}
 }
