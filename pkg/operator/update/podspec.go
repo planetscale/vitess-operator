@@ -125,7 +125,7 @@ func PodContainer(dst, src *corev1.Container) {
 	ResourceRequirements(&dstResources, &src.Resources)
 
 	dstSecurityContext := dst.SecurityContext
-	SecurityContext(&dstSecurityContext, src.SecurityContext)
+	PodContainerSecurityContext(&dstSecurityContext, src.SecurityContext)
 
 	// Unlike for Containers in PodTemplates, when directly managing Pods,
 	// we have to allow extra VolumeMounts because the API server injects some,
@@ -178,7 +178,12 @@ func PodTemplateContainer(dst, src *corev1.Container) {
 // SecurityContext updates entries in 'dst' based on the values in 'src'.
 // It leaves extra entries (found in 'dst' but not in 'src') untouched
 // for certain fields of SecurityContext, since those might be set by mutating
-// admission webhooks, other controllers, or the API server.
+// admission webhooks or other controllers.
+//
+// SecurityContext uses rules appropriate for filling in a PodTemplate inside
+// another object, such as a Deployment: nothing but the operator writes the
+// template, so a field the operator stops setting is cleared.
+// Use PodContainerSecurityContext if you are instead directly managing Pods.
 func SecurityContext(dst **corev1.SecurityContext, src *corev1.SecurityContext) {
 	if *dst == nil || src == nil {
 		// Only one side is set, so we don't need to merge anything.
@@ -211,6 +216,75 @@ func SecurityContext(dst **corev1.SecurityContext, src *corev1.SecurityContext) 
 	}
 	if (*dst).RunAsGroup == nil {
 		(*dst).RunAsGroup = dstRunAsGroup
+	}
+}
+
+// PodContainerSecurityContext updates entries in 'dst' based on the values in
+// 'src'. It leaves every field that 'src' doesn't set untouched, since those
+// might be set by mutating admission on the live Pod. For example, OpenShift's
+// SecurityContextConstraints inject runAsUser, runAsNonRoot and seLinuxOptions,
+// and the Pod Security admission plugin injects seccompProfile.
+//
+// PodContainerSecurityContext uses rules appropriate for directly managing
+// Pods. The cost of tolerating injected fields is that a field the operator
+// stops setting, such as the default UID, stays on a running Pod until
+// something else recreates it; the desired-state hash does not cover security
+// contexts, because hashing them would roll every Pod on upgrade. A fresh Pod
+// picks up the new value.
+// Use SecurityContext if you are instead filling in a PodTemplate.
+func PodContainerSecurityContext(dst **corev1.SecurityContext, src *corev1.SecurityContext) {
+	if src == nil {
+		// We have no opinion, so leave whatever is already there.
+		return
+	}
+	if *dst == nil {
+		// Nothing to preserve.
+		*dst = src
+		return
+	}
+
+	// Save the original values.
+	saved := **dst
+
+	// Copy everything.
+	**dst = *src
+
+	// Restore saved values if the src didn't set them.
+	if (*dst).ProcMount == nil {
+		(*dst).ProcMount = saved.ProcMount
+	}
+	if (*dst).AllowPrivilegeEscalation == nil {
+		(*dst).AllowPrivilegeEscalation = saved.AllowPrivilegeEscalation
+	}
+	if (*dst).Capabilities == nil {
+		(*dst).Capabilities = saved.Capabilities
+	}
+	if (*dst).ReadOnlyRootFilesystem == nil {
+		(*dst).ReadOnlyRootFilesystem = saved.ReadOnlyRootFilesystem
+	}
+	if (*dst).RunAsGroup == nil {
+		(*dst).RunAsGroup = saved.RunAsGroup
+	}
+	if (*dst).RunAsUser == nil {
+		(*dst).RunAsUser = saved.RunAsUser
+	}
+	if (*dst).RunAsNonRoot == nil {
+		(*dst).RunAsNonRoot = saved.RunAsNonRoot
+	}
+	if (*dst).Privileged == nil {
+		(*dst).Privileged = saved.Privileged
+	}
+	if (*dst).SELinuxOptions == nil {
+		(*dst).SELinuxOptions = saved.SELinuxOptions
+	}
+	if (*dst).SeccompProfile == nil {
+		(*dst).SeccompProfile = saved.SeccompProfile
+	}
+	if (*dst).AppArmorProfile == nil {
+		(*dst).AppArmorProfile = saved.AppArmorProfile
+	}
+	if (*dst).WindowsOptions == nil {
+		(*dst).WindowsOptions = saved.WindowsOptions
 	}
 }
 
