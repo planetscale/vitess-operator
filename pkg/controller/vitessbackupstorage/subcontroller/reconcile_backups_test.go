@@ -87,6 +87,8 @@ func (f *fakeBackupHandle) AddFile(context.Context, string, int64) (io.WriteClos
 	return nil, fmt.Errorf("not implemented")
 }
 
+func (f *fakeBackupHandle) Wait() {}
+
 func (f *fakeBackupHandle) EndBackup(context.Context) error {
 	return fmt.Errorf("not implemented")
 }
