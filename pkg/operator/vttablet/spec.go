@@ -60,6 +60,11 @@ type Spec struct {
 	SidecarContainers         []corev1.Container
 	Tolerations               []corev1.Toleration
 	TopologySpreadConstraints []corev1.TopologySpreadConstraint
+
+	// forBackup is set when this Spec is used to build a vtbackup Pod so
+	// mysqld.vtbackupConfigOverrides are mounted and appended to EXTRA_MY_CNF.
+	// Serving vttablet Pods leave this unset so those overrides are ignored.
+	forBackup bool
 }
 
 // localDatabaseName returns the MySQL database name for a tablet Spec in the case of locally managed MySQL.
