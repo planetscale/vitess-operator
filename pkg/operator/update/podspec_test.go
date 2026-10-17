@@ -19,6 +19,8 @@ package update
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/equality"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -59,10 +61,61 @@ func TestTopologySpreadConstraints(t *testing.T) {
 	for name, val := range tests {
 		t.Run(name, func(t *testing.T) {
 			TopologySpreadConstraints(&val, want)
-
-			if !equality.Semantic.DeepEqual(val, want) {
-				t.Errorf("val = %#v; want %#v", val, want)
-			}
+			assert.Equal(t, want, val)
 		})
 	}
+}
+
+func TestTopologySpreadConstraintsReplacesMatchingEntry(t *testing.T) {
+	selector := &metav1.LabelSelector{MatchLabels: map[string]string{"app": "vttablet"}}
+	src := []corev1.TopologySpreadConstraint{
+		{MaxSkew: 2, TopologyKey: "topology.kubernetes.io/zone", WhenUnsatisfiable: corev1.DoNotSchedule, LabelSelector: selector},
+	}
+
+	t.Run("older maxSkew", func(t *testing.T) {
+		dst := []corev1.TopologySpreadConstraint{
+			{MaxSkew: 1, TopologyKey: "topology.kubernetes.io/zone", WhenUnsatisfiable: corev1.DoNotSchedule, LabelSelector: selector},
+		}
+		TopologySpreadConstraints(&dst, src)
+		require.Len(t, dst, 1)
+		assert.Equal(t, int32(2), dst[0].MaxSkew)
+		assert.Equal(t, src, dst)
+	})
+
+	t.Run("selector changed", func(t *testing.T) {
+		dst := []corev1.TopologySpreadConstraint{
+			{
+				MaxSkew:           2,
+				TopologyKey:       "topology.kubernetes.io/zone",
+				WhenUnsatisfiable: corev1.DoNotSchedule,
+				LabelSelector:     &metav1.LabelSelector{MatchLabels: map[string]string{"app": "old"}},
+			},
+		}
+		TopologySpreadConstraints(&dst, src)
+		require.Len(t, dst, 1)
+		assert.Equal(t, src, dst)
+	})
+}
+
+func TestTopologySpreadConstraintsKeepsExtraEntries(t *testing.T) {
+	selector := &metav1.LabelSelector{MatchLabels: map[string]string{"app": "vttablet"}}
+	extra := corev1.TopologySpreadConstraint{
+		MaxSkew:           1,
+		TopologyKey:       "kubernetes.io/hostname",
+		WhenUnsatisfiable: corev1.ScheduleAnyway,
+		LabelSelector:     &metav1.LabelSelector{MatchLabels: map[string]string{"injected": "true"}},
+	}
+	src := []corev1.TopologySpreadConstraint{
+		{MaxSkew: 2, TopologyKey: "topology.kubernetes.io/zone", WhenUnsatisfiable: corev1.DoNotSchedule, LabelSelector: selector},
+	}
+	dst := []corev1.TopologySpreadConstraint{
+		{MaxSkew: 1, TopologyKey: "topology.kubernetes.io/zone", WhenUnsatisfiable: corev1.DoNotSchedule, LabelSelector: selector},
+		extra,
+	}
+
+	TopologySpreadConstraints(&dst, src)
+
+	require.Len(t, dst, 2)
+	assert.Equal(t, src[0], dst[0])
+	assert.Equal(t, extra, dst[1])
 }
