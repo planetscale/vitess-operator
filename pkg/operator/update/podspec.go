@@ -315,7 +315,9 @@ srcLoop:
 			if dstErr != nil {
 				dstMap = map[string]string{}
 			}
-			if reflect.DeepEqual(dstMap, srcMap) {
+			if dstObj.TopologyKey == srcObj.TopologyKey &&
+				dstObj.WhenUnsatisfiable == srcObj.WhenUnsatisfiable &&
+				reflect.DeepEqual(dstMap, srcMap) {
 				*dstObj = *srcObj
 				continue srcLoop
 			}

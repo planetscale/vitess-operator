@@ -21,6 +21,7 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/equality"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func TestTolerations(t *testing.T) {
@@ -39,5 +40,29 @@ func TestTolerations(t *testing.T) {
 
 	if !equality.Semantic.DeepEqual(val, want) {
 		t.Errorf("val = %#v; want %#v", val, want)
+	}
+}
+
+func TestTopologySpreadConstraints(t *testing.T) {
+	// Constraints that share a label selector but spread over different
+	// topology keys are distinct, so all of them must be kept.
+	selector := &metav1.LabelSelector{MatchLabels: map[string]string{"app": "vttablet"}}
+	want := []corev1.TopologySpreadConstraint{
+		{MaxSkew: 1, TopologyKey: "topology.kubernetes.io/zone", WhenUnsatisfiable: corev1.DoNotSchedule, LabelSelector: selector},
+		{MaxSkew: 1, TopologyKey: "kubernetes.io/hostname", WhenUnsatisfiable: corev1.ScheduleAnyway, LabelSelector: selector},
+	}
+
+	tests := map[string][]corev1.TopologySpreadConstraint{
+		"empty":      nil,
+		"up to date": {want[0], want[1]},
+	}
+	for name, val := range tests {
+		t.Run(name, func(t *testing.T) {
+			TopologySpreadConstraints(&val, want)
+
+			if !equality.Semantic.DeepEqual(val, want) {
+				t.Errorf("val = %#v; want %#v", val, want)
+			}
+		})
 	}
 }
