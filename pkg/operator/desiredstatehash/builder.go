@@ -103,6 +103,19 @@ func (b *Builder) AddContainersUpdates(itemName string, value []corev1.Container
 	b.state[itemName] = contenthash.ContainersUpdates(value)
 }
 
+// AddContainerSecurityContexts adds an item of state based on the security
+// contexts of a list of containers.
+func (b *Builder) AddContainerSecurityContexts(itemName string, value []corev1.Container) {
+	// Skip if no container sets a security context, so that defining this item
+	// doesn't cause any Pods to be updated until someone actually sets one.
+	for i := range value {
+		if value[i].SecurityContext != nil {
+			b.state[itemName] = contenthash.ContainerSecurityContexts(value)
+			return
+		}
+	}
+}
+
 // AddTolerations adds an item of state based on a list of tolerations.
 func (b *Builder) AddTolerations(itemName string, value []corev1.Toleration) {
 	// Skip if the value is empty, so that defining new items doesn't cause any

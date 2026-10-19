@@ -17,6 +17,7 @@ limitations under the License.
 package contenthash
 
 import (
+	"encoding/json"
 	"sort"
 
 	corev1 "k8s.io/api/core/v1"
@@ -82,4 +83,32 @@ func resourceListKeys(in corev1.ResourceList) string {
 	sort.Strings(keys)
 
 	return StringList(keys)
+}
+
+// ContainerSecurityContexts returns a hex-encoded hash of the security contexts
+// of a list of Containers, keyed by container name. Containers without a
+// security context are left out.
+//
+// update.PodContainers() keeps security context fields that the desired
+// container doesn't set, because admission may have injected them, so a field
+// removed from the desired context would otherwise never reach the Pod.
+func ContainerSecurityContexts(in []corev1.Container) string {
+	m := map[string][]byte{}
+
+	for i := range in {
+		c := &in[i]
+		if c.SecurityContext == nil {
+			continue
+		}
+		// JSON omits unset fields, so a client library upgrade that adds
+		// fields to SecurityContext doesn't change the hash.
+		content, err := json.Marshal(c.SecurityContext)
+		if err != nil {
+			// SecurityContext holds only plain values, so this can't happen.
+			continue
+		}
+		m[c.Name] = content
+	}
+
+	return BytesMap(m)
 }
