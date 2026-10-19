@@ -82,3 +82,23 @@ func TestUpdatePodRemovedPullSecretChangesDesiredState(t *testing.T) {
 
 	assert.NotEqual(t, podWith.Annotations[desiredstatehash.Annotation], podWithout.Annotations[desiredstatehash.Annotation])
 }
+
+// TestUpdatePodRemovedSidecarSecurityContextFieldChangesDesiredState checks
+// that removing a field from a user-supplied container's securityContext
+// changes the desired-state hash, so the Pod is recreated with the hardened
+// context instead of keeping the removed field.
+func TestUpdatePodRemovedSidecarSecurityContextFieldChangesDesiredState(t *testing.T) {
+	key := client.ObjectKey{Namespace: "vitess", Name: "example-etcd-1"}
+	withSidecar := func(sc *corev1.SecurityContext) *Spec {
+		return &Spec{
+			LockserverName:    "example-etcd",
+			Image:             "etcd",
+			Index:             1,
+			SidecarContainers: []corev1.Container{{Name: "sidecar", Image: "sidecar", SecurityContext: sc}},
+		}
+	}
+	podPrivileged := NewPod(key, withSidecar(&corev1.SecurityContext{Privileged: ptr.To(true), RunAsNonRoot: ptr.To(true)}))
+	podHardened := NewPod(key, withSidecar(&corev1.SecurityContext{RunAsNonRoot: ptr.To(true)}))
+
+	assert.NotEqual(t, podPrivileged.Annotations[desiredstatehash.Annotation], podHardened.Annotations[desiredstatehash.Annotation])
+}

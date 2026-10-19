@@ -325,6 +325,12 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	desiredStateHash.AddContainersUpdates("init-containers", initContainers)
 	desiredStateHash.AddContainersUpdates("containers", containers)
 
+	// Record a hash of the security contexts of user-supplied containers to
+	// force the Pod to be recreated if a field is removed from one, since the
+	// Pod merge keeps fields it doesn't set (admission may have injected them).
+	desiredStateHash.AddContainerSecurityContexts("init-containers-security-contexts", spec.InitContainers)
+	desiredStateHash.AddContainerSecurityContexts("sidecar-containers-security-contexts", spec.SidecarContainers)
+
 	// Record a hash of desired imagePullSecrets to force the Pod to be recreated
 	// if one disappears from the desired list, since we otherwise leave extra
 	// entries alone (the ServiceAccount admission plugin injects some).

@@ -223,11 +223,13 @@ func SecurityContext(dst **corev1.SecurityContext, src *corev1.SecurityContext) 
 // and the Pod Security admission plugin injects seccompProfile.
 //
 // PodContainerSecurityContext uses rules appropriate for directly managing
-// Pods. The cost of tolerating injected fields is that a field the operator
-// stops setting, such as the default UID, stays on a running Pod until
-// something else recreates it; the desired-state hash does not cover security
-// contexts, because hashing them would roll every Pod on upgrade. A fresh Pod
-// picks up the new value.
+// Pods. Tolerating injected fields means a field removed from the desired
+// context is not cleared by this merge. For user-supplied init and sidecar
+// containers, the desired-state hash records their security contexts, so
+// removing a field recreates the Pod. For the operator's own containers it
+// does not, because hashing them would roll every Pod on upgrade: a field the
+// operator stops setting, such as the default UID, stays on a running Pod
+// until something else recreates it, and a fresh Pod picks up the new value.
 // Use SecurityContext if you are instead filling in a PodTemplate.
 func PodContainerSecurityContext(dst **corev1.SecurityContext, src *corev1.SecurityContext) {
 	if src == nil {

@@ -135,3 +135,54 @@ func TestUpdatePodRemovedPullSecretChangesDesiredState(t *testing.T) {
 
 	assert.NotEqual(t, podWith.Annotations[desiredstatehash.Annotation], podWithout.Annotations[desiredstatehash.Annotation])
 }
+
+// TestUpdatePodRemovedSidecarSecurityContextFieldChangesDesiredState checks
+// that removing a field from a user-supplied container's securityContext
+// changes the desired-state hash. The Pod merge keeps fields the desired
+// context doesn't set, so without the hash the removal would never reach the
+// Pod and nothing would report it.
+func TestUpdatePodRemovedSidecarSecurityContextFieldChangesDesiredState(t *testing.T) {
+	key := client.ObjectKey{Namespace: "vitess", Name: "example-vttablet-zone1-100"}
+	withSidecar := func(sc *corev1.SecurityContext) *Spec {
+		spec := testPodSpec()
+		spec.SidecarContainers = []corev1.Container{{Name: "sidecar", Image: "sidecar", SecurityContext: sc}}
+		spec.InitContainers = []corev1.Container{{Name: "init", Image: "init", SecurityContext: sc}}
+		return spec
+	}
+	privileged := withSidecar(&corev1.SecurityContext{
+		Privileged:   ptr.To(true),
+		RunAsUser:    ptr.To(int64(0)),
+		RunAsNonRoot: ptr.To(true),
+	})
+	hardened := withSidecar(&corev1.SecurityContext{RunAsNonRoot: ptr.To(true)})
+
+	live := NewPod(key, privileged)
+	desired := NewPod(key, hardened)
+
+	// The merge alone keeps the removed fields on the live Pod...
+	merged := live.DeepCopy()
+	UpdatePod(merged, hardened)
+	for _, c := range append(merged.Spec.InitContainers, merged.Spec.Containers...) {
+		if c.Name == "sidecar" || c.Name == "init" {
+			assert.True(t, ptr.Deref(c.SecurityContext.Privileged, false), "container %q", c.Name)
+		}
+	}
+	// ...so the desired-state hash has to change to get the Pod recreated.
+	assert.NotEqual(t, live.Annotations[desiredstatehash.Annotation], desired.Annotations[desiredstatehash.Annotation])
+	assert.NotEqual(t, merged.Annotations[desiredstatehash.Annotation], live.Annotations[desiredstatehash.Annotation])
+}
+
+// TestUpdatePodUserContainersWithoutSecurityContextKeepDesiredState checks
+// that user-supplied containers without a securityContext don't add to the
+// desired-state hash, so their Pods are not recreated on upgrade.
+func TestUpdatePodUserContainersWithoutSecurityContextKeepDesiredState(t *testing.T) {
+	key := client.ObjectKey{Namespace: "vitess", Name: "example-vttablet-zone1-100"}
+	spec := testPodSpec()
+	spec.SidecarContainers = []corev1.Container{{Name: "sidecar", Image: "sidecar"}}
+
+	withContext := testPodSpec()
+	withContext.SidecarContainers = []corev1.Container{{Name: "sidecar", Image: "sidecar", SecurityContext: &corev1.SecurityContext{}}}
+
+	assert.Equal(t, NewPod(key, testPodSpec()).Annotations[desiredstatehash.Annotation], NewPod(key, spec).Annotations[desiredstatehash.Annotation])
+	assert.NotEqual(t, NewPod(key, spec).Annotations[desiredstatehash.Annotation], NewPod(key, withContext).Annotations[desiredstatehash.Annotation])
+}
