@@ -7442,6 +7442,22 @@ ServiceOverrides
 <p>Tolerations allow you to schedule pods onto nodes with matching taints.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>hostNetwork</code><br>
+<em>
+bool
+</em>
+</td>
+<td>
+<p>HostNetwork runs vtorc Pods in the node&rsquo;s network namespace, so they
+don&rsquo;t consume a Pod IP. This is useful in clusters where Pod IPs are
+scarce: vtorc only makes outbound connections to tablets and the
+topology server. The web port is then bound on the node, so at most
+one vtorc Pod can be scheduled on each node.
+Default: false</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="planetscale.com/v2.VitessOrchestratorStatus">VitessOrchestratorStatus
