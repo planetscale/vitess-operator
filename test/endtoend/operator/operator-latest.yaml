@@ -5066,6 +5066,8 @@ spec:
                           type: array
                         extraVolumes:
                           x-kubernetes-preserve-unknown-fields: true
+                        hostNetwork:
+                          type: boolean
                         initContainers:
                           x-kubernetes-preserve-unknown-fields: true
                         resources:
@@ -7263,6 +7265,8 @@ spec:
                     type: array
                   extraVolumes:
                     x-kubernetes-preserve-unknown-fields: true
+                  hostNetwork:
+                    type: boolean
                   initContainers:
                     x-kubernetes-preserve-unknown-fields: true
                   resources:
@@ -8301,6 +8305,8 @@ spec:
                     type: array
                   extraVolumes:
                     x-kubernetes-preserve-unknown-fields: true
+                  hostNetwork:
+                    type: boolean
                   initContainers:
                     x-kubernetes-preserve-unknown-fields: true
                   resources:

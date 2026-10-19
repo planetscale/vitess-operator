@@ -71,6 +71,7 @@ type Spec struct {
 	Annotations       map[string]string
 	ExtraLabels       map[string]string
 	Tolerations       []corev1.Toleration
+	HostNetwork       bool
 }
 
 // NewDeployment creates a new Deployment object for vtorc.
@@ -136,6 +137,13 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 	obj.Spec.Template.Spec.PriorityClassName = planetscalev2.DefaultVitessPriorityClass
 	obj.Spec.Template.Spec.ServiceAccountName = planetscalev2.DefaultVitessServiceAccount
 	obj.Spec.Template.Spec.Tolerations = spec.Tolerations
+	obj.Spec.Template.Spec.HostNetwork = spec.HostNetwork
+	if spec.HostNetwork {
+		// Keep resolving cluster DNS names from the node's network namespace.
+		obj.Spec.Template.Spec.DNSPolicy = corev1.DNSClusterFirstWithHostNet
+	} else {
+		obj.Spec.Template.Spec.DNSPolicy = corev1.DNSClusterFirst
+	}
 	update.Volumes(&obj.Spec.Template.Spec.Volumes, spec.ExtraVolumes)
 
 	securityContext := &corev1.SecurityContext{}

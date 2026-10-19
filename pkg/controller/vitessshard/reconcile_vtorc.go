@@ -156,6 +156,7 @@ func (r *ReconcileVitessShard) vtorcSpecs(vts *planetscalev2.VitessShard, parent
 			Annotations:       vts.Spec.VitessOrchestrator.Annotations,
 			ExtraLabels:       vts.Spec.VitessOrchestrator.ExtraLabels,
 			Tolerations:       vts.Spec.VitessOrchestrator.Tolerations,
+			HostNetwork:       vts.Spec.VitessOrchestrator.HostNetwork,
 		})
 	}
 	return specs

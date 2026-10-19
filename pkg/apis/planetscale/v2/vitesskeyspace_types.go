@@ -290,6 +290,14 @@ type VitessOrchestratorSpec struct {
 	// +kubebuilder:validation:Schemaless
 	// +kubebuilder:pruning:PreserveUnknownFields
 	Tolerations []corev1.Toleration `json:"tolerations,omitempty"`
+
+	// HostNetwork runs vtorc Pods in the node's network namespace, so they
+	// don't consume a Pod IP. This is useful in clusters where Pod IPs are
+	// scarce: vtorc only makes outbound connections to tablets and the
+	// topology server. The web port is then bound on the node, so at most
+	// one vtorc Pod can be scheduled on each node.
+	// Default: false
+	HostNetwork bool `json:"hostNetwork,omitempty"`
 }
 
 // VitessKeyspaceTurndownPolicy is the policy for turning down a keyspace.
