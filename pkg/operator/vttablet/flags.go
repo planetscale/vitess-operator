@@ -49,7 +49,6 @@ func init() {
 	vttabletFlags.Add(func(s lazy.Spec) vitess.Flags {
 		spec := s.(*Spec)
 		return vitess.Flags{
-			"logtostderr":                true,
 			"topo_implementation":        spec.GlobalLockserver.Implementation,
 			"topo_global_server_address": spec.GlobalLockserver.Address,
 			"topo_global_root":           spec.GlobalLockserver.RootPath,
@@ -85,7 +84,6 @@ func init() {
 		spec := s.(*Spec)
 		dbInitScript := secrets.Mount(&spec.DatabaseInitScriptSecret, dbInitScriptDirName)
 		return vitess.Flags{
-			"logtostderr":      true,
 			"tablet_uid":       spec.Alias.Uid,
 			"socket_file":      mysqlctlSocketPath,
 			"mysql_socket":     mysqlSocketPath,
@@ -121,7 +119,6 @@ func init() {
 			"min_retention_count": backupSpec.MinRetentionCount,
 
 			// Flags that are common to vttablet and mysqlctld.
-			"logtostderr":                true,
 			"topo_implementation":        spec.GlobalLockserver.Implementation,
 			"topo_global_server_address": spec.GlobalLockserver.Address,
 			"topo_global_root":           spec.GlobalLockserver.RootPath,
