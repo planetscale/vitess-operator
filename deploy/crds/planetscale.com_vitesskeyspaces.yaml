@@ -570,8 +570,6 @@ spec:
                                                 x-kubernetes-int-or-string: true
                                               type: object
                                           type: object
-                                        vtbackupConfigOverrides:
-                                          type: string
                                       required:
                                       - resources
                                       type: object
@@ -789,6 +787,8 @@ spec:
                                       volumeName:
                                         type: string
                                     type: object
+                                  mysqldConfigOverrides:
+                                    type: string
                                   useEmptyDirForInitialBackup:
                                     type: boolean
                                 type: object
@@ -1145,8 +1145,6 @@ spec:
                                               x-kubernetes-int-or-string: true
                                             type: object
                                         type: object
-                                      vtbackupConfigOverrides:
-                                        type: string
                                     required:
                                     - resources
                                     type: object
@@ -1364,6 +1362,8 @@ spec:
                                     volumeName:
                                       type: string
                                   type: object
+                                mysqldConfigOverrides:
+                                  type: string
                                 useEmptyDirForInitialBackup:
                                   type: boolean
                               type: object

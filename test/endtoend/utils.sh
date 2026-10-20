@@ -754,6 +754,62 @@ function checkVitessBackupScheduleStatusWithTimeout() {
   exit 1
 }
 
+function checkVtbackupMysqldConfigOverrides() {
+  local want_setting="max_connections=12321"
+  local override_file="/pod-config/mysqld-vtbackup-config-overrides"
+  local vtbackup_pod=""
+
+  for i in {1..120}; do
+    vtbackup_pod=$(kubectl get pods -n example --no-headers -o custom-columns=":metadata.name" | grep "vtbackup-init" | head -1 | tr -d ' ')
+    if [[ -n "${vtbackup_pod}" ]]; then
+      break
+    fi
+    sleep 1
+  done
+  if [[ -z "${vtbackup_pod}" ]]; then
+    echo "ERROR: vtbackup-init Pod not found"
+    exit 1
+  fi
+
+  echo "Checking vtbackup-only MySQL overrides on ${vtbackup_pod}"
+  snippet=$(kubectl get pod -n example "${vtbackup_pod}" -o go-template='{{index .metadata.annotations "planetscale.com/mysqld-vtbackup-config-overrides"}}')
+  if [[ "${snippet}" != *"${want_setting}"* ]]; then
+    echo "ERROR: vtbackup Pod annotation missing ${want_setting}: ${snippet}"
+    exit 1
+  fi
+
+  extra=$(kubectl get pod -n example "${vtbackup_pod}" -o go-template='{{range .spec.containers}}{{if eq .name "vtbackup"}}{{range .env}}{{if eq .name "EXTRA_MY_CNF"}}{{.value}}{{end}}{{end}}{{end}}{{end}}')
+  if [[ "${extra}" != *"${override_file}"* ]]; then
+    echo "ERROR: vtbackup EXTRA_MY_CNF missing ${override_file}: ${extra}"
+    exit 1
+  fi
+  if [[ "${extra}" != *"/vt/config/mycnf/vtbackup.cnf"* ]]; then
+    echo "ERROR: vtbackup EXTRA_MY_CNF missing operator-generated vtbackup.cnf: ${extra}"
+    exit 1
+  fi
+  echo "Confirmed vtbackup MySQL will read ${want_setting} via EXTRA_MY_CNF=${extra}"
+
+  for vttablet in $(kubectl get pods -n example --no-headers -o custom-columns=":metadata.name" | grep "vttablet") ; do
+    echo "Confirming serving tablet ${vttablet} did not receive vtbackup-only MySQL overrides"
+    tablet_ann=$(kubectl get pod -n example "${vttablet}" -o go-template='{{index .metadata.annotations "planetscale.com/mysqld-vtbackup-config-overrides"}}')
+    if [[ -n "${tablet_ann}" ]]; then
+      echo "ERROR: serving tablet ${vttablet} has vtbackup-only annotation: ${tablet_ann}"
+      exit 1
+    fi
+    tablet_extra=$(kubectl get pod -n example "${vttablet}" -o go-template='{{range .spec.containers}}{{if eq .name "mysqld"}}{{range .env}}{{if eq .name "EXTRA_MY_CNF"}}{{.value}}{{end}}{{end}}{{end}}{{end}}')
+    if [[ "${tablet_extra}" == *"${override_file}"* ]]; then
+      echo "ERROR: serving tablet ${vttablet} EXTRA_MY_CNF includes vtbackup-only file: ${tablet_extra}"
+      exit 1
+    fi
+    max_conn=$(kubectl exec -n example "${vttablet}" -c mysqld -- mysql -S /vt/socket/mysql.sock -u root -N -e "select @@global.max_connections")
+    if [[ "${max_conn}" == "12321" ]]; then
+      echo "ERROR: serving tablet ${vttablet} MySQL has vtbackup-only max_connections=${max_conn}"
+      exit 1
+    fi
+    echo "Confirmed ${vttablet} MySQL max_connections=${max_conn} (not ${want_setting})"
+  done
+}
+
 function checkMysqldExporterMetrics() {
   for vttablet in $(kubectl get pods -n example --no-headers -o custom-columns=":metadata.name" | grep "vttablet") ; do
     echo "Confirming that the mysqld_exporter is working in ${vttablet}"

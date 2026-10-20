@@ -97,7 +97,9 @@ const (
 
 	mysqldConfigOverridesFile         = "mysqld-config-overrides"
 	mysqldVtbackupConfigOverridesFile = "mysqld-vtbackup-config-overrides"
+	mysqldConfigOverridesVolumeName   = "pod-config"
 	mysqldConfigOverridesMountPath    = "/pod-config"
+	extraMyCnfEnvVar                  = "EXTRA_MY_CNF"
 
 	vtbackupTimeout            = 2 * time.Hour
 	vtbackupReplicationTimeout = 1 * time.Hour

@@ -121,9 +121,11 @@ type VitessShardTemplate struct {
 	// +listMapKey=name
 	TabletPools []VitessShardTabletPool `json:"tabletPools,omitempty" patchStrategy:"merge" patchMergeKey:"type"`
 
-	// Vtbackup configures the scratch data volume for vtbackup Pods in this
-	// shard. When omitted, initial and scheduled vtbackup Pods inherit the first
-	// tablet pool's DataVolumeClaimTemplate.
+	// Vtbackup configures vtbackup-only settings for this shard, including
+	// scratch storage and MySQL config overrides that must not apply to
+	// serving vttablet Pods. When omitted, initial and scheduled vtbackup
+	// Pods inherit the first tablet pool's DataVolumeClaimTemplate and have
+	// no vtbackup-only my.cnf overrides.
 	Vtbackup *VitessShardVtbackup `json:"vtbackup,omitempty"`
 
 	// DatabaseInitScriptSecret specifies the init_db.sql script file to use for this shard.
@@ -287,7 +289,9 @@ type VitessShardTabletPool struct {
 	TopologySpreadConstraints []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty"`
 }
 
-// VitessShardVtbackup configures scratch storage for vtbackup Pods in a shard.
+// VitessShardVtbackup configures vtbackup-only settings for a shard, including
+// scratch storage and MySQL config overrides that must not apply to serving
+// vttablet Pods.
 // +kubebuilder:validation:XValidation:rule="!(has(self.useEmptyDirForInitialBackup) && self.useEmptyDirForInitialBackup && has(self.dataVolumeClaimTemplate))",message="useEmptyDirForInitialBackup and dataVolumeClaimTemplate are mutually exclusive"
 type VitessShardVtbackup struct {
 	// UseEmptyDirForInitialBackup makes the initial, empty-database backup use
@@ -303,6 +307,18 @@ type VitessShardVtbackup struct {
 	// DataVolumeClaimTemplate unless UseEmptyDirForInitialBackup applies. This is
 	// the historical behavior.
 	DataVolumeClaimTemplate *corev1.PersistentVolumeClaimSpec `json:"dataVolumeClaimTemplate,omitempty"`
+
+	// MysqldConfigOverrides can optionally be used to provide a my.cnf snippet
+	// that is applied only to vtbackup Pods (initial and scheduled backups)
+	// for this shard.
+	//
+	// These overrides are appended after mysqld.configOverrides from the first
+	// tablet pool so they can replace shared settings. They still lose to
+	// sync_binlog and innodb_flush_log_at_trx_commit, which vtbackup always
+	// sets itself.
+	//
+	// This field is ignored for serving vttablet Pods.
+	MysqldConfigOverrides string `json:"mysqldConfigOverrides,omitempty"`
 }
 
 // VttabletSpec configures the vttablet server within a tablet.
@@ -354,20 +370,8 @@ type MysqldSpec struct {
 	// sets itself.
 	//
 	// To set my.cnf values only for vtbackup without changing serving
-	// tablets, use VtbackupConfigOverrides.
+	// tablets, use spec.vtbackup.mysqldConfigOverrides.
 	ConfigOverrides string `json:"configOverrides,omitempty"`
-
-	// VtbackupConfigOverrides can optionally be used to provide a my.cnf
-	// snippet that is applied only to vtbackup Pods (initial and scheduled
-	// backups) for this shard. Like ConfigOverrides, vtbackup uses the
-	// mysqld settings of the first tablet pool in the shard spec.
-	//
-	// These overrides are appended after ConfigOverrides so they can
-	// override shared settings. They still lose to sync_binlog and
-	// innodb_flush_log_at_trx_commit, which vtbackup always sets itself.
-	//
-	// This field is ignored for serving vttablet Pods.
-	VtbackupConfigOverrides string `json:"vtbackupConfigOverrides,omitempty"`
 }
 
 // MysqlctldSpec configures the local mysqlctld gRPC server within a tablet.

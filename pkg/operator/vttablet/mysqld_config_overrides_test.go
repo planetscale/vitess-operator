@@ -33,73 +33,22 @@ const (
 	vtbackupOverrides = "innodb_flush_log_at_timeout=2"
 )
 
-func TestMysqldConfigOverridesTabletVsBackup(t *testing.T) {
+func TestTabletSpecIgnoresVtbackupMysqldConfigOverrides(t *testing.T) {
 	sharedPath := mysqldConfigOverridesMountPath + "/" + mysqldConfigOverridesFile
-	vtbackupPath := mysqldConfigOverridesMountPath + "/" + mysqldVtbackupConfigOverridesFile
 
 	tests := []struct {
-		name                    string
-		forBackup               bool
-		configOverrides         string
-		vtbackupConfigOverrides string
-		wantExtraMyCnf          []string
-		wantSharedAnnotation    bool
-		wantVtbackupAnnotation  bool
-		wantPodConfigVolume     bool
-		wantSharedVolumeFile    bool
-		wantVtbackupVolumeFile  bool
+		name                 string
+		configOverrides      string
+		wantExtraMyCnf       []string
+		wantSharedAnnotation bool
+		wantPodConfigVolume  bool
 	}{
 		{
-			name:                 "vttablet with shared overrides only",
+			name:                 "shared overrides only",
 			configOverrides:      sharedOverrides,
 			wantExtraMyCnf:       []string{sharedPath, vtbackupExtraMyCnfFile},
 			wantSharedAnnotation: true,
 			wantPodConfigVolume:  true,
-			wantSharedVolumeFile: true,
-		},
-		{
-			name:                    "vttablet ignores vtbackup-only overrides",
-			configOverrides:         sharedOverrides,
-			vtbackupConfigOverrides: vtbackupOverrides,
-			wantExtraMyCnf:          []string{sharedPath, vtbackupExtraMyCnfFile},
-			wantSharedAnnotation:    true,
-			wantPodConfigVolume:     true,
-			wantSharedVolumeFile:    true,
-		},
-		{
-			name:                    "vttablet with only vtbackup overrides is unchanged",
-			vtbackupConfigOverrides: vtbackupOverrides,
-			wantExtraMyCnf:          nil,
-		},
-		{
-			name:                 "vtbackup with shared overrides only",
-			forBackup:            true,
-			configOverrides:      sharedOverrides,
-			wantExtraMyCnf:       []string{sharedPath, vtbackupExtraMyCnfFile},
-			wantSharedAnnotation: true,
-			wantPodConfigVolume:  true,
-			wantSharedVolumeFile: true,
-		},
-		{
-			name:                    "vtbackup with vtbackup-only overrides",
-			forBackup:               true,
-			vtbackupConfigOverrides: vtbackupOverrides,
-			wantExtraMyCnf:          []string{vtbackupPath, vtbackupExtraMyCnfFile},
-			wantVtbackupAnnotation:  true,
-			wantPodConfigVolume:     true,
-			wantVtbackupVolumeFile:  true,
-		},
-		{
-			name:                    "vtbackup with both override files in order",
-			forBackup:               true,
-			configOverrides:         sharedOverrides,
-			vtbackupConfigOverrides: vtbackupOverrides,
-			wantExtraMyCnf:          []string{sharedPath, vtbackupPath, vtbackupExtraMyCnfFile},
-			wantSharedAnnotation:    true,
-			wantVtbackupAnnotation:  true,
-			wantPodConfigVolume:     true,
-			wantSharedVolumeFile:    true,
-			wantVtbackupVolumeFile:  true,
 		},
 		{
 			name: "no overrides",
@@ -109,10 +58,8 @@ func TestMysqldConfigOverridesTabletVsBackup(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			spec := &Spec{
-				forBackup: test.forBackup,
 				Mysqld: &planetscalev2.MysqldSpec{
-					ConfigOverrides:         test.configOverrides,
-					VtbackupConfigOverrides: test.vtbackupConfigOverrides,
+					ConfigOverrides: test.configOverrides,
 				},
 			}
 
@@ -125,42 +72,26 @@ func TestMysqldConfigOverridesTabletVsBackup(t *testing.T) {
 				_, ok := anns[mysqldConfigOverridesAnnotationName]
 				assert.False(t, ok)
 			}
-			if test.wantVtbackupAnnotation {
-				assert.Equal(t, test.vtbackupConfigOverrides, anns[mysqldVtbackupConfigOverridesAnnotationName])
-			} else {
-				_, ok := anns[mysqldVtbackupConfigOverridesAnnotationName]
-				assert.False(t, ok)
-			}
+			_, ok := anns[mysqldVtbackupConfigOverridesAnnotationName]
+			assert.False(t, ok)
 
-			vol := findVolume(tabletVolumes.Get(spec), "pod-config")
+			vol := findVolume(tabletVolumes.Get(spec), mysqldConfigOverridesVolumeName)
 			if !test.wantPodConfigVolume {
 				assert.Nil(t, vol)
-				assert.Nil(t, findVolumeMount(tabletVolumeMounts.Get(spec), "pod-config"))
+				assert.Nil(t, findVolumeMount(tabletVolumeMounts.Get(spec), mysqldConfigOverridesVolumeName))
 				return
 			}
 			require.NotNil(t, vol)
 			require.NotNil(t, vol.DownwardAPI)
-			assert.NotNil(t, findVolumeMount(tabletVolumeMounts.Get(spec), "pod-config"))
-
-			paths := downwardAPIPaths(vol)
-			if test.wantSharedVolumeFile {
-				assert.Contains(t, paths, mysqldConfigOverridesFile)
-			} else {
-				assert.NotContains(t, paths, mysqldConfigOverridesFile)
-			}
-			if test.wantVtbackupVolumeFile {
-				assert.Contains(t, paths, mysqldVtbackupConfigOverridesFile)
-			} else {
-				assert.NotContains(t, paths, mysqldVtbackupConfigOverridesFile)
-			}
+			assert.NotNil(t, findVolumeMount(tabletVolumeMounts.Get(spec), mysqldConfigOverridesVolumeName))
+			assert.Equal(t, []string{mysqldConfigOverridesFile}, downwardAPIPaths(vol))
 		})
 	}
 }
 
-func TestNewPodDoesNotApplyVtbackupConfigOverrides(t *testing.T) {
+func TestNewPodDoesNotApplyVtbackupMysqldConfigOverrides(t *testing.T) {
 	spec := mysqldOverrideTestSpec()
 	spec.Mysqld.ConfigOverrides = sharedOverrides
-	spec.Mysqld.VtbackupConfigOverrides = vtbackupOverrides
 
 	pod := NewPod(client.ObjectKey{Namespace: "default", Name: "tablet"}, spec)
 
@@ -173,21 +104,23 @@ func TestNewPodDoesNotApplyVtbackupConfigOverrides(t *testing.T) {
 	assert.Equal(t, []string{
 		mysqldConfigOverridesMountPath + "/" + mysqldConfigOverridesFile,
 		vtbackupExtraMyCnfFile,
-	}, overrideMyCnfFiles(strings.Split(envValue(mysqld.Env, "EXTRA_MY_CNF"), ":")))
+	}, overrideMyCnfFiles(strings.Split(envValue(mysqld.Env, extraMyCnfEnvVar), ":")))
 
-	vol := findVolume(pod.Spec.Volumes, "pod-config")
+	vol := findVolume(pod.Spec.Volumes, mysqldConfigOverridesVolumeName)
 	require.NotNil(t, vol)
 	assert.Equal(t, []string{mysqldConfigOverridesFile}, downwardAPIPaths(vol))
 }
 
-func TestNewBackupPodAppliesVtbackupConfigOverrides(t *testing.T) {
+func TestNewBackupPodAppliesVtbackupMysqldConfigOverrides(t *testing.T) {
 	spec := mysqldOverrideTestSpec()
 	spec.Mysqld.ConfigOverrides = sharedOverrides
-	spec.Mysqld.VtbackupConfigOverrides = vtbackupOverrides
 
 	pod := NewBackupPod(
 		client.ObjectKey{Namespace: "default", Name: "backup"},
-		&BackupSpec{TabletSpec: spec},
+		&BackupSpec{
+			TabletSpec:            spec,
+			MysqldConfigOverrides: vtbackupOverrides,
+		},
 		"mysql:8.0.40",
 	)
 
@@ -200,20 +133,23 @@ func TestNewBackupPodAppliesVtbackupConfigOverrides(t *testing.T) {
 		mysqldConfigOverridesMountPath + "/" + mysqldConfigOverridesFile,
 		mysqldConfigOverridesMountPath + "/" + mysqldVtbackupConfigOverridesFile,
 		vtbackupExtraMyCnfFile,
-	}, overrideMyCnfFiles(strings.Split(envValue(vtbackup.Env, "EXTRA_MY_CNF"), ":")))
+	}, overrideMyCnfFiles(strings.Split(envValue(vtbackup.Env, extraMyCnfEnvVar), ":")))
 
-	vol := findVolume(pod.Spec.Volumes, "pod-config")
+	vol := findVolume(pod.Spec.Volumes, mysqldConfigOverridesVolumeName)
 	require.NotNil(t, vol)
 	assert.Equal(t, []string{mysqldConfigOverridesFile, mysqldVtbackupConfigOverridesFile}, downwardAPIPaths(vol))
+	assert.NotNil(t, findVolumeMount(vtbackup.VolumeMounts, mysqldConfigOverridesVolumeName))
 }
 
 func TestNewBackupPodAppliesVtbackupOverridesWithoutSharedOverrides(t *testing.T) {
 	spec := mysqldOverrideTestSpec()
-	spec.Mysqld.VtbackupConfigOverrides = vtbackupOverrides
 
 	pod := NewBackupPod(
 		client.ObjectKey{Namespace: "default", Name: "backup"},
-		&BackupSpec{TabletSpec: spec},
+		&BackupSpec{
+			TabletSpec:            spec,
+			MysqldConfigOverrides: vtbackupOverrides,
+		},
 		"mysql:8.0.40",
 	)
 
@@ -226,7 +162,44 @@ func TestNewBackupPodAppliesVtbackupOverridesWithoutSharedOverrides(t *testing.T
 	assert.Equal(t, []string{
 		mysqldConfigOverridesMountPath + "/" + mysqldVtbackupConfigOverridesFile,
 		vtbackupExtraMyCnfFile,
-	}, overrideMyCnfFiles(strings.Split(envValue(vtbackup.Env, "EXTRA_MY_CNF"), ":")))
+	}, overrideMyCnfFiles(strings.Split(envValue(vtbackup.Env, extraMyCnfEnvVar), ":")))
+
+	vol := findVolume(pod.Spec.Volumes, mysqldConfigOverridesVolumeName)
+	require.NotNil(t, vol)
+	assert.Equal(t, []string{mysqldVtbackupConfigOverridesFile}, downwardAPIPaths(vol))
+}
+
+func TestNewBackupPodLeavesTabletSpecUnchanged(t *testing.T) {
+	spec := mysqldOverrideTestSpec()
+	spec.Mysqld.ConfigOverrides = sharedOverrides
+
+	_ = NewBackupPod(
+		client.ObjectKey{Namespace: "default", Name: "backup"},
+		&BackupSpec{
+			TabletSpec:            spec,
+			MysqldConfigOverrides: vtbackupOverrides,
+		},
+		"mysql:8.0.40",
+	)
+
+	pod := NewPod(client.ObjectKey{Namespace: "default", Name: "tablet"}, spec)
+	_, hasVtbackup := pod.Annotations[mysqldVtbackupConfigOverridesAnnotationName]
+	assert.False(t, hasVtbackup)
+}
+
+func TestExtraMyCnfWithVtbackupOverrides(t *testing.T) {
+	sharedPath := mysqldConfigOverridesMountPath + "/" + mysqldConfigOverridesFile
+	vtbackupPath := mysqldConfigOverridesMountPath + "/" + mysqldVtbackupConfigOverridesFile
+
+	assert.Equal(t, vtbackupPath+":"+vtbackupExtraMyCnfFile, extraMyCnfWithVtbackupOverrides(""))
+	assert.Equal(t,
+		strings.Join([]string{sharedPath, vtbackupPath, vtbackupExtraMyCnfFile}, ":"),
+		extraMyCnfWithVtbackupOverrides(strings.Join([]string{sharedPath, vtbackupExtraMyCnfFile}, ":")),
+	)
+	assert.Equal(t,
+		strings.Join([]string{sharedPath, vtbackupPath, vtbackupExtraMyCnfFile}, ":"),
+		extraMyCnfWithVtbackupOverrides(strings.Join([]string{sharedPath, vtbackupPath, vtbackupExtraMyCnfFile}, ":")),
+	)
 }
 
 func mysqldOverrideTestSpec() *Spec {

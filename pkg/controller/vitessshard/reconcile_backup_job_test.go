@@ -151,6 +151,50 @@ func TestVtbackupSpecDataVolume(t *testing.T) {
 	}
 }
 
+func TestVtbackupSpecMysqldConfigOverrides(t *testing.T) {
+	poolPVC := backupPVCSpec("100Gi", "")
+	overrides := "max_connections=12321"
+
+	cases := []struct {
+		name     string
+		vtbackup *planetscalev2.VitessShardVtbackup
+		want     string
+	}{
+		{
+			name:     "no vtbackup section",
+			vtbackup: nil,
+		},
+		{
+			name:     "empty vtbackup section",
+			vtbackup: &planetscalev2.VitessShardVtbackup{},
+		},
+		{
+			name: "copies shard vtbackup mysqld overrides",
+			vtbackup: &planetscalev2.VitessShardVtbackup{
+				MysqldConfigOverrides: overrides,
+			},
+			want: overrides,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			vts := backupTestShard(tc.vtbackup, poolPVC)
+			spec := MakeVtbackupSpec(initialBackupKey(vts), vts, initialBackupLabels(vts), vitessbackup.TypeInit)
+			require.NotNil(t, spec)
+			assert.Equal(t, tc.want, spec.MysqldConfigOverrides)
+
+			pod := vttablet.NewBackupPod(initialBackupKey(vts), spec, vts.Spec.Images.Mysqld.Image())
+			if tc.want == "" {
+				_, ok := pod.Annotations["planetscale.com/mysqld-vtbackup-config-overrides"]
+				assert.False(t, ok)
+				return
+			}
+			assert.Equal(t, tc.want, pod.Annotations["planetscale.com/mysqld-vtbackup-config-overrides"])
+		})
+	}
+}
+
 func TestReconcileBackupJobConvergesDataVolumeChanges(t *testing.T) {
 	poolPVC := backupPVCSpec("100Gi", "")
 	smallPVC := backupPVCSpec("10Gi", "cheap-disk")
