@@ -1,0 +1,111 @@
+# Each tablet's mysqld and vttablet are capped at 1 CPU, standing in for "one
+# database server". The load generator can push more than one shard can serve,
+# so one shard is the bottleneck and two shards double the capacity.
+apiVersion: planetscale.com/v2
+kind: VitessCluster
+metadata:
+  name: demo
+  namespace: example
+spec:
+  backup:
+    engine: xtrabackup
+    locations:
+    - volume:
+        persistentVolumeClaim:
+          claimName: vitess-backups
+  images:
+    vtctld: vitess/lite:v24.0.5-mysql80
+    vtgate: vitess/lite:v24.0.5-mysql80
+    vttablet: vitess/lite:v24.0.5-mysql80
+    vtorc: vitess/lite:v24.0.5-mysql80
+    vtbackup: vitess/lite:v24.0.5-mysql80
+    mysqld:
+      mysql80Compatible: vitess/lite:v24.0.5-mysql80
+    mysqldExporter: prom/mysqld-exporter:v0.18.0
+  cells:
+  - name: zone1
+    gateway:
+      authentication:
+        static:
+          secret:
+            name: demo-cluster-config
+            key: users.json
+      extraFlags:
+        # Hold queries during the primary switch instead of failing them.
+        enable_buffer: "true"
+        buffer_min_time_between_failovers: 10s
+        tablet_refresh_interval: 10s
+      replicas: 1
+      resources:
+        requests:
+          cpu: "1"
+          memory: 512Mi
+        limits:
+          memory: 1Gi
+  vitessDashboard:
+    cells:
+    - zone1
+    replicas: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        memory: 128Mi
+  updateStrategy:
+    type: Immediate
+  keyspaces:
+  - name: app
+    durabilityPolicy: semi_sync
+    turndownPolicy: Immediate
+    vitessOrchestrator:
+      resources:
+        requests:
+          cpu: 100m
+          memory: 128Mi
+        limits:
+          memory: 128Mi
+    partitionings:
+    - equal:
+        parts: 1
+        shardTemplate: &shard
+          databaseInitScriptSecret:
+            name: demo-cluster-config
+            key: init_db.sql
+          tabletPools:
+          - cell: zone1
+            type: replica
+            replicas: 2
+            vttablet:
+              extraFlags:
+                db_charset: utf8mb4
+              resources:
+                requests:
+                  cpu: 500m
+                  memory: 256Mi
+                limits:
+                  cpu: "1"
+                  memory: 512Mi
+            mysqld:
+              # Keep the data in memory and skip fsyncs, so query CPU is the bottleneck.
+              # Every tablet shares one laptop disk, and under OrbStack each fsync
+              # costs host CPU. Not production settings.
+              configOverrides: |
+                innodb_buffer_pool_size = 512M
+                innodb_flush_log_at_trx_commit = 2
+                sync_binlog = 0
+              resources:
+                requests:
+                  cpu: 500m
+                  memory: 1Gi
+                limits:
+                  cpu: "1"
+                  memory: 1Gi
+            dataVolumeClaimTemplate:
+              accessModes: ["ReadWriteOnce"]
+              resources:
+                requests:
+                  storage: 10Gi
+    - equal:
+        parts: 2
+        shardTemplate: *shard

@@ -1,0 +1,12 @@
+# Single-node kind cluster. The NodePorts below are mapped to the same ports
+# on 127.0.0.1, so no kubectl port-forward is needed (port-forward can't carry
+# a real load and tends to die mid-demo).
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+- role: control-plane
+  image: kindest/node:v1.34.0
+  extraPortMappings:
+  - {containerPort: 30306, hostPort: 15306, listenAddress: "127.0.0.1"} # vtgate MySQL
+  - {containerPort: 30999, hostPort: 15999, listenAddress: "127.0.0.1"} # vtctld gRPC
+  - {containerPort: 30000, hostPort: 15000, listenAddress: "127.0.0.1"} # vtctld web
