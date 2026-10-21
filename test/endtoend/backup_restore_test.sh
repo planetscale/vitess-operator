@@ -61,11 +61,14 @@ EOF
 setupKindCluster
 cd test/endtoend/operator || exit 1
 
+vtbackup_init_capture="$(mktemp)"
+captureVtbackupInitPod "${vtbackup_init_capture}" &
+vtbackup_init_capture_pid=$!
 get_started "operator-latest.yaml" "101_initial_cluster_backup.yaml"
 verifyVtGateVersion "25.0.0"
 checkSemiSyncSetup
 checkMysqldExporterMetrics
-checkVtbackupMysqldConfigOverrides
+checkVtbackupMysqldConfigOverrides "${vtbackup_init_capture_pid}" "${vtbackup_init_capture}"
 takeBackup "commerce/-"
 verifyListBackupsOutput
 deleteSeedBackupFromStorage

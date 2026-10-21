@@ -754,31 +754,48 @@ function checkVitessBackupScheduleStatusWithTimeout() {
   exit 1
 }
 
-function checkVtbackupMysqldConfigOverrides() {
-  local want_setting="max_connections=12321"
-  local override_file="/pod-config/mysqld-vtbackup-config-overrides"
+# captureVtbackupInitPod records the vtbackup-init Pod's override annotation
+# and vtbackup EXTRA_MY_CNF as soon as the Pod appears. The operator deletes
+# that Pod once the initial backup is complete, which usually happens before
+# the cluster is serving, so run this in the background before get_started.
+function captureVtbackupInitPod() {
+  local out_file=$1
   local vtbackup_pod=""
+  local template='{{.metadata.name}}{{"\n"}}{{range .spec.containers}}{{if eq .name "vtbackup"}}{{range .env}}{{if eq .name "EXTRA_MY_CNF"}}{{.value}}{{end}}{{end}}{{end}}{{end}}{{"\n"}}{{index .metadata.annotations "planetscale.com/mysqld-vtbackup-config-overrides"}}'
 
-  for i in {1..120}; do
-    vtbackup_pod=$(kubectl get pods -n example --no-headers -o custom-columns=":metadata.name" | grep "vtbackup-init" | head -1 | tr -d ' ')
-    if [[ -n "${vtbackup_pod}" ]]; then
-      break
+  rm -f "${out_file}" "${out_file}.tmp"
+  for i in {1..900}; do
+    vtbackup_pod=$(kubectl get pods -n example --no-headers -o custom-columns=":metadata.name" 2>/dev/null | grep "vtbackup-init" | head -1 | tr -d ' ')
+    if [[ -n "${vtbackup_pod}" ]] && kubectl get pod -n example "${vtbackup_pod}" -o go-template="${template}" > "${out_file}.tmp" 2>/dev/null; then
+      mv "${out_file}.tmp" "${out_file}"
+      return 0
     fi
     sleep 1
   done
-  if [[ -z "${vtbackup_pod}" ]]; then
-    echo "ERROR: vtbackup-init Pod not found"
+  return 1
+}
+
+function checkVtbackupMysqldConfigOverrides() {
+  local capture_pid=$1
+  local capture_file=$2
+  local want_setting="max_connections=12321"
+  local override_file="/pod-config/mysqld-vtbackup-config-overrides"
+
+  if ! wait "${capture_pid}" || [[ ! -s "${capture_file}" ]]; then
+    echo "ERROR: vtbackup-init Pod was never observed"
     exit 1
   fi
 
-  echo "Checking vtbackup-only MySQL overrides on ${vtbackup_pod}"
-  snippet=$(kubectl get pod -n example "${vtbackup_pod}" -o go-template='{{index .metadata.annotations "planetscale.com/mysqld-vtbackup-config-overrides"}}')
+  vtbackup_pod=$(sed -n '1p' "${capture_file}")
+  extra=$(sed -n '2p' "${capture_file}")
+  snippet=$(sed -n '3,$p' "${capture_file}")
+
+  echo "Checking vtbackup-only MySQL overrides captured from ${vtbackup_pod}"
   if [[ "${snippet}" != *"${want_setting}"* ]]; then
     echo "ERROR: vtbackup Pod annotation missing ${want_setting}: ${snippet}"
     exit 1
   fi
 
-  extra=$(kubectl get pod -n example "${vtbackup_pod}" -o go-template='{{range .spec.containers}}{{if eq .name "vtbackup"}}{{range .env}}{{if eq .name "EXTRA_MY_CNF"}}{{.value}}{{end}}{{end}}{{end}}{{end}}')
   if [[ "${extra}" != *"${override_file}"* ]]; then
     echo "ERROR: vtbackup EXTRA_MY_CNF missing ${override_file}: ${extra}"
     exit 1
