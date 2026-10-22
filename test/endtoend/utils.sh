@@ -808,8 +808,10 @@ function checkVtbackupMysqldConfigOverrides() {
 
   for vttablet in $(kubectl get pods -n example --no-headers -o custom-columns=":metadata.name" | grep "vttablet") ; do
     echo "Confirming serving tablet ${vttablet} did not receive vtbackup-only MySQL overrides"
-    tablet_ann=$(kubectl get pod -n example "${vttablet}" -o go-template='{{index .metadata.annotations "planetscale.com/mysqld-vtbackup-config-overrides"}}')
-    if [[ -n "${tablet_ann}" ]]; then
+    tablet_ann=$(kubectl get pod -n example "${vttablet}" -o go-template='{{with .metadata.annotations}}{{index . "planetscale.com/mysqld-vtbackup-config-overrides"}}{{end}}')
+    # kubectl prints "<no value>" when the annotation key is missing; that is
+    # not a real annotation and must not fail the serving-tablet check.
+    if [[ -n "${tablet_ann}" && "${tablet_ann}" != "<no value>" ]]; then
       echo "ERROR: serving tablet ${vttablet} has vtbackup-only annotation: ${tablet_ann}"
       exit 1
     fi
