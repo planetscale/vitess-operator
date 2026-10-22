@@ -85,6 +85,8 @@ func TestReconcileTopologyIdleWithoutShardRecord(t *testing.T) {
 		},
 		Spec: planetscalev2.VitessShardSpec{
 			Name: oldShard,
+			// Both cells are in the VitessCluster.
+			ZoneMap: map[string]string{cellA: "", cellB: ""},
 		},
 	}
 	planetscalev2.DefaultVitessShard(vts)
@@ -106,11 +108,65 @@ func TestReconcileTopologyIdleWithoutShardRecord(t *testing.T) {
 		return drainEvents(recorder)
 	}
 
+	expectUnknown := func(t *testing.T, events []string) {
+		t.Helper()
+		if vts.Status.Idle != corev1.ConditionUnknown {
+			t.Fatalf("Idle = %q, want Unknown", vts.Status.Idle)
+		}
+		for _, e := range events {
+			if strings.Contains(e, "TopoGetFailed") {
+				return
+			}
+		}
+		t.Fatalf("expected a TopoGetFailed event, got %v", events)
+	}
+
+	// zone2 still serves the old shard, but its CellInfo is gone. That record
+	// is the only entry under cells/zone2/, so zone2 drops out of the cell
+	// listing entirely. zone2 is in the VitessCluster, so it must still be
+	// checked, and an unreadable cell must leave Idle Unknown, with or without
+	// the shard record.
+	expectUnknownWithLostCellInfo := func(t *testing.T) {
+		t.Helper()
+		if err := ts.UpdateSrvKeyspace(ctx, cellB, keyspace, srvKeyspaceServing(oldShard)); err != nil {
+			t.Fatalf("UpdateSrvKeyspace: %v", err)
+		}
+		ci, err := ts.GetCellInfo(ctx, cellB, true)
+		if err != nil {
+			t.Fatalf("GetCellInfo: %v", err)
+		}
+		gconn, err := ts.ConnForCell(ctx, topo.GlobalCell)
+		if err != nil {
+			t.Fatalf("ConnForCell(global): %v", err)
+		}
+		if err := gconn.Delete(ctx, path.Join(topo.CellsPath, cellB, topo.CellInfoFile), nil); err != nil {
+			t.Fatalf("Delete CellInfo: %v", err)
+		}
+		// Restore zone2 even if the check below fails, so later subtests
+		// start from the shared state they expect.
+		defer func() {
+			if err := ts.CreateCellInfo(ctx, cellB, ci); err != nil {
+				t.Fatalf("CreateCellInfo: %v", err)
+			}
+			if err := ts.UpdateSrvKeyspace(ctx, cellB, keyspace, srvKeyspaceServing(newA, newB)); err != nil {
+				t.Fatalf("UpdateSrvKeyspace: %v", err)
+			}
+		}()
+		if names, err := ts.GetCellInfoNames(ctx); err != nil || len(names) != 1 || names[0] != cellA {
+			t.Fatalf("GetCellInfoNames = %v, %v; want only %s", names, err, cellA)
+		}
+		expectUnknown(t, reconcile(t))
+	}
+
 	t.Run("record present and not serving", func(t *testing.T) {
 		reconcile(t)
 		if vts.Status.Idle != corev1.ConditionTrue {
 			t.Fatalf("Idle = %q, want True", vts.Status.Idle)
 		}
+	})
+
+	t.Run("record present and a serving cell's CellInfo lost", func(t *testing.T) {
+		expectUnknownWithLostCellInfo(t)
 	})
 
 	// Reshard complete removes the source shard record.
@@ -155,22 +211,13 @@ func TestReconcileTopologyIdleWithoutShardRecord(t *testing.T) {
 		}
 	})
 
-	expectUnknown := func(t *testing.T, events []string) {
-		t.Helper()
-		if vts.Status.Idle != corev1.ConditionUnknown {
-			t.Fatalf("Idle = %q, want Unknown", vts.Status.Idle)
-		}
-		for _, e := range events {
-			if strings.Contains(e, "TopoGetFailed") {
-				return
-			}
-		}
-		t.Fatalf("expected a TopoGetFailed event, got %v", events)
-	}
+	t.Run("record missing and a serving cell's CellInfo lost", func(t *testing.T) {
+		expectUnknownWithLostCellInfo(t)
+	})
 
 	t.Run("record missing and one cell unreadable", func(t *testing.T) {
 		// Corrupt zone2's SrvKeyspace so that GetShard still returns NoNode
-		// but GetShardServingCells fails with PartialResult. This is the
+		// but reading zone2's serving partitions fails. This is the
 		// fail-closed branch of the missing-record path: an incomplete view
 		// of the cells must never count as "not serving anywhere".
 		conn, err := ts.ConnForCell(ctx, cellB)
