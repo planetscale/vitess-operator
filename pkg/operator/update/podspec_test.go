@@ -20,7 +20,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/equality"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -77,8 +76,6 @@ func TestTopologySpreadConstraintsReplacesMatchingEntry(t *testing.T) {
 			{MaxSkew: 1, TopologyKey: "topology.kubernetes.io/zone", WhenUnsatisfiable: corev1.DoNotSchedule, LabelSelector: selector},
 		}
 		TopologySpreadConstraints(&dst, src)
-		require.Len(t, dst, 1)
-		assert.Equal(t, int32(2), dst[0].MaxSkew)
 		assert.Equal(t, src, dst)
 	})
 
@@ -92,30 +89,29 @@ func TestTopologySpreadConstraintsReplacesMatchingEntry(t *testing.T) {
 			},
 		}
 		TopologySpreadConstraints(&dst, src)
-		require.Len(t, dst, 1)
 		assert.Equal(t, src, dst)
 	})
 }
 
 func TestTopologySpreadConstraintsKeepsExtraEntries(t *testing.T) {
+	// The extra entry shares the selector and comes first, so matching by
+	// selector alone would overwrite it.
 	selector := &metav1.LabelSelector{MatchLabels: map[string]string{"app": "vttablet"}}
 	extra := corev1.TopologySpreadConstraint{
 		MaxSkew:           1,
 		TopologyKey:       "kubernetes.io/hostname",
 		WhenUnsatisfiable: corev1.ScheduleAnyway,
-		LabelSelector:     &metav1.LabelSelector{MatchLabels: map[string]string{"injected": "true"}},
+		LabelSelector:     selector,
 	}
 	src := []corev1.TopologySpreadConstraint{
 		{MaxSkew: 2, TopologyKey: "topology.kubernetes.io/zone", WhenUnsatisfiable: corev1.DoNotSchedule, LabelSelector: selector},
 	}
 	dst := []corev1.TopologySpreadConstraint{
-		{MaxSkew: 1, TopologyKey: "topology.kubernetes.io/zone", WhenUnsatisfiable: corev1.DoNotSchedule, LabelSelector: selector},
 		extra,
+		{MaxSkew: 1, TopologyKey: "topology.kubernetes.io/zone", WhenUnsatisfiable: corev1.DoNotSchedule, LabelSelector: selector},
 	}
 
 	TopologySpreadConstraints(&dst, src)
 
-	require.Len(t, dst, 2)
-	assert.Equal(t, src[0], dst[0])
-	assert.Equal(t, extra, dst[1])
+	assert.Equal(t, []corev1.TopologySpreadConstraint{extra, src[0]}, dst)
 }
