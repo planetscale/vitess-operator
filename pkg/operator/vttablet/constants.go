@@ -92,6 +92,15 @@ const (
 	mysqldConfigOverridesAnnotationName      = "planetscale.com/mysqld-config-overrides"
 	mysqldConfigOverridesAnnotationFieldPath = "metadata.annotations['" + mysqldConfigOverridesAnnotationName + "']"
 
+	mysqldVtbackupConfigOverridesAnnotationName      = "planetscale.com/mysqld-vtbackup-config-overrides"
+	mysqldVtbackupConfigOverridesAnnotationFieldPath = "metadata.annotations['" + mysqldVtbackupConfigOverridesAnnotationName + "']"
+
+	mysqldConfigOverridesFile         = "mysqld-config-overrides"
+	mysqldVtbackupConfigOverridesFile = "mysqld-vtbackup-config-overrides"
+	mysqldConfigOverridesVolumeName   = "pod-config"
+	mysqldConfigOverridesMountPath    = "/pod-config"
+	extraMyCnfEnvVar                  = "EXTRA_MY_CNF"
+
 	vtbackupTimeout            = 2 * time.Hour
 	vtbackupReplicationTimeout = 1 * time.Hour
 	// waitForBackupInterval is how often to poll for new backups when a tablet

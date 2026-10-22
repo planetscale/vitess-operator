@@ -754,6 +754,81 @@ function checkVitessBackupScheduleStatusWithTimeout() {
   exit 1
 }
 
+# captureVtbackupInitPod records the vtbackup-init Pod's override annotation
+# and vtbackup EXTRA_MY_CNF as soon as the Pod appears. The operator deletes
+# that Pod once the initial backup is complete, which usually happens before
+# the cluster is serving, so run this in the background before get_started.
+function captureVtbackupInitPod() {
+  local out_file=$1
+  local vtbackup_pod=""
+  local template='{{.metadata.name}}{{"\n"}}{{range .spec.containers}}{{if eq .name "vtbackup"}}{{range .env}}{{if eq .name "EXTRA_MY_CNF"}}{{.value}}{{end}}{{end}}{{end}}{{end}}{{"\n"}}{{index .metadata.annotations "planetscale.com/mysqld-vtbackup-config-overrides"}}'
+
+  rm -f "${out_file}" "${out_file}.tmp"
+  for i in {1..900}; do
+    vtbackup_pod=$(kubectl get pods -n example --no-headers -o custom-columns=":metadata.name" 2>/dev/null | grep "vtbackup-init" | head -1 | tr -d ' ')
+    if [[ -n "${vtbackup_pod}" ]] && kubectl get pod -n example "${vtbackup_pod}" -o go-template="${template}" > "${out_file}.tmp" 2>/dev/null; then
+      mv "${out_file}.tmp" "${out_file}"
+      return 0
+    fi
+    sleep 1
+  done
+  return 1
+}
+
+function checkVtbackupMysqldConfigOverrides() {
+  local capture_pid=$1
+  local capture_file=$2
+  local want_setting="max_connections=12321"
+  local override_file="/pod-config/mysqld-vtbackup-config-overrides"
+
+  if ! wait "${capture_pid}" || [[ ! -s "${capture_file}" ]]; then
+    echo "ERROR: vtbackup-init Pod was never observed"
+    exit 1
+  fi
+
+  vtbackup_pod=$(sed -n '1p' "${capture_file}")
+  extra=$(sed -n '2p' "${capture_file}")
+  snippet=$(sed -n '3,$p' "${capture_file}")
+
+  echo "Checking vtbackup-only MySQL overrides captured from ${vtbackup_pod}"
+  if [[ "${snippet}" != *"${want_setting}"* ]]; then
+    echo "ERROR: vtbackup Pod annotation missing ${want_setting}: ${snippet}"
+    exit 1
+  fi
+
+  if [[ "${extra}" != *"${override_file}"* ]]; then
+    echo "ERROR: vtbackup EXTRA_MY_CNF missing ${override_file}: ${extra}"
+    exit 1
+  fi
+  if [[ "${extra}" != *"/vt/config/mycnf/vtbackup.cnf"* ]]; then
+    echo "ERROR: vtbackup EXTRA_MY_CNF missing operator-generated vtbackup.cnf: ${extra}"
+    exit 1
+  fi
+  echo "Confirmed vtbackup MySQL will read ${want_setting} via EXTRA_MY_CNF=${extra}"
+
+  for vttablet in $(kubectl get pods -n example --no-headers -o custom-columns=":metadata.name" | grep "vttablet") ; do
+    echo "Confirming serving tablet ${vttablet} did not receive vtbackup-only MySQL overrides"
+    tablet_ann=$(kubectl get pod -n example "${vttablet}" -o go-template='{{with .metadata.annotations}}{{index . "planetscale.com/mysqld-vtbackup-config-overrides"}}{{end}}')
+    # kubectl prints "<no value>" when the annotation key is missing; that is
+    # not a real annotation and must not fail the serving-tablet check.
+    if [[ -n "${tablet_ann}" && "${tablet_ann}" != "<no value>" ]]; then
+      echo "ERROR: serving tablet ${vttablet} has vtbackup-only annotation: ${tablet_ann}"
+      exit 1
+    fi
+    tablet_extra=$(kubectl get pod -n example "${vttablet}" -o go-template='{{range .spec.containers}}{{if eq .name "mysqld"}}{{range .env}}{{if eq .name "EXTRA_MY_CNF"}}{{.value}}{{end}}{{end}}{{end}}{{end}}')
+    if [[ "${tablet_extra}" == *"${override_file}"* ]]; then
+      echo "ERROR: serving tablet ${vttablet} EXTRA_MY_CNF includes vtbackup-only file: ${tablet_extra}"
+      exit 1
+    fi
+    max_conn=$(kubectl exec -n example "${vttablet}" -c mysqld -- mysql -S /vt/socket/mysql.sock -u root -N -e "select @@global.max_connections")
+    if [[ "${max_conn}" == "12321" ]]; then
+      echo "ERROR: serving tablet ${vttablet} MySQL has vtbackup-only max_connections=${max_conn}"
+      exit 1
+    fi
+    echo "Confirmed ${vttablet} MySQL max_connections=${max_conn} (not ${want_setting})"
+  done
+}
+
 function checkMysqldExporterMetrics() {
   for vttablet in $(kubectl get pods -n example --no-headers -o custom-columns=":metadata.name" | grep "vttablet") ; do
     echo "Confirming that the mysqld_exporter is working in ${vttablet}"

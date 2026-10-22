@@ -75,6 +75,11 @@ type BackupSpec struct {
 	// Even if a backup is past the MinRetentionTime, it will not be deleted if
 	// doing so would take the total number of backups below MinRetentionCount.
 	MinRetentionCount int
+
+	// MysqldConfigOverrides is a my.cnf snippet applied only to this vtbackup
+	// Pod. It comes from spec.vtbackup.mysqldConfigOverrides and must not be
+	// applied to serving vttablet Pods.
+	MysqldConfigOverrides string
 }
 
 // BackupPodName returns the name of the Pod for a periodic vtbackup job.
@@ -175,10 +180,11 @@ func NewBackupPod(key client.ObjectKey, backupSpec *BackupSpec, mysqldImage stri
 		Name:  "HOME",
 		Value: homeDir,
 	})
+	volumeMounts, volumes := backupPodVolumes(tabletSpec)
+	annotations := tabletAnnotations.Get(tabletSpec)
+	applyVtbackupMysqldConfigOverrides(backupSpec.MysqldConfigOverrides, &annotations, &env, &volumes, &volumeMounts)
 	// Then apply user-provided overrides last so they take precedence.
 	update.Env(&env, tabletSpec.ExtraEnv)
-
-	volumeMounts, volumes := backupPodVolumes(tabletSpec)
 
 	podSecurityContext := &corev1.PodSecurityContext{}
 	if planetscalev2.DefaultVitessFSGroup >= 0 {
@@ -206,7 +212,7 @@ func NewBackupPod(key client.ObjectKey, backupSpec *BackupSpec, mysqldImage stri
 			Namespace:   key.Namespace,
 			Name:        key.Name,
 			Labels:      tabletSpec.Labels,
-			Annotations: tabletAnnotations.Get(tabletSpec),
+			Annotations: annotations,
 		},
 		Spec: corev1.PodSpec{
 			ImagePullSecrets: tabletSpec.ImagePullSecrets,
