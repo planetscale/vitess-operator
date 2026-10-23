@@ -48,6 +48,9 @@ func TestEmptyValues(t *testing.T) {
 	b.AddTolerations("empty Tolerations", []corev1.Toleration{})
 	b.AddVolumeNames("nil VolumeNames", nil)
 	b.AddVolumeNames("empty VolumeNames", []corev1.Volume{})
+	b.AddContainerSecurityContexts("nil ContainerSecurityContexts", nil)
+	b.AddContainerSecurityContexts("empty ContainerSecurityContexts", []corev1.Container{})
+	b.AddContainerSecurityContexts("ContainerSecurityContexts without contexts", []corev1.Container{{Name: "sidecar"}})
 
 	if got := b.String(); got != want {
 		t.Errorf("b.String() = %q; want %q", got, want)

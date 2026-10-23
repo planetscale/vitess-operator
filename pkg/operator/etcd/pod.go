@@ -228,7 +228,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 
 	obj.Spec.Hostname = PodName(spec.LockserverName, spec.Index)
 	obj.Spec.Subdomain = PeerServiceName(spec.LockserverName)
-	obj.Spec.ImagePullSecrets = spec.ImagePullSecrets
+	update.LocalObjectReferences(&obj.Spec.ImagePullSecrets, spec.ImagePullSecrets)
 
 	if planetscalev2.DefaultEtcdFSGroup >= 0 {
 		if obj.Spec.SecurityContext == nil {
@@ -324,6 +324,17 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	// mistake for an item added by the API server and leave behind.
 	desiredStateHash.AddContainersUpdates("init-containers", initContainers)
 	desiredStateHash.AddContainersUpdates("containers", containers)
+
+	// Record a hash of the security contexts of user-supplied containers to
+	// force the Pod to be recreated if a field is removed from one, since the
+	// Pod merge keeps fields it doesn't set (admission may have injected them).
+	desiredStateHash.AddContainerSecurityContexts("init-containers-security-contexts", spec.InitContainers)
+	desiredStateHash.AddContainerSecurityContexts("sidecar-containers-security-contexts", spec.SidecarContainers)
+
+	// Record a hash of desired imagePullSecrets to force the Pod to be recreated
+	// if one disappears from the desired list, since we otherwise leave extra
+	// entries alone (the ServiceAccount admission plugin injects some).
+	desiredStateHash.AddLocalObjectReferenceNames("imagePullSecrets", spec.ImagePullSecrets)
 
 	// Record a hash of desired tolerations to force the Pod to be recreated if
 	// one disappears from the desired list.
