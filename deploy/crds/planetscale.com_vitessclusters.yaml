@@ -172,6 +172,7 @@ spec:
                           enum:
                           - vtbackup
                           - vtctldclient
+                          - volumeSnapshot
                           type: string
                         concurrencyPolicy:
                           default: Forbid
@@ -257,6 +258,8 @@ spec:
                                 type: string
                               shard:
                                 example: '-'
+                                type: string
+                              volumeSnapshotClassName:
                                 type: string
                             required:
                             - name
