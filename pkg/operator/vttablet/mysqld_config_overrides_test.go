@@ -167,6 +167,12 @@ func TestNewBackupPodAppliesVtbackupOverridesWithoutSharedOverrides(t *testing.T
 	vol := findVolume(pod.Spec.Volumes, mysqldConfigOverridesVolumeName)
 	require.NotNil(t, vol)
 	assert.Equal(t, []string{mysqldVtbackupConfigOverridesFile}, downwardAPIPaths(vol))
+
+	// With no shared configOverrides, the /pod-config mount comes only from
+	// applyVtbackupMysqldConfigOverrides, so assert it explicitly.
+	mount := findVolumeMount(vtbackup.VolumeMounts, mysqldConfigOverridesVolumeName)
+	require.NotNil(t, mount)
+	assert.Equal(t, mysqldConfigOverridesMountPath, mount.MountPath)
 }
 
 func TestNewBackupPodLeavesTabletSpecUnchanged(t *testing.T) {
