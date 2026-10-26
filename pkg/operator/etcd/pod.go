@@ -331,11 +331,6 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	desiredStateHash.AddContainerSecurityContexts("init-containers-security-contexts", spec.InitContainers)
 	desiredStateHash.AddContainerSecurityContexts("sidecar-containers-security-contexts", spec.SidecarContainers)
 
-	// Record a hash of desired imagePullSecrets to force the Pod to be recreated
-	// if one disappears from the desired list, since we otherwise leave extra
-	// entries alone (the ServiceAccount admission plugin injects some).
-	desiredStateHash.AddLocalObjectReferenceNames("imagePullSecrets", spec.ImagePullSecrets)
-
 	// Record a hash of desired tolerations to force the Pod to be recreated if
 	// one disappears from the desired list.
 	desiredStateHash.AddTolerations("tolerations", spec.Tolerations)

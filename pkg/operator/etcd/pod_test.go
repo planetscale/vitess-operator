@@ -69,36 +69,70 @@ func TestUpdatePodKeepsAdmissionInjectedFields(t *testing.T) {
 	assert.True(t, equality.Semantic.DeepEqual(pod.Spec, again.Spec), "UpdatePod is not idempotent")
 }
 
-// TestUpdatePodRemovedPullSecretChangesDesiredState checks that dropping a
-// pull secret from the spec still changes the desired-state hash, so the Pod is
-// recreated instead of keeping the stale secret forever.
-func TestUpdatePodRemovedPullSecretChangesDesiredState(t *testing.T) {
+// TestUpdatePodPullSecrets pins how pull secrets reach a running etcd Pod.
+// They are merged rather than hashed: an added secret still changes the Pod,
+// a removed one stays until the Pod is recreated for another reason, and the
+// desired-state hash ignores them. etcd members are never released
+// automatically, so a hash item here would leave every member of a cluster
+// with pull secrets pending after an operator upgrade.
+func TestUpdatePodPullSecrets(t *testing.T) {
 	key := client.ObjectKey{Namespace: "vitess", Name: "example-etcd-1"}
-	with := &Spec{LockserverName: "example-etcd", Image: "etcd", Index: 1, ImagePullSecrets: []corev1.LocalObjectReference{{Name: "my-registry"}}}
-	without := &Spec{LockserverName: "example-etcd", Image: "etcd", Index: 1}
+	secret := corev1.LocalObjectReference{Name: "my-registry"}
+	spec := func(secrets ...corev1.LocalObjectReference) *Spec {
+		return &Spec{LockserverName: "example-etcd", Image: "etcd", Index: 1, ImagePullSecrets: secrets}
+	}
 
-	podWith := NewPod(key, with)
-	podWithout := NewPod(key, without)
+	assert.Equal(t,
+		NewPod(key, spec()).Annotations[desiredstatehash.Annotation],
+		NewPod(key, spec(secret)).Annotations[desiredstatehash.Annotation],
+		"pull secrets must not change the desired-state hash")
 
-	assert.NotEqual(t, podWith.Annotations[desiredstatehash.Annotation], podWithout.Annotations[desiredstatehash.Annotation])
+	added := NewPod(key, spec())
+	UpdatePod(added, spec(secret))
+	assert.Contains(t, added.Spec.ImagePullSecrets, secret, "an added secret reaches the Pod")
+
+	removed := NewPod(key, spec(secret))
+	UpdatePod(removed, spec())
+	assert.Contains(t, removed.Spec.ImagePullSecrets, secret, "a removed secret stays until the Pod is recreated")
 }
 
-// TestUpdatePodRemovedSidecarSecurityContextFieldChangesDesiredState checks
-// that removing a field from a user-supplied container's securityContext
-// changes the desired-state hash, so the Pod is recreated with the hardened
-// context instead of keeping the removed field.
-func TestUpdatePodRemovedSidecarSecurityContextFieldChangesDesiredState(t *testing.T) {
+// TestUpdatePodRemovedSecurityContextFieldChangesDesiredState checks that
+// removing a field from the securityContext of a user-supplied init container
+// or sidecar changes the desired-state hash, so the Pod is recreated with the
+// hardened context instead of keeping the removed field. Each kind is changed
+// on its own, so each hash item is pinned separately.
+func TestUpdatePodRemovedSecurityContextFieldChangesDesiredState(t *testing.T) {
 	key := client.ObjectKey{Namespace: "vitess", Name: "example-etcd-1"}
-	withSidecar := func(sc *corev1.SecurityContext) *Spec {
-		return &Spec{
-			LockserverName:    "example-etcd",
-			Image:             "etcd",
-			Index:             1,
-			SidecarContainers: []corev1.Container{{Name: "sidecar", Image: "sidecar", SecurityContext: sc}},
-		}
-	}
-	podPrivileged := NewPod(key, withSidecar(&corev1.SecurityContext{Privileged: ptr.To(true), RunAsNonRoot: ptr.To(true)}))
-	podHardened := NewPod(key, withSidecar(&corev1.SecurityContext{RunAsNonRoot: ptr.To(true)}))
+	privileged := &corev1.SecurityContext{Privileged: ptr.To(true), RunAsNonRoot: ptr.To(true)}
+	hardened := &corev1.SecurityContext{RunAsNonRoot: ptr.To(true)}
 
-	assert.NotEqual(t, podPrivileged.Annotations[desiredstatehash.Annotation], podHardened.Annotations[desiredstatehash.Annotation])
+	tests := []struct {
+		name string
+		set  func(spec *Spec, sc *corev1.SecurityContext)
+	}{
+		{"init container", func(spec *Spec, sc *corev1.SecurityContext) { spec.InitContainers[0].SecurityContext = sc }},
+		{"sidecar container", func(spec *Spec, sc *corev1.SecurityContext) { spec.SidecarContainers[0].SecurityContext = sc }},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			specWith := func(sc *corev1.SecurityContext) *Spec {
+				// The other kind keeps the same context in both specs, so its
+				// item stays in the hash and only the changed one can move it.
+				spec := &Spec{
+					LockserverName:    "example-etcd",
+					Image:             "etcd",
+					Index:             1,
+					InitContainers:    []corev1.Container{{Name: "user-init", Image: "init", SecurityContext: hardened.DeepCopy()}},
+					SidecarContainers: []corev1.Container{{Name: "user-sidecar", Image: "sidecar", SecurityContext: hardened.DeepCopy()}},
+				}
+				tc.set(spec, sc)
+				return spec
+			}
+
+			podPrivileged := NewPod(key, specWith(privileged.DeepCopy()))
+			podHardened := NewPod(key, specWith(hardened.DeepCopy()))
+
+			assert.NotEqual(t, podPrivileged.Annotations[desiredstatehash.Annotation], podHardened.Annotations[desiredstatehash.Annotation])
+		})
+	}
 }
