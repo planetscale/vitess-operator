@@ -311,6 +311,13 @@ func ResourceList(dst, src *corev1.ResourceList) {
 // LocalObjectReferences updates entries in 'dst' based on the values in 'src'.
 // It leaves extra entries (found in 'dst' but not in 'src') untouched,
 // since those might be set by mutating admission webhooks or other controllers.
+//
+// For imagePullSecrets on a directly managed Pod, this means a secret removed
+// from the spec stays on the running Pod until something else recreates it.
+// That is deliberately not recorded in the desired-state hash: nearly every
+// cluster that pulls from a private registry sets pull secrets, so the hash item
+// would roll every such Pod on upgrade, and a leftover reference is only read
+// by the kubelet when it pulls an image.
 func LocalObjectReferences(dst *[]corev1.LocalObjectReference, src []corev1.LocalObjectReference) {
 srcLoop:
 	for srcIndex := range src {

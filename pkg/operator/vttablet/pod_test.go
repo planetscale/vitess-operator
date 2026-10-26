@@ -125,51 +125,95 @@ func TestUpdatePodDesiredSecurityContextWins(t *testing.T) {
 	}
 }
 
-// TestUpdatePodRemovedPullSecretChangesDesiredState checks that dropping a
-// pull secret from the spec still changes the desired-state hash, so the Pod
-// is recreated instead of keeping the stale secret forever.
-func TestUpdatePodRemovedPullSecretChangesDesiredState(t *testing.T) {
+// TestUpdatePodPullSecrets pins how pull secrets reach a running tablet Pod.
+// They are merged rather than hashed: an added secret still changes the Pod,
+// a removed one stays until the Pod is recreated for another reason, and the
+// desired-state hash ignores them so that an operator upgrade doesn't roll
+// every Pod of a cluster that pulls from a private registry.
+func TestUpdatePodPullSecrets(t *testing.T) {
 	key := client.ObjectKey{Namespace: "vitess", Name: "example-vttablet-zone1-100"}
-	podWith := NewPod(key, testPodSpec(corev1.LocalObjectReference{Name: "my-registry"}))
-	podWithout := NewPod(key, testPodSpec())
+	secret := corev1.LocalObjectReference{Name: "my-registry"}
 
-	assert.NotEqual(t, podWith.Annotations[desiredstatehash.Annotation], podWithout.Annotations[desiredstatehash.Annotation])
+	assert.Equal(t,
+		NewPod(key, testPodSpec()).Annotations[desiredstatehash.Annotation],
+		NewPod(key, testPodSpec(secret)).Annotations[desiredstatehash.Annotation],
+		"pull secrets must not change the desired-state hash")
+
+	added := NewPod(key, testPodSpec())
+	UpdatePod(added, testPodSpec(secret))
+	assert.Contains(t, added.Spec.ImagePullSecrets, secret, "an added secret reaches the Pod")
+
+	removed := NewPod(key, testPodSpec(secret))
+	UpdatePod(removed, testPodSpec())
+	assert.Contains(t, removed.Spec.ImagePullSecrets, secret, "a removed secret stays until the Pod is recreated")
 }
 
-// TestUpdatePodRemovedSidecarSecurityContextFieldChangesDesiredState checks
-// that removing a field from a user-supplied container's securityContext
-// changes the desired-state hash. The Pod merge keeps fields the desired
-// context doesn't set, so without the hash the removal would never reach the
-// Pod and nothing would report it.
-func TestUpdatePodRemovedSidecarSecurityContextFieldChangesDesiredState(t *testing.T) {
+// TestUpdatePodRemovedSecurityContextFieldChangesDesiredState checks that
+// removing a field from the securityContext of a user-supplied init container
+// or sidecar changes the desired-state hash. The Pod merge keeps fields that
+// the desired context doesn't set, so without the hash the removal would never
+// reach the Pod and nothing would report it. Each kind is changed on its own,
+// so each hash item is pinned separately.
+func TestUpdatePodRemovedSecurityContextFieldChangesDesiredState(t *testing.T) {
 	key := client.ObjectKey{Namespace: "vitess", Name: "example-vttablet-zone1-100"}
-	withSidecar := func(sc *corev1.SecurityContext) *Spec {
-		spec := testPodSpec()
-		spec.SidecarContainers = []corev1.Container{{Name: "sidecar", Image: "sidecar", SecurityContext: sc}}
-		spec.InitContainers = []corev1.Container{{Name: "init", Image: "init", SecurityContext: sc}}
-		return spec
+	privileged := &corev1.SecurityContext{Privileged: ptr.To(true), RunAsUser: ptr.To(int64(0)), RunAsNonRoot: ptr.To(true)}
+	hardened := &corev1.SecurityContext{RunAsNonRoot: ptr.To(true)}
+
+	tests := []struct {
+		name      string
+		container string
+		set       func(spec *Spec, sc *corev1.SecurityContext)
+	}{
+		{
+			name:      "init container",
+			container: "user-init",
+			set: func(spec *Spec, sc *corev1.SecurityContext) {
+				spec.InitContainers[0].SecurityContext = sc
+			},
+		},
+		{
+			name:      "sidecar container",
+			container: "user-sidecar",
+			set: func(spec *Spec, sc *corev1.SecurityContext) {
+				spec.SidecarContainers[0].SecurityContext = sc
+			},
+		},
 	}
-	privileged := withSidecar(&corev1.SecurityContext{
-		Privileged:   ptr.To(true),
-		RunAsUser:    ptr.To(int64(0)),
-		RunAsNonRoot: ptr.To(true),
-	})
-	hardened := withSidecar(&corev1.SecurityContext{RunAsNonRoot: ptr.To(true)})
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			specWith := func(sc *corev1.SecurityContext) *Spec {
+				// The other kind keeps the same context in both specs, so its
+				// item stays in the hash and only the changed one can move it.
+				spec := testPodSpec()
+				spec.InitContainers = []corev1.Container{{Name: "user-init", Image: "init", SecurityContext: hardened.DeepCopy()}}
+				spec.SidecarContainers = []corev1.Container{{Name: "user-sidecar", Image: "sidecar", SecurityContext: hardened.DeepCopy()}}
+				tc.set(spec, sc)
+				return spec
+			}
 
-	live := NewPod(key, privileged)
-	desired := NewPod(key, hardened)
+			live := NewPod(key, specWith(privileged.DeepCopy()))
+			merged := live.DeepCopy()
+			UpdatePod(merged, specWith(hardened.DeepCopy()))
 
-	// The merge alone keeps the removed fields on the live Pod...
-	merged := live.DeepCopy()
-	UpdatePod(merged, hardened)
-	for _, c := range append(merged.Spec.InitContainers, merged.Spec.Containers...) {
-		if c.Name == "sidecar" || c.Name == "init" {
-			assert.True(t, ptr.Deref(c.SecurityContext.Privileged, false), "container %q", c.Name)
+			c := findContainer(t, merged, tc.container)
+			assert.True(t, ptr.Deref(c.SecurityContext.Privileged, false), "the merge alone keeps the removed field")
+			assert.NotEqual(t, live.Annotations[desiredstatehash.Annotation], merged.Annotations[desiredstatehash.Annotation],
+				"the desired-state hash must change so the Pod is recreated")
+		})
+	}
+}
+
+func findContainer(t *testing.T, pod *corev1.Pod, name string) *corev1.Container {
+	t.Helper()
+	for _, list := range [][]corev1.Container{pod.Spec.InitContainers, pod.Spec.Containers} {
+		for i := range list {
+			if list[i].Name == name {
+				return &list[i]
+			}
 		}
 	}
-	// ...so the desired-state hash has to change to get the Pod recreated.
-	assert.NotEqual(t, live.Annotations[desiredstatehash.Annotation], desired.Annotations[desiredstatehash.Annotation])
-	assert.NotEqual(t, merged.Annotations[desiredstatehash.Annotation], live.Annotations[desiredstatehash.Annotation])
+	t.Fatalf("container %q not found", name)
+	return nil
 }
 
 // TestUpdatePodUserContainersWithoutSecurityContextKeepDesiredState checks

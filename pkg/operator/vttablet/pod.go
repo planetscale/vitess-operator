@@ -323,11 +323,6 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	desiredStateHash.AddTolerations("tolerations", spec.Tolerations)
 	desiredStateHash.AddTopologySpreadConstraints("topologySpreadConstraints", spec.TopologySpreadConstraints)
 
-	// Record a hash of desired imagePullSecrets to force the Pod to be recreated
-	// if one disappears from the desired list, since we otherwise leave extra
-	// entries alone (the ServiceAccount admission plugin injects some).
-	desiredStateHash.AddLocalObjectReferenceNames("imagePullSecrets", spec.ImagePullSecrets)
-
 	// Add the final desired state hash annotation.
 	update.Annotations(&obj.Annotations, map[string]string{
 		desiredstatehash.Annotation: desiredStateHash.String(),
