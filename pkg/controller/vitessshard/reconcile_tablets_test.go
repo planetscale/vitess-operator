@@ -96,3 +96,119 @@ func TestTabletUidLabelZeroPadded(t *testing.T) {
 		}
 	}
 }
+
+func TestNamedTabletPoolsGetDistinctUIDs(t *testing.T) {
+	// Multiple pools of one tablet type in one cell, distinguished only by name, with local MySQL
+	cluster := "default"
+	cell := "zone1"
+	keyspace := "commerce"
+	poolNames := []string{"node-a", "node-b", "node-c"}
+
+	pools := make([]planetscalev2.VitessShardTabletPool, 0, len(poolNames))
+	for _, name := range poolNames {
+		pools = append(pools, planetscalev2.VitessShardTabletPool{
+			Cell:     cell,
+			Type:     planetscalev2.ReplicaPoolType,
+			Name:     name,
+			Replicas: 1,
+		})
+	}
+	shard := newVitessShard(keyspace, pools)
+	parentLabels := map[string]string{
+		planetscalev2.ComponentLabel: planetscalev2.VttabletComponentName,
+		planetscalev2.ClusterLabel:   cluster,
+		planetscalev2.KeyspaceLabel:  keyspace,
+		planetscalev2.ShardLabel:     shard.Spec.KeyRange.SafeName(),
+	}
+
+	tablets := vttabletSpecs(shard, parentLabels)
+	if len(tablets) != len(poolNames) {
+		t.Fatalf("expected %d tablets, got %d", len(poolNames), len(tablets))
+	}
+
+	seen := make(map[uint32]string, len(tablets))
+	for i, tablet := range tablets {
+		wantUID := vttablet.UIDWithPoolName(cell, keyspace, shard.Spec.KeyRange, planetscalev2.ReplicaPoolType, uint32(tablet.Index), poolNames[i])
+		if tablet.Alias.Uid != wantUID {
+			t.Errorf("pool %q: expected uid %v, got %v", poolNames[i], wantUID, tablet.Alias.Uid)
+		}
+		if other, ok := seen[tablet.Alias.Uid]; ok {
+			t.Errorf("pool %q has the same uid as pool %q (%v), so both would produce one Pod and one PVC",
+				poolNames[i], other, tablet.Alias.Uid)
+		}
+		seen[tablet.Alias.Uid] = poolNames[i]
+
+		if got := tablet.Labels[planetscalev2.TabletPoolNameLabel]; got != poolNames[i] {
+			t.Errorf("pool %q: expected pool name label %q, got %q", poolNames[i], poolNames[i], got)
+		}
+	}
+}
+
+func TestUnnamedTabletPoolUIDIsUnchanged(t *testing.T) {
+	// A pool with no name must keep the UID it has always had
+	cluster := "default"
+	cell := "zone1"
+	keyspace := "commerce"
+
+	shard := newVitessShard(keyspace, []planetscalev2.VitessShardTabletPool{
+		{
+			Cell:     cell,
+			Type:     planetscalev2.ReplicaPoolType,
+			Replicas: 3,
+		},
+	})
+	parentLabels := map[string]string{
+		planetscalev2.ComponentLabel: planetscalev2.VttabletComponentName,
+		planetscalev2.ClusterLabel:   cluster,
+		planetscalev2.KeyspaceLabel:  keyspace,
+		planetscalev2.ShardLabel:     shard.Spec.KeyRange.SafeName(),
+	}
+
+	for _, tablet := range vttabletSpecs(shard, parentLabels) {
+		wantUID := vttablet.UID(cell, keyspace, shard.Spec.KeyRange, planetscalev2.ReplicaPoolType, uint32(tablet.Index))
+		if tablet.Alias.Uid != wantUID {
+			t.Errorf("tablet index %d: expected uid %v, got %v", tablet.Index, wantUID, tablet.Alias.Uid)
+		}
+		if _, ok := tablet.Labels[planetscalev2.TabletPoolNameLabel]; ok {
+			t.Errorf("tablet index %d: unnamed pool should not carry a pool name label", tablet.Index)
+		}
+	}
+}
+
+func TestExternalDatastorePoolUIDIsUnchanged(t *testing.T) {
+	// An ExternalDatastore pool with no name has always used the plain UID, so it has to keep using it
+	// UIDWithPoolName hashes an empty name differently, so calling it here would rename the tablet
+	cluster := "default"
+	cell := "zone1"
+	keyspace := "commerce"
+
+	shard := newVitessShard(keyspace, []planetscalev2.VitessShardTabletPool{
+		{
+			Cell:     cell,
+			Type:     planetscalev2.ExternalReplicaPoolType,
+			Replicas: 2,
+			ExternalDatastore: &planetscalev2.ExternalDatastore{
+				User:     "vitess",
+				Host:     "mysql.example.com",
+				Port:     3306,
+				Database: keyspace,
+			},
+		},
+	})
+	parentLabels := map[string]string{
+		planetscalev2.ComponentLabel: planetscalev2.VttabletComponentName,
+		planetscalev2.ClusterLabel:   cluster,
+		planetscalev2.KeyspaceLabel:  keyspace,
+		planetscalev2.ShardLabel:     shard.Spec.KeyRange.SafeName(),
+	}
+
+	for _, tablet := range vttabletSpecs(shard, parentLabels) {
+		wantUID := vttablet.UID(cell, keyspace, shard.Spec.KeyRange, planetscalev2.ExternalReplicaPoolType, uint32(tablet.Index))
+		if tablet.Alias.Uid != wantUID {
+			t.Errorf("tablet index %d: expected uid %v, got %v", tablet.Index, wantUID, tablet.Alias.Uid)
+		}
+		if got, ok := tablet.Labels[planetscalev2.TabletPoolNameLabel]; !ok || got != "" {
+			t.Errorf("tablet index %d: expected an empty pool name label, got %q (present %v)", tablet.Index, got, ok)
+		}
+	}
+}
