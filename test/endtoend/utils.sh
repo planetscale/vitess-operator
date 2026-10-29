@@ -754,6 +754,37 @@ function checkVitessBackupScheduleStatusWithTimeout() {
   exit 1
 }
 
+# checkNoFlagDeprecationWarnings fails if a Vitess container logged that a
+# flag passed to it uses a deprecated underscore spelling, or is a deprecated
+# glog flag. Other flag deprecations, such as vtctld's --cell (#866), are left
+# to follow-up changes, so that a new deprecation in Vitess doesn't fail every
+# end-to-end run.
+# $1: namespace (default: example)
+function checkNoFlagDeprecationWarnings() {
+  local namespace="${1:-example}"
+  local pods
+  pods=$(kubectl get pods -n "${namespace}" -l 'planetscale.com/component in (vttablet,vtgate,vtctld,vtorc,vtadmin)' -o name)
+  if [[ -z "${pods}" ]]; then
+    echo "ERROR: no Vitess pods found in namespace ${namespace}"
+    exit 1
+  fi
+
+  local pod logs warnings
+  for pod in ${pods}; do
+    if ! logs=$(kubectl logs -n "${namespace}" "${pod}" --all-containers=true --prefix=true); then
+      echo "ERROR: could not read the logs of ${pod}"
+      exit 1
+    fi
+    warnings=$(echo "${logs}" | grep -E 'Flag --[^ =]*_[^ =]* has been deprecated|glog and its flags have been deprecated|has no effect when structured logging is enabled')
+    if [[ -n "${warnings}" ]]; then
+      echo "ERROR: ${pod} logged flag deprecation warnings:"
+      echo "${warnings}"
+      exit 1
+    fi
+  done
+  echo "No flag deprecation warnings from Vitess pods"
+}
+
 function checkMysqldExporterMetrics() {
   for vttablet in $(kubectl get pods -n example --no-headers -o custom-columns=":metadata.name" | grep "vttablet") ; do
     echo "Confirming that the mysqld_exporter is working in ${vttablet}"

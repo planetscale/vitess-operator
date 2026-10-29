@@ -23,8 +23,8 @@ import (
 
 func fileBackupFlags(clusterName string) vitess.Flags {
 	return vitess.Flags{
-		"backup_storage_implementation": fileBackupStorageImplementationName,
-		"file_backup_storage_root":      rootKeyPrefix(fileBackupStorageMountPath, clusterName),
+		"backup-storage-implementation": fileBackupStorageImplementationName,
+		"file-backup-storage-root":      rootKeyPrefix(fileBackupStorageMountPath, clusterName),
 	}
 }
 

@@ -19,7 +19,6 @@ package vtadmin
 import (
 	"fmt"
 	"path/filepath"
-	"strings"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -161,12 +160,9 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 
 	// Apply user-provided flag overrides after generating base flags.
 	apiFlags := spec.apiFlags()
-	for key, value := range spec.ExtraFlags {
-		// We told users in the CRD API field doc not to put any leading '-',
-		// but people may not read that so we are liberal in what we accept.
-		key = strings.TrimLeft(key, "-")
-		apiFlags[key] = value
-	}
+	// MergeStrings handles leading '-' characters and either spelling of a
+	// flag name, so a user value replaces the operator's.
+	apiFlags.MergeStrings(spec.ExtraFlags)
 
 	// Set only the Pod template fields we care about.
 	// Use functions from the `operator/update` package for lists
@@ -298,9 +294,6 @@ func (spec *Spec) apiFlags() vitess.Flags {
 		"tracer":       "opentracing-jaeger",
 		"grpc-tracing": true,
 		"http-tracing": true,
-
-		"logtostderr":     true,
-		"alsologtostderr": true,
 	}
 }
 
@@ -308,15 +301,15 @@ func (spec *Spec) apiFlags() vitess.Flags {
 func updateRbac(spec *Spec, flags vitess.Flags, container *corev1.Container, podSpec *corev1.PodSpec) {
 	if spec.Rbac != nil {
 		rbacConfigFile := secrets.Mount(spec.Rbac, rbacConfigDirName)
-		flags["rbac"] = true
-		flags["rbac-config"] = rbacConfigFile.FilePath()
+		flags.Set("rbac", true)
+		flags.Set("rbac-config", rbacConfigFile.FilePath())
 
 		// Add the volume to the Pod, if needed.
 		update.Volumes(&podSpec.Volumes, rbacConfigFile.PodVolumes())
 		// Mount the volume in the Container.
 		container.VolumeMounts = append(container.VolumeMounts, rbacConfigFile.ContainerVolumeMount())
 	} else {
-		flags["no-rbac"] = true
+		flags.Set("no-rbac", true)
 	}
 }
 
@@ -337,7 +330,7 @@ func updateDiscoveryAndClusterConfig(spec *Spec, flags vitess.Flags, container *
 	container.VolumeMounts = append(container.VolumeMounts, clusterConfigFile.ContainerVolumeMount())
 
 	// Update the cluster-config flag
-	flags["cluster-config"] = clusterConfigFile.FilePath()
+	flags.Set("cluster-config", clusterConfigFile.FilePath())
 }
 
 // updateWebConfig mounts the webConfig file to a specific mount path

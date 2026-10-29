@@ -65,6 +65,7 @@ get_started "operator-latest.yaml" "101_initial_cluster_backup.yaml"
 verifyVtGateVersion "25.0.0"
 checkSemiSyncSetup
 checkMysqldExporterMetrics
+checkNoFlagDeprecationWarnings
 takeBackup "commerce/-"
 verifyListBackupsOutput
 deleteSeedBackupFromStorage

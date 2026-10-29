@@ -37,6 +37,7 @@ import (
 	"planetscale.dev/vitess-operator/pkg/operator/results"
 	"planetscale.dev/vitess-operator/pkg/operator/secrets"
 	"planetscale.dev/vitess-operator/pkg/operator/update"
+	"planetscale.dev/vitess-operator/pkg/operator/vitess"
 	"planetscale.dev/vitess-operator/pkg/operator/vitesscell"
 	"planetscale.dev/vitess-operator/pkg/operator/vtgate"
 )
@@ -124,9 +125,7 @@ func (r *ReconcileVitessCell) reconcileVtgate(ctx context.Context, vtc *planetsc
 	update.Annotations(&annotations, vtc.Spec.Gateway.Annotations)
 
 	// Merge ExtraVitessFlags and ExtraFlags together into a new map.
-	extraFlags := make(map[string]string)
-	update.StringMap(&extraFlags, vtc.Spec.ExtraVitessFlags)
-	update.StringMap(&extraFlags, vtc.Spec.Gateway.ExtraFlags)
+	extraFlags := vitess.MergeStringFlags(vtc.Spec.ExtraVitessFlags, vtc.Spec.Gateway.ExtraFlags)
 
 	// Reconcile vtgate Deployment.
 	spec := &vtgate.Spec{

@@ -81,16 +81,13 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	// Compute all operator-generated vttablet flags first.
 	// Then apply user-provided overrides last so they take precedence.
 	vttabletAllFlags := vttabletFlags.Get(spec)
-	for key, value := range spec.Vttablet.ExtraFlags {
-		// We told users in the CRD API field doc not to put any leading '-',
-		// but people may not read that so we are liberal in what we accept.
-		key = strings.TrimLeft(key, "-")
-		vttabletAllFlags[key] = value
-	}
+	// MergeStrings handles leading '-' characters and either spelling of a
+	// flag name, so a user value replaces the operator's.
+	vttabletAllFlags.MergeStrings(spec.Vttablet.ExtraFlags)
 	// Ensure that binary logs are restored to/from a location that all containers
 	// in the pod can access if no location was explicitly provided.
-	if _, ok := vttabletAllFlags["builtinbackup-incremental-restore-path"]; !ok {
-		vttabletAllFlags["builtinbackup-incremental-restore-path"] = vtDataRootPath
+	if !vttabletAllFlags.Has("builtinbackup-incremental-restore-path") {
+		vttabletAllFlags.Set("builtinbackup-incremental-restore-path", vtDataRootPath)
 	}
 	mysql.UpdateMySQLServerVersion(vttabletAllFlags, spec.Images.Mysqld.Image())
 

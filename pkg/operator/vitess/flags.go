@@ -100,10 +100,87 @@ func (f Flags) FormatArgsConvertBoolean() []string {
 	return args
 }
 
-// Merge sets the given flags, overwriting duplicates.
+// Merge sets the given flags, overwriting duplicates, including ones spelled
+// differently (see Set).
+//
+// The given flags are applied in sorted order, so if they contain more than
+// one spelling of the same flag, the one that sorts last wins every time.
 func (f Flags) Merge(flags Flags) Flags {
-	for key, value := range flags {
-		f[key] = value
+	keys := make([]string, 0, len(flags))
+	for key := range flags {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+
+	for _, key := range keys {
+		f.Set(key, flags[key])
 	}
 	return f
+}
+
+// MergeStrings is Merge for string-valued flags, such as user-provided
+// extraFlags.
+func (f Flags) MergeStrings(flags map[string]string) Flags {
+	merge := make(Flags, len(flags))
+	for key, value := range flags {
+		merge[key] = value
+	}
+	return f.Merge(merge)
+}
+
+// MergeStringFlags returns the union of string-valued flag maps, such as the
+// cluster-wide extraVitessFlags and a component's extraFlags. A flag in a
+// later map replaces the same flag from an earlier map, whichever spelling
+// either one uses.
+func MergeStringFlags(layers ...map[string]string) map[string]string {
+	merged := Flags{}
+	for _, layer := range layers {
+		merged.MergeStrings(layer)
+	}
+	result := make(map[string]string, len(merged))
+	for key, value := range merged {
+		result[key] = value.(string)
+	}
+	return result
+}
+
+// Set sets the value of a flag. Any leading '-' characters are removed from
+// the name, and any value already set under another spelling of the same flag
+// is replaced, so the command line never carries both spellings.
+func (f Flags) Set(name string, value interface{}) {
+	name = strings.TrimLeft(name, "-")
+	normalized := normalizeFlagName(name)
+	for key := range f {
+		if key != name && normalizeFlagName(key) == normalized {
+			delete(f, key)
+		}
+	}
+	f[name] = value
+}
+
+// Has reports whether the flag is set under any spelling.
+func (f Flags) Has(name string) bool {
+	normalized := normalizeFlagName(strings.TrimLeft(name, "-"))
+	for key := range f {
+		if normalizeFlagName(key) == normalized {
+			return true
+		}
+	}
+	return false
+}
+
+// normalizeFlagName returns the name Vitess resolves a flag to. Vitess
+// binaries accept '_' in place of '-' in a flag name that has no '-' at all,
+// except for the glog flags below, which keep their underscores. This mirrors
+// NormalizeUnderscoresToDashes in vitess.io/vitess/go/vt/utils, which we can't
+// call directly because it also prints a deprecation warning.
+func normalizeFlagName(name string) string {
+	switch name {
+	case "log_dir", "log_link", "log_backtrace_at":
+		return name
+	}
+	if strings.Contains(name, "-") {
+		return name
+	}
+	return strings.ReplaceAll(name, "_", "-")
 }

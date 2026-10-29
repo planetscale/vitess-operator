@@ -41,6 +41,7 @@ import (
 	"planetscale.dev/vitess-operator/pkg/operator/rollout"
 	"planetscale.dev/vitess-operator/pkg/operator/toposerver"
 	"planetscale.dev/vitess-operator/pkg/operator/update"
+	"planetscale.dev/vitess-operator/pkg/operator/vitess"
 	"planetscale.dev/vitess-operator/pkg/operator/vttablet"
 )
 
@@ -296,9 +297,7 @@ func vttabletSpecs(vts *planetscalev2.VitessShard, parentLabels map[string]strin
 			}
 
 			// Merge ExtraVitessFlags into the tablet spec ExtraFlags field.
-			extraFlags := make(map[string]string)
-			update.StringMap(&extraFlags, vts.Spec.ExtraVitessFlags)
-			update.StringMap(&extraFlags, pool.Vttablet.ExtraFlags)
+			extraFlags := vitess.MergeStringFlags(vts.Spec.ExtraVitessFlags, pool.Vttablet.ExtraFlags)
 
 			// Make shallow copy of pool.Vttablet to avoid mutating input.
 			vttabletcpy := pool.Vttablet

@@ -52,11 +52,12 @@ func InitFlags() {
 			flagsRequiredByVTop[fName] = true
 			pflag.CommandLine.AddFlag(f)
 
-			// In Vitess v22 we are migrating flags to use underscores instead of
-			// dashes. The logic below duplicates flags with the dash version into
-			// the underscore version and adds them to the operator CLI so that the
-			// backup subcontroller is backward compatible and support both versions.
-			// TODO: this should be cleaned up in v23 to only use dashes.
+			// Vitess v23 renamed its flags from underscores to dashes. Keep
+			// accepting the underscore spelling too, so operator Deployments
+			// that still pass it keep working, but mark it deprecated. The
+			// operator itself passes the dashed spelling to the backup
+			// subcontroller.
+			// TODO: remove the underscore spellings in vitess-operator v2.19.
 			underscoreFlagName := strings.ReplaceAll(fName, "-", "_")
 			if underscoreFlagName != fName {
 				flagsRequiredByVTop[underscoreFlagName] = true
@@ -64,6 +65,7 @@ func InitFlags() {
 				fcopy := *f
 				fcopy.Name = underscoreFlagName
 				pflag.CommandLine.AddFlag(&fcopy)
+				_ = pflag.CommandLine.MarkDeprecated(underscoreFlagName, fmt.Sprintf("use --%s instead", fName))
 			}
 		}
 	})
@@ -96,11 +98,12 @@ func InitFlags() {
 				tlsFlags[fName] = true
 			}
 
-			// In Vitess v22 we are migrating flags to use underscores instead of
-			// dashes. The logic below duplicates flags with the dash version into
-			// the underscore version and adds them to the operator CLI so that the
-			// backup subcontroller is backward compatible and support both versions.
-			// TODO: this should be cleaned up in v23 to only use dashes.
+			// Vitess v23 renamed its flags from underscores to dashes. Keep
+			// accepting the underscore spelling too, so operator Deployments
+			// that still pass it keep working, but mark it deprecated. The
+			// operator itself passes the dashed spelling to the backup
+			// subcontroller.
+			// TODO: remove the underscore spellings in vitess-operator v2.19.
 			underscoreFlagName := strings.ReplaceAll(fName, "-", "_")
 			if underscoreFlagName != fName {
 				tlsFlags[underscoreFlagName] = true
@@ -108,6 +111,7 @@ func InitFlags() {
 				fcopy := *f
 				fcopy.Name = underscoreFlagName
 				pflag.CommandLine.AddFlag(&fcopy)
+				_ = pflag.CommandLine.MarkDeprecated(underscoreFlagName, fmt.Sprintf("use --%s instead", fName))
 			}
 		}
 	})

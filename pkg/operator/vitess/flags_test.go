@@ -163,3 +163,86 @@ func TestMerge(t *testing.T) {
 		})
 	}
 }
+
+// TestSet tests that Set replaces a value set under another spelling of the
+// same Vitess flag, and only that.
+func TestSet(t *testing.T) {
+	tests := []struct {
+		name   string
+		flags  Flags
+		key    string
+		value  interface{}
+		result Flags
+	}{
+		{
+			name:   "underscore replaces dashed",
+			flags:  Flags{"db-charset": "utf8mb4", "port": 15000},
+			key:    "db_charset",
+			value:  "latin1",
+			result: Flags{"db_charset": "latin1", "port": 15000},
+		},
+		{
+			name:   "dashed replaces underscore",
+			flags:  Flags{"db_charset": "utf8mb4"},
+			key:    "db-charset",
+			value:  "latin1",
+			result: Flags{"db-charset": "latin1"},
+		},
+		{
+			name:   "leading dashes are removed",
+			flags:  Flags{"db-charset": "utf8mb4"},
+			key:    "--db_charset",
+			value:  "latin1",
+			result: Flags{"db_charset": "latin1"},
+		},
+		{
+			// Vitess keeps glog's underscores, so these are two different flags.
+			name:   "glog flags keep their underscores",
+			flags:  Flags{"log_dir": "/a"},
+			key:    "log-dir",
+			value:  "/b",
+			result: Flags{"log_dir": "/a", "log-dir": "/b"},
+		},
+		{
+			// Vitess only normalizes names without any '-'.
+			name:   "mixed names are not normalized",
+			flags:  Flags{"db-char-set": "utf8mb4"},
+			key:    "db_char-set",
+			value:  "latin1",
+			result: Flags{"db-char-set": "utf8mb4", "db_char-set": "latin1"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.flags.Set(tt.key, tt.value)
+			assert.Equal(t, tt.result, tt.flags)
+		})
+	}
+}
+
+// TestHas tests that Has finds a flag under any spelling.
+func TestHas(t *testing.T) {
+	flags := Flags{"builtinbackup_incremental_restore_path": "/vt"}
+	assert.True(t, flags.Has("builtinbackup-incremental-restore-path"))
+	assert.True(t, flags.Has("--builtinbackup_incremental_restore_path"))
+	assert.False(t, flags.Has("builtinbackup-incremental"))
+}
+
+// TestMergeSpellings tests that merging flags never leaves two spellings of the
+// same flag, and that the outcome doesn't depend on map iteration order when
+// the merged flags contain both spellings themselves.
+func TestMergeSpellings(t *testing.T) {
+	for i := 0; i < 50; i++ {
+		flags := Flags{"db-charset": "utf8mb4", "port": 15000}
+		flags.Merge(Flags{"db_charset": "latin1", "db-charset": "ascii"})
+		assert.Equal(t, Flags{"db_charset": "latin1", "port": 15000}, flags)
+	}
+}
+
+// TestMergeStrings tests merging string-valued flags such as extraFlags.
+func TestMergeStrings(t *testing.T) {
+	flags := Flags{"db-charset": "utf8mb4", "port": 15000}
+	flags.MergeStrings(map[string]string{"--db_charset": "latin1", "grpc-port": "15999"})
+	assert.Equal(t, Flags{"db_charset": "latin1", "port": 15000, "grpc-port": "15999"}, flags)
+}
