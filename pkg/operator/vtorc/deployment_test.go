@@ -22,6 +22,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -77,4 +78,53 @@ func TestDeploymentFlags(t *testing.T) {
 	args = containerArgs(t, NewDeployment(key, spec).Spec.Template.Spec.Containers, containerName)
 	assert.Contains(t, args, "--clusters_to_watch=commerce")
 	assertNoArgPrefix(t, args, "--clusters-to-watch=")
+}
+
+// oldOperatorArgs respells a command line the way older operator versions
+// wrote it: underscore flag names, plus --logtostderr.
+func oldOperatorArgs(args []string) []string {
+	old := []string{"--logtostderr=true"}
+	for _, arg := range args {
+		name, value, _ := strings.Cut(strings.TrimPrefix(arg, "--"), "=")
+		old = append(old, "--"+strings.ReplaceAll(name, "-", "_")+"="+value)
+	}
+	return old
+}
+
+func setContainerArgs(containers []corev1.Container, name string, args []string) {
+	for i := range containers {
+		if containers[i].Name == name {
+			containers[i].Args = args
+		}
+	}
+}
+
+// TestUpdateDeploymentKeepsRespelledArgs checks that a Deployment whose command
+// line only differs in flag spelling, as written by an older operator, isn't
+// rolled, and that a new image still brings the new command line.
+func TestUpdateDeploymentKeepsRespelledArgs(t *testing.T) {
+	key := client.ObjectKey{Namespace: "default", Name: "example"}
+	spec := &Spec{
+		GlobalLockserver: planetscalev2.VitessLockserverParams{Implementation: "etcd2", Address: "etcd:2379", RootPath: "/vitess/example/global"},
+		Keyspace:         "commerce",
+		Shard:            "-",
+		Cell:             "zone1",
+		Image:            "vitess/lite:v24.0.5",
+	}
+	newObj := func() *appsv1.Deployment { return NewDeployment(key, spec) }
+	updateObj := func(obj *appsv1.Deployment) { UpdateDeployment(obj, spec) }
+	setImage := func() { spec.Image = "vitess/lite:v25.0.0" }
+
+	live := newObj()
+	containers := live.Spec.Template.Spec.Containers
+	setContainerArgs(containers, containerName, oldOperatorArgs(containerArgs(t, containers, containerName)))
+
+	updated := live.DeepCopy()
+	updateObj(updated)
+	assert.Equal(t, live, updated)
+
+	setImage()
+	updated = live.DeepCopy()
+	updateObj(updated)
+	assertDashedFlags(t, containerArgs(t, updated.Spec.Template.Spec.Containers, containerName))
 }

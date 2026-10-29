@@ -162,7 +162,8 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec, mysqldImage string) {
 			Image:           spec.Image,
 			ImagePullPolicy: spec.ImagePullPolicy,
 			Command:         []string{command},
-			Args:            flags.FormatArgs(),
+			// Don't roll the Deployment only to respell flag names.
+			Args: vitess.KeepEquivalentArgs(obj.Spec.Template.Spec.Containers, containerName, spec.Image, flags.FormatArgs()),
 			Ports: []corev1.ContainerPort{
 				{
 					Name:          planetscalev2.DefaultWebPortName,

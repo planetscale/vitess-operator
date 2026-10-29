@@ -35,6 +35,7 @@ import (
 	"planetscale.dev/vitess-operator/pkg/operator/k8s"
 	"planetscale.dev/vitess-operator/pkg/operator/names"
 	"planetscale.dev/vitess-operator/pkg/operator/update"
+	"planetscale.dev/vitess-operator/pkg/operator/vitess"
 )
 
 // PodName returns the name of the Pod for a given vttablet.
@@ -121,7 +122,8 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 		Image:           spec.Images.Vttablet,
 		ImagePullPolicy: spec.ImagePullPolicies.Vttablet,
 		Command:         []string{vttabletCommand},
-		Args:            vttabletAllFlags.FormatArgs(),
+		// Don't restart the Pod only to respell flag names.
+		Args: vitess.KeepEquivalentArgs(obj.Spec.Containers, vttabletContainerName, spec.Images.Vttablet, vttabletAllFlags.FormatArgs()),
 		Ports: []corev1.ContainerPort{
 			{
 				Name:          planetscalev2.DefaultWebPortName,
@@ -178,7 +180,8 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 			Image:           spec.Images.Mysqld.Image(),
 			ImagePullPolicy: spec.ImagePullPolicies.Mysqld,
 			Command:         []string{mysqldCommand},
-			Args:            mysqlctldAllFlags.FormatArgs(),
+			// Don't restart the Pod only to respell flag names.
+			Args: vitess.KeepEquivalentArgs(obj.Spec.Containers, MysqldContainerName, spec.Images.Mysqld.Image(), mysqlctldAllFlags.FormatArgs()),
 			Ports: []corev1.ContainerPort{
 				{
 					Name:          planetscalev2.DefaultMysqlPortName,

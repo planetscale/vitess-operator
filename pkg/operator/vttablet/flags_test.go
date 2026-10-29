@@ -170,3 +170,44 @@ func TestExtraFlagsReplaceEitherSpelling(t *testing.T) {
 		}
 	})
 }
+
+// oldOperatorArgs respells a command line the way older operator versions
+// wrote it: underscore flag names, plus --logtostderr.
+func oldOperatorArgs(args []string) []string {
+	old := []string{"--logtostderr=true"}
+	for _, arg := range args {
+		name, value, _ := strings.Cut(strings.TrimPrefix(arg, "--"), "=")
+		old = append(old, "--"+strings.ReplaceAll(name, "-", "_")+"="+value)
+	}
+	return old
+}
+
+func setContainerArgs(containers []corev1.Container, name string, args []string) {
+	for i := range containers {
+		if containers[i].Name == name {
+			containers[i].Args = args
+		}
+	}
+}
+
+// TestUpdatePodKeepsRespelledArgs checks that a Pod whose command lines only
+// differ in flag spelling, as written by an older operator, is left alone, and
+// that a new image still brings the new command line.
+func TestUpdatePodKeepsRespelledArgs(t *testing.T) {
+	key := client.ObjectKey{Namespace: "default", Name: "example-vttablet-zone1-101"}
+	spec := testFlagsSpec()
+	live := NewPod(key, spec)
+	for _, name := range []string{vttabletContainerName, MysqldContainerName} {
+		setContainerArgs(live.Spec.Containers, name, oldOperatorArgs(containerArgs(t, live.Spec.Containers, name)))
+	}
+
+	updated := live.DeepCopy()
+	UpdatePod(updated, spec)
+	assert.Equal(t, live, updated)
+
+	spec.Images.Vttablet = "vitess/lite:v25.0.0"
+	updated = live.DeepCopy()
+	UpdatePod(updated, spec)
+	assertDashedFlags(t, containerArgs(t, updated.Spec.Containers, vttabletContainerName))
+	assert.Equal(t, containerArgs(t, live.Spec.Containers, MysqldContainerName), containerArgs(t, updated.Spec.Containers, MysqldContainerName))
+}

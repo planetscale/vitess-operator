@@ -218,7 +218,8 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 	update.ResourceRequirements(&vtadminAPIContainer.Resources, &spec.APIResources)
 	updateRbac(spec, apiFlags, vtadminAPIContainer, &obj.Spec.Template.Spec)
 	updateDiscoveryAndClusterConfig(spec, apiFlags, vtadminAPIContainer, &obj.Spec.Template.Spec)
-	vtadminAPIContainer.Args = apiFlags.FormatArgs()
+	// Don't roll the Deployment only to respell flag names.
+	vtadminAPIContainer.Args = vitess.KeepEquivalentArgs(obj.Spec.Template.Spec.Containers, vtadminAPIContainer.Name, vtadminAPIContainer.Image, apiFlags.FormatArgs())
 
 	vtadminWebContainer := &corev1.Container{
 		Name:            webContainerName,
