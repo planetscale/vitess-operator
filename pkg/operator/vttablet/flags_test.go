@@ -154,14 +154,19 @@ func TestExtraFlagsReplaceEitherSpelling(t *testing.T) {
 		spec.Vttablet.VtbackupExtraFlags = map[string]string{
 			"--xtrabackup_stripes":                   "4",
 			"builtinbackup_incremental_restore_path": "/backups",
+			// vtbackupExtraFlags only adds flags: the base vtbackup flags
+			// still win, as before, but never in two spellings.
+			"db_charset": "latin1",
 		}
 		pod := NewBackupPod(client.ObjectKey{Namespace: "default", Name: "backup"}, &BackupSpec{TabletSpec: spec}, "mysql:8.0.40")
 		args := containerArgs(t, pod.Spec.Containers, vtbackupContainerName)
 		assert.Contains(t, args, "--xtrabackup_stripes=4")
 		assert.Contains(t, args, "--builtinbackup_incremental_restore_path=/backups")
+		assert.Contains(t, args, "--db-charset=utf8mb4")
 		for _, arg := range args {
 			assert.False(t, strings.HasPrefix(arg, "--xtrabackup-stripes="), "unexpected %q", arg)
 			assert.False(t, strings.HasPrefix(arg, "--builtinbackup-incremental-restore-path="), "unexpected %q", arg)
+			assert.False(t, strings.HasPrefix(arg, "--db_charset="), "unexpected %q", arg)
 		}
 	})
 }
