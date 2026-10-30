@@ -35,6 +35,7 @@ import (
 	"planetscale.dev/vitess-operator/pkg/operator/k8s"
 	"planetscale.dev/vitess-operator/pkg/operator/names"
 	"planetscale.dev/vitess-operator/pkg/operator/update"
+	"planetscale.dev/vitess-operator/pkg/operator/vitess"
 )
 
 // PodName returns the name of the Pod for a given vttablet.
@@ -81,16 +82,13 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	// Compute all operator-generated vttablet flags first.
 	// Then apply user-provided overrides last so they take precedence.
 	vttabletAllFlags := vttabletFlags.Get(spec)
-	for key, value := range spec.Vttablet.ExtraFlags {
-		// We told users in the CRD API field doc not to put any leading '-',
-		// but people may not read that so we are liberal in what we accept.
-		key = strings.TrimLeft(key, "-")
-		vttabletAllFlags[key] = value
-	}
+	// MergeStrings handles leading '-' characters and either spelling of a
+	// flag name, so a user value replaces the operator's.
+	vttabletAllFlags.MergeStrings(spec.Vttablet.ExtraFlags)
 	// Ensure that binary logs are restored to/from a location that all containers
 	// in the pod can access if no location was explicitly provided.
-	if _, ok := vttabletAllFlags["builtinbackup-incremental-restore-path"]; !ok {
-		vttabletAllFlags["builtinbackup-incremental-restore-path"] = vtDataRootPath
+	if !vttabletAllFlags.Has("builtinbackup-incremental-restore-path") {
+		vttabletAllFlags.Set("builtinbackup-incremental-restore-path", vtDataRootPath)
 	}
 	mysql.UpdateMySQLServerVersion(vttabletAllFlags, spec.Images.Mysqld.Image())
 
@@ -124,7 +122,9 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 		Image:           spec.Images.Vttablet,
 		ImagePullPolicy: spec.ImagePullPolicies.Vttablet,
 		Command:         []string{vttabletCommand},
-		Args:            vttabletAllFlags.FormatArgs(),
+		// Don't restart the Pod only to respell flag names.
+		Args: vitess.KeepEquivalentArgs(obj.Spec.Containers, vttabletContainerName,
+			vitess.ContainerImage(obj.Spec.Containers, vttabletContainerName), spec.Images.Vttablet, vttabletAllFlags.FormatArgs()),
 		Ports: []corev1.ContainerPort{
 			{
 				Name:          planetscalev2.DefaultWebPortName,
@@ -181,7 +181,10 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 			Image:           spec.Images.Mysqld.Image(),
 			ImagePullPolicy: spec.ImagePullPolicies.Mysqld,
 			Command:         []string{mysqldCommand},
-			Args:            mysqlctldAllFlags.FormatArgs(),
+			// Don't restart the Pod only to respell flag names. mysqlctld runs
+			// the binary that init-vt-root copies out of the vttablet image.
+			Args: vitess.KeepEquivalentArgs(obj.Spec.Containers, MysqldContainerName,
+				vitess.ContainerImage(obj.Spec.InitContainers, vtRootInitContainerName), spec.Images.Vttablet, mysqlctldAllFlags.FormatArgs()),
 			Ports: []corev1.ContainerPort{
 				{
 					Name:          planetscalev2.DefaultMysqlPortName,

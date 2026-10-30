@@ -17,8 +17,6 @@ limitations under the License.
 package vtctld
 
 import (
-	"strings"
-
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -126,12 +124,9 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec, mysqldImage string) {
 
 	// Apply user-provided flag overrides after generating base flags.
 	flags := spec.flags()
-	for key, value := range spec.ExtraFlags {
-		// We told users in the CRD API field doc not to put any leading '-',
-		// but people may not read that so we are liberal in what we accept.
-		key = strings.TrimLeft(key, "-")
-		flags[key] = value
-	}
+	// MergeStrings handles leading '-' characters and either spelling of a
+	// flag name, so a user value replaces the operator's.
+	flags.MergeStrings(spec.ExtraFlags)
 	mysql.UpdateMySQLServerVersion(flags, mysqldImage)
 
 	// Set only the Pod template fields we care about.
@@ -167,7 +162,9 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec, mysqldImage string) {
 			Image:           spec.Image,
 			ImagePullPolicy: spec.ImagePullPolicy,
 			Command:         []string{command},
-			Args:            flags.FormatArgs(),
+			// Don't roll the Deployment only to respell flag names.
+			Args: vitess.KeepEquivalentArgs(obj.Spec.Template.Spec.Containers, containerName,
+				vitess.ContainerImage(obj.Spec.Template.Spec.Containers, containerName), spec.Image, flags.FormatArgs()),
 			Ports: []corev1.ContainerPort{
 				{
 					Name:          planetscalev2.DefaultWebPortName,
@@ -236,24 +233,22 @@ func (spec *Spec) flags() vitess.Flags {
 		"cell": spec.Cell.Name,
 
 		"port":        planetscalev2.DefaultWebPort,
-		"grpc_port":   planetscalev2.DefaultGrpcPort,
-		"service_map": serviceMap,
+		"grpc-port":   planetscalev2.DefaultGrpcPort,
+		"service-map": serviceMap,
 
-		"topo_implementation":        spec.GlobalLockserver.Implementation,
-		"topo_global_server_address": spec.GlobalLockserver.Address,
-		"topo_global_root":           spec.GlobalLockserver.RootPath,
-
-		"logtostderr": true,
+		"topo-implementation":        spec.GlobalLockserver.Implementation,
+		"topo-global-server-address": spec.GlobalLockserver.Address,
+		"topo-global-root":           spec.GlobalLockserver.RootPath,
 	}
 	if spec.BackupLocation == nil {
 		return flags
 	}
 	flags = flags.Merge(vitess.Flags{
-		"backup_engine_implementation": string(spec.BackupEngine),
+		"backup-engine-implementation": string(spec.BackupEngine),
 	})
 	if spec.BackupEngine == planetscalev2.VitessBackupEngineXtraBackup {
 		flags = flags.Merge(vitess.Flags{
-			"backup_storage_compress": true,
+			"backup-storage-compress": true,
 		})
 	}
 	clusterName := spec.Labels[planetscalev2.ClusterLabel]

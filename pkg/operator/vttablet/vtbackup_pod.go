@@ -196,8 +196,8 @@ func NewBackupPod(key client.ObjectKey, backupSpec *BackupSpec, mysqldImage stri
 	vtbackupAllFlags := vtbackupFlags.Get(backupSpec)
 	// Ensure that binary logs are restored to/from a location that all containers
 	// in the pod can access if no location was explicitly provided.
-	if _, ok := vtbackupAllFlags["builtinbackup-incremental-restore-path"]; !ok {
-		vtbackupAllFlags["builtinbackup-incremental-restore-path"] = vtDataRootPath
+	if !vtbackupAllFlags.Has("builtinbackup-incremental-restore-path") {
+		vtbackupAllFlags.Set("builtinbackup-incremental-restore-path", vtDataRootPath)
 	}
 	mysql.UpdateMySQLServerVersion(vtbackupAllFlags, mysqldImage)
 	containerPorts := vtbackupContainerPorts(vtbackupAllFlags)
@@ -217,7 +217,7 @@ func NewBackupPod(key client.ObjectKey, backupSpec *BackupSpec, mysqldImage stri
 			Tolerations:      tabletSpec.Tolerations,
 			InitContainers: []corev1.Container{
 				{
-					Name:            "init-vt-root",
+					Name:            vtRootInitContainerName,
 					SecurityContext: securityContext,
 					// We only use the vtbackup image to steal the vtbackup binary.
 					// When we actually run it, we run inside the mysqld image.

@@ -32,7 +32,7 @@ spec:
             name: example-cluster-config
             key: users.json
       extraFlags:
-        tablet_refresh_interval: 10s
+        tablet-refresh-interval: 10s
       replicas: 1
       resources:
         requests:
@@ -44,7 +44,7 @@ spec:
     cells:
     - zone1
     extraFlags:
-      security_policy: read-only
+      security-policy: read-only
     replicas: 1
     resources:
       limits:
@@ -79,7 +79,7 @@ spec:
             replicas: 3
             vttablet:
               extraFlags:
-                db_charset: utf8mb4
+                db-charset: utf8mb4
               resources:
                 limits:
                   memory: 256Mi

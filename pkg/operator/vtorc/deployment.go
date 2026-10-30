@@ -17,8 +17,6 @@ limitations under the License.
 package vtorc
 
 import (
-	"strings"
-
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -122,12 +120,9 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 
 	// Apply user-provided flag overrides after generating base flags.
 	flags := spec.flags()
-	for key, value := range spec.ExtraFlags {
-		// We told users in the CRD API field doc not to put any leading '-',
-		// but people may not read that so we are liberal in what we accept.
-		key = strings.TrimLeft(key, "-")
-		flags[key] = value
-	}
+	// MergeStrings handles leading '-' characters and either spelling of a
+	// flag name, so a user value replaces the operator's.
+	flags.MergeStrings(spec.ExtraFlags)
 
 	// Set only the Pod template fields we care about.
 	// Use functions from the `operator/update` package for lists
@@ -180,7 +175,9 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 		Env:          spec.ExtraEnv,
 	}
 	update.ResourceRequirements(&vtorcContainer.Resources, &spec.Resources)
-	vtorcContainer.Args = flags.FormatArgs()
+	// Don't roll the Deployment only to respell flag names.
+	vtorcContainer.Args = vitess.KeepEquivalentArgs(obj.Spec.Template.Spec.Containers, vtorcContainer.Name,
+		vitess.ContainerImage(obj.Spec.Template.Spec.Containers, vtorcContainer.Name), vtorcContainer.Image, flags.FormatArgs())
 	update.PodTemplateContainers(&obj.Spec.Template.Spec.Containers, []corev1.Container{*vtorcContainer})
 
 	if spec.Affinity != nil {
@@ -211,14 +208,12 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 
 func (spec *Spec) flags() vitess.Flags {
 	return vitess.Flags{
-		"topo_implementation":        spec.GlobalLockserver.Implementation,
-		"topo_global_server_address": spec.GlobalLockserver.Address,
-		"topo_global_root":           spec.GlobalLockserver.RootPath,
+		"topo-implementation":        spec.GlobalLockserver.Implementation,
+		"topo-global-server-address": spec.GlobalLockserver.Address,
+		"topo-global-root":           spec.GlobalLockserver.RootPath,
 		"port":                       planetscalev2.DefaultWebPort,
 		"cell":                       spec.Cell,
 
-		"clusters_to_watch": spec.Keyspace + "/" + spec.Shard,
-
-		"logtostderr": true,
+		"clusters-to-watch": spec.Keyspace + "/" + spec.Shard,
 	}
 }

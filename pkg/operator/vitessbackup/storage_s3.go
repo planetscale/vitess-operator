@@ -26,19 +26,19 @@ import (
 
 func s3BackupFlags(s3 *planetscalev2.S3BackupLocation, clusterName string) vitess.Flags {
 	flags := vitess.Flags{
-		"backup_storage_implementation": s3BackupStorageImplementationName,
-		"s3_backup_aws_region":          s3.Region,
-		"s3_backup_storage_bucket":      s3.Bucket,
-		"s3_backup_storage_root":        rootKeyPrefix(s3.KeyPrefix, clusterName),
-		"s3_backup_force_path_style":    s3.ForcePathStyle,
+		"backup-storage-implementation": s3BackupStorageImplementationName,
+		"s3-backup-aws-region":          s3.Region,
+		"s3-backup-storage-bucket":      s3.Bucket,
+		"s3-backup-storage-root":        rootKeyPrefix(s3.KeyPrefix, clusterName),
+		"s3-backup-force-path-style":    s3.ForcePathStyle,
 	}
 
 	if s3.MinPartSize > 0 {
-		flags["s3_backup_aws_min_partsize"] = s3.MinPartSize
+		flags["s3-backup-aws-min-partsize"] = s3.MinPartSize
 	}
 
 	if len(s3.Endpoint) > 0 {
-		flags["s3_backup_aws_endpoint"] = s3.Endpoint
+		flags["s3-backup-aws-endpoint"] = s3.Endpoint
 	}
 	return flags
 }
