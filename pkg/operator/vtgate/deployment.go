@@ -236,7 +236,8 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec, mysqldImage string) {
 	applyExtraFlags(flags, spec.ExtraFlags, spec.Cell.TabletRefreshInterval != nil)
 	// Write out the final flags list.
 	// Don't roll the Deployment only to respell flag names.
-	vtgateContainer.Args = vitess.KeepEquivalentArgs(obj.Spec.Template.Spec.Containers, vtgateContainer.Name, vtgateContainer.Image, flags.FormatArgs())
+	vtgateContainer.Args = vitess.KeepEquivalentArgs(obj.Spec.Template.Spec.Containers, vtgateContainer.Name,
+		vitess.ContainerImage(obj.Spec.Template.Spec.Containers, vtgateContainer.Name), vtgateContainer.Image, flags.FormatArgs())
 
 	// Set the container lifecycle configuration if provided. Otherwise, skip
 	// to avoid restarting existing pods due to an empty 'lifecycle' field.

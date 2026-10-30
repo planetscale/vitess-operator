@@ -30,6 +30,10 @@ const (
 	MysqldContainerName = "mysqld"
 	mysqldCommand       = "/vt/bin/mysqlctld"
 
+	// vtRootInitContainerName is the init container that copies Vitess
+	// binaries, such as mysqlctld, out of the vttablet image.
+	vtRootInitContainerName = "init-vt-root"
+
 	mysqldExporterContainerName      = "mysqld-exporter"
 	mysqldExporterCommand            = "/bin/mysqld_exporter"
 	mysqldExporterMySQLCnf           = "client.cnf"

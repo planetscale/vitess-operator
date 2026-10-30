@@ -128,6 +128,7 @@ func TestUpdateDeploymentKeepsRespelledArgs(t *testing.T) {
 			VitessCellTemplate: planetscalev2.VitessCellTemplate{Name: "zone1"},
 			GlobalLockserver:   planetscalev2.VitessLockserverParams{Implementation: "etcd2", Address: "etcd:2379", RootPath: "/vitess/example/global"},
 			AllCells:           []string{"zone1"},
+			Images:             planetscalev2.VitessCellImages{Vtgate: "vitess/lite:v24.0.5"},
 		},
 		Authentication: &planetscalev2.VitessGatewayAuthentication{},
 	}

@@ -87,20 +87,55 @@ func TestEquivalentArgs(t *testing.T) {
 }
 
 func TestKeepEquivalentArgs(t *testing.T) {
+	const pinned = "vitess/lite:v24.0.5"
 	desired := []string{"--db-charset=utf8mb4", "--port=15000"}
 	respelled := []string{"--db_charset=utf8mb4", "--logtostderr=true", "--port=15000"}
 	live := []corev1.Container{
 		{Name: "sidecar", Image: "sidecar:1", Args: []string{"--x=1"}},
-		{Name: "vttablet", Image: "vitess/lite:v24.0.5", Args: respelled},
+		{Name: "vttablet", Image: pinned, Args: respelled},
+		// mysqld runs a binary copied from the vttablet image, so its own
+		// image doesn't matter.
+		{Name: "mysqld", Image: "mysql:8.0.40", Args: respelled},
 	}
 
-	// Same image and only respelled: keep the live command line.
-	assert.Equal(t, respelled, KeepEquivalentArgs(live, "vttablet", "vitess/lite:v24.0.5", desired))
-	// A new image gets the new command line along with it.
-	assert.Equal(t, desired, KeepEquivalentArgs(live, "vttablet", "vitess/lite:v25.0.0", desired))
+	// Same pinned binary and only respelled: keep the live command line.
+	assert.Equal(t, respelled, KeepEquivalentArgs(live, "vttablet", pinned, pinned, desired))
+	assert.Equal(t, respelled, KeepEquivalentArgs(live, "mysqld", pinned, pinned, desired))
+	// A new binary gets the new command line along with it.
+	assert.Equal(t, desired, KeepEquivalentArgs(live, "vttablet", pinned, "vitess/lite:v25.0.0", desired))
+	assert.Equal(t, desired, KeepEquivalentArgs(live, "mysqld", pinned, "vitess/lite:v25.0.0", desired))
+	// A mutable tag can start a newer binary without changing, so it never
+	// keeps the old command line.
+	assert.Equal(t, desired, KeepEquivalentArgs(live, "vttablet", "vitess/lite:latest", "vitess/lite:latest", desired))
 	// A real flag change still goes out.
 	changed := []string{"--db-charset=latin1", "--port=15000"}
-	assert.Equal(t, changed, KeepEquivalentArgs(live, "vttablet", "vitess/lite:v24.0.5", changed))
+	assert.Equal(t, changed, KeepEquivalentArgs(live, "vttablet", pinned, pinned, changed))
 	// No live container, as for a new Pod.
-	assert.Equal(t, desired, KeepEquivalentArgs(nil, "vttablet", "vitess/lite:v24.0.5", desired))
+	assert.Equal(t, desired, KeepEquivalentArgs(nil, "vttablet", "", pinned, desired))
+}
+
+func TestPinnedImage(t *testing.T) {
+	for image, want := range map[string]bool{
+		"vitess/lite:v24.0.5":                       true,
+		"vitess/lite:v24.0.5-mysql80":               true,
+		"vitess/lite:v24.0.0-rc1-mysql84":           true,
+		"vitess/lite:v24.0.5-percona80":             true,
+		"vitess/lite:v24.0.0-rc2":                   true,
+		"registry.example.com:5000/lite:v24.0.5":    true,
+		"vitess/lite@sha256:0123456789abcdef":       true,
+		"vitess/lite:latest@sha256:0123456789abcde": true,
+		"vitess/lite:latest":                        false,
+		"vitess/lite":                               false,
+		"vitess/lite:mysql80":                       false,
+		"vitess/lite:v24.0":                         false,
+		"vitess/lite:24.0.5":                        false,
+		"vitess/lite:v25.0.0-SNAPSHOT":              false,
+		"vitess/lite:v24.0.5-latest":                false,
+		"vitess/lite:v24.0.5-nightly":               false,
+		"vitess/lite:v24.0.5-mysql80-dev":           false,
+		"registry.example.com:5000/lite":            false,
+		"":                                          false,
+	} {
+		assert.Equal(t, want, pinnedImage(image), image)
+	}
 }

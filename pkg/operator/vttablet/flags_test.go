@@ -205,9 +205,23 @@ func TestUpdatePodKeepsRespelledArgs(t *testing.T) {
 	UpdatePod(updated, spec)
 	assert.Equal(t, live, updated)
 
+	// A new vttablet image brings the new command lines, also for mysqlctld,
+	// which runs a binary copied from that image.
 	spec.Images.Vttablet = "vitess/lite:v25.0.0"
 	updated = live.DeepCopy()
 	UpdatePod(updated, spec)
 	assertDashedFlags(t, containerArgs(t, updated.Spec.Containers, vttabletContainerName))
-	assert.Equal(t, containerArgs(t, live.Spec.Containers, MysqldContainerName), containerArgs(t, updated.Spec.Containers, MysqldContainerName))
+	assertDashedFlags(t, containerArgs(t, updated.Spec.Containers, MysqldContainerName))
+
+	// A mutable tag gets the new command lines right away, since it can start
+	// a newer binary without changing.
+	spec.Images.Vttablet = "vitess/lite:latest"
+	live = NewPod(key, spec)
+	for _, name := range []string{vttabletContainerName, MysqldContainerName} {
+		setContainerArgs(live.Spec.Containers, name, oldOperatorArgs(containerArgs(t, live.Spec.Containers, name)))
+	}
+	updated = live.DeepCopy()
+	UpdatePod(updated, spec)
+	assertDashedFlags(t, containerArgs(t, updated.Spec.Containers, vttabletContainerName))
+	assertDashedFlags(t, containerArgs(t, updated.Spec.Containers, MysqldContainerName))
 }

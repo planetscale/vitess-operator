@@ -160,14 +160,15 @@ func TestReconcileTabletsDoesNotRollRespelledArgs(t *testing.T) {
 	live := reconcileTablets()
 	assert.NotContains(t, live.Annotations, rollout.ScheduledAnnotation)
 
-	// A new vttablet image schedules a rollout that brings the new vttablet
-	// command line; the mysqld container keeps its image, so it keeps its args.
+	// A new vttablet image schedules a rollout that brings the new command
+	// lines, for vttablet and for mysqlctld, which runs a binary copied from
+	// that image.
 	vts.Spec.Images.Vttablet = "vitess/lite:v25.0.0"
 	live = reconcileTablets()
 	require.Contains(t, live.Annotations, rollout.ScheduledAnnotation)
 	pendingChanges := live.Annotations[rollout.ScheduledAnnotation]
 	assert.Contains(t, pendingChanges, "--init-keyspace=commerce")
-	assert.NotContains(t, pendingChanges, "--tablet-uid=")
+	assert.Contains(t, pendingChanges, "--tablet-uid=")
 }
 
 // oldOperatorArgs respells a command line the way older operator versions

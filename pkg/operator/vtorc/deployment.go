@@ -176,7 +176,8 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec) {
 	}
 	update.ResourceRequirements(&vtorcContainer.Resources, &spec.Resources)
 	// Don't roll the Deployment only to respell flag names.
-	vtorcContainer.Args = vitess.KeepEquivalentArgs(obj.Spec.Template.Spec.Containers, vtorcContainer.Name, vtorcContainer.Image, flags.FormatArgs())
+	vtorcContainer.Args = vitess.KeepEquivalentArgs(obj.Spec.Template.Spec.Containers, vtorcContainer.Name,
+		vitess.ContainerImage(obj.Spec.Template.Spec.Containers, vtorcContainer.Name), vtorcContainer.Image, flags.FormatArgs())
 	update.PodTemplateContainers(&obj.Spec.Template.Spec.Containers, []corev1.Container{*vtorcContainer})
 
 	if spec.Affinity != nil {

@@ -18,6 +18,7 @@ package vitess
 
 import (
 	"maps"
+	"regexp"
 	"slices"
 	"strings"
 
@@ -85,23 +86,64 @@ func parseFlagArgs(args []string) (map[string]string, bool) {
 }
 
 // KeepEquivalentArgs returns the args of the container with the given name in
-// live if that container runs the same image and its args are equivalent to
-// the desired ones (see EquivalentArgs), and the desired args otherwise.
+// live if the Vitess binary it runs still comes from the same pinned image and
+// those args are equivalent to the desired ones (see EquivalentArgs), and the
+// desired args otherwise. liveBinaryImage is the image the binary came from in
+// live, and binaryImage the one it will come from. For most containers that is
+// the container's own image; mysqlctld instead runs a binary copied from the
+// vttablet image.
 //
-// The same image accepts the command line it is already running, so a change
+// The same build accepts the command line it is already running, so a change
 // that only respells flag names, or drops a flag in droppedFlags, doesn't
 // restart a Pod or roll a Deployment by itself. The new command line goes out
-// with the next new image or real flag change for that container; a Pod
-// recreated for any other reason keeps the old spelling.
-func KeepEquivalentArgs(live []corev1.Container, name, image string, desired []string) []string {
+// with the next new image or real flag change for that container, and with
+// any Pod recreated for another reason, since a new Pod is built from scratch;
+// a Deployment rolled for another reason keeps the old spelling. An image that isn't
+// pinned (see pinnedImage) can start a newer binary without its reference
+// changing, which may no longer accept the old spelling, so it always gets the
+// desired args.
+func KeepEquivalentArgs(live []corev1.Container, name, liveBinaryImage, binaryImage string, desired []string) []string {
+	if liveBinaryImage != binaryImage || !pinnedImage(binaryImage) {
+		return desired
+	}
 	for i := range live {
 		if live[i].Name != name {
 			continue
 		}
-		if live[i].Image == image && EquivalentArgs(live[i].Args, desired) {
+		if EquivalentArgs(live[i].Args, desired) {
 			return slices.Clone(live[i].Args)
 		}
 		break
 	}
 	return desired
+}
+
+// ContainerImage returns the image of the container with the given name, or ""
+// if there is none.
+func ContainerImage(containers []corev1.Container, name string) string {
+	for i := range containers {
+		if containers[i].Name == name {
+			return containers[i].Image
+		}
+	}
+	return ""
+}
+
+// releaseTag matches the tags Vitess publishes for a release: v24.0.5,
+// optionally with a release candidate and a MySQL flavor, as in
+// v24.0.0-rc1-mysql84 or v24.0.5-percona80.
+var releaseTag = regexp.MustCompile(`^v\d+\.\d+\.\d+(-rc\d+)?(-[a-z]+\d+)?$`)
+
+// pinnedImage reports whether an image reference names one fixed build: by
+// digest, or by a release tag, which releases don't move to a later build.
+// Anything else, such as latest, no tag, a rolling tag like mysql80, or a
+// release-looking development tag like v25.0.0-SNAPSHOT, can start a newer
+// binary without the reference changing.
+func pinnedImage(image string) bool {
+	if strings.Contains(image, "@") {
+		return true
+	}
+	name := image[strings.LastIndex(image, "/")+1:]
+	_, tag, ok := strings.Cut(name, ":")
+	return ok && releaseTag.MatchString(tag)
 }
