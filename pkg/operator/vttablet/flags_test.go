@@ -192,7 +192,7 @@ func setContainerArgs(containers []corev1.Container, name string, args []string)
 
 // TestUpdatePodKeepsRespelledArgs checks that a Pod whose command lines only
 // differ in flag spelling, as written by an older operator, is left alone, and
-// that a new image still brings the new command line.
+// that a real flag change or a new image still brings the new command line.
 func TestUpdatePodKeepsRespelledArgs(t *testing.T) {
 	key := client.ObjectKey{Namespace: "default", Name: "example-vttablet-zone1-101"}
 	spec := testFlagsSpec()
@@ -204,6 +204,15 @@ func TestUpdatePodKeepsRespelledArgs(t *testing.T) {
 	updated := live.DeepCopy()
 	UpdatePod(updated, spec)
 	assert.Equal(t, live, updated)
+
+	// A real flag change on the same pinned image still goes out.
+	spec.Vttablet.ExtraFlags = map[string]string{"queryserver-config-pool-size": "17"}
+	updated = live.DeepCopy()
+	UpdatePod(updated, spec)
+	vttabletArgs := containerArgs(t, updated.Spec.Containers, vttabletContainerName)
+	assert.Contains(t, vttabletArgs, "--queryserver-config-pool-size=17")
+	assertDashedFlags(t, vttabletArgs)
+	spec.Vttablet.ExtraFlags = nil
 
 	// A new vttablet image brings the new command lines, also for mysqlctld,
 	// which runs a binary copied from that image.

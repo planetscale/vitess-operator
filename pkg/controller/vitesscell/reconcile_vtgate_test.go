@@ -113,7 +113,8 @@ func vtgateDeployment(args ...string) *appsv1.Deployment {
 // TestReconcileVtgateDoesNotRollRespelledArgs drives the real vtgate
 // reconciliation against a Deployment whose command line only differs from the
 // desired one in flag spelling, as written by an older operator. Upgrading the
-// operator must leave the Deployment alone, while a new image still updates it.
+// operator must leave the Deployment alone, while a new image or a real flag
+// change still updates it.
 func TestReconcileVtgateDoesNotRollRespelledArgs(t *testing.T) {
 	vtc := &planetscalev2.VitessCell{
 		ObjectMeta: metav1.ObjectMeta{
@@ -174,6 +175,18 @@ func TestReconcileVtgateDoesNotRollRespelledArgs(t *testing.T) {
 	live = reconcileVtgate()
 	assert.Equal(t, "vitess/lite:v25.0.0", live.Spec.Template.Spec.Containers[0].Image)
 	assert.Equal(t, dashedArgs, live.Spec.Template.Spec.Containers[0].Args)
+
+	// A real flag change on the same pinned image goes out too, even from a
+	// respelled command line, and the gateway's extraFlags replace the
+	// cluster-wide extraVitessFlags whichever way each spells the flag.
+	live.Spec.Template.Spec.Containers[0].Args = oldOperatorArgs(dashedArgs)
+	require.NoError(t, k8sClient.Update(t.Context(), live))
+	vtc.Spec.ExtraVitessFlags = map[string]string{"max_memory_rows": "1000"}
+	vtc.Spec.Gateway.ExtraFlags = map[string]string{"max-memory-rows": "2000"}
+	live = reconcileVtgate()
+	args := live.Spec.Template.Spec.Containers[0].Args
+	assert.Contains(t, args, "--max-memory-rows=2000")
+	assert.Len(t, args, len(dashedArgs)+1)
 }
 
 // oldOperatorArgs respells a command line the way older operator versions
