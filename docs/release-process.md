@@ -66,20 +66,22 @@ If you're cutting a new minor version, you should start by updating the version
 of Vitess code that we build against:
 
 ```console
-planetscale.dev/vitess-operator$ go get vitess.io/vitess@<git-commit-hash>
+planetscale.dev/vitess-operator$ go get vitess.io/vitess@v0.<vitess-major>.<vitess-patch>
 ```
 
-Note that the Go module version must be a git commit sha and not a tag like
-`v9.0.0` because the Vitess repository doesn't follow all the `go mod` rules for
-semantic versioning. You can look up the commit hash for a tag from the
-[Vitess tags](https://github.com/vitessio/vitess/tags) page.
-
-For example, the `v9.0.0` tag corresponds to commit `daa60859822ff85ce18e2d10c61a27b7797ec6b8`
-so this command would update Vitess Operator to build against Vitess v9.0.0:
+The `vitess.io/vitess` module path has no major version suffix, so Go can't use
+release tags like `v24.0.3`. Each Vitess release `vX.0.Z` also gets the Go module
+tag `v0.X.Z` on the same commit. For example, this command updates Vitess
+Operator to build against Vitess v24.0.3:
 
 ```sh
-go get vitess.io/vitess@daa60859822ff85ce18e2d10c61a27b7797ec6b8
+go get vitess.io/vitess@v0.24.3
 ```
+
+Commits on Vitess `main` have no release tag. `go get vitess.io/vitess@main`
+gives them a pseudo-version such as `v0.25.0-dev.0.20261013184655-1fefc24c1e4a`,
+based on the `v0.X.0-dev` tag that Vitess puts on `main` for each development
+cycle.
 
 Following this cleanup the `go.sum` file by:
 ```sh

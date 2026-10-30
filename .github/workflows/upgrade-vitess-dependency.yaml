@@ -27,7 +27,10 @@ jobs:
 
       - name: Go Get latest Vitess Dependency
         run: |
-          go get -d vitess.io/vitess@main
+          # setup-go sets GOTOOLCHAIN=local. Let Go switch to the newer toolchain
+          # that Vitess main may require, and raise the go directive to match.
+          export GOTOOLCHAIN=auto
+          go get vitess.io/vitess@main
           go mod tidy
 
       - name: Create Pull Request
