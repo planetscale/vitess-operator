@@ -237,6 +237,11 @@ func TestMergeSpellings(t *testing.T) {
 		flags := Flags{"db-charset": "utf8mb4", "port": 15000}
 		flags.Merge(Flags{"db_charset": "latin1", "db-charset": "ascii"})
 		assert.Equal(t, Flags{"db_charset": "latin1", "port": 15000}, flags)
+
+		// Leading dashes don't change which spelling wins.
+		flags = Flags{"db-charset": "utf8mb4"}
+		flags.Merge(Flags{"--db_charset": "latin1", "db-charset": "ascii"})
+		assert.Equal(t, Flags{"db_charset": "latin1"}, flags)
 	}
 }
 

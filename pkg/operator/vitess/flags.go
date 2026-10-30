@@ -103,14 +103,23 @@ func (f Flags) FormatArgsConvertBoolean() []string {
 // Merge sets the given flags, overwriting duplicates, including ones spelled
 // differently (see Set).
 //
-// The given flags are applied in sorted order, so if they contain more than
-// one spelling of the same flag, the one that sorts last wins every time.
+// The given flags are applied in the order of their names without leading
+// '-' characters, so if they contain more than one spelling of the same flag,
+// the underscore spelling wins every time, as it did when both reached the
+// command line. Names that only differ in leading dashes are applied in raw
+// key order.
 func (f Flags) Merge(flags Flags) Flags {
 	keys := make([]string, 0, len(flags))
 	for key := range flags {
 		keys = append(keys, key)
 	}
-	sort.Strings(keys)
+	sort.Slice(keys, func(i, j int) bool {
+		a, b := strings.TrimLeft(keys[i], "-"), strings.TrimLeft(keys[j], "-")
+		if a != b {
+			return a < b
+		}
+		return keys[i] < keys[j]
+	})
 
 	for _, key := range keys {
 		f.Set(key, flags[key])
