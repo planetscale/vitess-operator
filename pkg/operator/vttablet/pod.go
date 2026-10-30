@@ -312,6 +312,12 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	desiredStateHash.AddContainersUpdates("init-containers", initContainers)
 	desiredStateHash.AddContainersUpdates("containers", containers)
 
+	// Record a hash of the security contexts of user-supplied containers to
+	// force the Pod to be recreated if a field is removed from one, since the
+	// Pod merge keeps fields it doesn't set (admission may have injected them).
+	desiredStateHash.AddContainerSecurityContexts("init-containers-security-contexts", spec.InitContainers)
+	desiredStateHash.AddContainerSecurityContexts("sidecar-containers-security-contexts", spec.SidecarContainers)
+
 	// Record a hash of desired tolerations and topologySpreadConstraints
 	// to force the Pod to be recreated if one disappears from the desired list.
 	desiredStateHash.AddTolerations("tolerations", spec.Tolerations)
@@ -329,7 +335,7 @@ func UpdatePod(obj *corev1.Pod, spec *Spec) {
 	update.PodContainers(&obj.Spec.Containers, containers)
 
 	// Update other parts of the Pod.
-	obj.Spec.ImagePullSecrets = spec.ImagePullSecrets
+	update.LocalObjectReferences(&obj.Spec.ImagePullSecrets, spec.ImagePullSecrets)
 	update.Annotations(&obj.Annotations, tabletAnnotations.Get(spec))
 	update.Volumes(&obj.Spec.Volumes, tabletVolumes.Get(spec))
 	update.Volumes(&obj.Spec.Volumes, spec.ExtraVolumes)
