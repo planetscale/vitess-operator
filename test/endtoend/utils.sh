@@ -763,7 +763,9 @@ function checkVitessBackupScheduleStatusWithTimeout() {
 function checkNoFlagDeprecationWarnings() {
   local namespace="${1:-example}"
   local pods
-  pods=$(kubectl get pods -n "${namespace}" -l 'planetscale.com/component in (vttablet,vtgate,vtctld,vtorc,vtadmin)' -o name)
+  # Skip Pods that haven't started their containers yet, such as a scheduled
+  # vtbackup Pod still running its init containers: they have no logs.
+  pods=$(kubectl get pods -n "${namespace}" -l 'planetscale.com/component in (vttablet,vtgate,vtctld,vtorc,vtadmin,vtbackup)' --field-selector=status.phase!=Pending -o name)
   if [[ -z "${pods}" ]]; then
     echo "ERROR: no Vitess pods found in namespace ${namespace}"
     exit 1
@@ -772,6 +774,11 @@ function checkNoFlagDeprecationWarnings() {
   local pod logs warnings
   for pod in ${pods}; do
     if ! logs=$(kubectl logs -n "${namespace}" "${pod}" --all-containers=true --prefix=true); then
+      # A backup schedule prunes old Jobs, so a Pod can go away after the list.
+      if ! kubectl get -n "${namespace}" "${pod}" >/dev/null 2>&1; then
+        echo "Skipping ${pod}, which was deleted before its logs were read"
+        continue
+      fi
       echo "ERROR: could not read the logs of ${pod}"
       exit 1
     fi
