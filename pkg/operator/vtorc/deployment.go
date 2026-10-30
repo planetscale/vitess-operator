@@ -218,7 +218,5 @@ func (spec *Spec) flags() vitess.Flags {
 		"cell":                       spec.Cell,
 
 		"clusters_to_watch": spec.Keyspace + "/" + spec.Shard,
-
-		"logtostderr": true,
 	}
 }
