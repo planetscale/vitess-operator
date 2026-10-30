@@ -100,9 +100,7 @@ func InitFlags() {
 
 			// Vitess v23 renamed its flags from underscores to dashes. Keep
 			// accepting the underscore spelling too, so operator Deployments
-			// that still pass it keep working, but mark it deprecated. The
-			// operator itself passes the dashed spelling to the backup
-			// subcontroller.
+			// that still pass it keep working, but mark it deprecated.
 			// TODO: remove the underscore spellings in vitess-operator v2.19.
 			underscoreFlagName := strings.ReplaceAll(fName, "-", "_")
 			if underscoreFlagName != fName {
