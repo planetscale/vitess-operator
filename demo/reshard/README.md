@@ -35,6 +35,32 @@ Three panes: `./demo.sh load`, `./demo.sh top`, and one for the steps.
 | Move writes | `switch-writes` | ~2 s pause while vtgate buffers, then two primaries share the load (~6.9k QPS) |
 | Finish | `complete` | the old shard's Pods terminate within a minute; ~10k QPS at ~3.2 ms |
 
+`vtctldclient` runs on the laptop, not in a Pod: it's a client of vtctld's
+gRPC API, which kind maps to `127.0.0.1:15999`. Each step prints the command
+it runs, without `--server`. To type them yourself:
+
+```
+alias vtctldclient='vtctldclient --server=127.0.0.1:15999'
+
+# stage, before the talk: create the workflow, which starts the copy
+vtctldclient Reshard --workflow split --target-keyspace app create --source-shards '-' --target-shards '-80,80-' --tablet-types primary
+
+# status
+vtctldclient Reshard --workflow split --target-keyspace app status
+# switch-reads
+vtctldclient Reshard --workflow split --target-keyspace app switchtraffic --tablet-types replica,rdonly
+# switch-writes
+vtctldclient Reshard --workflow split --target-keyspace app switchtraffic --tablet-types primary
+# complete
+vtctldclient Reshard --workflow split --target-keyspace app complete
+kubectl apply -f cluster-3-sharded.yaml
+
+# reverse, after switch-writes: moves reads and writes back to the old shard
+vtctldclient Reshard --workflow split --target-keyspace app reversetraffic
+# after switch-reads only: moves reads back
+vtctldclient Reshard --workflow split --target-keyspace app reversetraffic --tablet-types replica,rdonly
+```
+
 Between the switch and `complete`, Vitess keeps replicating back into the old
 shard so `reverse` stays possible, and that costs CPU. The full gain shows up
 once `complete` removes it: a good place to explain why the reverse stream exists.
@@ -43,6 +69,9 @@ Measured on a 14-core M-series Mac with OrbStack: 5.7k to 10k QPS (+74%),
 average query latency 5.6 to 3.2 ms, one error during the write switch.
 After `complete` the laptop itself is the limit (~80% busy), not the shards.
 
-`reverse` undoes the last switch if something goes wrong.
+If something goes wrong after `switch-writes`, `reverse` moves all traffic
+back to the old shard. After only `switch-reads` it fails, because the reverse
+workflow doesn't exist until writes switch; use the `--tablet-types
+replica,rdonly` form above instead.
 
 `./demo.sh down` deletes everything afterwards.
