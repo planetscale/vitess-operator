@@ -10,3 +10,13 @@ nodes:
   - {containerPort: 30306, hostPort: 15306, listenAddress: "127.0.0.1"} # vtgate MySQL
   - {containerPort: 30999, hostPort: 15999, listenAddress: "127.0.0.1"} # vtctld gRPC
   - {containerPort: 30000, hostPort: 15000, listenAddress: "127.0.0.1"} # vtctld web
+  - {containerPort: 30300, hostPort: 3000, listenAddress: "127.0.0.1"}  # Grafana
+  - {containerPort: 30090, hostPort: 9090, listenAddress: "127.0.0.1"}  # Prometheus
+  # The kubelet refreshes container CPU stats every 10-15s by default, too slow
+  # for the dashboard. 2s keeps the CPU graphs in step with the load.
+  kubeadmConfigPatches:
+  - |
+    kind: InitConfiguration
+    nodeRegistration:
+      kubeletExtraArgs:
+        housekeeping-interval: "2s"

@@ -27,7 +27,10 @@ IMAGES=(
   quay.io/coreos/etcd:v3.5.17
   prom/mysqld-exporter:v0.18.0
   "registry.k8s.io/metrics-server/metrics-server:${METRICS_SERVER_VERSION}"
+  prom/prometheus:v3.5.0
+  grafana/grafana:12.2.1
 )
+DASHBOARD_URL="http://127.0.0.1:3000/d/reshard?kiosk"
 
 vtctld() { command vtctldclient --server=127.0.0.1:15999 "$@"; }
 sql() { command mysql --host=127.0.0.1 --port=15306 --user=user "$@"; }
@@ -77,6 +80,7 @@ cmd_up() {
   local i
   for i in "${IMAGES[@]:1}" "$OPERATOR_IMAGE"; do kind load docker-image "$i" --name "$KIND_CLUSTER"; done
   kubectl apply -f metrics-server.yaml
+  cmd_metrics
   # The e2e operator manifest watches the "example" namespace, created here.
   kubectl apply -f base.yaml
   kubectl apply --server-side -f operator.yaml
@@ -89,7 +93,21 @@ cmd_up() {
   say "Applying the VSchema: rows will be distributed by hash(id)"
   vtctld ApplyVSchema --vschema-file <(vschema) "$KS" >/dev/null
   cmd_data
-  say "Ready. Next: ./demo.sh stage"
+  kubectl rollout status -n monitoring deployment/prometheus deployment/grafana --timeout=3m
+  say "Ready. Dashboard: ${DASHBOARD_URL}. Next: ./demo.sh stage"
+}
+
+# Prometheus and Grafana. Safe to re-run, for example after editing dashboard.json;
+# Grafana picks up the new dashboard within a minute.
+cmd_metrics() {
+  kubectl apply -f monitoring.yaml
+  kubectl create configmap grafana-dashboards -n monitoring --from-file=reshard.json=dashboard.json \
+    --dry-run=client -o yaml | kubectl apply -f -
+}
+
+cmd_dashboard() {
+  echo "$DASHBOARD_URL"
+  if command -v open >/dev/null; then open "$DASHBOARD_URL"; fi
 }
 
 vschema() {
@@ -226,6 +244,7 @@ cmd_help() {
 Before the talk (online):   prep
 Before the talk (offline):  up, stage, check
 On stage:
+  dashboard      open the Grafana dashboard: CPU, QPS, and latency over time
   load           sysbench through vtgate (leave running in a pane)
   top            per-tablet CPU by shard and role (leave running in a pane)
   status         the copy is done and caught up
@@ -234,6 +253,7 @@ On stage:
   reverse        undo the last switch
   complete       finish the workflow and remove the old shard
 Pieces of stage, if you'd rather show them:  shards, reshard, vdiff
+Re-apply Prometheus and Grafana (e.g. after editing dashboard.json):  metrics
 Afterwards:  down
 EOF
 }

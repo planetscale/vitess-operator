@@ -15,7 +15,7 @@ Needs Docker (OrbStack), kind, kubectl, sysbench, mysql, vtctldclient, and watch
 
 ```
 ./demo.sh prep    # online: pull images, build the operator from main
-./demo.sh up      # offline from here: cluster, keyspace, data
+./demo.sh up      # offline from here: cluster, keyspace, data, dashboard
 ./demo.sh stage   # new shards, copy, catch up
 ./demo.sh check   # nothing is waiting on an image pull
 ```
@@ -24,7 +24,8 @@ Rehearse with Wi-Fi off, from `./demo.sh down`.
 
 ## On stage
 
-Three panes: `./demo.sh load`, `./demo.sh top`, and one for the steps.
+Three panes: `./demo.sh load`, `./demo.sh top`, and one for the steps. Plus
+the dashboard in a browser: `./demo.sh dashboard`.
 
 | Step | Command | Point at |
 |---|---|---|
@@ -34,6 +35,25 @@ Three panes: `./demo.sh load`, `./demo.sh top`, and one for the steps.
 | Move reads | `switch-reads` | instant |
 | Move writes | `switch-writes` | ~2 s pause while vtgate buffers, then two primaries share the load (~6.9k QPS) |
 | Finish | `complete` | the old shard's Pods terminate within a minute; ~10k QPS at ~3.2 ms |
+
+## Dashboard
+
+`up` also starts Prometheus and Grafana in the cluster, so the dashboard works
+offline too. `./demo.sh dashboard` opens <http://127.0.0.1:3000/d/reshard?kiosk>
+(no login; drop `?kiosk` for the time picker). It refreshes every 2 s and shows
+the last 15 minutes:
+
+- each shard's primary mysqld CPU against its 1-CPU limit, and how much of the
+  time the kernel throttles it for hitting that limit: the old shard pinned and
+  throttled, then the load split across two primaries;
+- QPS by shard and average query time, from vttablet and vtgate;
+- the requests vtgate holds during a traffic switch, and errors.
+
+Orange markers show when vtgate buffered for a traffic switch. Prometheus is at
+<http://127.0.0.1:9090>. To change the dashboard, edit `dashboard.json` and run
+`./demo.sh metrics`. The browser tab costs laptop CPU too, so keep only one open.
+
+## Talking to Vitess
 
 `vtctldclient` runs on the laptop, not in a Pod: it's a client of vtctld's
 gRPC API, which kind maps to `127.0.0.1:15999`. Each step prints the command

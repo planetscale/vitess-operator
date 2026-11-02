@@ -1,0 +1,223 @@
+# Prometheus and Grafana for the live dashboard at http://127.0.0.1:3000.
+#
+# Prometheus scrapes every 2s:
+#   - the kubelet's cAdvisor, for each container's CPU use and CPU throttling
+#     (kind.yaml sets the kubelet's housekeeping interval to 2s, so the CPU
+#     numbers are fresh);
+#   - vtgate and vttablet, for QPS, latency, errors, buffering, and each
+#     tablet's shard and current type (PRIMARY or REPLICA).
+# Grafana needs no login and loads the dashboard from dashboard.json, which
+# `./demo.sh up` puts in the grafana-dashboards ConfigMap.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: monitoring
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prometheus
+  namespace: monitoring
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: demo-prometheus
+rules:
+- apiGroups: [""]
+  resources: [nodes, nodes/metrics, pods]
+  verbs: [get, list, watch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: demo-prometheus
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: demo-prometheus
+subjects:
+- kind: ServiceAccount
+  name: prometheus
+  namespace: monitoring
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: monitoring
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 2s
+      scrape_timeout: 2s
+    scrape_configs:
+    - job_name: cadvisor
+      scheme: https
+      metrics_path: /metrics/cadvisor
+      authorization:
+        credentials_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+      tls_config:
+        insecure_skip_verify: true
+      kubernetes_sd_configs:
+      - role: node
+      metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: container_cpu_usage_seconds_total|container_cpu_cfs_periods_total|container_cpu_cfs_throttled_periods_total
+        action: keep
+      - source_labels: [namespace]
+        regex: example
+        action: keep
+    - job_name: vitess
+      kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names: [example]
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_planetscale_com_component]
+        regex: vtgate|vttablet
+        action: keep
+      - source_labels: [__meta_kubernetes_pod_container_port_name]
+        regex: web
+        action: keep
+      - source_labels: [__meta_kubernetes_pod_label_planetscale_com_component]
+        target_label: component
+      - source_labels: [__meta_kubernetes_pod_name]
+        target_label: pod
+      - source_labels: [__meta_kubernetes_pod_label_planetscale_com_tablet_uid]
+        target_label: tablet_uid
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: prometheus}
+  template:
+    metadata:
+      labels: {app: prometheus}
+    spec:
+      serviceAccountName: prometheus
+      containers:
+      - name: prometheus
+        image: prom/prometheus:v3.5.0
+        imagePullPolicy: IfNotPresent
+        args:
+        - --config.file=/etc/prometheus/prometheus.yml
+        - --storage.tsdb.path=/prometheus
+        - --storage.tsdb.retention.time=6h
+        ports:
+        - {name: web, containerPort: 9090}
+        readinessProbe:
+          httpGet: {path: /-/ready, port: 9090}
+          periodSeconds: 2
+        resources:
+          requests: {cpu: 100m, memory: 256Mi}
+          limits: {memory: 1Gi}
+        volumeMounts:
+        - {name: config, mountPath: /etc/prometheus}
+        - {name: data, mountPath: /prometheus}
+      volumes:
+      - name: config
+        configMap: {name: prometheus-config}
+      - name: data
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+  namespace: monitoring
+spec:
+  type: NodePort
+  selector: {app: prometheus}
+  ports:
+  - {name: web, port: 9090, targetPort: 9090, nodePort: 30090}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-provisioning
+  namespace: monitoring
+data:
+  datasource.yaml: |
+    apiVersion: 1
+    datasources:
+    - name: Prometheus
+      uid: prometheus
+      type: prometheus
+      access: proxy
+      url: http://prometheus.monitoring.svc:9090
+      isDefault: true
+      jsonData:
+        timeInterval: 2s
+  dashboards.yaml: |
+    apiVersion: 1
+    providers:
+    - name: demo
+      type: file
+      updateIntervalSeconds: 10
+      options:
+        path: /var/lib/grafana/dashboards
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: grafana}
+  template:
+    metadata:
+      labels: {app: grafana}
+    spec:
+      containers:
+      - name: grafana
+        image: grafana/grafana:12.2.1
+        imagePullPolicy: IfNotPresent
+        env:
+        # Local demo only: no login, and nothing that reaches the internet.
+        - {name: GF_AUTH_ANONYMOUS_ENABLED, value: "true"}
+        - {name: GF_AUTH_ANONYMOUS_ORG_ROLE, value: Viewer}
+        - {name: GF_AUTH_DISABLE_LOGIN_FORM, value: "true"}
+        - {name: GF_USERS_DEFAULT_THEME, value: dark}
+        - {name: GF_DASHBOARDS_MIN_REFRESH_INTERVAL, value: 1s}
+        - {name: GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH, value: /var/lib/grafana/dashboards/reshard.json}
+        - {name: GF_ANALYTICS_REPORTING_ENABLED, value: "false"}
+        - {name: GF_ANALYTICS_CHECK_FOR_UPDATES, value: "false"}
+        - {name: GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES, value: "false"}
+        - {name: GF_NEWS_NEWS_FEED_ENABLED, value: "false"}
+        - {name: GF_PLUGINS_PREINSTALL_DISABLED, value: "true"}
+        ports:
+        - {name: web, containerPort: 3000}
+        readinessProbe:
+          httpGet: {path: /api/health, port: 3000}
+          periodSeconds: 2
+        resources:
+          requests: {cpu: 100m, memory: 128Mi}
+          limits: {memory: 512Mi}
+        volumeMounts:
+        - {name: provisioning, mountPath: /etc/grafana/provisioning/datasources/datasource.yaml, subPath: datasource.yaml}
+        - {name: provisioning, mountPath: /etc/grafana/provisioning/dashboards/dashboards.yaml, subPath: dashboards.yaml}
+        - {name: dashboards, mountPath: /var/lib/grafana/dashboards}
+      volumes:
+      - name: provisioning
+        configMap: {name: grafana-provisioning}
+      - name: dashboards
+        configMap: {name: grafana-dashboards}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+  namespace: monitoring
+spec:
+  type: NodePort
+  selector: {app: grafana}
+  ports:
+  - {name: web, port: 3000, targetPort: 3000, nodePort: 30300}
