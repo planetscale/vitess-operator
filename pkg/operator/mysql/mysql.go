@@ -35,7 +35,7 @@ func UpdateMySQLServerVersion(flags vitess.Flags, mysqldImage string) {
 	if err != nil {
 		return
 	}
-	flags["mysql_server_version"] = value
+	flags.Set("mysql-server-version", value)
 	environment.MySQLServerVersion = value
 }
 

@@ -182,6 +182,7 @@ checkSemiSyncSetup
 verifyVtadminSetup
 # Next we check that VTOrc is running properly and is able to fix issues as they come up
 verifyVTOrcSetup
+checkNoFlagDeprecationWarnings
 
 # Teardown
 teardownKindCluster

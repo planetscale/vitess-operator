@@ -19,8 +19,6 @@ package vitessshard
 import (
 	"context"
 
-	"planetscale.dev/vitess-operator/pkg/operator/update"
-
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -31,6 +29,7 @@ import (
 	"planetscale.dev/vitess-operator/pkg/operator/conditions"
 	"planetscale.dev/vitess-operator/pkg/operator/reconciler"
 	"planetscale.dev/vitess-operator/pkg/operator/results"
+	"planetscale.dev/vitess-operator/pkg/operator/vitess"
 	"planetscale.dev/vitess-operator/pkg/operator/vtorc"
 )
 
@@ -131,9 +130,7 @@ func (r *ReconcileVitessShard) vtorcSpecs(vts *planetscalev2.VitessShard, parent
 		labels[planetscalev2.CellLabel] = tabletPool.Cell
 
 		// Merge ExtraVitessFlags and ExtraFlags into a new map.
-		extraFlags := make(map[string]string)
-		update.StringMap(&extraFlags, vts.Spec.ExtraVitessFlags)
-		update.StringMap(&extraFlags, vts.Spec.VitessOrchestrator.ExtraFlags)
+		extraFlags := vitess.MergeStringFlags(vts.Spec.ExtraVitessFlags, vts.Spec.VitessOrchestrator.ExtraFlags)
 
 		specs = append(specs, &vtorc.Spec{
 			GlobalLockserver:  vts.Spec.GlobalLockserver,

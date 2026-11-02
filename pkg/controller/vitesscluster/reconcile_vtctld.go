@@ -32,6 +32,7 @@ import (
 	"planetscale.dev/vitess-operator/pkg/operator/lockserver"
 	"planetscale.dev/vitess-operator/pkg/operator/reconciler"
 	"planetscale.dev/vitess-operator/pkg/operator/results"
+	"planetscale.dev/vitess-operator/pkg/operator/vitess"
 	"planetscale.dev/vitess-operator/pkg/operator/vtctld"
 )
 
@@ -154,9 +155,7 @@ func (r *ReconcileVitessCluster) vtctldSpecs(vt *planetscalev2.VitessCluster, pa
 		labels[planetscalev2.CellLabel] = cell.Name
 
 		// Merge ExtraVitessFlags and ExtraFlags into a new map.
-		extraFlags := make(map[string]string)
-		update.StringMap(&extraFlags, vt.Spec.ExtraVitessFlags)
-		update.StringMap(&extraFlags, vt.Spec.VitessDashboard.ExtraFlags)
+		extraFlags := vitess.MergeStringFlags(vt.Spec.ExtraVitessFlags, vt.Spec.VitessDashboard.ExtraFlags)
 
 		var backupLocation *planetscalev2.VitessBackupLocation
 		var backupEngine planetscalev2.VitessBackupEngine

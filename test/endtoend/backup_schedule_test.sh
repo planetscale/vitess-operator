@@ -36,6 +36,9 @@ verifyVtGateVersion "25.0.0"
 checkSemiSyncSetup
 checkMysqldExporterMetrics
 verifyListBackupsOutputWithSchedule
+# The completed scheduled vtbackup Pods are still there, so this covers
+# vtbackup's flags too.
+checkNoFlagDeprecationWarnings
 
 # Teardown
 teardownKindCluster
