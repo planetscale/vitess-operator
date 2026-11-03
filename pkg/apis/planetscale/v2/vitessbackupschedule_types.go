@@ -37,7 +37,7 @@ const (
 )
 
 // BackupMethod defines the method used to take scheduled backups.
-// +kubebuilder:validation:Enum=vtbackup;vtctldclient
+// +kubebuilder:validation:Enum=vtbackup;vtctldclient;volumeSnapshot
 type BackupMethod string
 
 const (
@@ -50,6 +50,18 @@ const (
 	// Kubernetes Job sends a BackupShard command to vtctld, which tells a running
 	// serving replica to take the backup. No PVC is needed.
 	BackupMethodVtctldclient BackupMethod = "vtctldclient"
+
+	// BackupMethodVolumeSnapshot takes a CSI VolumeSnapshot of the data volume
+	// of one non-primary tablet in the target shard. No Kubernetes Job is
+	// created: the controller creates the VolumeSnapshot object directly at the
+	// scheduled time. The resulting snapshot is crash-consistent, not
+	// application-consistent: restoring it relies on InnoDB crash recovery,
+	// which is only safe when the target tablet runs with durable settings
+	// (sync_binlog=1 and innodb_flush_log_at_trx_commit=1, the Vitess defaults)
+	// and all MySQL data (datadir, redo logs, binlogs) lives on a single volume.
+	// Snapshots taken this way do not appear in Vitess BackupStorage and are not
+	// visible to "vtctldclient GetBackups".
+	BackupMethodVolumeSnapshot BackupMethod = "volumeSnapshot"
 )
 
 // ConcurrencyPolicy describes how the concurrency of new jobs created by VitessBackupSchedule
@@ -230,7 +242,8 @@ type VitessBackupScheduleTemplate struct {
 
 // VitessBackupScheduleStrategy defines how we are going to take a backup.
 // The VitessBackupSchedule controller uses this data to build either a vtbackup
-// pod or a vtctldclient command, depending on the configured BackupMethod.
+// pod, a vtctldclient command, or a VolumeSnapshot, depending on the configured
+// BackupMethod.
 type VitessBackupScheduleStrategy struct {
 	// Name of the backup strategy.
 	Name string `json:"name"`
@@ -256,6 +269,12 @@ type VitessBackupScheduleStrategy struct {
 	// This field is only used when backupMethod is "vtctldclient"; it is ignored for "vtbackup".
 	// +optional
 	ExtraFlags map[string]string `json:"extraFlags,omitempty"`
+
+	// VolumeSnapshotClassName is the name of the VolumeSnapshotClass to use when
+	// taking snapshots. If empty, the cluster's default snapshot class is used.
+	// This field is only used when backupMethod is "volumeSnapshot".
+	// +optional
+	VolumeSnapshotClassName string `json:"volumeSnapshotClassName,omitempty"`
 }
 
 // VitessBackupScheduleStatus defines the observed state of VitessBackupSchedule
