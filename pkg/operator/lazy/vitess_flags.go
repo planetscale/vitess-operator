@@ -31,9 +31,11 @@ func (f *VitessFlags) Add(p func(Spec) vitess.Flags) {
 func (f *VitessFlags) Get(spec Spec) vitess.Flags {
 	res := vitess.Flags{}
 	for _, p := range f.providers {
-		for k, v := range p(spec) {
-			res[k] = v
-		}
+		// Merge, rather than copy, so that a later provider replaces a flag
+		// whichever spelling an earlier one used (for example, vtbackup's
+		// base flags and the user's vtbackupExtraFlags come from different
+		// providers).
+		res.Merge(p(spec))
 	}
 	return res
 }

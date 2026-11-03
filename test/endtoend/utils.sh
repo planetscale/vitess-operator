@@ -827,6 +827,42 @@ function checkVtbackupMysqldConfigOverrides() {
     fi
     echo "Confirmed ${vttablet} MySQL max_connections=${max_conn} (not ${want_setting})"
   done
+# checkNoFlagDeprecationWarnings fails if a Vitess container logged that a
+# flag passed to it uses a deprecated underscore spelling, or is a deprecated
+# glog flag. Other flag deprecations, such as vtctld's --cell (#866), are left
+# to follow-up changes, so that a new deprecation in Vitess doesn't fail every
+# end-to-end run.
+# $1: namespace (default: example)
+function checkNoFlagDeprecationWarnings() {
+  local namespace="${1:-example}"
+  local pods
+  # Skip Pods that haven't started their containers yet, such as a scheduled
+  # vtbackup Pod still running its init containers: they have no logs.
+  pods=$(kubectl get pods -n "${namespace}" -l 'planetscale.com/component in (vttablet,vtgate,vtctld,vtorc,vtadmin,vtbackup)' --field-selector=status.phase!=Pending -o name)
+  if [[ -z "${pods}" ]]; then
+    echo "ERROR: no Vitess pods found in namespace ${namespace}"
+    exit 1
+  fi
+
+  local pod logs warnings
+  for pod in ${pods}; do
+    if ! logs=$(kubectl logs -n "${namespace}" "${pod}" --all-containers=true --prefix=true); then
+      # A backup schedule prunes old Jobs, so a Pod can go away after the list.
+      if ! kubectl get -n "${namespace}" "${pod}" >/dev/null 2>&1; then
+        echo "Skipping ${pod}, which was deleted before its logs were read"
+        continue
+      fi
+      echo "ERROR: could not read the logs of ${pod}"
+      exit 1
+    fi
+    warnings=$(echo "${logs}" | grep -E 'Flag --[^ =]*_[^ =]* has been deprecated|glog and its flags have been deprecated|has no effect when structured logging is enabled')
+    if [[ -n "${warnings}" ]]; then
+      echo "ERROR: ${pod} logged flag deprecation warnings:"
+      echo "${warnings}"
+      exit 1
+    fi
+  done
+  echo "No flag deprecation warnings from Vitess pods"
 }
 
 function checkMysqldExporterMetrics() {

@@ -69,6 +69,7 @@ verifyVtGateVersion "25.0.0"
 checkSemiSyncSetup
 checkMysqldExporterMetrics
 checkVtbackupMysqldConfigOverrides "${vtbackup_init_capture_pid}" "${vtbackup_init_capture}"
+checkNoFlagDeprecationWarnings
 takeBackup "commerce/-"
 verifyListBackupsOutput
 deleteSeedBackupFromStorage

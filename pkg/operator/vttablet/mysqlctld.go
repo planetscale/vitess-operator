@@ -76,7 +76,7 @@ func init() {
 		// Note specifically that we don't even copy init_db.sql to avoid accidentally using it.
 		initContainers := []corev1.Container{
 			{
-				Name:            "init-vt-root",
+				Name:            vtRootInitContainerName,
 				SecurityContext: securityContext,
 				Image:           spec.Images.Vttablet,
 				ImagePullPolicy: spec.ImagePullPolicies.Vttablet,
