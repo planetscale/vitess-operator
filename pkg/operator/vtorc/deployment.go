@@ -215,7 +215,6 @@ func (spec *Spec) flags() vitess.Flags {
 		"topo_global_server_address": spec.GlobalLockserver.Address,
 		"topo_global_root":           spec.GlobalLockserver.RootPath,
 		"port":                       planetscalev2.DefaultWebPort,
-		"cell":                       spec.Cell,
 
 		"clusters_to_watch": spec.Keyspace + "/" + spec.Shard,
 
