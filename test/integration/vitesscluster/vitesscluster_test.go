@@ -69,6 +69,8 @@ spec:
           # Scheduled vtbackup Pods still inherit the first pool's PVC template.
           vtbackup:
             useEmptyDirForInitialBackup: true
+            mysqldConfigOverrides: |
+              max_connections=12321
           tabletPools:
           - cell: cell1
             type: replica
@@ -329,6 +331,28 @@ func verifyBasicVitessShard(f *framework.Fixture, ns, cluster, keyspace, shard s
 	joined := strings.Join(args, " ")
 	require.Contains(f.T, joined, "--foo=bar", "vtbackup args missing --foo=bar. Args: %v", args)
 	require.Contains(f.T, joined, "--baz=qux", "vtbackup args missing --baz=qux. Args: %v", args)
+	require.Contains(f.T, pod.Annotations["planetscale.com/mysqld-vtbackup-config-overrides"], "max_connections=12321",
+		"vtbackup-init Pod missing shard vtbackup.mysqldConfigOverrides annotation")
+	var extraMyCnf string
+	for _, e := range pod.Spec.Containers {
+		if e.Name != "vtbackup" {
+			continue
+		}
+		for _, env := range e.Env {
+			if env.Name == "EXTRA_MY_CNF" {
+				extraMyCnf = env.Value
+			}
+		}
+	}
+	require.Contains(f.T, extraMyCnf, "/pod-config/mysqld-vtbackup-config-overrides",
+		"vtbackup EXTRA_MY_CNF missing vtbackup-only override file. EXTRA_MY_CNF=%q", extraMyCnf)
+	require.Contains(f.T, extraMyCnf, "/vt/config/mycnf/vtbackup.cnf",
+		"vtbackup EXTRA_MY_CNF missing operator-generated vtbackup.cnf. EXTRA_MY_CNF=%q", extraMyCnf)
+
+	for _, tabletPod := range append(cell1Pods.Items, cell2Pods.Items...) {
+		_, ok := tabletPod.Annotations["planetscale.com/mysqld-vtbackup-config-overrides"]
+		require.False(f.T, ok, "serving tablet %s should not have vtbackup-only MySQL overrides", tabletPod.Name)
+	}
 }
 
 func verifyBasicVitessShardExternal(f *framework.Fixture, ns, cluster, keyspace, shard string, expectedTabletCount []int) {

@@ -72,6 +72,9 @@ spec:
           databaseInitScriptSecret:
             name: example-cluster-config
             key: init_db.sql
+          vtbackup:
+            mysqldConfigOverrides: |
+              max_connections=12321
           tabletPools:
           - cell: zone1
             type: replica

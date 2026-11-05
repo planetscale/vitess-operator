@@ -988,6 +988,8 @@ spec:
                       volumeName:
                         type: string
                     type: object
+                  mysqldConfigOverrides:
+                    type: string
                   useEmptyDirForInitialBackup:
                     type: boolean
                 type: object

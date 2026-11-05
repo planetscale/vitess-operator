@@ -347,6 +347,9 @@ func vtbackupSpec(key client.ObjectKey, vts *planetscalev2.VitessShard, parentLa
 
 		TabletSpec: tabletSpec,
 	}
+	if vts.Spec.Vtbackup != nil {
+		backupSpec.MysqldConfigOverrides = vts.Spec.Vtbackup.MysqldConfigOverrides
+	}
 	update.Annotations(&backupSpec.TabletSpec.Annotations, map[string]string{
 		vtbackupDataVolumePodHashAnnotation: vtbackupPodDataVolumeHash(backupSpec),
 	})
