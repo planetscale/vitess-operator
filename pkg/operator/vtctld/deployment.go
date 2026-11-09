@@ -230,8 +230,6 @@ func UpdateDeployment(obj *appsv1.Deployment, spec *Spec, mysqldImage string) {
 
 func (spec *Spec) flags() vitess.Flags {
 	flags := vitess.Flags{
-		"cell": spec.Cell.Name,
-
 		"port":        planetscalev2.DefaultWebPort,
 		"grpc-port":   planetscalev2.DefaultGrpcPort,
 		"service-map": serviceMap,
