@@ -9,7 +9,7 @@ require (
 	github.com/prometheus/client_golang v1.25.0
 	github.com/robfig/cron v1.2.0
 	github.com/sirupsen/logrus v1.10.2
-	github.com/spf13/pflag v1.0.10
+	github.com/spf13/pflag v1.1.0
 	github.com/stretchr/testify v1.12.1
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/api v0.37.0
@@ -17,7 +17,7 @@ require (
 	k8s.io/client-go v0.37.0
 	k8s.io/klog v1.0.0
 	k8s.io/kubectl v0.34.1
-	k8s.io/kubernetes v1.37.1
+	k8s.io/kubernetes v1.37.2
 	k8s.io/utils v0.0.0-20260626114624-be93311217bd
 	sigs.k8s.io/controller-runtime v0.25.2
 	sigs.k8s.io/controller-tools v0.23.0
