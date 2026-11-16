@@ -445,7 +445,9 @@ function verifyVtGateVersion() {
   local data
   for i in {1..600} ; do
     data="$(kubectl logs --namespace=example --selector="planetscale.com/component=vtgate" --tail=-1)"
-    if echo "${data}" | grep -q "Version: ${version}"; then
+    # Vitess v25 logs the version as a structured "Version" entry with a
+    # "version" attribute, and earlier releases log "Version: <version>".
+    if echo "${data}" | grep -qE "Version: ${version}|\"version\":\"${version}"; then
       return
     fi
     sleep 1
