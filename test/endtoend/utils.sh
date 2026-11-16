@@ -827,6 +827,8 @@ function checkVtbackupMysqldConfigOverrides() {
     fi
     echo "Confirmed ${vttablet} MySQL max_connections=${max_conn} (not ${want_setting})"
   done
+}
+
 # checkNoFlagDeprecationWarnings fails if a Vitess container logged that a
 # flag passed to it uses a deprecated underscore spelling, or is a deprecated
 # glog flag. Other flag deprecations, such as vtctld's --cell (#866), are left
