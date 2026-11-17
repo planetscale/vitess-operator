@@ -36,6 +36,8 @@ const (
 	BackupStorageLabel = "backup_storage"
 	// BackupScheduleLabel is the label whose value gives the name of a VitessBackupSchedule object.
 	BackupScheduleLabel = "backup_schedule"
+	// LocationLabel is the label whose value gives the name of a backup storage location.
+	LocationLabel = "location"
 
 	// ResultLabel is a common metrics label for the success/failure of an operation.
 	ResultLabel = "result"

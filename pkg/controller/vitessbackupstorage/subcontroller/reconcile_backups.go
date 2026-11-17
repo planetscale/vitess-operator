@@ -194,9 +194,70 @@ func (r *ReconcileVitessBackupStorage) reconcileBackups(ctx context.Context, vbs
 	})
 	if err != nil {
 		resultBuilder.Error(err)
+		return resultBuilder.Result()
 	}
 
+	r.updateLastCompleteBackupMetric(ctx, vbs, parentLabels)
 	return resultBuilder.Result()
+}
+
+// updateLastCompleteBackupMetric lists VitessBackup objects for this storage
+// location and refreshes the last-complete gauge. The gauge is left untouched
+// if the list fails, so a previous successful inventory is not clobbered.
+func (r *ReconcileVitessBackupStorage) updateLastCompleteBackupMetric(ctx context.Context, vbs *planetscalev2.VitessBackupStorage, parentLabels map[string]string) {
+	list := &planetscalev2.VitessBackupList{}
+	if err := r.client.List(ctx, list, &client.ListOptions{
+		Namespace:     vbs.Namespace,
+		LabelSelector: apilabels.SelectorFromSet(parentLabels),
+	}); err != nil {
+		log.Warningf("failed to list VitessBackups to update last-complete metric: %v", err)
+		return
+	}
+	setLastCompleteBackupMetric(list.Items)
+}
+
+// setLastCompleteBackupMetric resets the last-complete gauge and sets one
+// series per cluster/keyspace/shard/location that has at least one complete
+// backup. The latest backup is chosen by StartTime; the published value is
+// FinishedTime when present, otherwise StartTime. Series are omitted (not
+// set to 0) when there is no complete backup.
+func setLastCompleteBackupMetric(backups []planetscalev2.VitessBackup) {
+	lastCompleteTimestamp.Reset()
+
+	type key struct {
+		cluster, keyspace, shard, location string
+	}
+	type candidate struct {
+		start time.Time
+		unix  float64
+	}
+	latest := map[key]candidate{}
+	for i := range backups {
+		vb := &backups[i]
+		if !vb.Status.Complete {
+			continue
+		}
+		k := key{
+			cluster:  vb.Labels[planetscalev2.ClusterLabel],
+			keyspace: vb.Labels[planetscalev2.KeyspaceLabel],
+			shard:    vb.Labels[planetscalev2.ShardLabel],
+			location: vb.Labels[vitessbackup.LocationLabel],
+		}
+		published := vb.Status.StartTime.Time
+		if vb.Status.FinishedTime != nil && !vb.Status.FinishedTime.IsZero() {
+			published = vb.Status.FinishedTime.Time
+		}
+		if prev, ok := latest[k]; ok && !vb.Status.StartTime.After(prev.start) {
+			continue
+		}
+		latest[k] = candidate{
+			start: vb.Status.StartTime.Time,
+			unix:  float64(published.Unix()),
+		}
+	}
+	for k, c := range latest {
+		lastCompleteTimestamp.WithLabelValues(k.cluster, k.keyspace, k.shard, k.location).Set(c.unix)
+	}
 }
 
 func updateBackupStatus(ctx context.Context, vb *planetscalev2.VitessBackup, backup backupstorage.BackupHandle) {
