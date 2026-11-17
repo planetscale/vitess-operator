@@ -17,6 +17,7 @@ limitations under the License.
 package vtctld
 
 import (
+	"slices"
 	"strings"
 	"testing"
 
@@ -74,6 +75,26 @@ func TestDeploymentFlags(t *testing.T) {
 	args := containerArgs(t, NewDeployment(key, spec, "mysql:8.0.40").Spec.Template.Spec.Containers, containerName)
 	assert.Contains(t, args, "--topo-global-server-address=etcd:2379")
 	assertDashedFlags(t, args)
+
+	// The legacy HTTP API's cell flag must be absent from both new and
+	// reconciled Deployments, since vtctld removes it in Vitess v26.
+	t.Run("omits cell", func(t *testing.T) {
+		assertNoArgPrefix(t, args, "--cell=")
+	})
+	t.Run("removes cell from existing deployment", func(t *testing.T) {
+		live := NewDeployment(key, spec, "mysql:8.0.40")
+		liveArgs := slices.Clone(args)
+		if !slices.Contains(liveArgs, "--cell=zone1") {
+			liveArgs = append(liveArgs, "--cell=zone1")
+		}
+		setContainerArgs(live.Spec.Template.Spec.Containers, containerName, liveArgs)
+
+		UpdateDeployment(live, spec, "mysql:8.0.40")
+
+		updatedArgs := containerArgs(t, live.Spec.Template.Spec.Containers, containerName)
+		assertNoArgPrefix(t, updatedArgs, "--cell=")
+		assert.Equal(t, args, updatedArgs)
+	})
 
 	// A user-provided flag replaces the operator's, whichever spelling it uses.
 	spec.ExtraFlags = map[string]string{"backup_storage_compress": "false"}
