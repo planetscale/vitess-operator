@@ -216,12 +216,26 @@ func (r *ReconcileVitessBackupStorage) updateLastCompleteBackupMetric(ctx contex
 	setLastCompleteBackupMetric(vbs.Labels[planetscalev2.ClusterLabel], vbs.Spec.Location.Name, shards, list.Items)
 }
 
+// shardUsesBackupLocation reports whether at least one tablet pool in the
+// shard backs up to the named location. An empty BackupLocationName selects
+// the location whose name is empty, the same lookup the tablet and backup
+// job reconcilers use (VitessShardSpec.BackupLocation).
+func shardUsesBackupLocation(shard *planetscalev2.VitessShard, location string) bool {
+	for i := range shard.Spec.TabletPools {
+		if shard.Spec.TabletPools[i].BackupLocationName == location {
+			return true
+		}
+	}
+	return false
+}
+
 // setLastCompleteBackupMetric resets the last-complete gauge and sets one
-// series for every shard in the inventory. The shard label is the Vitess
-// shard name (VitessShard.Spec.Name), not KeyRange.SafeName(). The latest
-// complete backup is chosen by StartTime; the published value is FinishedTime
-// when present, otherwise StartTime. A known shard with no complete backup
-// is reported as 0.
+// series for every shard in the inventory that has a tablet pool backing up
+// to this location. The shard label is the Vitess shard name
+// (VitessShard.Spec.Name), not KeyRange.SafeName(). The latest complete
+// backup is chosen by StartTime; the published value is FinishedTime when
+// present, otherwise StartTime. A reported shard with no complete backup is
+// 0. Backups for shards that are not reported are ignored.
 func setLastCompleteBackupMetric(cluster, location string, shards []planetscalev2.VitessShard, backups []planetscalev2.VitessBackup) {
 	lastCompleteTimestamp.Reset()
 
@@ -239,6 +253,9 @@ func setLastCompleteBackupMetric(cluster, location string, shards []planetscalev
 	latest := map[key]candidate{}
 	for i := range shards {
 		s := &shards[i]
+		if !shardUsesBackupLocation(s, location) {
+			continue
+		}
 		ks := s.Labels[planetscalev2.KeyspaceLabel]
 		safeToName[[2]string{ks, s.Spec.KeyRange.SafeName()}] = s.Spec.Name
 		latest[key{

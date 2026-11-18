@@ -18,24 +18,45 @@ The `shard` label is the Vitess shard name (`VitessShard.spec.name`), such as
 other per-shard operator metrics, such as
 `vitess_operator_shard_reconcile_count`.
 
+## Which shards are reported
+
+The operator runs one subcontroller per backup location. Each subcontroller
+emits a series only for shards that have at least one tablet pool whose
+`backupLocationName` matches its location. A pool without
+`backupLocationName` uses the location whose name is empty, so its shard is
+reported only by that location's subcontroller. A shard that does not back up
+to a location has no series for it, and moving a pool from location `a` to
+`b` removes the shard's `a` series on the next inventory of `a`.
+
 ## Zero values
 
-The subcontroller emits a series for every shard it inventories. The value is
-`0` until that shard has a complete backup at this location. A successful
-inventory of a new shard, a shard whose backups have never succeeded, or a
-shard whose last complete backup was deleted therefore still has a series, and
-an RPO alert can fire on it. The gauge is updated only after a successful
+The value is `0` until a reported shard has a complete backup at this
+location. A new shard, a shard whose backups have never succeeded, or a shard
+whose last complete backup was deleted therefore still has a series, and an
+RPO alert can fire on it. The gauge is updated only after a successful
 inventory; a failed inventory or a failed refresh of `VitessBackup` objects
 leaves the previous values in place.
 
-A missing series means the shard is not in the current inventory (for example,
-it was deleted), not that its backup age is unknown.
+## Missing series
+
+A missing series does not mean the backup age is known. The gauge is kept in
+the subcontroller's memory, so there are no series:
+
+- after the subcontroller Pod restarts (for example during an operator
+  upgrade or a node drain), until its next successful inventory;
+- while the subcontroller Pod is not running or cannot be scraped;
+- while every inventory fails, for example because of broken storage
+  credentials or more backups than
+  `--vitessbackupstorage_subcontroller_max_backups_per_reconcile`.
+
+In those cases an RPO alert on this gauge resolves even though the backup age
+is unknown. Pair it with alerts on inventory failures and on the scrape
+target, as in the example below.
 
 ## How to scrape the subcontroller
 
-The forked subcontroller Pod serves the operator metrics endpoint on port
-`8383` at `/metrics`. The subcontroller container declares no ports, so
-Prometheus cannot discover that port from the Pod spec.
+The forked subcontroller Pod serves the operator metrics endpoint at
+`/metrics` on a container port named `metrics` (`8383`).
 
 `spec.backup.locations[].annotations` are copied onto the subcontroller Pod,
 but the same annotations are also applied to vttablet and vtbackup Pods. A
@@ -43,15 +64,13 @@ but the same annotations are also applied to vttablet and vtbackup Pods. A
 the scrape port, because those other Pods would inherit it too.
 
 Instead, select Pods labeled `planetscale.com/component=vbs-subcontroller`
-and scrape port `8383` directly.
+and scrape the `metrics` port.
 
 The operator does not create a Service or `PodMonitor`. Configure discovery
 for the Prometheus installation that runs in your cluster, and allow that
 traffic in any applicable NetworkPolicy.
 
 ### Prometheus Operator `PodMonitor`
-
-Use `targetPort` (a number) because the container has no named port:
 
 ```yaml
 apiVersion: monitoring.coreos.com/v1
@@ -67,7 +86,7 @@ spec:
     matchLabels:
       planetscale.com/component: vbs-subcontroller
   podMetricsEndpoints:
-    - targetPort: 8383
+    - port: metrics
       path: /metrics
       interval: 30s
 ```
@@ -84,16 +103,16 @@ scrape_configs:
       - source_labels: [__meta_kubernetes_pod_label_planetscale_com_component]
         action: keep
         regex: vbs-subcontroller
-      - source_labels: [__meta_kubernetes_pod_ip]
-        action: replace
-        target_label: __address__
-        replacement: $1:8383
+      - source_labels: [__meta_kubernetes_pod_container_port_name]
+        action: keep
+        regex: metrics
 ```
 
-## Example RPO alert
+## Example alerts
 
-Because known shards are exported as `0` until a complete backup exists, a
-simple age comparison also catches shards that have never been backed up:
+Because reported shards are exported as `0` until a complete backup exists,
+a simple age comparison also catches shards that have never been backed up.
+The other two alerts cover the cases where the gauge has no series:
 
 ```yaml
 groups:
@@ -111,7 +130,28 @@ groups:
             keyspace {{ $labels.keyspace }}, shard {{ $labels.shard }},
             location {{ $labels.location }} is more than 24h old
             (or has never completed, if the metric is 0).
+      - alert: VitessBackupInventoryFailing
+        expr: increase(vitess_operator_backup_storage_subcontroller_reconcile_count{result="error"}[15m]) > 0
+        labels:
+          severity: warning
+        annotations:
+          summary: "Backup inventory for {{ $labels.backup_storage }} is failing"
+          description: >-
+            The subcontroller for VitessBackupStorage {{ $labels.backup_storage }}
+            failed to inventory backups in the last 15m, so backup freshness
+            for that location may be stale or missing.
+      - alert: VitessBackupStorageScrapeDown
+        expr: up{job="vitess-backup-storage"} == 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Backup storage subcontroller {{ $labels.instance }} cannot be scraped"
 ```
 
-Adjust the threshold to your RPO. Manifest completeness is not proof that a
-backup can be restored.
+Adjust the thresholds to your RPO, and the `job` label to match your scrape
+configuration: the scrape config above uses `vitess-backup-storage`, while a
+`PodMonitor` defaults to `<namespace>/<name>`, here
+`example/vitess-backup-storage`. `up == 0` only fires while Prometheus still discovers the
+target; it does not catch a subcontroller Pod that does not exist. Manifest
+completeness is not proof that a backup can be restored.

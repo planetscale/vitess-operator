@@ -55,8 +55,8 @@ func TestSetLastCompleteBackupMetric(t *testing.T) {
 	finishLate := time.Date(2026, time.March, 10, 13, 10, 0, 0, time.UTC)
 	finishLatest := time.Date(2026, time.March, 10, 13, 30, 0, 0, time.UTC)
 
-	shard80 := metricTestShard("commerce", "-80", kr80)
-	shard80x := metricTestShard("commerce", "80-", kr80x)
+	shard80 := metricTestShard("commerce", "-80", kr80, "s3")
+	shard80x := metricTestShard("commerce", "80-", kr80x, "s3")
 	shards := []planetscalev2.VitessShard{shard80, shard80x}
 
 	t.Run("latest complete backup uses FinishedTime", func(t *testing.T) {
@@ -139,6 +139,52 @@ func TestSetLastCompleteBackupMetric(t *testing.T) {
 		require.NotContains(t, collectLastComplete(t), [4]string{"cluster", "commerce", "80-x", "s3"})
 		require.Len(t, collectLastComplete(t), 2)
 	})
+
+	t.Run("only shards that back up to this location are reported", func(t *testing.T) {
+		lastCompleteTimestamp.Reset()
+		t.Cleanup(lastCompleteTimestamp.Reset)
+
+		onA := metricTestShard("commerce", "-80", kr80, "a")
+		onB := metricTestShard("commerce", "80-", kr80x, "b")
+		noLocation := metricTestShard("customer", "-", planetscalev2.VitessKeyRange{})
+		noLocation.Spec.TabletPools = []planetscalev2.VitessShardTabletPool{{Type: planetscalev2.ReplicaPoolType}}
+
+		setLastCompleteBackupMetric("cluster", "b", []planetscalev2.VitessShard{onA, onB, noLocation}, []planetscalev2.VitessBackup{
+			newMetricBackup(t, "cluster", "commerce", kr80.SafeName(), "b", startLate, &finishLate, true),
+		})
+		require.Equal(t, float64(0), lastCompleteMetricValue(t, "cluster", "commerce", "80-", "b"))
+		require.Len(t, collectLastComplete(t), 1)
+	})
+
+	t.Run("pools with no backupLocationName use the location named empty", func(t *testing.T) {
+		lastCompleteTimestamp.Reset()
+		t.Cleanup(lastCompleteTimestamp.Reset)
+
+		defaultShard := metricTestShard("commerce", "-80", kr80, "")
+		setLastCompleteBackupMetric("cluster", "", []planetscalev2.VitessShard{defaultShard}, nil)
+		require.Equal(t, float64(0), lastCompleteMetricValue(t, "cluster", "commerce", "-80", ""))
+
+		setLastCompleteBackupMetric("cluster", "s3", []planetscalev2.VitessShard{defaultShard}, nil)
+		require.Empty(t, collectLastComplete(t))
+	})
+
+	t.Run("a shard that leaves the inventory loses its series", func(t *testing.T) {
+		lastCompleteTimestamp.Reset()
+		t.Cleanup(lastCompleteTimestamp.Reset)
+
+		backups := []planetscalev2.VitessBackup{
+			newMetricBackup(t, "cluster", "commerce", kr80.SafeName(), "s3", startEarly, &finishEarly, true),
+			newMetricBackup(t, "cluster", "commerce", kr80x.SafeName(), "s3", startLate, &finishLate, true),
+		}
+		setLastCompleteBackupMetric("cluster", "s3", shards, backups)
+		require.Len(t, collectLastComplete(t), 2)
+
+		// 80- is gone (for example after a reshard), but its complete backup
+		// is still listed.
+		setLastCompleteBackupMetric("cluster", "s3", []planetscalev2.VitessShard{shard80}, backups)
+		require.Equal(t, float64(finishEarly.Unix()), lastCompleteMetricValue(t, "cluster", "commerce", "-80", "s3"))
+		require.Len(t, collectLastComplete(t), 1)
+	})
 }
 
 func TestReconcileBackups_LastCompleteBackupMetric(t *testing.T) {
@@ -146,8 +192,8 @@ func TestReconcileBackups_LastCompleteBackupMetric(t *testing.T) {
 	namespace := "test-ns"
 	clusterName := "test-cluster"
 	locationName := "s3-backups"
-	shard := newNamedTestShard(namespace, clusterName, "commerce", "-80", kr80)
-	otherShard := newNamedTestShard(namespace, clusterName, "commerce", "80-", kr80x)
+	shard := newNamedTestShard(namespace, clusterName, "commerce", "-80", kr80, locationName)
+	otherShard := newNamedTestShard(namespace, clusterName, "commerce", "80-", kr80x, locationName)
 	backupDir := fmt.Sprintf("%s/%s", shard.Labels[planetscalev2.KeyspaceLabel], shard.Spec.Name)
 	start := time.Date(2026, time.March, 10, 13, 0, 0, 0, time.UTC)
 	finished := time.Date(2026, time.March, 10, 13, 10, 0, 0, time.UTC)
@@ -273,8 +319,50 @@ func TestReconcileBackups_LastCompleteBackupMetric(t *testing.T) {
 	})
 }
 
-func metricTestShard(keyspace, specName string, kr planetscalev2.VitessKeyRange) planetscalev2.VitessShard {
-	return planetscalev2.VitessShard{
+func TestReconcileBackups_LastCompleteBackupMetricTwoLocations(t *testing.T) {
+	scheme := newTestScheme(t)
+	namespace := "test-ns"
+	clusterName := "test-cluster"
+	onA := newNamedTestShard(namespace, clusterName, "commerce", "-80", kr80, "a")
+	onB := newNamedTestShard(namespace, clusterName, "commerce", "80-", kr80x, "b")
+	start := time.Date(2026, time.March, 10, 13, 0, 0, 0, time.UTC)
+	finished := time.Date(2026, time.March, 10, 13, 10, 0, 0, time.UTC)
+
+	// A newer complete backup of 80- inventoried by location a, for example
+	// from before its pool moved to b. It must not be reported for b.
+	otherStart := time.Date(2026, time.March, 10, 14, 0, 0, 0, time.UTC)
+	otherFinished := time.Date(2026, time.March, 10, 14, 10, 0, 0, time.UTC)
+	fromA := newMetricBackup(t, clusterName, "commerce", kr80x.SafeName(), "a", otherStart, &otherFinished, true)
+	fromA.Namespace = namespace
+	fromA.Name = "backup-from-location-a"
+
+	oldGetBackupStorage := getBackupStorage
+	t.Cleanup(func() {
+		getBackupStorage = oldGetBackupStorage
+		lastCompleteTimestamp.Reset()
+	})
+	lastCompleteTimestamp.Reset()
+
+	dirA := fmt.Sprintf("commerce/%s", onA.Spec.Name)
+	dirB := fmt.Sprintf("commerce/%s", onB.Spec.Name)
+	getBackupStorage = func() (backupstorage.BackupStorage, error) {
+		return &fakeBackupStorage{backupsByDir: map[string][]backupstorage.BackupHandle{
+			dirA: {newManifestBackupHandle(dirA, newFakeBackupName(t, start, 100), finished)},
+			dirB: {newManifestBackupHandle(dirB, newFakeBackupName(t, start, 200), finished)},
+		}}, nil
+	}
+
+	vbs := newTestBackupStorageCR(namespace, clusterName, "b")
+	r, _, _ := newTestReconciler(t, scheme, onA, onB, &fromA, vbs)
+	_, err := r.reconcileBackups(t.Context(), vbs)
+	require.NoError(t, err)
+	require.Equal(t, float64(finished.Unix()), lastCompleteMetricValue(t, clusterName, "commerce", "80-", "b"))
+	require.Len(t, collectLastComplete(t), 1)
+}
+
+// metricTestShard returns a shard with one REPLICA pool per backup location.
+func metricTestShard(keyspace, specName string, kr planetscalev2.VitessKeyRange, backupLocations ...string) planetscalev2.VitessShard {
+	shard := planetscalev2.VitessShard{
 		ObjectMeta: metav1.ObjectMeta{
 			Labels: map[string]string{
 				planetscalev2.KeyspaceLabel: keyspace,
@@ -285,11 +373,22 @@ func metricTestShard(keyspace, specName string, kr planetscalev2.VitessKeyRange)
 			KeyRange: kr,
 		},
 	}
+	for _, location := range backupLocations {
+		shard.Spec.TabletPools = append(shard.Spec.TabletPools, planetscalev2.VitessShardTabletPool{
+			Type:               planetscalev2.ReplicaPoolType,
+			BackupLocationName: location,
+		})
+	}
+	return shard
 }
 
-func newNamedTestShard(namespace, clusterName, keyspaceName, specName string, kr planetscalev2.VitessKeyRange) *planetscalev2.VitessShard {
+func newNamedTestShard(namespace, clusterName, keyspaceName, specName string, kr planetscalev2.VitessKeyRange, backupLocation string) *planetscalev2.VitessShard {
 	shard := newTestShard(namespace, clusterName, keyspaceName, kr)
 	shard.Spec.Name = specName
+	shard.Spec.TabletPools = []planetscalev2.VitessShardTabletPool{{
+		Type:               planetscalev2.ReplicaPoolType,
+		BackupLocationName: backupLocation,
+	}}
 	return shard
 }
 
