@@ -23,6 +23,12 @@ The operator implements applied changes in the configuration file for your Vites
 See [Scraping scheduled vtbackup metrics](vtbackup-metrics.md) for the
 configuration and Prometheus Operator example.
 
+## Scrape backup freshness metrics from the backup storage subcontroller.
+
+See [Scraping backup storage freshness metrics](backup-storage-metrics.md)
+for the last-complete backup gauge, scrape configuration, and an example RPO
+alert.
+
 ## The Vitess Operator is open source.
 
 The Vitess Operator is on [GitHub](https://github.com/planetscale/vitess-operator). See the repository for information on licensing and contribution.

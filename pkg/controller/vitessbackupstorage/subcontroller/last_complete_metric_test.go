@@ -28,20 +28,36 @@ import (
 	dto "github.com/prometheus/client_model/go"
 	"github.com/stretchr/testify/require"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/client-go/tools/record"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	ctrlclientfake "sigs.k8s.io/controller-runtime/pkg/client/fake"
+	"sigs.k8s.io/controller-runtime/pkg/client/interceptor"
 	"vitess.io/vitess/go/vt/mysqlctl/backupstorage"
 
 	planetscalev2 "planetscale.dev/vitess-operator/pkg/apis/planetscale/v2"
+	"planetscale.dev/vitess-operator/pkg/operator/reconciler"
 	"planetscale.dev/vitess-operator/pkg/operator/vitessbackup"
 )
 
 // Tests in this file mutate package-level state (getBackupStorage and
 // lastCompleteTimestamp). Do not use t.Parallel() on any test or subtest.
 
+var (
+	kr80  = planetscalev2.VitessKeyRange{Start: "", End: "80"}
+	kr80x = planetscalev2.VitessKeyRange{Start: "80", End: ""}
+)
+
 func TestSetLastCompleteBackupMetric(t *testing.T) {
 	startEarly := time.Date(2026, time.March, 10, 12, 0, 0, 0, time.UTC)
 	finishEarly := time.Date(2026, time.March, 10, 12, 30, 0, 0, time.UTC)
 	startLate := time.Date(2026, time.March, 10, 13, 0, 0, 0, time.UTC)
 	finishLate := time.Date(2026, time.March, 10, 13, 10, 0, 0, time.UTC)
+	finishLatest := time.Date(2026, time.March, 10, 13, 30, 0, 0, time.UTC)
+
+	shard80 := metricTestShard("commerce", "-80", kr80)
+	shard80x := metricTestShard("commerce", "80-", kr80x)
+	shards := []planetscalev2.VitessShard{shard80, shard80x}
 
 	t.Run("latest complete backup uses FinishedTime", func(t *testing.T) {
 		lastCompleteTimestamp.Reset()
@@ -51,60 +67,77 @@ func TestSetLastCompleteBackupMetric(t *testing.T) {
 		lastCompleteTimestamp.Describe(descCh)
 		require.Contains(t, (<-descCh).String(), "vitess_operator_backup_last_complete_timestamp_seconds")
 
-		setLastCompleteBackupMetric([]planetscalev2.VitessBackup{
-			newMetricBackup(t, "cluster", "commerce", "x-80", "s3", startEarly, &finishEarly, true),
-			newMetricBackup(t, "cluster", "commerce", "x-80", "s3", startLate, &finishLate, true),
+		// List the later-started backup first so "last one wins" would pick the
+		// earlier backup and fail this assertion.
+		setLastCompleteBackupMetric("cluster", "s3", []planetscalev2.VitessShard{shard80}, []planetscalev2.VitessBackup{
+			newMetricBackup(t, "cluster", "commerce", kr80.SafeName(), "s3", startLate, &finishLate, true),
+			newMetricBackup(t, "cluster", "commerce", kr80.SafeName(), "s3", startEarly, &finishEarly, true),
 		})
-		require.Equal(t, float64(finishLate.Unix()), lastCompleteMetricValue(t, "cluster", "commerce", "x-80", "s3"))
+		require.Equal(t, float64(finishLate.Unix()), lastCompleteMetricValue(t, "cluster", "commerce", "-80", "s3"))
 		require.Len(t, collectLastComplete(t), 1)
+	})
+
+	t.Run("start-time selection beats later FinishedTime", func(t *testing.T) {
+		lastCompleteTimestamp.Reset()
+		t.Cleanup(lastCompleteTimestamp.Reset)
+
+		// The later-started backup finished first. Max FinishedTime would
+		// pick the earlier backup (finishLatest); start-time selection picks
+		// the later start (finishLate). List the later-started backup first
+		// so last-wins would also pick finishLatest.
+		setLastCompleteBackupMetric("cluster", "s3", []planetscalev2.VitessShard{shard80}, []planetscalev2.VitessBackup{
+			newMetricBackup(t, "cluster", "commerce", kr80.SafeName(), "s3", startLate, &finishLate, true),
+			newMetricBackup(t, "cluster", "commerce", kr80.SafeName(), "s3", startEarly, &finishLatest, true),
+		})
+		require.Equal(t, float64(finishLate.Unix()), lastCompleteMetricValue(t, "cluster", "commerce", "-80", "s3"))
 	})
 
 	t.Run("missing FinishedTime uses StartTime", func(t *testing.T) {
 		lastCompleteTimestamp.Reset()
 		t.Cleanup(lastCompleteTimestamp.Reset)
 
-		setLastCompleteBackupMetric([]planetscalev2.VitessBackup{
-			newMetricBackup(t, "cluster", "commerce", "x-80", "s3", startLate, nil, true),
+		setLastCompleteBackupMetric("cluster", "s3", []planetscalev2.VitessShard{shard80}, []planetscalev2.VitessBackup{
+			newMetricBackup(t, "cluster", "commerce", kr80.SafeName(), "s3", startLate, nil, true),
 		})
-		require.Equal(t, float64(startLate.Unix()), lastCompleteMetricValue(t, "cluster", "commerce", "x-80", "s3"))
+		require.Equal(t, float64(startLate.Unix()), lastCompleteMetricValue(t, "cluster", "commerce", "-80", "s3"))
 	})
 
 	t.Run("incomplete backups are ignored", func(t *testing.T) {
 		lastCompleteTimestamp.Reset()
 		t.Cleanup(lastCompleteTimestamp.Reset)
 
-		setLastCompleteBackupMetric([]planetscalev2.VitessBackup{
-			newMetricBackup(t, "cluster", "commerce", "x-80", "s3", startEarly, &finishEarly, true),
-			newMetricBackup(t, "cluster", "commerce", "x-80", "s3", startLate, &finishLate, false),
+		setLastCompleteBackupMetric("cluster", "s3", []planetscalev2.VitessShard{shard80}, []planetscalev2.VitessBackup{
+			newMetricBackup(t, "cluster", "commerce", kr80.SafeName(), "s3", startEarly, &finishEarly, true),
+			newMetricBackup(t, "cluster", "commerce", kr80.SafeName(), "s3", startLate, &finishLate, false),
 		})
-		require.Equal(t, float64(finishEarly.Unix()), lastCompleteMetricValue(t, "cluster", "commerce", "x-80", "s3"))
+		require.Equal(t, float64(finishEarly.Unix()), lastCompleteMetricValue(t, "cluster", "commerce", "-80", "s3"))
 	})
 
-	t.Run("no complete backups omits the series", func(t *testing.T) {
+	t.Run("known shards without a complete backup are 0", func(t *testing.T) {
 		lastCompleteTimestamp.Reset()
 		t.Cleanup(lastCompleteTimestamp.Reset)
 
-		setLastCompleteBackupMetric([]planetscalev2.VitessBackup{
-			newMetricBackup(t, "cluster", "commerce", "x-80", "s3", startLate, &finishLate, false),
+		setLastCompleteBackupMetric("cluster", "s3", shards, []planetscalev2.VitessBackup{
+			newMetricBackup(t, "cluster", "commerce", kr80.SafeName(), "s3", startLate, &finishLate, false),
 		})
-		require.Empty(t, collectLastComplete(t))
+		require.Equal(t, float64(0), lastCompleteMetricValue(t, "cluster", "commerce", "-80", "s3"))
+		require.Equal(t, float64(0), lastCompleteMetricValue(t, "cluster", "commerce", "80-", "s3"))
+		require.Len(t, collectLastComplete(t), 2)
 	})
 
-	t.Run("shards and locations are independent", func(t *testing.T) {
+	t.Run("shards are independent and use Spec.Name labels", func(t *testing.T) {
 		lastCompleteTimestamp.Reset()
 		t.Cleanup(lastCompleteTimestamp.Reset)
 
-		startOther := time.Date(2026, time.March, 11, 9, 0, 0, 0, time.UTC)
-		finishOther := time.Date(2026, time.March, 11, 9, 15, 0, 0, time.UTC)
-		setLastCompleteBackupMetric([]planetscalev2.VitessBackup{
-			newMetricBackup(t, "cluster", "commerce", "x-80", "s3", startEarly, &finishEarly, true),
-			newMetricBackup(t, "cluster", "commerce", "80-x", "s3", startLate, &finishLate, true),
-			newMetricBackup(t, "cluster", "commerce", "x-80", "gcs", startOther, &finishOther, true),
+		setLastCompleteBackupMetric("cluster", "s3", shards, []planetscalev2.VitessBackup{
+			newMetricBackup(t, "cluster", "commerce", kr80.SafeName(), "s3", startEarly, &finishEarly, true),
+			newMetricBackup(t, "cluster", "commerce", kr80x.SafeName(), "s3", startLate, &finishLate, true),
 		})
-		require.Equal(t, float64(finishEarly.Unix()), lastCompleteMetricValue(t, "cluster", "commerce", "x-80", "s3"))
-		require.Equal(t, float64(finishLate.Unix()), lastCompleteMetricValue(t, "cluster", "commerce", "80-x", "s3"))
-		require.Equal(t, float64(finishOther.Unix()), lastCompleteMetricValue(t, "cluster", "commerce", "x-80", "gcs"))
-		require.Len(t, collectLastComplete(t), 3)
+		require.Equal(t, float64(finishEarly.Unix()), lastCompleteMetricValue(t, "cluster", "commerce", "-80", "s3"))
+		require.Equal(t, float64(finishLate.Unix()), lastCompleteMetricValue(t, "cluster", "commerce", "80-", "s3"))
+		require.NotContains(t, collectLastComplete(t), [4]string{"cluster", "commerce", "x-80", "s3"})
+		require.NotContains(t, collectLastComplete(t), [4]string{"cluster", "commerce", "80-x", "s3"})
+		require.Len(t, collectLastComplete(t), 2)
 	})
 }
 
@@ -113,7 +146,8 @@ func TestReconcileBackups_LastCompleteBackupMetric(t *testing.T) {
 	namespace := "test-ns"
 	clusterName := "test-cluster"
 	locationName := "s3-backups"
-	shard := newTestShard(namespace, clusterName, "commerce", planetscalev2.VitessKeyRange{Start: "", End: "80"})
+	shard := newNamedTestShard(namespace, clusterName, "commerce", "-80", kr80)
+	otherShard := newNamedTestShard(namespace, clusterName, "commerce", "80-", kr80x)
 	backupDir := fmt.Sprintf("%s/%s", shard.Labels[planetscalev2.KeyspaceLabel], shard.Spec.Name)
 	start := time.Date(2026, time.March, 10, 13, 0, 0, 0, time.UTC)
 	finished := time.Date(2026, time.March, 10, 13, 10, 0, 0, time.UTC)
@@ -128,7 +162,7 @@ func TestReconcileBackups_LastCompleteBackupMetric(t *testing.T) {
 	t.Run("successful inventory sets the gauge", func(t *testing.T) {
 		lastCompleteTimestamp.Reset()
 		vbs := newTestBackupStorageCR(namespace, clusterName, locationName)
-		r, _, _ := newTestReconciler(t, scheme, shard, vbs)
+		r, _, _ := newTestReconciler(t, scheme, shard, otherShard, vbs)
 		getBackupStorage = func() (backupstorage.BackupStorage, error) {
 			return &fakeBackupStorage{backupsByDir: map[string][]backupstorage.BackupHandle{
 				backupDir: {newManifestBackupHandle(backupDir, backupName, finished)},
@@ -137,12 +171,14 @@ func TestReconcileBackups_LastCompleteBackupMetric(t *testing.T) {
 
 		_, err := r.reconcileBackups(t.Context(), vbs)
 		require.NoError(t, err)
-		require.Equal(t, float64(finished.Unix()), lastCompleteMetricValue(t, clusterName, "commerce", "x-80", locationName))
+		require.Equal(t, float64(finished.Unix()), lastCompleteMetricValue(t, clusterName, "commerce", "-80", locationName))
+		require.Equal(t, float64(0), lastCompleteMetricValue(t, clusterName, "commerce", "80-", locationName))
+		require.Len(t, collectLastComplete(t), 2)
 	})
 
 	t.Run("inventory failure leaves the metric untouched", func(t *testing.T) {
 		lastCompleteTimestamp.Reset()
-		lastCompleteTimestamp.WithLabelValues(clusterName, "commerce", "x-80", locationName).Set(float64(finished.Unix()))
+		lastCompleteTimestamp.WithLabelValues(clusterName, "commerce", "-80", locationName).Set(float64(finished.Unix()))
 
 		vbs := newTestBackupStorageCR(namespace, clusterName, locationName)
 		r, _, _ := newTestReconciler(t, scheme, shard, vbs)
@@ -152,11 +188,66 @@ func TestReconcileBackups_LastCompleteBackupMetric(t *testing.T) {
 
 		_, err := r.reconcileBackups(t.Context(), vbs)
 		require.Error(t, err)
-		require.Equal(t, float64(finished.Unix()), lastCompleteMetricValue(t, clusterName, "commerce", "x-80", locationName))
+		require.Equal(t, float64(finished.Unix()), lastCompleteMetricValue(t, clusterName, "commerce", "-80", locationName))
 		require.Len(t, collectLastComplete(t), 1)
 	})
 
-	t.Run("successful inventory removes stale series", func(t *testing.T) {
+	t.Run("ReconcileObjectSet failure leaves the metric untouched", func(t *testing.T) {
+		lastCompleteTimestamp.Reset()
+		lastCompleteTimestamp.WithLabelValues(clusterName, "commerce", "-80", locationName).Set(float64(finished.Unix()))
+
+		vbs := newTestBackupStorageCR(namespace, clusterName, locationName)
+		r, _ := newTestReconcilerWithInterceptor(t, scheme, interceptor.Funcs{
+			Create: func(ctx context.Context, c client.WithWatch, obj client.Object, opts ...client.CreateOption) error {
+				if _, ok := obj.(*planetscalev2.VitessBackup); ok {
+					return fmt.Errorf("create failed")
+				}
+				return c.Create(ctx, obj, opts...)
+			},
+		}, shard, vbs)
+		getBackupStorage = func() (backupstorage.BackupStorage, error) {
+			return &fakeBackupStorage{backupsByDir: map[string][]backupstorage.BackupHandle{
+				backupDir: {newManifestBackupHandle(backupDir, backupName, finished)},
+			}}, nil
+		}
+
+		_, err := r.reconcileBackups(t.Context(), vbs)
+		require.Error(t, err)
+		require.Equal(t, float64(finished.Unix()), lastCompleteMetricValue(t, clusterName, "commerce", "-80", locationName))
+		require.Len(t, collectLastComplete(t), 1)
+	})
+
+	t.Run("post-inventory List failure leaves the metric untouched", func(t *testing.T) {
+		lastCompleteTimestamp.Reset()
+		lastCompleteTimestamp.WithLabelValues(clusterName, "commerce", "-80", locationName).Set(float64(finished.Unix()))
+
+		vbs := newTestBackupStorageCR(namespace, clusterName, locationName)
+		vtbLists := 0
+		r, _ := newTestReconcilerWithInterceptor(t, scheme, interceptor.Funcs{
+			List: func(ctx context.Context, c client.WithWatch, list client.ObjectList, opts ...client.ListOption) error {
+				if _, ok := list.(*planetscalev2.VitessBackupList); ok {
+					vtbLists++
+					// ReconcileObjectSet lists once; the metric refresh lists again.
+					if vtbLists >= 2 {
+						return fmt.Errorf("VitessBackup list failed")
+					}
+				}
+				return c.List(ctx, list, opts...)
+			},
+		}, shard, vbs)
+		getBackupStorage = func() (backupstorage.BackupStorage, error) {
+			return &fakeBackupStorage{backupsByDir: map[string][]backupstorage.BackupHandle{
+				backupDir: {newManifestBackupHandle(backupDir, backupName, finished)},
+			}}, nil
+		}
+
+		_, err := r.reconcileBackups(t.Context(), vbs)
+		require.NoError(t, err)
+		require.Equal(t, float64(finished.Unix()), lastCompleteMetricValue(t, clusterName, "commerce", "-80", locationName))
+		require.Len(t, collectLastComplete(t), 1)
+	})
+
+	t.Run("successful inventory reports 0 when a known shard has no complete backup", func(t *testing.T) {
 		lastCompleteTimestamp.Reset()
 		vbs := newTestBackupStorageCR(namespace, clusterName, locationName)
 		r, _, _ := newTestReconciler(t, scheme, shard, vbs)
@@ -168,18 +259,50 @@ func TestReconcileBackups_LastCompleteBackupMetric(t *testing.T) {
 		}
 		_, err := r.reconcileBackups(t.Context(), vbs)
 		require.NoError(t, err)
-		require.Equal(t, float64(finished.Unix()), lastCompleteMetricValue(t, clusterName, "commerce", "x-80", locationName))
+		require.Equal(t, float64(finished.Unix()), lastCompleteMetricValue(t, clusterName, "commerce", "-80", locationName))
 
 		// A later successful inventory that no longer sees the complete backup
-		// (it was deleted from storage, so the VitessBackup object is removed)
-		// should drop the series rather than leave a stale value or publish 0.
+		// (it was deleted from storage) still emits a 0 series for the shard.
 		getBackupStorage = func() (backupstorage.BackupStorage, error) {
 			return &fakeBackupStorage{backupsByDir: map[string][]backupstorage.BackupHandle{}}, nil
 		}
 		_, err = r.reconcileBackups(t.Context(), vbs)
 		require.NoError(t, err)
-		require.Empty(t, collectLastComplete(t))
+		require.Equal(t, float64(0), lastCompleteMetricValue(t, clusterName, "commerce", "-80", locationName))
+		require.Len(t, collectLastComplete(t), 1)
 	})
+}
+
+func metricTestShard(keyspace, specName string, kr planetscalev2.VitessKeyRange) planetscalev2.VitessShard {
+	return planetscalev2.VitessShard{
+		ObjectMeta: metav1.ObjectMeta{
+			Labels: map[string]string{
+				planetscalev2.KeyspaceLabel: keyspace,
+			},
+		},
+		Spec: planetscalev2.VitessShardSpec{
+			Name:     specName,
+			KeyRange: kr,
+		},
+	}
+}
+
+func newNamedTestShard(namespace, clusterName, keyspaceName, specName string, kr planetscalev2.VitessKeyRange) *planetscalev2.VitessShard {
+	shard := newTestShard(namespace, clusterName, keyspaceName, kr)
+	shard.Spec.Name = specName
+	return shard
+}
+
+func newTestReconcilerWithInterceptor(t *testing.T, scheme *runtime.Scheme, funcs interceptor.Funcs, objs ...client.Object) (*ReconcileVitessBackupStorage, client.Client) {
+	t.Helper()
+	recorder := record.NewFakeRecorder(20)
+	k8sClient := ctrlclientfake.NewClientBuilder().WithScheme(scheme).WithObjects(objs...).WithInterceptorFuncs(funcs).Build()
+	return &ReconcileVitessBackupStorage{
+		client:     k8sClient,
+		scheme:     scheme,
+		recorder:   recorder,
+		reconciler: reconciler.New(k8sClient, scheme, recorder),
+	}, k8sClient
 }
 
 func newMetricBackup(t *testing.T, cluster, keyspace, shard, location string, start time.Time, finished *time.Time, complete bool) planetscalev2.VitessBackup {
@@ -228,7 +351,7 @@ func lastCompleteMetricValue(t *testing.T, cluster, keyspace, shard, location st
 	t.Helper()
 	values := collectLastComplete(t)
 	value, ok := values[[4]string{cluster, keyspace, shard, location}]
-	require.True(t, ok, "missing series cluster=%s keyspace=%s shard=%s location=%s", cluster, keyspace, shard, location)
+	require.True(t, ok, "missing series cluster=%s keyspace=%s shard=%s location=%s in %v", cluster, keyspace, shard, location, values)
 	return value
 }
 

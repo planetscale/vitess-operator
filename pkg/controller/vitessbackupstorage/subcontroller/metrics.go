@@ -41,7 +41,7 @@ var (
 		Namespace: metrics.Namespace,
 		Subsystem: "backup",
 		Name:      "last_complete_timestamp_seconds",
-		Help:      "Unix timestamp of the latest complete backup observed for a shard and storage location",
+		Help:      "Unix timestamp of the latest complete backup observed for a shard and storage location. Zero if the shard has been inventoried but has no complete backup.",
 	}, []string{metrics.ClusterLabel, metrics.KeyspaceLabel, metrics.ShardLabel, metrics.LocationLabel})
 )
 

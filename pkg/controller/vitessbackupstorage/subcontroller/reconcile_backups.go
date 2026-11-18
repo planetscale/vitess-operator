@@ -197,14 +197,14 @@ func (r *ReconcileVitessBackupStorage) reconcileBackups(ctx context.Context, vbs
 		return resultBuilder.Result()
 	}
 
-	r.updateLastCompleteBackupMetric(ctx, vbs, parentLabels)
+	r.updateLastCompleteBackupMetric(ctx, vbs, parentLabels, shardList.Items)
 	return resultBuilder.Result()
 }
 
 // updateLastCompleteBackupMetric lists VitessBackup objects for this storage
 // location and refreshes the last-complete gauge. The gauge is left untouched
 // if the list fails, so a previous successful inventory is not clobbered.
-func (r *ReconcileVitessBackupStorage) updateLastCompleteBackupMetric(ctx context.Context, vbs *planetscalev2.VitessBackupStorage, parentLabels map[string]string) {
+func (r *ReconcileVitessBackupStorage) updateLastCompleteBackupMetric(ctx context.Context, vbs *planetscalev2.VitessBackupStorage, parentLabels map[string]string, shards []planetscalev2.VitessShard) {
 	list := &planetscalev2.VitessBackupList{}
 	if err := r.client.List(ctx, list, &client.ListOptions{
 		Namespace:     vbs.Namespace,
@@ -213,15 +213,16 @@ func (r *ReconcileVitessBackupStorage) updateLastCompleteBackupMetric(ctx contex
 		log.Warningf("failed to list VitessBackups to update last-complete metric: %v", err)
 		return
 	}
-	setLastCompleteBackupMetric(list.Items)
+	setLastCompleteBackupMetric(vbs.Labels[planetscalev2.ClusterLabel], vbs.Spec.Location.Name, shards, list.Items)
 }
 
 // setLastCompleteBackupMetric resets the last-complete gauge and sets one
-// series per cluster/keyspace/shard/location that has at least one complete
-// backup. The latest backup is chosen by StartTime; the published value is
-// FinishedTime when present, otherwise StartTime. Series are omitted (not
-// set to 0) when there is no complete backup.
-func setLastCompleteBackupMetric(backups []planetscalev2.VitessBackup) {
+// series for every shard in the inventory. The shard label is the Vitess
+// shard name (VitessShard.Spec.Name), not KeyRange.SafeName(). The latest
+// complete backup is chosen by StartTime; the published value is FinishedTime
+// when present, otherwise StartTime. A known shard with no complete backup
+// is reported as 0.
+func setLastCompleteBackupMetric(cluster, location string, shards []planetscalev2.VitessShard, backups []planetscalev2.VitessBackup) {
 	lastCompleteTimestamp.Reset()
 
 	type key struct {
@@ -231,17 +232,38 @@ func setLastCompleteBackupMetric(backups []planetscalev2.VitessBackup) {
 		start time.Time
 		unix  float64
 	}
+
+	// Map VitessBackup planetscale.com/shard labels (KeyRange.SafeName) to
+	// the Vitess shard name used by existing operator metrics.
+	safeToName := map[[2]string]string{}
 	latest := map[key]candidate{}
+	for i := range shards {
+		s := &shards[i]
+		ks := s.Labels[planetscalev2.KeyspaceLabel]
+		safeToName[[2]string{ks, s.Spec.KeyRange.SafeName()}] = s.Spec.Name
+		latest[key{
+			cluster:  cluster,
+			keyspace: ks,
+			shard:    s.Spec.Name,
+			location: location,
+		}] = candidate{}
+	}
+
 	for i := range backups {
 		vb := &backups[i]
 		if !vb.Status.Complete {
 			continue
 		}
+		ks := vb.Labels[planetscalev2.KeyspaceLabel]
+		shardName, ok := safeToName[[2]string{ks, vb.Labels[planetscalev2.ShardLabel]}]
+		if !ok {
+			continue
+		}
 		k := key{
-			cluster:  vb.Labels[planetscalev2.ClusterLabel],
-			keyspace: vb.Labels[planetscalev2.KeyspaceLabel],
-			shard:    vb.Labels[planetscalev2.ShardLabel],
-			location: vb.Labels[vitessbackup.LocationLabel],
+			cluster:  cluster,
+			keyspace: ks,
+			shard:    shardName,
+			location: location,
 		}
 		published := vb.Status.StartTime.Time
 		if vb.Status.FinishedTime != nil && !vb.Status.FinishedTime.IsZero() {
