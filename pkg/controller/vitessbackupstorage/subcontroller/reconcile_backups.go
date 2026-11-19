@@ -216,11 +216,17 @@ func (r *ReconcileVitessBackupStorage) updateLastCompleteBackupMetric(ctx contex
 	setLastCompleteBackupMetric(vbs.Labels[planetscalev2.ClusterLabel], vbs.Spec.Location.Name, shards, list.Items)
 }
 
-// shardUsesBackupLocation reports whether at least one tablet pool in the
-// shard backs up to the named location. An empty BackupLocationName selects
-// the location whose name is empty, the same lookup the tablet and backup
-// job reconcilers use (VitessShardSpec.BackupLocation).
+// shardUsesBackupLocation reports whether the operator backs up the shard to
+// the named location: at least one tablet pool backs up there, and the shard
+// is one the operator takes backups for at all. An empty BackupLocationName
+// selects the location whose name is empty, the same lookup the tablet and
+// backup job reconcilers use (VitessShardSpec.BackupLocation). Like
+// reconcileBackupJob, shards that use an external datastore or have a pool
+// without mysqld are skipped, since the operator never backs them up.
 func shardUsesBackupLocation(shard *planetscalev2.VitessShard, location string) bool {
+	if shard.Spec.UsingExternalDatastore() || !shard.Spec.AllPoolsUsingMysqld() {
+		return false
+	}
 	for i := range shard.Spec.TabletPools {
 		if shard.Spec.TabletPools[i].BackupLocationName == location {
 			return true

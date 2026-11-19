@@ -28,6 +28,11 @@ reported only by that location's subcontroller. A shard that does not back up
 to a location has no series for it, and moving a pool from location `a` to
 `b` removes the shard's `a` series on the next inventory of `a`.
 
+Shards that the operator does not back up are not reported by any
+subcontroller: a shard with a pool that uses `externalDatastore`, or with a
+pool that has no `mysqld`, has no series. This matches the shards for which
+the operator configures backups.
+
 ## Zero values
 
 The value is `0` until a reported shard has a complete backup at this

@@ -147,7 +147,7 @@ func TestSetLastCompleteBackupMetric(t *testing.T) {
 		onA := metricTestShard("commerce", "-80", kr80, "a")
 		onB := metricTestShard("commerce", "80-", kr80x, "b")
 		noLocation := metricTestShard("customer", "-", planetscalev2.VitessKeyRange{})
-		noLocation.Spec.TabletPools = []planetscalev2.VitessShardTabletPool{{Type: planetscalev2.ReplicaPoolType}}
+		noLocation.Spec.TabletPools = []planetscalev2.VitessShardTabletPool{{Type: planetscalev2.ReplicaPoolType, Mysqld: &planetscalev2.MysqldSpec{}}}
 
 		setLastCompleteBackupMetric("cluster", "b", []planetscalev2.VitessShard{onA, onB, noLocation}, []planetscalev2.VitessBackup{
 			newMetricBackup(t, "cluster", "commerce", kr80.SafeName(), "b", startLate, &finishLate, true),
@@ -166,6 +166,27 @@ func TestSetLastCompleteBackupMetric(t *testing.T) {
 
 		setLastCompleteBackupMetric("cluster", "s3", []planetscalev2.VitessShard{defaultShard}, nil)
 		require.Empty(t, collectLastComplete(t))
+	})
+
+	t.Run("shards the operator does not back up are not reported", func(t *testing.T) {
+		lastCompleteTimestamp.Reset()
+		t.Cleanup(lastCompleteTimestamp.Reset)
+
+		managed := metricTestShard("commerce", "-", planetscalev2.VitessKeyRange{}, "")
+		external := metricTestShard("ext", "-", planetscalev2.VitessKeyRange{}, "")
+		external.Spec.TabletPools[0].Mysqld = nil
+		external.Spec.TabletPools[0].ExternalDatastore = &planetscalev2.ExternalDatastore{}
+		// A mysqld pool on this location does not make a shard with an
+		// external pool backed up: reconcileBackupJob skips the whole shard.
+		mixed := metricTestShard("mixed", "-", planetscalev2.VitessKeyRange{}, "", "")
+		mixed.Spec.TabletPools[1].Mysqld = nil
+		mixed.Spec.TabletPools[1].ExternalDatastore = &planetscalev2.ExternalDatastore{}
+
+		setLastCompleteBackupMetric("cluster", "", []planetscalev2.VitessShard{managed, external, mixed}, []planetscalev2.VitessBackup{
+			newMetricBackup(t, "cluster", "mixed", "-", "", startLate, &finishLate, true),
+		})
+		require.Equal(t, float64(0), lastCompleteMetricValue(t, "cluster", "commerce", "-", ""))
+		require.Len(t, collectLastComplete(t), 1)
 	})
 
 	t.Run("a shard that leaves the inventory loses its series", func(t *testing.T) {
@@ -377,6 +398,7 @@ func metricTestShard(keyspace, specName string, kr planetscalev2.VitessKeyRange,
 		shard.Spec.TabletPools = append(shard.Spec.TabletPools, planetscalev2.VitessShardTabletPool{
 			Type:               planetscalev2.ReplicaPoolType,
 			BackupLocationName: location,
+			Mysqld:             &planetscalev2.MysqldSpec{},
 		})
 	}
 	return shard
@@ -388,6 +410,7 @@ func newNamedTestShard(namespace, clusterName, keyspaceName, specName string, kr
 	shard.Spec.TabletPools = []planetscalev2.VitessShardTabletPool{{
 		Type:               planetscalev2.ReplicaPoolType,
 		BackupLocationName: backupLocation,
+		Mysqld:             &planetscalev2.MysqldSpec{},
 	}}
 	return shard
 }

@@ -65,7 +65,7 @@ function checkLastCompleteBackupMetric() {
   local keyspace="$1"
   local shard="$2"
   local backup_start="$3"
-  local pod metrics value
+  local pod metrics value metrics_port
 
   for i in {1..200} ; do
     pod="$(kubectl get pods -n example --no-headers -l "planetscale.com/component=vbs-subcontroller" -o custom-columns=":metadata.name" | awk 'NF' | head -1)"
@@ -87,6 +87,15 @@ function checkLastCompleteBackupMetric() {
     ')"
     if [[ -n "${value}" ]] && awk -v v="${value}" -v start="${backup_start}" 'BEGIN { exit !(v+0 > start+0) }'; then
       echo "Last complete backup metric for ${keyspace}/${shard} is ${value} (after ${backup_start})"
+      # The scrape above goes through the API proxy, which works without a
+      # declared port. PodMonitor and scrape configs select the port by name.
+      metrics_port="$(kubectl get pod -n example "${pod}" -o jsonpath='{.spec.containers[*].ports[?(@.name=="metrics")].containerPort}')"
+      if [[ "${metrics_port}" != "8383" ]]; then
+        echo "ERROR: ${pod} does not declare container port metrics=8383 (got: ${metrics_port:-none})"
+        kubectl get pod -n example "${pod}" --output=yaml
+        exit 1
+      fi
+      echo "${pod} declares container port metrics=8383"
       return 0
     fi
 
