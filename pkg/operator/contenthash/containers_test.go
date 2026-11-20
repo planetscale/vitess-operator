@@ -21,6 +21,7 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	"k8s.io/utils/ptr"
 )
 
 func TestContainersUpdates(t *testing.T) {
@@ -185,5 +186,40 @@ func TestContainersUpdates(t *testing.T) {
 		if got != want {
 			t.Errorf("%v: equal = %v; want %v", tc.description, got, want)
 		}
+	}
+}
+
+func TestContainerSecurityContexts(t *testing.T) {
+	privileged := &corev1.SecurityContext{Privileged: ptr.To(true)}
+	nonRoot := &corev1.SecurityContext{RunAsNonRoot: ptr.To(true)}
+
+	base := ContainerSecurityContexts([]corev1.Container{
+		{Name: "a", SecurityContext: privileged},
+		{Name: "b", SecurityContext: nonRoot},
+	})
+
+	// Container order doesn't matter.
+	if got := ContainerSecurityContexts([]corev1.Container{
+		{Name: "b", SecurityContext: nonRoot},
+		{Name: "a", SecurityContext: privileged},
+	}); got != base {
+		t.Errorf("hash changed with container order: %q != %q", got, base)
+	}
+
+	// Containers without a security context are left out.
+	if got := ContainerSecurityContexts([]corev1.Container{
+		{Name: "a", SecurityContext: privileged},
+		{Name: "b", SecurityContext: nonRoot},
+		{Name: "c"},
+	}); got != base {
+		t.Errorf("hash changed with a container that has no security context: %q != %q", got, base)
+	}
+
+	// Removing a field changes the hash.
+	if got := ContainerSecurityContexts([]corev1.Container{
+		{Name: "a", SecurityContext: &corev1.SecurityContext{}},
+		{Name: "b", SecurityContext: nonRoot},
+	}); got == base {
+		t.Error("hash didn't change when a field was removed")
 	}
 }
