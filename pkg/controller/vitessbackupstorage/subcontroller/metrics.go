@@ -33,10 +33,21 @@ var (
 		Name:      "reconcile_count",
 		Help:      "Reconciliation attempts for a VitessBackupStorage",
 	}, []string{metrics.BackupStorageLabel, metrics.ResultLabel})
+
+	// lastCompleteTimestamp uses Subsystem "backup" so the exported name is
+	// vitess_operator_backup_last_complete_timestamp_seconds, matching the
+	// agreed metric name rather than the subcontroller's usual subsystem.
+	lastCompleteTimestamp = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Namespace: metrics.Namespace,
+		Subsystem: "backup",
+		Name:      "last_complete_timestamp_seconds",
+		Help:      "Unix timestamp of the latest complete backup observed for a shard and storage location. Zero if a shard that backs up to this location has no complete backup.",
+	}, []string{metrics.ClusterLabel, metrics.KeyspaceLabel, metrics.ShardLabel, metrics.LocationLabel})
 )
 
 func init() {
 	metrics.Registry.MustRegister(
 		reconcileCount,
+		lastCompleteTimestamp,
 	)
 }

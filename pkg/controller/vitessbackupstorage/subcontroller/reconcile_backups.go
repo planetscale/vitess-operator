@@ -194,9 +194,115 @@ func (r *ReconcileVitessBackupStorage) reconcileBackups(ctx context.Context, vbs
 	})
 	if err != nil {
 		resultBuilder.Error(err)
+		return resultBuilder.Result()
 	}
 
+	r.updateLastCompleteBackupMetric(ctx, vbs, parentLabels, shardList.Items)
 	return resultBuilder.Result()
+}
+
+// updateLastCompleteBackupMetric lists VitessBackup objects for this storage
+// location and refreshes the last-complete gauge. The gauge is left untouched
+// if the list fails, so a previous successful inventory is not clobbered.
+func (r *ReconcileVitessBackupStorage) updateLastCompleteBackupMetric(ctx context.Context, vbs *planetscalev2.VitessBackupStorage, parentLabels map[string]string, shards []planetscalev2.VitessShard) {
+	list := &planetscalev2.VitessBackupList{}
+	if err := r.client.List(ctx, list, &client.ListOptions{
+		Namespace:     vbs.Namespace,
+		LabelSelector: apilabels.SelectorFromSet(parentLabels),
+	}); err != nil {
+		log.Warningf("failed to list VitessBackups to update last-complete metric: %v", err)
+		return
+	}
+	setLastCompleteBackupMetric(vbs.Labels[planetscalev2.ClusterLabel], vbs.Spec.Location.Name, shards, list.Items)
+}
+
+// shardUsesBackupLocation reports whether the operator backs up the shard to
+// the named location: at least one tablet pool backs up there, and the shard
+// is one the operator takes backups for at all. An empty BackupLocationName
+// selects the location whose name is empty, the same lookup the tablet and
+// backup job reconcilers use (VitessShardSpec.BackupLocation). Like
+// reconcileBackupJob, shards that use an external datastore or have a pool
+// without mysqld are skipped, since the operator never backs them up.
+func shardUsesBackupLocation(shard *planetscalev2.VitessShard, location string) bool {
+	if shard.Spec.UsingExternalDatastore() || !shard.Spec.AllPoolsUsingMysqld() {
+		return false
+	}
+	for i := range shard.Spec.TabletPools {
+		if shard.Spec.TabletPools[i].BackupLocationName == location {
+			return true
+		}
+	}
+	return false
+}
+
+// setLastCompleteBackupMetric resets the last-complete gauge and sets one
+// series for every shard in the inventory that has a tablet pool backing up
+// to this location. The shard label is the Vitess shard name
+// (VitessShard.Spec.Name), not KeyRange.SafeName(). The latest complete
+// backup is chosen by StartTime; the published value is FinishedTime when
+// present, otherwise StartTime. A reported shard with no complete backup is
+// 0. Backups for shards that are not reported are ignored.
+func setLastCompleteBackupMetric(cluster, location string, shards []planetscalev2.VitessShard, backups []planetscalev2.VitessBackup) {
+	lastCompleteTimestamp.Reset()
+
+	type key struct {
+		cluster, keyspace, shard, location string
+	}
+	type candidate struct {
+		start time.Time
+		unix  float64
+	}
+
+	// Map VitessBackup planetscale.com/shard labels (KeyRange.SafeName) to
+	// the Vitess shard name used by existing operator metrics.
+	safeToName := map[[2]string]string{}
+	latest := map[key]candidate{}
+	for i := range shards {
+		s := &shards[i]
+		if !shardUsesBackupLocation(s, location) {
+			continue
+		}
+		ks := s.Labels[planetscalev2.KeyspaceLabel]
+		safeToName[[2]string{ks, s.Spec.KeyRange.SafeName()}] = s.Spec.Name
+		latest[key{
+			cluster:  cluster,
+			keyspace: ks,
+			shard:    s.Spec.Name,
+			location: location,
+		}] = candidate{}
+	}
+
+	for i := range backups {
+		vb := &backups[i]
+		if !vb.Status.Complete {
+			continue
+		}
+		ks := vb.Labels[planetscalev2.KeyspaceLabel]
+		shardName, ok := safeToName[[2]string{ks, vb.Labels[planetscalev2.ShardLabel]}]
+		if !ok {
+			continue
+		}
+		k := key{
+			cluster:  cluster,
+			keyspace: ks,
+			shard:    shardName,
+			location: location,
+		}
+		published := vb.Status.StartTime.Time
+		if vb.Status.FinishedTime != nil && !vb.Status.FinishedTime.IsZero() {
+			published = vb.Status.FinishedTime.Time
+		}
+		if prev, ok := latest[k]; ok && !vb.Status.StartTime.After(prev.start) {
+			continue
+		}
+		latest[k] = candidate{
+			start: vb.Status.StartTime.Time,
+			unix:  float64(published.Unix()),
+		}
+	}
+	for k, c := range latest {
+		lastCompleteTimestamp.WithLabelValues(k.cluster, k.keyspace, k.shard, k.location).Set(c.unix)
+	}
 }
 
 func updateBackupStatus(ctx context.Context, vb *planetscalev2.VitessBackup, backup backupstorage.BackupHandle) {

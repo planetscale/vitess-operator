@@ -49,6 +49,12 @@ const (
 
 	subcontrollerCPUMillis   = 100
 	subcontrollerMemoryBytes = 128 * (1 << 20) // 128 MiB
+
+	// subcontrollerMetricsPortName and subcontrollerMetricsPort name the port
+	// the forked operator process serves /metrics on (metricsPort in
+	// cmd/manager/main.go).
+	subcontrollerMetricsPortName       = "metrics"
+	subcontrollerMetricsPort     int32 = 8383
 )
 
 func (r *ReconcileVitessBackupStorage) reconcileSubcontroller(ctx context.Context, vbs *planetscalev2.VitessBackupStorage) (reconcile.Result, error) {
@@ -192,6 +198,10 @@ func (r *ReconcileVitessBackupStorage) newSubcontrollerPodSpec(ctx context.Conte
 		corev1.ResourceMemory: *resource.NewQuantity(subcontrollerMemoryBytes, resource.BinarySI),
 	}
 
+	// Declare the metrics port so Pod-based discovery, such as a
+	// Prometheus Operator PodMonitor, can select it by name.
+	setSubcontrollerMetricsPort(container)
+
 	// Add config for this specific backup storage location.
 	clusterName := vbs.Labels[planetscalev2.ClusterLabel]
 	backupFlags := vitessbackup.StorageFlags(&vbs.Spec.Location, clusterName)
@@ -201,6 +211,24 @@ func (r *ReconcileVitessBackupStorage) newSubcontrollerPodSpec(ctx context.Conte
 	update.Env(&container.Env, vitessbackup.StorageEnvVars(&vbs.Spec.Location))
 
 	return spec, nil
+}
+
+// setSubcontrollerMetricsPort declares the named metrics port on the
+// subcontroller container. Any port the forked operator container already
+// declares with the same name or number is replaced.
+func setSubcontrollerMetricsPort(container *corev1.Container) {
+	var ports []corev1.ContainerPort
+	for _, port := range container.Ports {
+		if port.Name == subcontrollerMetricsPortName || port.ContainerPort == subcontrollerMetricsPort {
+			continue
+		}
+		ports = append(ports, port)
+	}
+	container.Ports = append(ports, corev1.ContainerPort{
+		Name:          subcontrollerMetricsPortName,
+		ContainerPort: subcontrollerMetricsPort,
+		Protocol:      corev1.ProtocolTCP,
+	})
 }
 
 func updateSubcontrollerPod(pod *corev1.Pod, spec *corev1.PodSpec) {
