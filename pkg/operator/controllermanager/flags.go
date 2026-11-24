@@ -82,6 +82,9 @@ func InitFlags() {
 	vttabletFlags := servenv.GetFlagSetFor("vttablet")
 	tlsFlags := map[string]bool{
 		"tablet-manager-grpc-ca":          false,
+		"tablet-manager-grpc-cert":        false,
+		"tablet-manager-grpc-key":         false,
+		"tablet-manager-grpc-crl":         false,
 		"tablet-manager-grpc-server-name": false,
 		"topo-global-server-address":      false,
 		"topo-etcd-tls-ca":                false,
