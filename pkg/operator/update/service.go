@@ -33,14 +33,35 @@ func ServiceOverrides(svc *corev1.Service, so *planetscalev2.ServiceOverrides) {
 	if so.ClusterIP != "" {
 		svc.Spec.ClusterIP = so.ClusterIP
 	}
+	if so.Type != "" {
+		svc.Spec.Type = so.Type
+	}
+	if so.LoadBalancerIP != "" {
+		svc.Spec.LoadBalancerIP = so.LoadBalancerIP
+	}
+	if so.ExternalTrafficPolicy != "" {
+		svc.Spec.ExternalTrafficPolicy = so.ExternalTrafficPolicy
+	}
 }
 
 // InPlaceServiceOverrides applies only the overrides that are safe to update in-place.
+//
+// Service.Type can be changed in-place by Kubernetes (transitions between
+// ClusterIP / NodePort / LoadBalancer are supported), so it's applied here.
+// ExternalTrafficPolicy is similarly mutable.
+// ClusterIP and LoadBalancerIP are immutable on existing Services and are
+// therefore only applied at creation time (see ServiceOverrides above).
 func InPlaceServiceOverrides(svc *corev1.Service, so *planetscalev2.ServiceOverrides) {
 	if so == nil {
 		return
 	}
 	if len(so.Annotations) > 0 {
 		Annotations(&svc.Annotations, so.Annotations)
+	}
+	if so.Type != "" {
+		svc.Spec.Type = so.Type
+	}
+	if so.ExternalTrafficPolicy != "" {
+		svc.Spec.ExternalTrafficPolicy = so.ExternalTrafficPolicy
 	}
 }
