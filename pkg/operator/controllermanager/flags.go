@@ -43,6 +43,7 @@ func InitFlags() {
 		"s3-backup-storage-root":         false,
 		"s3-backup-force-path-style":     false,
 		"s3-backup-aws-endpoint":         false,
+		"s3-backup-aws-min-partsize":     false,
 	}
 
 	vtbackupFlags.VisitAll(func(f *pflag.Flag) {
